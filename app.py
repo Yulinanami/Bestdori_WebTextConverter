@@ -11,11 +11,16 @@ import tempfile
 import os
 from werkzeug.utils import secure_filename
 
+# 定义项目的绝对路径
+# 这行代码会自动获取当前 app.py 文件所在的目录
+project_root = os.path.dirname(os.path.abspath(__file__))
+
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+template_folder = os.path.join(project_root, 'templates')
+app = Flask(__name__, template_folder=template_folder)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = '/tmp' 
 
@@ -57,6 +62,12 @@ class ConfigManager:
     """配置管理器"""
     
     def __init__(self, config_path: str = "config.yaml"):
+        if not os.path.isabs(config_path):
+            config_path = os.path.join(project_root, config_path)
+        
+        self.config_path = Path(config_path)
+        self.config = self._load_config()
+        logger.info(f"ConfigManager using config file: {self.config_path}")
         self.config_path = Path(config_path)
         self.config = self._load_config()
     
