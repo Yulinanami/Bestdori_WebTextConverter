@@ -55,37 +55,9 @@ class ConversionResult:
 class ConfigManager:
     """配置管理器"""
     
-    # def __init__(self, config_path: str = "config.yaml"):
-    #     self.config_path = Path(config_path)
-    #     self.config = self._load_config()
-    
-    def __init__(self, config_path: str = None):
-        """
-        初始化配置管理器。
-        在 Render 环境中，会使用持久化磁盘路径 /etc/config/config.yaml。
-        在本地开发环境中，会使用项目根目录下的 config.yaml。
-        """
-        # Render 会自动设置 RENDER 环境变量。我们可以用它来判断环境。
-        if os.getenv('RENDER'):
-            # 这是 Render 的持久化磁盘挂载路径，我们将在后面设置它。
-            persistent_disk_path = '/etc/config'
-            
-            # 确保这个目录存在，如果不存在就创建它。
-            # 这在首次部署时非常重要。
-            Path(persistent_disk_path).mkdir(parents=True, exist_ok=True)
-            
-            # 最终的配置文件路径
-            final_path = os.path.join(persistent_disk_path, 'config.yaml')
-        else:
-            # 如果不在 Render 环境（即本地开发），就使用当前目录的 config.yaml
-            final_path = 'config.yaml'
-        
-        # 如果函数调用时传入了特定的 config_path，则优先使用它。
-        # 否则使用我们根据环境判断出的 final_path。
-        self.config_path = Path(config_path or final_path)
+    def __init__(self, config_path: str = "config.yaml"):
+        self.config_path = Path(config_path)
         self.config = self._load_config()
-        # 打印出最终使用的路径，方便调试
-        logger.info(f"ConfigManager is using config file at: {self.config_path}")   
     
     def _load_config(self) -> Dict[str, Any]:
         """加载配置文件"""
