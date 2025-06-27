@@ -68,8 +68,6 @@ class ConfigManager:
         self.config_path = Path(config_path)
         self.config = self._load_config()
         logger.info(f"ConfigManager using config file: {self.config_path}")
-        self.config_path = Path(config_path)
-        self.config = self._load_config()
     
     def _load_config(self) -> Dict[str, Any]:
         """加载配置文件"""
