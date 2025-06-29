@@ -1,3 +1,5 @@
+# --- START OF FILE app.py (MODIFIED) ---
+
 from flask import Flask, render_template, request, jsonify, send_file
 import json
 import re
@@ -98,7 +100,10 @@ class ConfigManager:
                 "default_narrator_name": " "
             },
             "patterns": {
-                "speaker_quoted": r'^([\w\s]+)\s*[：:]\s*[""](.*?)[""]$',
+                # <--- 修改开始 ---
+                # 修改此处的正则表达式以支持中英文引号 (“ " 和 ” ")
+                "speaker_quoted": r'^([\w\s]+)\s*[：:]\s*["“](.*?)[”"]$',
+                # <--- 修改结束 ---
                 "speaker_no_quotes": r'^([\w\s]+)\s*[：:]\s*(.*?)$'
             }
         }
@@ -191,7 +196,10 @@ class NarratorParser(DialogueParser):
     
     def can_parse(self, line: str) -> bool:
         stripped = line.strip()
-        return stripped.startswith(('"', '"')) and stripped.endswith(('"', '"'))
+        # <--- 修改开始 ---
+        # 修正笔误并添加对中文引号的支持
+        return stripped.startswith(('"', '“')) and stripped.endswith(('"', '”'))
+        # <--- 修改结束 ---
     
     def parse(self, line: str) -> Tuple[str, str]:
         stripped = line.strip()
