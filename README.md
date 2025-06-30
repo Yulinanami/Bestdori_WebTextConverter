@@ -3,7 +3,7 @@ Bestdori 网页文本转换器
 一个为 Bestdori 剧情设计的网页文本转换工具。
 
 项目介绍
-本工具提供了一套专门用于 Bestdori 的文本转换json功能。
+- 本工具提供了一套专门用于 Bestdori 的文本转换json功能。
 
 功能特性
 - 网页文本转换json工具
