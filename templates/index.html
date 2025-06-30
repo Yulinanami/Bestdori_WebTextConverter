@@ -15,7 +15,7 @@
         </div>
 
         <div class="main-content">
-            <!-- 文件上传区域 -->
+            <!-- 1. 文件上传区域 -->
             <div class="section">
                 <div class="section-title">📁 文件上传</div>
                 <div class="file-upload" id="fileUpload">
@@ -30,44 +30,51 @@
                 </div>
             </div>
 
-            <div class="section">
-                <div class="section-title">"..." 引号处理选项</div>
-                <p style="color: #718096; margin-bottom: 15px;">选择需要自动移除首尾引号的种类（可多选）</p>
-                <div id="quoteOptionsContainer" class="btn-group">
-                    <!-- JS将在这里动态填充复选框 -->
-                </div>
-            </div>
-            
-            <!-- 自定义引号对添加区域 -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                <p style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">添加自定义引号对：</p>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="customQuoteOpen" class="form-input" placeholder="起始符号" style="width: 100px;">
-                    <input type="text" id="customQuoteClose" class="form-input" placeholder="结束符号" style="width: 100px;">
-                    <button id="addCustomQuoteBtn" class="btn btn-secondary" style="flex-shrink: 0;">➕ 添加</button>
-                </div>
-            </div>
-
-            <!-- 文本输入区域 -->
+            <!-- 2. 文本输入区域 -->
             <div class="section">
                 <div class="section-title">✏️ 文本输入</div>
                 <div class="form-group">
                     <label class="form-label">输入对话文本：</label>
-<textarea class="form-input textarea" id="inputText" placeholder='请输入需要转换的对话文本...
-
-支持格式：
-角色名：对话内容
-角色名："对话内容"
-其余部分为旁白内容
-最好每个对话之间用一个空行分隔'></textarea>
+                    <textarea class="form-input textarea" id="inputText" placeholder='请输入需要转换的对话文本...'></textarea>
                 </div>
+            </div>
+            
+            <!-- 3. 新的、统一的处理选项区域 -->
+            <div class="section">
+                <div class="section-title">⚙️ 处理选项</div>
+                
+                <!-- 旁白名称 -->
                 <div class="form-group">
                     <label class="form-label">旁白名称（默认为空白）：</label>
                     <input type="text" class="form-input" id="narratorName" value=" " placeholder="设置旁白的名称">
                 </div>
+
+                <!-- 分隔线 -->
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+
+                <!-- 引号处理 -->
+                <div>
+                    <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px;">引号处理</p>
+                    <p style="color: #718096; margin-bottom: 15px;">选择或添加需要自动移除首尾引号的种类</p>
+                    
+                    <!-- 预设引号选项 -->
+                    <div id="quoteOptionsContainer" class="btn-group" style="margin-bottom: 20px;">
+                        <!-- JS将在这里动态填充复选框 -->
+                    </div>
+                    
+                    <!-- 自定义引号选项 -->
+                    <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0;">
+                         <p style="font-weight: 500; color: #4a5568; margin-bottom: 10px;">添加自定义引号对：</p>
+                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                             <input type="text" id="customQuoteOpen" class="form-input" placeholder="起始符号" style="width: 100px; flex-grow: 0;">
+                             <input type="text" id="customQuoteClose" class="form-input" placeholder="结束符号" style="width: 100px; flex-grow: 0;">
+                             <button id="addCustomQuoteBtn" class="btn btn-secondary" style="flex-shrink: 0;">➕ 添加</button>
+                         </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- 操作按钮 -->
+            <!-- 4. 操作按钮 -->
             <div class="section">
                 <div class="section-title">⚡ 操作</div>
                 <div class="btn-group">
