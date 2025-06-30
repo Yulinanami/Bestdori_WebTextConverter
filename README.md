@@ -1,4 +1,3 @@
-```markdown
 Bestdori 网页文本转换器
 
 一个为 Bestdori 剧情设计的网页文本转换工具。
