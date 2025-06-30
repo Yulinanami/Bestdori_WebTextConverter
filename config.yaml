@@ -91,11 +91,9 @@ character_mapping:
   - 36
 parsing:
   default_narrator_name: ' '
-  max_short_speaker_name_length: 6
   max_speaker_name_length: 50
 patterns:
-  speaker_no_quotes: ^([\w\s]+)\s*[：:]\s*(.*?)$
-  speaker_quoted: ^([\w\s]+)\s*[：:]\s*["“](.*?)[”"]$
+  speaker_pattern: ^([\w\s]+)\s*[：:]\s*(.*)$
 quotes:
   quote_categories:
     中文单引号 ‘...’:
