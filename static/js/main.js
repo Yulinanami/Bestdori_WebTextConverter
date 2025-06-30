@@ -18,12 +18,55 @@ function initializeApp() {
     document.getElementById('downloadBtn').addEventListener('click', downloadResult);
     document.getElementById('addConfigBtn').addEventListener('click', addConfigItem);
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+    document.getElementById('addCustomQuoteBtn').addEventListener('click', addCustomQuoteOption);
 
     // 文件拖拽功能
     setupFileDragDrop();
     
     // 加载配置
     loadConfig();
+}
+
+function addCustomQuoteOption() {
+    const openChar = document.getElementById('customQuoteOpen').value;
+    const closeChar = document.getElementById('customQuoteClose').value;
+
+    if (!openChar || !closeChar) {
+        showStatus('起始和结束符号都不能为空！', 'error');
+        return;
+    }
+    
+    // 创建一个新的复选框和标签
+    const categoryName = `${openChar}...${closeChar}`;
+    const checkboxId = `quote-check-custom-${Date.now()}`; // 用时间戳确保ID唯一
+    const container = document.getElementById('quoteOptionsContainer');
+
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = checkboxId;
+    // 使用 dataset 来存储实际的引号字符，这非常重要！
+    checkbox.dataset.open = openChar;
+    checkbox.dataset.close = closeChar;
+    checkbox.className = 'quote-option-checkbox'; // 保持统一的类名
+    checkbox.checked = true; // 新添加的默认选中
+    
+    const label = document.createElement('label');
+    label.htmlFor = checkboxId;
+    label.textContent = categoryName;
+    label.style.marginLeft = '8px';
+    label.style.cursor = 'pointer';
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+    container.appendChild(wrapper);
+
+    // 清空输入框以便下次输入
+    document.getElementById('customQuoteOpen').value = '';
+    document.getElementById('customQuoteClose').value = '';
 }
 
 function setupFileDragDrop() {
@@ -101,39 +144,49 @@ async function convertText() {
         return;
     }
 
-    // 获取用户选择的引号种类
-    const selectedQuotes = getSelectedQuotes();
+    // 获取用户选择的引号对数组
+    const selectedQuotePairs = getSelectedQuotes();
 
-    // ... (按钮状态更新等逻辑不变)
     const convertBtn = document.getElementById('convertBtn');
     const convertIcon = document.getElementById('convertIcon');
     const convertTextEl = document.getElementById('convertText');
 
     try {
+        // 更新按钮状态
         convertBtn.disabled = true;
         convertIcon.innerHTML = '<div class="loading"></div>';
         convertTextEl.textContent = '转换中...';
-        showProgress(10);
 
+        showProgress(10);
+        showStatus('正在处理文本...', 'info');
+
+        // 发起API请求，将新的数据结构发送给后端
         const response = await axios.post('/api/convert', {
             text: inputText,
             narrator_name: narratorName,
-            selected_quotes: selectedQuotes // 将选择发送给后端
+            selected_quote_pairs: selectedQuotePairs // 使用新的键和数据格式
         });
 
-        // ... (处理成功响应的逻辑不变)
+        // 处理成功响应
         showProgress(100);
         currentResult = response.data.result;
+        
         document.getElementById('resultContent').textContent = currentResult;
         document.getElementById('resultSection').style.display = 'block';
+        
         showStatus('转换完成！', 'success');
+        
+        // 滚动到结果区域
         document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+
         setTimeout(() => hideProgress(), 1000);
 
     } catch (error) {
+        // 处理错误
         showStatus(`转换失败: ${error.response?.data?.error || error.message}`, 'error');
         hideProgress();
     } finally {
+        // 恢复按钮状态
         convertBtn.disabled = false;
         convertIcon.textContent = '🔄';
         convertTextEl.textContent = '开始转换';
@@ -142,23 +195,30 @@ async function convertText() {
 
 function previewResult() {
     const inputText = document.getElementById('inputText').value.trim();
+    
     if (!inputText) {
         showStatus('请先输入要转换的文本！', 'error');
         return;
     }
 
-    const previewText = inputText.substring(0, 500);
+    // 截取预览文本
+    const previewText = inputText.substring(0, 500) + (inputText.length > 500 ? '...' : '');
     const narratorName = document.getElementById('narratorName').value || ' ';
-    const selectedQuotes = getSelectedQuotes(); // 同样获取选择
+    
+    // 同样获取用户选择的引号对数组
+    const selectedQuotePairs = getSelectedQuotes(); 
 
+    // 发起API请求，将新的数据结构发送给后端
     axios.post('/api/convert', {
         text: previewText,
         narrator_name: narratorName,
-        selected_quotes: selectedQuotes // 发送选择
+        selected_quote_pairs: selectedQuotePairs // 使用新的键和数据格式
     }).then(response => {
+        // 处理成功响应
         document.getElementById('previewContent').textContent = response.data.result;
-        document.getElementById('previewModal').style.display = 'block';
+        openModal('previewModal'); // 使用 openModal 函数打开模态框
     }).catch(error => {
+        // 处理错误
         showStatus(`预览失败: ${error.response?.data?.error || error.message}`, 'error');
     });
 }
@@ -177,16 +237,12 @@ async function loadConfig() {
 
 function renderQuoteOptions() {
     const container = document.getElementById('quoteOptionsContainer');
-    container.innerHTML = ''; // 清空旧选项
+    container.innerHTML = '';
     
-    if (!quotesConfig || !quotesConfig.quote_categories) {
-        container.textContent = '无法加载引号配置。';
-        return;
-    }
+    if (!quotesConfig || !quotesConfig.quote_categories) return;
 
-    Object.keys(quotesConfig.quote_categories).forEach(categoryName => {
+    Object.entries(quotesConfig.quote_categories).forEach(([categoryName, chars]) => {
         const checkboxId = `quote-check-${categoryName.replace(/\s/g, '-')}`;
-        
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
@@ -196,7 +252,10 @@ function renderQuoteOptions() {
         checkbox.id = checkboxId;
         checkbox.className = 'quote-option-checkbox';
         checkbox.value = categoryName;
-        checkbox.checked = true; // 默认全部选中
+        // 关键：将预设的引号也存入 dataset
+        checkbox.dataset.open = chars[0];
+        checkbox.dataset.close = chars[1];
+        checkbox.checked = true;
         
         const label = document.createElement('label');
         label.htmlFor = checkboxId;
@@ -211,11 +270,17 @@ function renderQuoteOptions() {
 }
 
 function getSelectedQuotes() {
-    const selected = [];
+    const selectedPairs = [];
+    // 遍历所有选中的复选框，无论是预设的还是自定义的
     document.querySelectorAll('.quote-option-checkbox:checked').forEach(checkbox => {
-        selected.push(checkbox.value);
+        // 从 dataset 中读取起始和结束符号
+        const openChar = checkbox.dataset.open;
+        const closeChar = checkbox.dataset.close;
+        if (openChar && closeChar) {
+            selectedPairs.push([openChar, closeChar]);
+        }
     });
-    return selected;
+    return selectedPairs;
 }
 
 function openConfigModal() {

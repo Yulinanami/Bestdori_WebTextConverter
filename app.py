@@ -217,12 +217,12 @@ class TextConverter:
         )
         self.quote_handler = QuoteHandler()
 
-    def convert_text_to_json_format(self, input_text: str, narrator_name: str, selected_quote_categories: List[str]) -> str:
-        all_quote_categories = self.config_manager.get_quotes_config().get("quote_categories", {})
+    def convert_text_to_json_format(self, input_text: str, narrator_name: str, selected_quote_pairs_list: List[List[str]]) -> str:
+        # 直接根据传入的列表构建 active_quote_pairs 字典
         active_quote_pairs = {
-            chars[0]: chars[1]
-            for category, chars in all_quote_categories.items()
-            if category in selected_quote_categories and len(chars) == 2
+            pair[0]: pair[1]
+            for pair in selected_quote_pairs_list
+            if isinstance(pair, list) and len(pair) == 2
         }
         
         actions = []
@@ -279,13 +279,14 @@ def convert_text():
         data = request.get_json()
         input_text = data.get('text', '')
         narrator_name = data.get('narrator_name', ' ')
-        # 接收前端传来的引号种类列表
-        selected_quotes = data.get('selected_quotes', [])
+        # 接收前端传来的引号对列表，例如 [['“', '”']]
+        selected_pairs = data.get('selected_quote_pairs', [])
         
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
         
-        result = converter.convert_text_to_json_format(input_text, narrator_name, selected_quotes)
+        # 将引号对列表直接传递给转换器
+        result = converter.convert_text_to_json_format(input_text, narrator_name, selected_pairs)
         return jsonify({'result': result})
     except Exception as e:
         logger.error(f"转换失败: {e}", exc_info=True)
