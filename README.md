@@ -47,7 +47,7 @@ python app.py
 python3 app.py
 ```
 
-你也可以通过网页来访问这个工具
+如果你不想要本地部署，也可以通过网页来访问这个工具
 ```bash
 https://excrain233.pythonanywhere.com/
 ```
