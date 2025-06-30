@@ -72,13 +72,28 @@ class ConfigManager:
 
     def _load_config(self) -> Dict[str, Any]:
         default_config = {
-            "character_mapping": {"高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40]},
-            "parsing": {"max_speaker_name_length": 50, "default_narrator_name": " "},
-            "patterns": {"speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$'},
+            "character_mapping": {
+                # MyGo
+                "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40]
+            },
+            "parsing": {
+                "max_speaker_name_length": 50, 
+                "default_narrator_name": " "
+            },
+            "patterns": {
+                "speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$'
+            },
             "quotes": {
-                "quote_pairs": {'"': '"', '“': '”', "'": "'", '‘': '’', "「": "」", "『": "』"},
+                "quote_pairs": {
+                    '"': '"', '“': '”', "'": "'", '‘': '’', "「": "」", "『": "』"
+                },
                 "quote_categories": {
-                    "中文引号 “...”": ["“", "”"], "日文引号 「...」": ["「", "」"], "英文双引号 \"...\"": ['"', '"']
+                    "中文引号 “...”": ["“", "”"],
+                    "中文单引号 ‘...’": ["‘", "’"],
+                    "日文引号 「...」": ["「", "」"],
+                    "日文书名号 『...』": ["『", "』"],
+                    "英文双引号 \"...\"": ['"', '"'],
+                    "英文单引号 '...'": ["'", "'"]
                 }
             }
         }
@@ -88,12 +103,21 @@ class ConfigManager:
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 loaded_config = yaml.safe_load(f) or default_config
-                if "quote_categories" not in loaded_config.get("quotes", {}):
+                # 检查并更新旧配置
+                quotes_section = loaded_config.get("quotes", {})
+                if "quote_categories" not in quotes_section or len(quotes_section["quote_categories"]) < 6:
+                    logger.warning("旧的或不完整的引号配置，将使用最新的默认配置进行更新。")
                     loaded_config["quotes"] = default_config["quotes"]
                     self._save_config(loaded_config)
                 return loaded_config
         except Exception as e:
             logger.warning(f"配置文件加载失败: {e}"); return default_config
+
+    def _save_config(self, config: Dict[str, Any]):
+        try:
+            with open(self.config_path, 'w', encoding='utf-8') as f:
+                yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        except Exception as e: logger.error(f"配置文件保存失败: {e}")
 
     def _save_config(self, config: Dict[str, Any]):
         try:
