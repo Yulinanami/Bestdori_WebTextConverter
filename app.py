@@ -1,4 +1,4 @@
-# --- START OF FILE app.py (MODIFIED) ---
+# --- START OF FILE app.py (CORRECTED) ---
 
 from flask import Flask, render_template, request, jsonify, send_file
 import json
@@ -14,7 +14,6 @@ import os
 from werkzeug.utils import secure_filename
 
 # 定义项目的绝对路径
-# 这行代码会自动获取当前 app.py 文件所在的目录
 project_root = os.path.dirname(os.path.abspath(__file__))
 
 # 配置日志
@@ -22,7 +21,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 template_folder = os.path.join(project_root, 'templates')
-app = Flask(__name__, template_folder=template_folder)
+# --- 唯一的修改：明确指定 static 文件夹以支持分离的 CSS/JS ---
+static_folder = os.path.join(project_root, 'static')
+app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = '/tmp' 
 
@@ -100,10 +102,7 @@ class ConfigManager:
                 "default_narrator_name": " "
             },
             "patterns": {
-                # <--- 修改开始 ---
-                # 修改此处的正则表达式以支持中英文引号 (“ " 和 ” ")
                 "speaker_quoted": r'^([\w\s]+)\s*[：:]\s*["“](.*?)[”"]$',
-                # <--- 修改结束 ---
                 "speaker_no_quotes": r'^([\w\s]+)\s*[：:]\s*(.*?)$'
             }
         }
@@ -196,10 +195,7 @@ class NarratorParser(DialogueParser):
     
     def can_parse(self, line: str) -> bool:
         stripped = line.strip()
-        # <--- 修改开始 ---
-        # 修正笔误并添加对中文引号的支持
         return stripped.startswith(('"', '“')) and stripped.endswith(('"', '”'))
-        # <--- 修改结束 ---
     
     def parse(self, line: str) -> Tuple[str, str]:
         stripped = line.strip()
@@ -255,20 +251,17 @@ class TextConverter:
         for line in input_text.split('\n'):
             stripped_line = line.strip()
             
-            # 空行处理
             if not stripped_line:
                 finalize_current_action()
                 current_action_name = narrator_name
                 current_action_body_lines = []
                 continue
             
-            # 尝试解析对话
             parsed = False
             for parser in self.parsers + [narrator_parser]:
                 if parser.can_parse(stripped_line):
                     speaker, content = parser.parse(stripped_line)
                     
-                    # 如果是新的说话人，完成当前动作块
                     if speaker != current_action_name and current_action_body_lines:
                         finalize_current_action()
                         current_action_body_lines = []
@@ -279,19 +272,15 @@ class TextConverter:
                     parsed = True
                     break
             
-            # 如果没有匹配的解析器，作为普通文本处理
             if not parsed:
                 if not current_action_body_lines:
                     current_action_name = narrator_name
                 current_action_body_lines.append(line.rstrip())
         
-        # 处理最后一个动作块
         finalize_current_action()
         
-        # 创建结果对象
         result = ConversionResult(actions=actions)
         
-        # 转换为字典并序列化为JSON
         result_dict = asdict(result)
         return json.dumps(result_dict, ensure_ascii=False, indent=2)
 
@@ -315,7 +304,6 @@ def convert_text():
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
         
-        # 执行转换
         result = converter.convert_text_to_json_format(input_text, narrator_name)
         
         return jsonify({'result': result})
@@ -336,7 +324,6 @@ def upload_file():
             return jsonify({'error': '没有选择文件'}), 400
         
         if file and file.filename.lower().endswith('.txt'):
-            # 读取文件内容
             content = file.read().decode('utf-8')
             return jsonify({'content': content})
         else:
@@ -354,7 +341,6 @@ def download_result():
         content = data.get('content', '')
         filename = data.get('filename', 'result.json')
         
-        # 创建临时文件
         temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8')
         temp_file.write(content)
         temp_file.close()
@@ -389,13 +375,11 @@ def update_config():
         data = request.get_json()
         character_mapping = data.get('character_mapping', {})
         
-        # 验证配置格式
         validated_mapping = {}
         for name, ids in character_mapping.items():
             if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
                 validated_mapping[name] = ids
         
-        # 更新配置
         config_manager.update_character_mapping(validated_mapping)
         converter.character_mapping = validated_mapping
         
