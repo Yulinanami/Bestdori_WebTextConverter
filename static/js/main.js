@@ -165,26 +165,31 @@ function pollBatchStatus(taskId) {
 }
 
 function openBatchModal() {
-    // 重置文件选择
+    // 重置文件选择UI
     document.getElementById('batchFileInput').value = '';
     const fileList = document.getElementById('batchFileList');
     if(fileList) fileList.innerHTML = '';
 
-    // 隐藏进度和日志区域
-    document.getElementById('batchProgressSection').style.display = 'none';
-    document.getElementById('batchLogSection').style.display = 'none';
+    // --- 解决方案：重置进度条和状态文本 ---
+    const progressSection = document.getElementById('batchProgressSection');
+    const logSection = document.getElementById('batchLogSection');
+    const progressBar = document.getElementById('batchProgressBar');
+    const statusText = document.getElementById('batchStatusText');
     
-    // 隐藏下载按钮
+    progressSection.style.display = 'none'; // 隐藏整个进度区域
+    logSection.style.display = 'none';       // 隐藏日志区域
+    progressBar.style.width = '0%';          // 进度条归零
+    statusText.textContent = '正在处理...';   // 恢复默认状态文本
+
+    // 重置按钮状态
     document.getElementById('downloadBatchResultBtn').style.display = 'none';
-
-    // --- 核心修复：重置“开始”和“取消”按钮的状态 ---
     const startBtn = document.getElementById('startBatchBtn');
-    startBtn.style.display = 'inline-flex'; // 确保“开始”按钮可见
-    startBtn.disabled = true;                // 初始时禁用，直到用户选择文件
-    startBtn.innerHTML = '开始批量转换';      // 恢复文本
+    startBtn.style.display = 'inline-flex';
+    startBtn.disabled = true;
+    startBtn.innerHTML = '开始批量转换';
 
-    const cancelBtn = document.querySelector('#batchConvertModal .btn-secondary');
-    if(cancelBtn) cancelBtn.style.display = 'inline-flex'; // 确保“取消”按钮可见
+    const cancelBtn = document.querySelector('#batchConvertModal .btn-secondary[onclick*="batchConvertModal"]');
+    if(cancelBtn) cancelBtn.style.display = 'inline-flex';
 
     // 重置数据
     batchFiles = [];
@@ -193,6 +198,7 @@ function openBatchModal() {
     // 打开模态框
     openModal('batchConvertModal');
 }
+
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
