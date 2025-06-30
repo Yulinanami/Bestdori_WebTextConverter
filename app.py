@@ -1,5 +1,3 @@
-# --- START OF FILE app.py (FINAL CORRECTED VERSION) ---
-
 from flask import Flask, render_template, request, jsonify, send_file
 import json
 import re
@@ -12,6 +10,10 @@ import yaml
 import tempfile
 import os
 from werkzeug.utils import secure_filename
+# --- 新增导入 ---
+import uuid
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -195,7 +197,38 @@ class TextConverter:
 config_manager = ConfigManager()
 converter = TextConverter(config_manager)
 
-# --- (所有API路由代码无需修改，保持原样即可) ---
+# --- 新增：任务管理 ---
+batch_tasks = {} # 用于存储所有批量任务的状态
+executor = ThreadPoolExecutor(max_workers=2) # 线程池，用于在后台执行批量任务
+
+def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, selected_quote_pairs: List[List[str]]):
+    """在后台线程中运行的批量转换函数"""
+    total_files = len(files_data)
+    task = batch_tasks[task_id]
+    
+    for i, file_data in enumerate(files_data):
+        filename = file_data.get('name', 'unknown.txt')
+        content = file_data.get('content', '')
+        
+        # 更新任务状态
+        task['progress'] = (i / total_files) * 100
+        task['status_text'] = f"正在处理 ({i+1}/{total_files}): {filename}"
+        task['logs'].append(f"[INFO] 开始处理: {filename}")
+
+        try:
+            json_output = converter.convert_text_to_json_format(content, narrator_name, selected_quote_pairs)
+            task['results'].append({'name': Path(filename).with_suffix('.json').name, 'content': json_output})
+            task['logs'].append(f"[SUCCESS] 处理成功: {filename}")
+        except Exception as e:
+            error_msg = f"处理失败: {filename} - {e}"
+            task['logs'].append(f"[ERROR] {error_msg}")
+            task['errors'].append(error_msg)
+
+    task['progress'] = 100
+    task['status_text'] = f"处理完成！成功: {len(task['results'])}, 失败: {len(task['errors'])}."
+    task['status'] = 'completed'
+    task['logs'].append(f"[INFO] {task['status_text']}")
+
 @app.route('/')
 def index(): return render_template('index.html')
 
@@ -213,6 +246,58 @@ def convert_text():
     except Exception as e:
         logger.error(f"转换失败: {e}", exc_info=True)
         return jsonify({'error': f'转换失败: {str(e)}'}), 500
+
+@app.route('/api/batch_convert/status/<task_id>', methods=['GET'])
+def get_batch_status(task_id):
+    task = batch_tasks.get(task_id)
+    if not task:
+        return jsonify({'error': '未找到该任务'}), 404
+    
+    # 为了减少数据传输，通常只返回状态和进度，结果在完成后一次性获取或分块获取
+    response_data = {
+        'status': task['status'],
+        'progress': task['progress'],
+        'status_text': task['status_text'],
+        'logs': task['logs']
+    }
+    
+    # 如果任务完成，附上结果
+    if task['status'] == 'completed':
+        response_data['results'] = task['results']
+        response_data['errors'] = task['errors']
+        # (可选) 在一段时间后从内存中移除已完成的任务，以防内存泄漏
+        threading.Timer(300, lambda: batch_tasks.pop(task_id, None)).start()
+
+    return jsonify(response_data)
+# --- 新增：批量处理相关接口 ---
+@app.route('/api/batch_convert/start', methods=['POST'])
+def start_batch_conversion():
+    try:
+        data = request.get_json()
+        files_data = data.get('files', [])
+        narrator_name = data.get('narrator_name', ' ')
+        selected_quote_pairs = data.get('selected_quote_pairs', [])
+
+        if not files_data:
+            return jsonify({'error': '没有提供任何文件'}), 400
+
+        task_id = str(uuid.uuid4())
+        batch_tasks[task_id] = {
+            'status': 'running',
+            'progress': 0,
+            'status_text': '正在准备...',
+            'logs': [],
+            'results': [],
+            'errors': []
+        }
+
+        # 使用线程池在后台执行任务
+        executor.submit(run_batch_task, task_id, files_data, narrator_name, selected_quote_pairs)
+        
+        return jsonify({'task_id': task_id})
+    except Exception as e:
+        logger.error(f"启动批量转换失败: {e}", exc_info=True)
+        return jsonify({'error': f'启动批量转换失败: {str(e)}'}), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -250,7 +335,7 @@ def get_config():
 def update_config():
     try:
         data = request.get_json(); character_mapping = data.get('character_mapping', {})
-        validated_mapping = {};
+        validated_mapping = {}
         for name, ids in character_mapping.items():
             if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
                 validated_mapping[name] = ids

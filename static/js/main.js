@@ -1,16 +1,15 @@
-// --- START OF FILE static/js/main.js (FULL, UNCOMPRESSED, CORRECTED) ---
+// --- START OF FILE main.js (FINAL CORRECTED VERSION) ---
 
 let currentResult = '';
 let currentConfig = {};
 let quotesConfig = {};
+let batchFiles = []; // 存储用户选择的批量文件
+let batchResults = []; // 存储批量处理的结果
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
-    // 绑定事件监听器
+    // 为所有按钮绑定事件监听
     document.getElementById('fileInput').addEventListener('change', handleFileUpload);
     document.getElementById('convertBtn').addEventListener('click', convertText);
     document.getElementById('previewBtn').addEventListener('click', previewResult);
@@ -20,18 +19,183 @@ function initializeApp() {
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
     document.getElementById('addCustomQuoteBtn').addEventListener('click', addCustomQuoteOption);
 
-    // 文件拖拽功能
+    const batchProcessBtn = document.getElementById('batchProcessBtn');
+    if (batchProcessBtn) {
+        batchProcessBtn.addEventListener('click', openBatchModal);
+    }
+    document.getElementById('batchFileInput').addEventListener('change', updateBatchFileList);
+    document.getElementById('startBatchBtn').addEventListener('click', startBatchConversion);
+    document.getElementById('downloadBatchResultBtn').addEventListener('click', handleBatchDownload);
+
     setupFileDragDrop();
-    
-    // 加载配置
     loadConfig();
 }
 
-// --- 解决方案：创建 openModal 和 closeModal 函数 ---
+function updateBatchFileList() {
+    const fileInput = document.getElementById('batchFileInput');
+    const fileList = document.getElementById('batchFileList');
+    fileList.innerHTML = '';
+    batchFiles = Array.from(fileInput.files);
+    
+    if (batchFiles.length > 0) {
+        batchFiles.forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            fileList.appendChild(li);
+        });
+        document.getElementById('startBatchBtn').disabled = false;
+    } else {
+        document.getElementById('startBatchBtn').disabled = true;
+    }
+}
+
+// --- 新增：批量下载处理函数 ---
+function handleBatchDownload() {
+    if (batchResults.length === 0) {
+        showStatus('没有可下载的批量处理结果！', 'error');
+        return;
+    }
+
+    const zip = new JSZip();
+    
+    // 将每个JSON结果添加到zip文件中
+    batchResults.forEach(result => {
+        zip.file(result.name, result.content);
+    });
+
+    // 生成zip文件并触发下载
+    zip.generateAsync({ type: "blob" })
+        .then(function(content) {
+            const filename = `batch_results_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.zip`;
+            saveAs(content, filename); // 使用 FileSaver.js 保存文件
+            showStatus('结果已打包下载！', 'success');
+        })
+        .catch(err => {
+            showStatus(`打包下载失败: ${err.message}`, 'error');
+        });
+}
+
+async function startBatchConversion() {
+    if (batchFiles.length === 0) {
+        showStatus('请先选择文件！', 'error');
+        return;
+    }
+
+    const startBtn = document.getElementById('startBatchBtn');
+    startBtn.disabled = true;
+    startBtn.innerHTML = '<div class="loading"></div> 上传并准备中...';
+
+    try {
+        const filesData = await Promise.all(
+            batchFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve({ name: file.name, content: reader.result });
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
+            })
+        );
+
+        startBtn.style.display = 'none';
+        document.getElementById('batchProgressSection').style.display = 'block';
+        document.getElementById('batchLogSection').style.display = 'block';
+        document.getElementById('batchLogOutput').innerHTML = ''; // 清空旧日志
+
+        const narratorName = document.getElementById('narratorName').value || ' ';
+        const selectedQuotePairs = getSelectedQuotes();
+
+        const response = await axios.post('/api/batch_convert/start', {
+            files: filesData,
+            narrator_name: narratorName,
+            selected_quote_pairs: selectedQuotePairs
+        });
+
+        const { task_id } = response.data;
+        if (task_id) {
+            pollBatchStatus(task_id);
+        } else {
+            throw new Error("未能从服务器获取任务ID。");
+        }
+    } catch (error) {
+        showStatus(`启动批量处理失败: ${error.response?.data?.error || error.message}`, 'error');
+        // 发生错误时重置UI
+        startBtn.disabled = false;
+        startBtn.innerHTML = '开始批量转换';
+        startBtn.style.display = 'inline-flex';
+        document.getElementById('batchProgressSection').style.display = 'none';
+        document.getElementById('batchLogSection').style.display = 'none';
+    }
+}
+
+function pollBatchStatus(taskId) {
+    const intervalId = setInterval(async () => {
+        try {
+            const response = await axios.get(`/api/batch_convert/status/${taskId}`);
+            const data = response.data;
+
+            // 更新UI
+            document.getElementById('batchProgressBar').style.width = `${data.progress}%`;
+            document.getElementById('batchStatusText').textContent = data.status_text;
+            const logOutput = document.getElementById('batchLogOutput');
+            logOutput.innerHTML = data.logs.join('<br>');
+            logOutput.scrollTop = logOutput.scrollHeight;
+
+            if (data.status === 'completed') {
+                clearInterval(intervalId);
+                
+                batchResults = data.results || [];
+                
+                if (batchResults.length > 0) {
+                    document.getElementById('downloadBatchResultBtn').style.display = 'inline-flex';
+                }
+                
+                // --- 新增：任务完成后，隐藏“取消”按钮，让界面更干净 ---
+                const cancelBtn = document.querySelector('#batchConvertModal .btn-secondary');
+                if(cancelBtn) cancelBtn.style.display = 'none';
+                
+                showStatus('批量处理完成！', 'success');
+            }
+        } catch (error) {
+            clearInterval(intervalId);
+            document.getElementById('batchStatusText').textContent = '轮询状态失败，任务可能已在后台完成或中断。';
+            showStatus(`获取处理状态失败: ${error.message}`, 'error');
+        }
+    }, 1500);
+}
+
+function openBatchModal() {
+    // 重置文件选择
+    document.getElementById('batchFileInput').value = '';
+    const fileList = document.getElementById('batchFileList');
+    if(fileList) fileList.innerHTML = '';
+
+    // 隐藏进度和日志区域
+    document.getElementById('batchProgressSection').style.display = 'none';
+    document.getElementById('batchLogSection').style.display = 'none';
+    
+    // 隐藏下载按钮
+    document.getElementById('downloadBatchResultBtn').style.display = 'none';
+
+    // --- 核心修复：重置“开始”和“取消”按钮的状态 ---
+    const startBtn = document.getElementById('startBatchBtn');
+    startBtn.style.display = 'inline-flex'; // 确保“开始”按钮可见
+    startBtn.disabled = true;                // 初始时禁用，直到用户选择文件
+    startBtn.innerHTML = '开始批量转换';      // 恢复文本
+
+    const cancelBtn = document.querySelector('#batchConvertModal .btn-secondary');
+    if(cancelBtn) cancelBtn.style.display = 'inline-flex'; // 确保“取消”按钮可见
+
+    // 重置数据
+    batchFiles = [];
+    batchResults = [];
+    
+    // 打开模态框
+    openModal('batchConvertModal');
+}
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        // 使用 flex 以便模态框内容居中（根据 CSS）
         modal.style.display = 'flex';
     }
 }

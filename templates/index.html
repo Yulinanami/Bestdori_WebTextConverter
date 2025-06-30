@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bestdori剧情文本转JSON转换器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -88,6 +90,9 @@
                     <button class="btn btn-secondary" id="configBtn">
                         ⚙️ 配置管理
                     </button>
+                    <button class="btn btn-secondary" id="batchProcessBtn">
+                        📦 批量处理
+                    </button>
                 </div>
 
                 <!-- 进度条 -->
@@ -145,6 +150,46 @@
             </div>
         </div>
     </div>
+
+    <!-- 批量处理模态框 -->
+    <div class="modal" id="batchConvertModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">批量处理文件</div>
+                <button class="modal-close" onclick="closeModal('batchConvertModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 文件选择区域 -->
+                <div class="form-group">
+                    <label class="form-label">选择一个或多个.txt文件进行批量转换:</label>
+                    <input type="file" id="batchFileInput" class="form-input" multiple accept=".txt">
+                    <ul id="batchFileList" style="list-style-type: none; margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
+                </div>
+
+                <!-- 进度显示区域 -->
+                <div class="form-group" id="batchProgressSection" style="display: none;">
+                    <label class="form-label" id="batchStatusText">正在处理...</label>
+                    <div class="progress-bar" style="height: 12px;">
+                        <div class="progress-fill" id="batchProgressBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- 日志输出区域 -->
+                <div class="form-group" id="batchLogSection" style="display: none;">
+                    <label class="form-label">处理日志:</label>
+                    <div id="batchLogOutput" class="result-content" style="max-height: 200px; font-size: 0.8rem; background: #f7fafc; color: #4a5568;"></div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div style="text-align: right;">
+                    <button class="btn btn-secondary" onclick="closeModal('batchConvertModal')" style="margin-right: 10px;">取消</button>
+                    <button class="btn btn-primary" id="startBatchBtn">开始批量转换</button>
+                    <button class="btn btn-success" id="downloadBatchResultBtn" style="display: none;">下载全部结果(.zip)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
