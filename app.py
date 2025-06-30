@@ -63,95 +63,72 @@ class ConversionResult:
             self.actions = []
 
 class ConfigManager:
-    """配置管理器"""
-    
     def __init__(self, config_path: str = "config.yaml"):
         if not os.path.isabs(config_path):
             config_path = os.path.join(project_root, config_path)
-        
         self.config_path = Path(config_path)
         self.config = self._load_config()
         logger.info(f"ConfigManager using config file: {self.config_path}")
-    
+
     def _load_config(self) -> Dict[str, Any]:
-        """加载配置文件"""
         default_config = {
-            "character_mapping": {
-                # Poppin'Party
-                "户山香澄": [1], "花园多惠": [2], "牛込里美": [3], "山吹沙绫": [4], "市谷有咲": [5],
-                # Afterglow
-                "美竹兰": [6], "青叶摩卡": [7], "上原绯玛丽": [8], "宇田川巴": [9], "羽泽鸫": [10],
-                # Hello, Happy World!
-                "弦卷心": [11], "濑田薰": [12], "北泽育美": [13], "松原花音": [14], "奥泽美咲": [15],
-                # Pastel*Palettes
-                "丸山彩": [16], "冰川日菜": [17], "白鹭千圣": [18], "大和麻弥": [19], "若宫伊芙": [20],
-                # Roselia
-                "凑友希那": [21], "冰川纱夜": [22], "今井莉莎": [23], "宇田川亚子": [24], "白金燐子": [25],
-                # Morfonica
-                "仓田真白": [26], "桐谷透子": [27], "广町七深": [28], "二叶筑紫": [29], "八潮瑠唯": [30],
-                # RAISE A SUILEN
-                "LAYER": [31], "LOCK": [32], "MASKING": [33], "PAREO": [34], "CHU²": [35],
-                # mujica
-                "丰川祥子": [1], "若叶睦": [2], "三角初华": [3], "八幡海铃": [4], "祐天寺若麦": [5],
-                # MyGo
-                "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40]
-            },
-            "parsing": {
-                "max_speaker_name_length": 50,
-                "max_short_speaker_name_length": 6,
-                "default_narrator_name": " "
-            },
-            "patterns": {
-                "speaker_quoted": r'^([\w\s]+)\s*[：:]\s*["“](.*?)[”"]$',
-                "speaker_no_quotes": r'^([\w\s]+)\s*[：:]\s*(.*?)$'
+            "character_mapping": {"高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40]},
+            "parsing": {"max_speaker_name_length": 50, "default_narrator_name": " "},
+            "patterns": {"speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$'},
+            "quotes": {
+                "quote_pairs": {'"': '"', '“': '”', "'": "'", '‘': '’', "「": "」", "『": "』"},
+                "quote_categories": {
+                    "中文引号 “...”": ["“", "”"], "日文引号 「...」": ["「", "」"], "英文双引号 \"...\"": ['"', '"']
+                }
             }
         }
-        
         if not self.config_path.exists():
             self._save_config(default_config)
             return default_config
-        
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f) or default_config
+                loaded_config = yaml.safe_load(f) or default_config
+                if "quote_categories" not in loaded_config.get("quotes", {}):
+                    loaded_config["quotes"] = default_config["quotes"]
+                    self._save_config(loaded_config)
+                return loaded_config
         except Exception as e:
-            logger.warning(f"配置文件加载失败，使用默认配置: {e}")
-            return default_config
-    
+            logger.warning(f"配置文件加载失败: {e}"); return default_config
+
     def _save_config(self, config: Dict[str, Any]):
-        """保存配置文件"""
         try:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
-        except Exception as e:
-            logger.error(f"配置文件保存失败: {e}")
-    
-    def get_character_mapping(self) -> Dict[str, List[int]]:
-        return self.config.get("character_mapping", {})
-    
-    def get_parsing_config(self) -> Dict[str, Any]:
-        return self.config.get("parsing", {})
-    
-    def get_patterns(self) -> Dict[str, str]:
-        return self.config.get("patterns", {})
-    
+        except Exception as e: logger.error(f"配置文件保存失败: {e}")
+
+    def get_character_mapping(self) -> Dict[str, List[int]]: return self.config.get("character_mapping", {})
+    def get_parsing_config(self) -> Dict[str, Any]: return self.config.get("parsing", {})
+    def get_patterns(self) -> Dict[str, str]: return self.config.get("patterns", {})
+    def get_quotes_config(self) -> Dict[str, Any]: return self.config.get("quotes", {})
     def update_character_mapping(self, new_mapping: Dict[str, List[int]]):
-        """更新角色映射"""
-        self.config["character_mapping"] = new_mapping
-        self._save_config(self.config)
+        self.config["character_mapping"] = new_mapping; self._save_config(self.config)
 
 class DialogueParser(ABC):
-    """对话解析器抽象基类"""
-    
     @abstractmethod
-    def can_parse(self, line: str) -> bool:
-        """判断是否能解析该行"""
-        pass
-    
-    @abstractmethod
-    def parse(self, line: str) -> Tuple[str, str]:
-        """解析行，返回(说话人, 内容)"""
-        pass
+    def parse(self, line: str) -> Optional[Tuple[str, str]]: pass
+
+class SpeakerParser(DialogueParser):
+    def __init__(self, pattern: str, max_name_length: int):
+        self.pattern = re.compile(pattern, re.UNICODE); self.max_name_length = max_name_length
+    def parse(self, line: str) -> Optional[Tuple[str, str]]:
+        match = self.pattern.match(line.strip())
+        if match and len(match.group(1).strip()) < self.max_name_length:
+            return match.group(1).strip(), match.group(2).strip()
+        
+class QuoteHandler:
+    def remove_quotes(self, text: str, active_quote_pairs: Dict[str, str]) -> str:
+        stripped = text.strip()
+        if len(stripped) < 2: return text
+        first_char = stripped[0]
+        expected_closing = active_quote_pairs.get(first_char)
+        if expected_closing and stripped[-1] == expected_closing:
+            return stripped[1:-1].strip()
+        return text
 
 class QuotedDialogueParser(DialogueParser):
     """带引号对话解析器"""
@@ -202,87 +179,66 @@ class NarratorParser(DialogueParser):
         return self.narrator_name, stripped[1:-1].strip()
 
 class TextConverter:
-    """文本转换器主类"""
-    
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
         self.character_mapping = config_manager.get_character_mapping()
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
-        
         self._init_parsers()
-    
+
     def _init_parsers(self):
-        """初始化解析器"""
-        self.parsers = [
-            QuotedDialogueParser(
-                self.patterns.get("speaker_quoted", ""),
-                self.parsing_config.get("max_speaker_name_length", 50)
-            ),
-            NoQuotesDialogueParser(
-                self.patterns.get("speaker_no_quotes", ""),
-                self.parsing_config.get("max_short_speaker_name_length", 6)
-            )
-        ]
-    
-    def convert_text_to_json_format(self, input_text: str, narrator_name: str = None) -> str:
-        """将文本转换为JSON格式"""
-        if narrator_name is None:
-            narrator_name = self.parsing_config.get("default_narrator_name", " ")
+        self.parser = SpeakerParser(
+            self.patterns.get("speaker_pattern", r'^([\w\s]+)\s*[：:]\s*(.*)$'),
+            self.parsing_config.get("max_speaker_name_length", 50)
+        )
+        self.quote_handler = QuoteHandler()
+
+    def convert_text_to_json_format(self, input_text: str, narrator_name: str, selected_quote_categories: List[str]) -> str:
+        all_quote_categories = self.config_manager.get_quotes_config().get("quote_categories", {})
+        active_quote_pairs = {
+            chars[0]: chars[1]
+            for category, chars in all_quote_categories.items()
+            if category in selected_quote_categories and len(chars) == 2
+        }
         
-        narrator_parser = NarratorParser(narrator_name)
         actions = []
         current_action_name = narrator_name
         current_action_body_lines = []
-        
+
         def finalize_current_action():
-            """完成当前动作块"""
             if current_action_body_lines:
-                finalized_body = "\n".join(current_action_body_lines).strip()
+                body = "\n".join(current_action_body_lines).strip()
+                # 在最后合并时才移除引号
+                finalized_body = self.quote_handler.remove_quotes(body, active_quote_pairs)
                 if finalized_body:
-                    character_ids = self.character_mapping.get(current_action_name, [])
-                    action_item = ActionItem(
-                        characters=character_ids,
+                    actions.append(ActionItem(
+                        characters=self.character_mapping.get(current_action_name, []),
                         name=current_action_name,
                         body=finalized_body
-                    )
-                    actions.append(action_item)
+                    ))
         
         for line in input_text.split('\n'):
             stripped_line = line.strip()
-            
             if not stripped_line:
                 finalize_current_action()
                 current_action_name = narrator_name
                 current_action_body_lines = []
                 continue
             
-            parsed = False
-            for parser in self.parsers + [narrator_parser]:
-                if parser.can_parse(stripped_line):
-                    speaker, content = parser.parse(stripped_line)
-                    
-                    if speaker != current_action_name and current_action_body_lines:
-                        finalize_current_action()
-                        current_action_body_lines = []
-                    
-                    current_action_name = speaker
-                    if content:
-                        current_action_body_lines.append(content)
-                    parsed = True
-                    break
-            
-            if not parsed:
-                if not current_action_body_lines:
-                    current_action_name = narrator_name
-                current_action_body_lines.append(line.rstrip())
-        
+            parse_result = self.parser.parse(stripped_line)
+            if parse_result:
+                speaker, content = parse_result
+                if speaker != current_action_name and current_action_body_lines:
+                    finalize_current_action()
+                    current_action_body_lines = []
+                current_action_name = speaker
+                current_action_body_lines.append(content)
+            else: # 如果不是“角色:内容”格式，则认为是当前说话人的延续或旁白
+                current_action_body_lines.append(stripped_line)
+
         finalize_current_action()
-        
         result = ConversionResult(actions=actions)
-        
-        result_dict = asdict(result)
-        return json.dumps(result_dict, ensure_ascii=False, indent=2)
+        return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
 # 全局变量
 config_manager = ConfigManager()
@@ -295,21 +251,20 @@ def index():
 
 @app.route('/api/convert', methods=['POST'])
 def convert_text():
-    """转换文本接口"""
     try:
         data = request.get_json()
         input_text = data.get('text', '')
         narrator_name = data.get('narrator_name', ' ')
+        # 接收前端传来的引号种类列表
+        selected_quotes = data.get('selected_quotes', [])
         
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
         
-        result = converter.convert_text_to_json_format(input_text, narrator_name)
-        
+        result = converter.convert_text_to_json_format(input_text, narrator_name, selected_quotes)
         return jsonify({'result': result})
-        
     except Exception as e:
-        logger.error(f"转换失败: {e}")
+        logger.error(f"转换失败: {e}", exc_info=True)
         return jsonify({'error': f'转换失败: {str(e)}'}), 500
 
 @app.route('/api/upload', methods=['POST'])
@@ -358,36 +313,30 @@ def download_result():
 
 @app.route('/api/config', methods=['GET'])
 def get_config():
-    """获取配置"""
     try:
         return jsonify({
             'character_mapping': config_manager.get_character_mapping(),
-            'parsing_config': config_manager.get_parsing_config()
+            'parsing_config': config_manager.get_parsing_config(),
+            # 新增：将引号配置也发送给前端
+            'quotes_config': config_manager.get_quotes_config()
         })
     except Exception as e:
-        logger.error(f"获取配置失败: {e}")
+        logger.error(f"获取配置失败: {e}", exc_info=True)
         return jsonify({'error': f'获取配置失败: {str(e)}'}), 500
 
 @app.route('/api/config', methods=['POST'])
 def update_config():
     """更新配置"""
     try:
-        data = request.get_json()
-        character_mapping = data.get('character_mapping', {})
-        
-        validated_mapping = {}
+        data = request.get_json(); character_mapping = data.get('character_mapping', {})
+        validated_mapping = {};
         for name, ids in character_mapping.items():
             if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
                 validated_mapping[name] = ids
-        
         config_manager.update_character_mapping(validated_mapping)
-        converter.character_mapping = validated_mapping
-        
+        converter.character_mapping = validated_mapping # 更新转换器实例
         return jsonify({'message': '配置更新成功'})
-        
-    except Exception as e:
-        logger.error(f"配置更新失败: {e}")
-        return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
+    except Exception as e: logger.error(f"配置更新失败: {e}"); return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

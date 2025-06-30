@@ -2,6 +2,7 @@
 
 let currentResult = '';
 let currentConfig = {};
+let quotesConfig = {};
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -100,63 +101,60 @@ async function convertText() {
         return;
     }
 
+    // 获取用户选择的引号种类
+    const selectedQuotes = getSelectedQuotes();
+
+    // ... (按钮状态更新等逻辑不变)
     const convertBtn = document.getElementById('convertBtn');
     const convertIcon = document.getElementById('convertIcon');
-    const convertText = document.getElementById('convertText');
+    const convertTextEl = document.getElementById('convertText');
 
     try {
-        // 更新按钮状态
         convertBtn.disabled = true;
         convertIcon.innerHTML = '<div class="loading"></div>';
-        convertText.textContent = '转换中...';
-
+        convertTextEl.textContent = '转换中...';
         showProgress(10);
-        showStatus('正在处理文本...', 'info');
 
         const response = await axios.post('/api/convert', {
             text: inputText,
-            narrator_name: narratorName
+            narrator_name: narratorName,
+            selected_quotes: selectedQuotes // 将选择发送给后端
         });
 
+        // ... (处理成功响应的逻辑不变)
         showProgress(100);
         currentResult = response.data.result;
-        
-        // 显示结果
         document.getElementById('resultContent').textContent = currentResult;
         document.getElementById('resultSection').style.display = 'block';
-        
         showStatus('转换完成！', 'success');
-        
-        // 滚动到结果区域
         document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
-
         setTimeout(() => hideProgress(), 1000);
+
     } catch (error) {
         showStatus(`转换失败: ${error.response?.data?.error || error.message}`, 'error');
         hideProgress();
     } finally {
-        // 恢复按钮状态
         convertBtn.disabled = false;
         convertIcon.textContent = '🔄';
-        convertText.textContent = '开始转换';
+        convertTextEl.textContent = '开始转换';
     }
 }
 
 function previewResult() {
     const inputText = document.getElementById('inputText').value.trim();
-    
     if (!inputText) {
         showStatus('请先输入要转换的文本！', 'error');
         return;
     }
 
-    // 取前500个字符作为预览
     const previewText = inputText.substring(0, 500);
     const narratorName = document.getElementById('narratorName').value || ' ';
+    const selectedQuotes = getSelectedQuotes(); // 同样获取选择
 
     axios.post('/api/convert', {
         text: previewText,
-        narrator_name: narratorName
+        narrator_name: narratorName,
+        selected_quotes: selectedQuotes // 发送选择
     }).then(response => {
         document.getElementById('previewContent').textContent = response.data.result;
         document.getElementById('previewModal').style.display = 'block';
@@ -169,9 +167,55 @@ async function loadConfig() {
     try {
         const response = await axios.get('/api/config');
         currentConfig = response.data.character_mapping;
+        quotesConfig = response.data.quotes_config; // 保存引号配置
+        renderQuoteOptions(); // 动态渲染引号选项
     } catch (error) {
         console.error('加载配置失败:', error);
+        showStatus('无法加载应用配置', 'error');
     }
+}
+
+function renderQuoteOptions() {
+    const container = document.getElementById('quoteOptionsContainer');
+    container.innerHTML = ''; // 清空旧选项
+    
+    if (!quotesConfig || !quotesConfig.quote_categories) {
+        container.textContent = '无法加载引号配置。';
+        return;
+    }
+
+    Object.keys(quotesConfig.quote_categories).forEach(categoryName => {
+        const checkboxId = `quote-check-${categoryName.replace(/\s/g, '-')}`;
+        
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = checkboxId;
+        checkbox.className = 'quote-option-checkbox';
+        checkbox.value = categoryName;
+        checkbox.checked = true; // 默认全部选中
+        
+        const label = document.createElement('label');
+        label.htmlFor = checkboxId;
+        label.textContent = categoryName;
+        label.style.marginLeft = '8px';
+        label.style.cursor = 'pointer';
+
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        container.appendChild(wrapper);
+    });
+}
+
+function getSelectedQuotes() {
+    const selected = [];
+    document.querySelectorAll('.quote-option-checkbox:checked').forEach(checkbox => {
+        selected.push(checkbox.value);
+    });
+    return selected;
 }
 
 function openConfigModal() {

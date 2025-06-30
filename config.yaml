@@ -96,3 +96,21 @@ parsing:
 patterns:
   speaker_no_quotes: ^([\w\s]+)\s*[：:]\s*(.*?)$
   speaker_quoted: ^([\w\s]+)\s*[：:]\s*["“](.*?)[”"]$
+quotes:
+  quote_categories:
+    中文引号 “...”:
+    - “
+    - ”
+    日文引号 「...」:
+    - 「
+    - 」
+    英文双引号 "...":
+    - '"'
+    - '"'
+  quote_pairs:
+    '"': '"'
+    '''': ''''
+    ‘: ’
+    “: ”
+    「: 」
+    『: 』
