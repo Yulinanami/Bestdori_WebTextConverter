@@ -18,6 +18,7 @@ function initializeApp() {
     document.getElementById('addConfigBtn').addEventListener('click', addConfigItem);
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
     document.getElementById('addCustomQuoteBtn').addEventListener('click', addCustomQuoteOption);
+    document.getElementById('formatTextBtn').addEventListener('click', formatText);
 
     const batchProcessBtn = document.getElementById('batchProcessBtn');
     if (batchProcessBtn) {
@@ -367,6 +368,31 @@ async function convertText() {
         convertIcon.textContent = '🔄';
         convertTextEl.textContent = '开始转换';
     }
+}
+
+function formatText() {
+    const textarea = document.getElementById('inputText');
+    const originalText = textarea.value;
+
+    if (!originalText.trim()) {
+        showStatus('文本内容为空，无需格式化。', 'info');
+        return;
+    }
+
+    // 1. 将文本按行分割，兼容Windows(\r\n)和Unix(\n)的换行符
+    const lines = originalText.split(/\r?\n/);
+
+    // 2. 移除所有空行和仅包含空白字符的行。
+    //    首先 trim() 每行来去掉首尾空格，然后 filter() 掉空字符串。
+    const contentLines = lines.map(line => line.trim()).filter(line => line.length > 0);
+
+    // 3. 使用两个换行符（即一个空行）将所有有效内容行重新连接起来。
+    //    这样可以确保每两段话之间都存在一个空行。
+    const formattedText = contentLines.join('\n\n');
+
+    // 4. 更新文本框并显示成功信息
+    textarea.value = formattedText;
+    showStatus('文本已成功格式化！', 'success');
 }
 
 // --- 修正后的 previewResult 函数 ---

@@ -353,6 +353,21 @@ body {
     animation: spin 1s ease-in-out infinite;
 }
 
+.form-label {
+    display: block;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.form-label button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
