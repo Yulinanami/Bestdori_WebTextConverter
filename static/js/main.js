@@ -19,6 +19,7 @@ function initializeApp() {
     document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
     document.getElementById('addCustomQuoteBtn').addEventListener('click', addCustomQuoteOption);
     document.getElementById('formatTextBtn').addEventListener('click', formatText);
+    document.getElementById('helpBtn').addEventListener('click', () => openModal('helpModal'));
 
     const batchProcessBtn = document.getElementById('batchProcessBtn');
     if (batchProcessBtn) {

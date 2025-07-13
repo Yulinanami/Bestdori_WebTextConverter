@@ -374,6 +374,86 @@ body {
     padding: 6px 12px;   /* 保持按钮原有的内边距 */
 }
 
+/* --- 新增的帮助按钮样式 --- */
+
+.header {
+    position: relative; /* 为内部绝对定位的元素提供参照 */
+}
+
+#helpBtn {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+}
+
+#helpBtn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* --- 新增的帮助模态框内容样式 --- */
+.help-section {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.help-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.help-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.help-section p, .help-section ul {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.help-section ul {
+    list-style-position: inside;
+    padding-left: 5px;
+}
+
+.help-section code {
+    background: #e2e8f0;
+    color: #2d3748;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* 响应式调整帮助按钮位置 */
+@media (max-width: 768px) {
+    #helpBtn {
+        top: 15px;
+        right: 15px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
