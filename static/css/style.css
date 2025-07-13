@@ -368,6 +368,12 @@ body {
     transform: translateY(-50%);
 }
 
+.section-title > #formatTextBtn {
+    margin-left: auto;  /* 核心：自动左外边距会将按钮推到容器的最右边 */
+    font-size: 0.9rem;   /* 保持按钮原有的字体大小 */
+    padding: 6px 12px;   /* 保持按钮原有的内边距 */
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
