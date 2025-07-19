@@ -517,7 +517,7 @@ function addConfigItem() {
         <input type="text" placeholder="ID列表(逗号分隔)" class="form-input config-ids">
         <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
     `;
-    configList.appendChild(configItem);
+    configList.prepend(configItem);
 }
 
 function removeConfigItem(button) {
