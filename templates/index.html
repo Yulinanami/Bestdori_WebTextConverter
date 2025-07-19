@@ -153,15 +153,22 @@
                 <button class="modal-close" onclick="closeModal('configModal')">×</button>
             </div>
             <div class="modal-body">
+                <!-- 说明文字 -->
                 <div style="margin-bottom: 20px;">
                     <p style="color: #718096; margin-bottom: 10px;">配置角色名称与ID的映射关系，多个ID用逗号分隔</p>
+                </div>
+
+                <!-- 新增：将所有操作按钮放在一个工具栏里 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                     <button class="btn btn-secondary" id="addConfigBtn">➕ 添加角色</button>
+                    <div>
+                        <button class="btn btn-primary" id="saveConfigBtn">保存配置</button>
+                        <button class="btn btn-secondary" onclick="closeModal('configModal')" style="margin-right: 10px;">取消</button>
+                    </div>
                 </div>
+
+                <!-- 角色列表 -->
                 <div id="configList"></div>
-                <div style="margin-top: 20px; text-align: right;">
-                    <button class="btn btn-secondary" onclick="closeModal('configModal')" style="margin-right: 10px;">取消</button>
-                    <button class="btn btn-primary" id="saveConfigBtn">保存配置</button>
-                </div>
             </div>
         </div>
     </div>
