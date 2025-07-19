@@ -488,7 +488,15 @@ function renderConfigList() {
     const configList = document.getElementById('configList');
     configList.innerHTML = '';
 
-    Object.entries(currentConfig).forEach(([name, ids]) => {
+    // 将配置对象转换为 [key, value] 数组，并根据 ID (value[0])进行升序排序
+    const sortedConfig = Object.entries(currentConfig).sort(([, idsA], [, idsB]) => {
+        const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
+        const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
+        return idA - idB;
+    });
+
+    // 遍历排序后的数组来渲染列表
+    sortedConfig.forEach(([name, ids]) => {
         const configItem = document.createElement('div');
         configItem.className = 'config-item';
         configItem.innerHTML = `
