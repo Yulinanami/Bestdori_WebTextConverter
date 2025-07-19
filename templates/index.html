@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
     <div class="container">
@@ -209,7 +209,7 @@
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <div class="modal-title">🎭 对话预览模式</div>
-                <button class="modal-close" onclick="closeModal('dialoguePreviewModal')">×</button>
+                <button class="modal-close" onclick="ui.closeModal('dialoguePreviewModal')">×</button>
             </div>
             <div class="modal-body">
                 <div class="dialogue-container" id="dialogueContainer">
@@ -224,7 +224,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">角色映射配置</div>
-                <button class="modal-close" onclick="closeModal('configModal')">×</button>
+                <button class="modal-close" onclick="ui.closeModal('configModal')">×</button>
             </div>
             <div class="modal-body">
                 <div style="margin-bottom: 20px;">
@@ -235,7 +235,7 @@
                     <button class="btn btn-secondary" id="addConfigBtn">➕ 添加角色</button>
                     <div>
                         <button class="btn btn-primary" id="saveConfigBtn">保存配置</button>
-                        <button class="btn btn-secondary" onclick="closeModal('configModal')" style="margin-right: 10px;">取消</button>
+                        <button class="btn btn-secondary" onclick="ui.closeModal('configModal')" style="margin-right: 10px;">取消</button>
                     </div>
                 </div>
 
@@ -249,7 +249,7 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <div class="modal-title">批量处理文件</div>
-                <button class="modal-close" onclick="closeModal('batchConvertModal')">×</button>
+                <button class="modal-close" onclick="ui.closeModal('batchConvertModal')">×</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -271,7 +271,7 @@
                 </div>
 
                 <div style="text-align: right;">
-                    <button class="btn btn-secondary" onclick="closeModal('batchConvertModal')" style="margin-right: 10px;">取消</button>
+                    <button class="btn btn-secondary" onclick="ui.closeModal('batchConvertModal')" style="margin-right: 10px;">取消</button>
                     <button class="btn btn-primary" id="startBatchBtn">开始批量转换</button>
                     <button class="btn btn-success" id="downloadBatchResultBtn" style="display: none;">下载全部结果(.zip)</button>
                 </div>
@@ -284,7 +284,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">📘 使用说明</div>
-                <button class="modal-close" onclick="closeModal('helpModal')">×</button>
+                <button class="modal-close" onclick="ui.closeModal('helpModal')">×</button>
             </div>
             <div class="modal-body" id="helpContent">
                 <div class="help-section">
@@ -327,7 +327,7 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <div class="modal-title">引号处理设置</div>
-                <button class="modal-close" onclick="closeModal('splitQuoteModal')">×</button>
+                <button class="modal-close" onclick="ui.closeModal('splitQuoteModal')">×</button>
             </div>
             <div class="modal-body">
                 <p style="color: #718096; margin-bottom: 15px;">选择需要自动移除首尾引号的种类</p>
@@ -348,12 +348,13 @@
                 </div>
                 
                 <div style="text-align: right; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="closeModal('splitQuoteModal')">确定</button>
+                    <button class="btn btn-primary" onclick="ui.closeModal('splitQuoteModal')">确定</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- 模块化JS文件 -->
+    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,282 @@
+/* responsive.css - 响应式设计 */
+
+/* 平板设备 (1024px 以下) */
+@media (max-width: 1024px) {
+    /* 分屏布局调整 */
+    .split-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .split-panel {
+        min-width: auto;
+        border-right: none;
+        border-bottom: 2px solid var(--border-primary);
+        min-height: 400px;
+    }
+    
+    .split-panel:last-child {
+        border-bottom: none;
+    }
+    
+    .split-resizer {
+        display: none;
+    }
+    
+    .split-config-bar {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+    
+    .config-item-inline {
+        flex: 1 1 auto;
+        min-width: 200px;
+    }
+    
+    .auto-preview-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    /* 模态框调整 */
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    /* 按钮组调整 */
+    .btn-group {
+        gap: var(--spacing-sm);
+    }
+}
+
+/* 移动设备 (768px 以下) */
+@media (max-width: 768px) {
+    /* 基础间距调整 */
+    body {
+        padding: var(--spacing-sm);
+    }
+    
+    .main-content {
+        padding: var(--spacing-lg);
+    }
+    
+    /* 容器调整 */
+    .container {
+        border-radius: var(--radius-lg);
+    }
+    
+    /* 头部调整 */
+    .header {
+        padding: var(--spacing-lg);
+    }
+    
+    .header h1 {
+        font-size: var(--text-3xl);
+    }
+    
+    .header p {
+        font-size: var(--text-base);
+    }
+
+    /* 帮助按钮调整 */
+    #helpBtn {
+        top: 15px;
+        right: 15px;
+        width: 36px;
+        height: 36px;
+        font-size: var(--text-lg);
+    }
+    
+    /* 视图切换调整 */
+    .view-toggle {
+        flex-wrap: wrap;
+        padding: var(--spacing-md);
+    }
+    
+    .view-btn {
+        margin: 5px;
+        padding: 8px 16px;
+        font-size: var(--text-sm);
+    }
+    
+    /* 按钮组调整 */
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* 表单调整 */
+    .form-label {
+        font-size: var(--text-sm);
+    }
+    
+    .form-input {
+        font-size: var(--text-sm);
+        padding: 10px 14px;
+    }
+    
+    /* 分区调整 */
+    .section {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-lg);
+    }
+    
+    .section-title {
+        font-size: var(--text-lg);
+    }
+    
+    /* 分屏配置栏调整 */
+    .split-config-bar {
+        padding: var(--spacing-sm);
+    }
+    
+    .input-sm {
+        width: 100%;
+    }
+    
+    /* 对话预览调整 */
+    .dialogue-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: var(--text-base);
+    }
+    
+    .dialogue-text {
+        padding: 10px 14px;
+        font-size: var(--text-sm);
+    }
+    
+    /* 模态框内容调整 */
+    .modal-header {
+        padding: 15px 20px;
+    }
+    
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .modal-title {
+        font-size: var(--text-lg);
+    }
+    
+    /* 自定义引号输入调整 */
+    #customQuoteOpen,
+    #customQuoteClose {
+        width: 80px !important;
+    }
+}
+
+/* 小屏幕设备 (480px 以下) */
+@media (max-width: 480px) {
+    /* 更紧凑的布局 */
+    .header {
+        padding: var(--spacing-md);
+    }
+    
+    .header h1 {
+        font-size: var(--text-2xl);
+    }
+    
+    .main-content {
+        padding: var(--spacing-md);
+    }
+    
+    .section {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* 文件上传调整 */
+    .file-upload-label {
+        padding: var(--spacing-md);
+        font-size: var(--text-sm);
+    }
+    
+    /* 按钮调整 */
+    .btn {
+        padding: 10px 16px;
+        font-size: var(--text-sm);
+    }
+    
+    /* 预览内容调整 */
+    .result-content {
+        font-size: var(--text-xs);
+        padding: var(--spacing-md);
+    }
+    
+    /* 配置项调整 */
+    .config-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .config-item input {
+        width: 100%;
+    }
+}
+
+/* 超小屏幕设备 (320px 以下) */
+@media (max-width: 320px) {
+    /* 最小化所有间距 */
+    :root {
+        --spacing-xs: 3px;
+        --spacing-sm: 6px;
+        --spacing-md: 10px;
+        --spacing-lg: 15px;
+        --spacing-xl: 20px;
+        --spacing-2xl: 25px;
+    }
+    
+    .header h1 {
+        font-size: var(--text-xl);
+    }
+    
+    .view-btn {
+        font-size: var(--text-xs);
+        padding: 6px 12px;
+    }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 600px) {
+    .split-container {
+        height: calc(100vh - 300px);
+        min-height: 300px;
+    }
+    
+    .dialogue-container {
+        min-height: 200px;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .container {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .btn,
+    .view-toggle,
+    #helpBtn,
+    .file-upload,
+    .modal {
+        display: none !important;
+    }
+    
+    .result-content {
+        background: white;
+        color: black;
+        border: 1px solid #ccc;
+    }
+}

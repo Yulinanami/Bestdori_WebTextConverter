@@ -1,0 +1,28 @@
+/* main.css - 主样式文件，导入所有模块 */
+
+/* 1. 主题变量和颜色 */
+@import url('theme.css');
+
+/* 2. 基础样式和重置 */
+@import url('base.css');
+
+/* 3. 布局样式 */
+@import url('layout.css');
+
+/* 4. 可复用组件样式 */
+@import url('components.css');
+
+/* 5. 模态框样式 */
+@import url('modals.css');
+
+/* 6. 视图特定样式 */
+@import url('views.css');
+
+/* 7. 动画效果 */
+@import url('animations.css');
+
+/* 8. 响应式设计 */
+@import url('responsive.css');
+
+/* 额外的全局样式或覆盖 */
+/* 如果需要，可以在这里添加项目特定的样式覆盖 */

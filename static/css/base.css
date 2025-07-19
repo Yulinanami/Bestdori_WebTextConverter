@@ -1,0 +1,118 @@
+/* base.css - 基础样式和重置 */
+
+/* CSS 重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 基础元素样式 */
+body {
+    font-family: var(--font-primary);
+    background: var(--secondary-gradient);
+    min-height: 100vh;
+    padding: var(--spacing-lg);
+    color: var(--text-primary);
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+
+/* 段落和文本 */
+p {
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}
+
+/* 列表样式 */
+ul, ol {
+    list-style-position: inside;
+    padding-left: var(--spacing-xs);
+}
+
+li {
+    line-height: 1.6;
+}
+
+/* 代码样式 */
+code {
+    background: var(--color-secondary);
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+pre {
+    margin: 0;
+    background: transparent;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* 水平线 */
+hr {
+    border: none;
+    border-top: 1px solid var(--border-primary);
+    margin: 25px 0;
+}
+
+/* 输入框基础样式 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* 禁用状态 */
+:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-secondary);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}

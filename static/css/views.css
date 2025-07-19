@@ -1,0 +1,204 @@
+/* views.css - 视图特定样式 */
+
+/* 分屏视图配置栏 */
+.split-config-bar {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-primary);
+    gap: var(--spacing-lg);
+}
+
+/* 分屏容器 */
+.split-container {
+    display: flex;
+    height: calc(100vh - 400px);
+    min-height: 500px;
+    position: relative;
+}
+
+.split-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 300px;
+}
+
+.left-panel {
+    flex: 1;
+}
+
+.right-panel {
+    flex: 1;
+}
+
+/* 可拖动的分隔条 */
+.split-resizer {
+    width: 8px;
+    background: var(--border-primary);
+    cursor: col-resize;
+    position: relative;
+    transition: background var(--transition-fast);
+}
+
+.split-resizer:hover {
+    background: var(--border-secondary);
+}
+
+.split-resizer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 40px;
+    background: var(--text-light);
+    border-radius: 1px;
+}
+
+/* 面板头部 */
+.panel-header {
+    padding: 15px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* 面板内容 */
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+/* 分屏编辑器 */
+.split-editor {
+    height: 100%;
+    resize: none;
+    font-family: var(--font-mono);
+}
+
+/* 预览模式切换 */
+.preview-mode-toggle {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.preview-mode-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-secondary);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--text-sm);
+}
+
+.preview-mode-btn.active {
+    background: var(--color-primary);
+    color: var(--text-white);
+    border-color: transparent;
+}
+
+/* 预览内容 */
+.preview-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* 分屏操作按钮 */
+.split-actions {
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* 对话预览 */
+.dialogue-preview {
+    padding: var(--spacing-lg);
+    background: #f5f5f5;
+}
+
+.dialogue-item {
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: flex-start;
+    animation: fadeIn var(--transition-normal);
+}
+
+.dialogue-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-white);
+    font-weight: bold;
+    font-size: var(--text-lg);
+    margin-right: var(--spacing-md);
+    flex-shrink: 0;
+}
+
+.dialogue-content {
+    flex: 1;
+}
+
+.dialogue-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.95rem;
+}
+
+.dialogue-text {
+    background: var(--bg-primary);
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    line-height: 1.6;
+    position: relative;
+}
+
+.dialogue-text::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 15px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid var(--bg-primary);
+}
+
+/* 旁白样式 */
+.dialogue-item.narrator {
+    justify-content: center;
+}
+
+.dialogue-item.narrator .dialogue-text {
+    background: var(--color-secondary);
+    font-style: italic;
+    text-align: center;
+    max-width: 80%;
+}
+
+.dialogue-item.narrator .dialogue-text::before {
+    display: none;
+}
