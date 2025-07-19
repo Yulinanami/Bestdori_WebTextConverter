@@ -7,6 +7,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -17,33 +20,40 @@
             <button id="helpBtn" class="btn btn-secondary">?</button>
         </div>
 
-        <div class="main-content">
-            <!-- 1. 文件上传区域 -->
-            <div class="section">
-                <div class="section-title">📁 文件上传</div>
-                <div class="file-upload" id="fileUpload">
-                    <input type="file" accept=".txt" id="fileInput">
-                    <div class="file-upload-label">
-                        <div>
-                            <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
-                            <div style="font-weight: 600; margin-bottom: 5px;">点击或拖拽上传.txt文件</div>
-                            <div style="font-size: 0.9rem; color: #718096;">支持最大16MB的文本文件</div>
+        <!-- 新增：视图切换按钮 -->
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="classic">经典视图</button>
+            <button class="view-btn" data-view="split">分屏编辑</button>
+        </div>
+
+        <!-- 经典视图 -->
+        <div id="classicView" class="view-content active">
+            <div class="main-content">
+                <!-- 1. 文件上传区域 -->
+                <div class="section">
+                    <div class="section-title">📁 文件上传</div>
+                    <div class="file-upload" id="fileUpload">
+                        <input type="file" accept=".txt,.docx,.md" id="fileInput">
+                        <div class="file-upload-label">
+                            <div>
+                                <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
+                                <div style="font-weight: 600; margin-bottom: 5px;">点击或拖拽上传文件</div>
+                                <div style="font-size: 0.9rem; color: #718096;">支持 .txt, .docx, .md 格式（最大16MB）</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2. 文本输入区域 -->
-            <div class="section">
-                <div class="section-title">
-                    ✏️ 文本输入
-                    <button class="btn btn-secondary" id="formatTextBtn">
-                        📐 格式化文本
-                    </button>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="inputText"></label>
-                    <textarea class="form-input textarea" id="inputText" placeholder='请输入需要转换的对话文本...
+                <!-- 2. 文本输入区域 -->
+                <div class="section">
+                    <div class="section-title">
+                        ✏️ 文本输入
+                        <!-- 修改：移除编辑器工具栏和语法高亮按钮 -->
+                        <button class="btn btn-secondary" id="formatTextBtn" style="margin-left: auto;">📐 格式化文本</button>
+                    </div>
+                    <div class="form-group">
+                        <!-- 恢复为简单的 textarea -->
+                        <textarea class="form-input textarea" id="inputText" placeholder='请输入需要转换的对话文本...
 
 支持格式：
 角色名：对话内容
@@ -52,95 +62,160 @@
 也可以使用你自己的引号格式（自定义引号）
 其余部分为旁白内容
 最好每段话之间用一个空行分隔'></textarea>
-                </div>
-
-            
-            
-            <!-- 3. 新的、统一的处理选项区域 -->
-            <div class="section">
-                <div class="section-title">⚙️ 处理选项</div>
-                
-                <!-- 旁白名称 -->
-                <div class="form-group">
-                    <label class="form-label">旁白名称（默认为空白）：</label>
-                    <input type="text" class="form-input" id="narratorName" value=" " placeholder="设置旁白的名称">
-                </div>
-
-                <!-- 分隔线 -->
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
-
-                <!-- 引号处理 -->
-                <div>
-                    <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px;">引号处理</p>
-                    <p style="color: #718096; margin-bottom: 15px;">选择或添加需要自动移除首尾引号的种类</p>
-                    
-                    <!-- 预设引号选项 -->
-                    <div id="quoteOptionsContainer" class="btn-group" style="margin-bottom: 20px;">
-                        <!-- JS将在这里动态填充复选框 -->
                     </div>
+                </div>
+
+                <!-- 3. 处理选项区域 -->
+                <div class="section">
+                    <div class="section-title">⚙️ 处理选项</div>
                     
-                    <!-- 自定义引号选项 -->
-                    <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0;">
-                         <p style="font-weight: 500; color: #4a5568; margin-bottom: 10px;">添加自定义引号对：</p>
-                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                             <input type="text" id="customQuoteOpen" class="form-input" placeholder="起始符号" style="width: 100px; flex-grow: 0;">
-                             <input type="text" id="customQuoteClose" class="form-input" placeholder="结束符号" style="width: 100px; flex-grow: 0;">
-                             <button id="addCustomQuoteBtn" class="btn btn-secondary" style="flex-shrink: 0;">➕ 添加</button>
-                         </div>
+                    <!-- 旁白名称 -->
+                    <div class="form-group">
+                        <label class="form-label">旁白名称（默认为空白）：</label>
+                        <input type="text" class="form-input" id="narratorName" value=" " placeholder="设置旁白的名称">
+                    </div>
+
+                    <!-- 分隔线 -->
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+
+                    <!-- 引号处理 -->
+                    <div>
+                        <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px;">引号处理</p>
+                        <p style="color: #718096; margin-bottom: 15px;">选择或添加需要自动移除首尾引号的种类</p>
+                        
+                        <!-- 预设引号选项 -->
+                        <div id="quoteOptionsContainer" class="btn-group" style="margin-bottom: 20px;">
+                            <!-- JS将在这里动态填充复选框 -->
+                        </div>
+                        
+                        <!-- 自定义引号选项 -->
+                        <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0;">
+                             <p style="font-weight: 500; color: #4a5568; margin-bottom: 10px;">添加自定义引号对：</p>
+                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                 <input type="text" id="customQuoteOpen" class="form-input" placeholder="起始符号" style="width: 100px; flex-grow: 0;">
+                                 <input type="text" id="customQuoteClose" class="form-input" placeholder="结束符号" style="width: 100px; flex-grow: 0;">
+                                 <button id="addCustomQuoteBtn" class="btn btn-secondary" style="flex-shrink: 0;">➕ 添加</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 操作按钮 -->
+                <div class="section">
+                    <div class="section-title">⚡ 操作</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="convertBtn">
+                            <span id="convertIcon">🔄</span>
+                            <span id="convertText">开始转换</span>
+                        </button>
+                        <button class="btn btn-secondary" id="previewModeBtn">
+                            🎭 对话预览
+                        </button>
+                        <button class="btn btn-secondary" id="configBtn">
+                            ⚙️ 配置管理
+                        </button>
+                        <button class="btn btn-secondary" id="batchProcessBtn">
+                            📦 批量处理
+                        </button>
+                    </div>
+
+                    <!-- 进度条 -->
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div id="statusMessage" class="status-message status-info">准备转换...</div>
+                    </div>
+                </div>
+
+                <!-- 结果显示区域 -->
+                <div class="section" id="resultSection" style="display: none;">
+                    <div class="result-header">
+                        <div class="section-title">📋 转换结果</div>
+                        <button class="btn btn-success" id="downloadBtn">
+                            💾 下载JSON
+                        </button>
+                    </div>
+                    <div class="result-content">
+                        <pre><code class="language-json" id="resultContent"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分屏视图 -->
+        <div id="splitView" class="view-content">
+            <!-- 分屏配置栏 -->
+            <div class="split-config-bar">
+                <div class="config-item-inline">
+                    <label>旁白名称：</label>
+                    <input type="text" class="form-input input-sm" id="splitNarratorName" value=" " placeholder="设置旁白名称">
+                </div>
+                <div class="config-item-inline">
+                    <button class="btn btn-secondary btn-sm" id="splitQuoteConfigBtn">引号设置</button>
+                </div>
+                <div class="config-item-inline auto-preview-wrapper">
+                    <label class="auto-preview-label">
+                        <input type="checkbox" id="autoPreviewCheckbox" checked>
+                        自动预览
+                    </label>
+                </div>
+            </div>
+
+            <div class="split-container">
+                <!-- 左侧编辑区 -->
+                <div class="split-panel left-panel">
+                    <div class="panel-header">
+                        <h3>📝 编辑区</h3>
+                        <button class="btn btn-secondary btn-sm" id="formatTextSplitBtn">📐 格式化</button>
+                    </div>
+                    <div class="panel-content">
+                        <textarea class="form-input textarea split-editor" id="splitInputText" placeholder="在此输入或粘贴对话文本..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 可调整大小的分隔条 -->
+                <div class="split-resizer" id="splitResizer"></div>
+
+                <!-- 右侧预览区 -->
+                <div class="split-panel right-panel">
+                    <div class="panel-header">
+                        <h3>👁️ 实时预览</h3>
+                        <div class="preview-mode-toggle">
+                            <button class="preview-mode-btn active" data-mode="json">JSON</button>
+                            <button class="preview-mode-btn" data-mode="dialogue">对话</button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div id="splitPreviewJson" class="preview-content">
+                            <pre><code class="language-json"></code></pre>
+                        </div>
+                        <div id="splitPreviewDialogue" class="preview-content dialogue-preview" style="display: none;">
+                            <!-- 对话预览内容 -->
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. 操作按钮 -->
-            <div class="section">
-                <div class="section-title">⚡ 操作</div>
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="convertBtn">
-                        <span id="convertIcon">🔄</span>
-                        <span id="convertText">开始转换</span>
-                    </button>
-                    <button class="btn btn-secondary" id="previewBtn">
-                        👁️ 预览结果
-                    </button>
-                    <button class="btn btn-secondary" id="configBtn">
-                        ⚙️ 配置管理
-                    </button>
-                    <button class="btn btn-secondary" id="batchProcessBtn">
-                        📦 批量处理
-                    </button>
-                </div>
-
-                <!-- 进度条 -->
-                <div class="progress-container" id="progressContainer" style="display: none;">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div id="statusMessage" class="status-message status-info">准备转换...</div>
-                </div>
-            </div>
-
-            <!-- 结果显示区域 -->
-            <div class="section" id="resultSection" style="display: none;">
-                <div class="result-header">
-                    <div class="section-title">📋 转换结果</div>
-                    <button class="btn btn-success" id="downloadBtn">
-                        💾 下载JSON
-                    </button>
-                </div>
-                <div class="result-content" id="resultContent"></div>
+            <!-- 分屏视图的操作按钮 -->
+            <div class="split-actions">
+                <button class="btn btn-primary" id="splitConvertBtn">🔄 手动刷新预览</button>
+                <button class="btn btn-success" id="splitDownloadBtn">💾 下载结果</button>
             </div>
         </div>
     </div>
 
-    <!-- 预览模态框 -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content">
+    <!-- 对话预览模态框 -->
+    <div class="modal" id="dialoguePreviewModal">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <div class="modal-title">转换预览</div>
-                <button class="modal-close" onclick="closeModal('previewModal')">×</button>
+                <div class="modal-title">🎭 对话预览模式</div>
+                <button class="modal-close" onclick="closeModal('dialoguePreviewModal')">×</button>
             </div>
             <div class="modal-body">
-                <div class="result-content" id="previewContent"></div>
+                <div class="dialogue-container" id="dialogueContainer">
+                    <!-- 对话内容将在这里动态生成 -->
+                </div>
             </div>
         </div>
     </div>
@@ -153,12 +228,10 @@
                 <button class="modal-close" onclick="closeModal('configModal')">×</button>
             </div>
             <div class="modal-body">
-                <!-- 说明文字 -->
                 <div style="margin-bottom: 20px;">
                     <p style="color: #718096; margin-bottom: 10px;">配置角色名称与ID的映射关系，多个ID用逗号分隔</p>
                 </div>
 
-                <!-- 新增：将所有操作按钮放在一个工具栏里 -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                     <button class="btn btn-secondary" id="addConfigBtn">➕ 添加角色</button>
                     <div>
@@ -167,7 +240,6 @@
                     </div>
                 </div>
 
-                <!-- 角色列表 -->
                 <div id="configList"></div>
             </div>
         </div>
@@ -181,14 +253,12 @@
                 <button class="modal-close" onclick="closeModal('batchConvertModal')">×</button>
             </div>
             <div class="modal-body">
-                <!-- 文件选择区域 -->
                 <div class="form-group">
-                    <label class="form-label">选择一个或多个.txt文件进行批量转换:</label>
-                    <input type="file" id="batchFileInput" class="form-input" multiple accept=".txt">
+                    <label class="form-label">选择一个或多个文件进行批量转换（支持 .txt, .docx, .md）:</label>
+                    <input type="file" id="batchFileInput" class="form-input" multiple accept=".txt,.docx,.md">
                     <ul id="batchFileList" style="list-style-type: none; margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
                 </div>
 
-                <!-- 进度显示区域 -->
                 <div class="form-group" id="batchProgressSection" style="display: none;">
                     <label class="form-label" id="batchStatusText">正在处理...</label>
                     <div class="progress-bar" style="height: 12px;">
@@ -196,13 +266,11 @@
                     </div>
                 </div>
 
-                <!-- 日志输出区域 -->
                 <div class="form-group" id="batchLogSection" style="display: none;">
                     <label class="form-label">处理日志:</label>
                     <div id="batchLogOutput" class="result-content" style="max-height: 200px; font-size: 0.8rem; background: #f7fafc; color: #4a5568;"></div>
                 </div>
 
-                <!-- 操作按钮 -->
                 <div style="text-align: right;">
                     <button class="btn btn-secondary" onclick="closeModal('batchConvertModal')" style="margin-right: 10px;">取消</button>
                     <button class="btn btn-primary" id="startBatchBtn">开始批量转换</button>
@@ -212,55 +280,82 @@
         </div>
     </div>
 
+    <!-- 帮助模态框 -->
     <div class="modal" id="helpModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title">📘 使用说明</div>
-            <button class="modal-close" onclick="closeModal('helpModal')">×</button>
-        </div>
-        <div class="modal-body" id="helpContent">
-            
-            <div class="help-section">
-                <h4>📁 文件上传</h4>
-                <p>点击或将 <code>.txt</code> 格式的文本文件拖拽到此区域，文件内容会自动加载到下方的“文本输入”框中。</p>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📘 使用说明</div>
+                <button class="modal-close" onclick="closeModal('helpModal')">×</button>
             </div>
+            <div class="modal-body" id="helpContent">
+                <div class="help-section">
+                    <h4>🆕 新功能说明</h4>
+                    <ul>
+                        <li><strong>多格式支持</strong>：现在支持上传 Word文档(.docx) 和 Markdown文件(.md)</li>
+                        <li><strong>分屏编辑</strong>：点击"分屏编辑"可以左侧编辑，右侧实时预览</li>
+                        <li><strong>对话预览</strong>：模拟 Bestdori 的对话展示效果</li>
+                        <li><strong>语法高亮</strong>：编辑时可以高亮显示角色名和对话内容</li>
+                    </ul>
+                </div>
 
-            <div class="help-section">
-                <h4>✏️ 文本输入</h4>
-                <p>在此处直接粘贴或编辑你的对话文本。标准格式为 <strong>角色名:对话内容</strong> 或 <strong>角色名：对话内容</strong>（中英文冒号均可）。没有角色名的行将被视为旁白。</p>
-                <ul>
-                    <li><strong>📐 格式化文本</strong>: 点击此按钮可以自动整理文本间距，确保每段话之间有且仅有一个空行，使格式更规范。</li>
-                </ul>
+                <div class="help-section">
+                    <h4>📁 文件上传</h4>
+                    <p>点击或将文件拖拽到此区域，支持 <code>.txt</code>、<code>.docx</code>、<code>.md</code> 格式，文件内容会自动加载到文本输入框中。</p>
+                </div>
+
+                <div class="help-section">
+                    <h4>✏️ 文本输入</h4>
+                    <p>在此处直接粘贴或编辑你的对话文本。标准格式为 <strong>角色名:对话内容</strong> 或 <strong>角色名：对话内容</strong>（中英文冒号均可）。</p>
+                    <ul>
+                        <li><strong>📐 格式化文本</strong>: 自动整理文本间距</li>
+                        <li><strong>🎨 语法高亮</strong>: 高亮显示角色名和对话内容</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4>⚡ 操作</h4>
+                    <ul>
+                        <li><strong>🔄 开始转换</strong>: 将文本转换为JSON格式</li>
+                        <li><strong>🎭 对话预览</strong>: 以对话形式预览转换结果</li>
+                        <li><strong>⚙️ 配置管理</strong>: 配置角色名称与ID的映射关系</li>
+                        <li><strong>📦 批量处理</strong>: 批量转换多个文件</li>
+                    </ul>
+                </div>
             </div>
-
-            <div class="help-section">
-                <h4>⚙️ 处理选项</h4>
-                <ul>
-                    <li><strong>旁白名称</strong>: 设置没有角色名的段落（即旁白）在Bestdori中的旁白名字。默认为一个空格。</li>
-                    <li><strong>引号处理</strong>: 勾选你需要处理的引号类型。在转换时，如果一段对话的开头和结尾匹配了所选的引号对，这对引号将被自动移除。你也可以添加自定义的引号对。</li>
-                </ul>
-            </div>
-
-            <div class="help-section">
-                <h4>⚡ 操作</h4>
-                <ul>
-                    <li><strong>🔄 开始转换</strong>: 核心功能。将“文本输入”框中的全部内容，根据当前配置进行转换，并在下方生成最终的JSON结果。</li>
-                    <li><strong>👁️ 预览结果</strong>: 仅转换输入框中的前500个字符，用于快速查看转换效果，不会影响最终的完整转换。</li>
-                    <li><strong>⚙️ 配置管理</strong>: 在此配置角色名称与ID的映射关系。例如，将“户山香澄”映射为ID [1]。这是生成正确JSON的关键步骤。</li>
-                    <li><strong>📦 批量处理</strong>: 允许你一次性上传并转换多个 <code>.txt</code> 文件。处理完成后，所有结果将被打包成一个 <code>.zip</code> 文件供你下载。</li>
-                </ul>
-            </div>
-
-             <div class="help-section">
-                <h4>📋 转换结果</h4>
-                <ul>
-                    <li><strong>💾 下载JSON</strong>: 当转换完成后，点击此按钮可以将生成的JSON结果保存为文件，之后复制JSON里的内容，然后点击Bestdori剧情部分底部的导入，粘贴即可。</li>
-                </ul>
-            </div>
-
         </div>
     </div>
-</div>
+
+    <!-- 分屏引号设置模态框 -->
+    <div class="modal" id="splitQuoteModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">引号处理设置</div>
+                <button class="modal-close" onclick="closeModal('splitQuoteModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #718096; margin-bottom: 15px;">选择需要自动移除首尾引号的种类</p>
+                
+                <!-- 预设引号选项（复用主界面的） -->
+                <div id="splitQuoteOptionsContainer" class="btn-group" style="margin-bottom: 20px;">
+                    <!-- JS将在这里动态填充复选框 -->
+                </div>
+                
+                <!-- 自定义引号选项 -->
+                <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0;">
+                    <p style="font-weight: 500; color: #4a5568; margin-bottom: 10px;">添加自定义引号对：</p>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="splitCustomQuoteOpen" class="form-input" placeholder="起始符号" style="width: 100px; flex-grow: 0;">
+                        <input type="text" id="splitCustomQuoteClose" class="form-input" placeholder="结束符号" style="width: 100px; flex-grow: 0;">
+                        <button id="addSplitCustomQuoteBtn" class="btn btn-secondary" style="flex-shrink: 0;">➕ 添加</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="closeModal('splitQuoteModal')">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

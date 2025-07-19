@@ -14,6 +14,10 @@ from werkzeug.utils import secure_filename
 import uuid
 import threading
 from concurrent.futures import ThreadPoolExecutor
+import markdown2  # 新增：支持Markdown
+from docx import Document  # 新增：支持Word文档
+import io
+import base64  # 新增：用于处理批量上传的二进制文件
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -73,9 +77,10 @@ class ConfigManager:
             "parsing": { "max_speaker_name_length": 50, "default_narrator_name": " " },
             "patterns": { "speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$' },
             "quotes": {
-                "quote_pairs": {'"': '"', '“': '”', "'": "'", '‘': '’', "「": "」", "『": "』"},
+                "quote_pairs": {'"': '"', "'": "'", "‘": "’", "「": "」", "『": "』"},
                 "quote_categories": {
-                    "中文引号 “...”": ["“", "”"], "中文单引号 ‘...’": ["‘", "’"],
+                    "中文引号 \"...\"": ['"', '"'],
+                    "中文单引号 '...'": ["'", "'"],
                     "日文引号 「...」": ["「", "」"], "日文书名号 『...』": ["『", "』"],
                     "英文双引号 \"...\"": ['"', '"'], "英文单引号 '...'": ["'", "'"]
                 }
@@ -194,8 +199,42 @@ class TextConverter:
         result = ConversionResult(actions=actions)
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
+# --- 新增：文件格式转换器 ---
+class FileFormatConverter:
+    @staticmethod
+    def docx_to_text(file_content: bytes) -> str:
+        """将Word文档转换为纯文本"""
+        try:
+            doc = Document(io.BytesIO(file_content))
+            text_lines = []
+            for paragraph in doc.paragraphs:
+                if paragraph.text.strip():
+                    text_lines.append(paragraph.text.strip())
+            return '\n\n'.join(text_lines)
+        except Exception as e:
+            logger.error(f"Word文档解析失败: {e}")
+            raise ValueError(f"无法解析Word文档: {str(e)}")
+    
+    @staticmethod
+    def markdown_to_text(md_content: str) -> str:
+        """将Markdown转换为纯文本，保留对话格式"""
+        try:
+            # 先转换Markdown到HTML
+            html = markdown2.markdown(md_content)
+            # 移除HTML标签，保留文本
+            text = re.sub(r'<[^>]+>', '', html)
+            # 处理特殊字符
+            text = text.replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+            # 清理多余的空行
+            lines = [line.strip() for line in text.split('\n') if line.strip()]
+            return '\n\n'.join(lines)
+        except Exception as e:
+            logger.error(f"Markdown解析失败: {e}")
+            raise ValueError(f"无法解析Markdown: {str(e)}")
+
 config_manager = ConfigManager()
 converter = TextConverter(config_manager)
+file_converter = FileFormatConverter()
 
 # --- 新增：任务管理 ---
 batch_tasks = {} # 用于存储所有批量任务的状态
@@ -203,12 +242,15 @@ executor = ThreadPoolExecutor(max_workers=2) # 线程池，用于在后台执行
 
 def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, selected_quote_pairs: List[List[str]]):
     """在后台线程中运行的批量转换函数"""
+    import base64
+    
     total_files = len(files_data)
     task = batch_tasks[task_id]
     
     for i, file_data in enumerate(files_data):
         filename = file_data.get('name', 'unknown.txt')
-        content = file_data.get('content', '')
+        raw_content = file_data.get('content', '')
+        encoding = file_data.get('encoding', 'text')
         
         # 更新任务状态
         task['progress'] = (i / total_files) * 100
@@ -216,7 +258,24 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
         task['logs'].append(f"[INFO] 开始处理: {filename}")
 
         try:
-            json_output = converter.convert_text_to_json_format(content, narrator_name, selected_quote_pairs)
+            # 根据文件类型和编码处理内容
+            text_content = ''
+            if encoding == 'base64' and filename.lower().endswith('.docx'):
+                # 从 Data URL 中提取 Base64 部分并解码
+                content_parts = raw_content.split(',')
+                if len(content_parts) > 1:
+                    base64_content = content_parts[1]
+                    decoded_bytes = base64.b64decode(base64_content)
+                    text_content = file_converter.docx_to_text(decoded_bytes)
+                else:
+                    raise ValueError("无效的 Base64 数据")
+            elif filename.lower().endswith('.md'):
+                text_content = file_converter.markdown_to_text(raw_content)
+            else:  # .txt 或其他文本格式
+                text_content = raw_content
+            
+            # 使用转换后的文本内容进行处理
+            json_output = converter.convert_text_to_json_format(text_content, narrator_name, selected_quote_pairs)
             task['results'].append({'name': Path(filename).with_suffix('.json').name, 'content': json_output})
             task['logs'].append(f"[SUCCESS] 处理成功: {filename}")
         except Exception as e:
@@ -302,13 +361,29 @@ def start_batch_conversion():
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     try:
-        if 'file' not in request.files: return jsonify({'error': '没有文件被上传'}), 400
-        file = request.files['file'];
-        if file.filename == '': return jsonify({'error': '没有选择文件'}), 400
-        if file and file.filename.lower().endswith('.txt'):
-            return jsonify({'content': file.read().decode('utf-8')})
-        else: return jsonify({'error': '只支持.txt文件'}), 400
-    except Exception as e: logger.error(f"文件上传失败: {e}"); return jsonify({'error': f'文件上传失败: {str(e)}'}), 500
+        if 'file' not in request.files:
+            return jsonify({'error': '没有文件被上传'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': '没有选择文件'}), 400
+        
+        filename = file.filename.lower()
+        file_content = file.read()
+        
+        # 根据文件类型处理
+        if filename.endswith('.txt'):
+            content = file_content.decode('utf-8')
+        elif filename.endswith('.docx'):
+            content = file_converter.docx_to_text(file_content)
+        elif filename.endswith('.md'):
+            content = file_converter.markdown_to_text(file_content.decode('utf-8'))
+        else:
+            return jsonify({'error': '不支持的文件格式，请上传 .txt, .docx 或 .md 文件'}), 400
+        
+        return jsonify({'content': content})
+    except Exception as e:
+        logger.error(f"文件上传失败: {e}")
+        return jsonify({'error': f'文件上传失败: {str(e)}'}), 500
 
 @app.route('/api/download', methods=['POST'])
 def download_result():

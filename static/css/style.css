@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
@@ -28,6 +28,7 @@ body {
     color: white;
     padding: 30px;
     text-align: center;
+    position: relative;
 }
 
 .header h1 {
@@ -42,6 +43,308 @@ body {
     opacity: 0.9;
 }
 
+/* 视图切换按钮 */
+.view-toggle {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: #f7fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.view-btn {
+    padding: 10px 24px;
+    margin: 0 10px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    color: #4a5568;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn.active {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.view-content {
+    display: none;
+}
+
+.view-content.active {
+    display: block;
+}
+
+/* 分屏布局 */
+.split-config-bar {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f7fafc;
+    border-bottom: 2px solid #e2e8f0;
+    gap: 20px;
+}
+
+.config-item-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.config-item-inline label {
+    font-weight: 500;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+.input-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    min-height: auto;
+}
+
+.auto-preview-wrapper {
+    margin-left: auto;
+}
+
+.split-container {
+    display: flex;
+    height: calc(100vh - 400px);
+    min-height: 500px;
+    position: relative;
+}
+
+.split-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 300px;
+}
+
+.left-panel {
+    flex: 1;
+}
+
+.right-panel {
+    flex: 1;
+}
+
+/* 可拖动的分隔条 */
+.split-resizer {
+    width: 8px;
+    background: #e2e8f0;
+    cursor: col-resize;
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.split-resizer:hover {
+    background: #cbd5e0;
+}
+
+.split-resizer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 40px;
+    background: #a0aec0;
+    border-radius: 1px;
+}
+
+.panel-header {
+    padding: 15px 20px;
+    background: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: 1.1rem;
+    color: #2d3748;
+    margin: 0;
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.split-editor {
+    height: 100%;
+    resize: none;
+    font-family: 'Courier New', monospace;
+}
+
+.preview-mode-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.preview-mode-btn {
+    padding: 6px 12px;
+    border: 1px solid #cbd5e0;
+    background: white;
+    color: #4a5568;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.preview-mode-btn.active {
+    background: #4facfe;
+    color: white;
+    border-color: transparent;
+}
+
+.preview-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.split-actions {
+    padding: 20px;
+    background: #f7fafc;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 对话预览样式 */
+.dialogue-container,
+.dialogue-preview {
+    padding: 20px;
+    background: #f5f5f5;
+    min-height: 400px;
+}
+
+.dialogue-item {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    animation: fadeIn 0.3s ease;
+}
+
+.dialogue-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.dialogue-content {
+    flex: 1;
+}
+
+.dialogue-name {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.dialogue-text {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    line-height: 1.6;
+    position: relative;
+}
+
+.dialogue-text::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 15px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid white;
+}
+
+.dialogue-item.narrator {
+    justify-content: center;
+}
+
+.dialogue-item.narrator .dialogue-text {
+    background: #e2e8f0;
+    font-style: italic;
+    text-align: center;
+    max-width: 80%;
+}
+
+.dialogue-item.narrator .dialogue-text::before {
+    display: none;
+}
+
+/* 语法高亮相关 */
+#editorContainer {
+    position: relative;
+}
+
+.syntax-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 12px 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-y: auto;
+    background: transparent;
+}
+
+.highlight-speaker {
+    color: #d73a49;
+    font-weight: bold;
+}
+
+.highlight-dialogue {
+    color: #032f62;
+}
+
+.highlight-quote {
+    color: #22863a;
+}
+
+/* 编辑器工具栏 */
+.editor-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+/* 经典视图样式（保持原有样式） */
 .main-content {
     padding: 40px;
 }
@@ -268,6 +571,16 @@ body {
     white-space: pre-wrap;
 }
 
+/* Prism.js 主题覆盖 */
+.result-content pre {
+    margin: 0;
+    background: transparent;
+}
+
+.result-content code {
+    background: transparent;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -353,33 +666,6 @@ body {
     animation: spin 1s ease-in-out infinite;
 }
 
-.form-label {
-    display: block;
-    font-weight: 500;
-    color: #4a5568;
-    margin-bottom: 8px;
-    position: relative;
-}
-
-.form-label button {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.section-title > #formatTextBtn {
-    margin-left: auto;  /* 核心：自动左外边距会将按钮推到容器的最右边 */
-    font-size: 0.9rem;   /* 保持按钮原有的字体大小 */
-    padding: 6px 12px;   /* 保持按钮原有的内边距 */
-}
-
-/* --- 新增的帮助按钮样式 --- */
-
-.header {
-    position: relative; /* 为内部绝对定位的元素提供参照 */
-}
-
 #helpBtn {
     position: absolute;
     top: 20px;
@@ -403,7 +689,6 @@ body {
     transform: translateY(-2px) scale(1.05);
 }
 
-/* --- 新增的帮助模态框内容样式 --- */
 .help-section {
     margin-bottom: 25px;
     padding-bottom: 15px;
@@ -443,19 +728,57 @@ body {
     font-size: 0.9em;
 }
 
-/* 响应式调整帮助按钮位置 */
-@media (max-width: 768px) {
-    #helpBtn {
-        top: 15px;
-        right: 15px;
-        width: 36px;
-        height: 36px;
-        font-size: 1.2rem;
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .split-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .split-panel {
+        min-width: auto;
+        border-right: none;
+        border-bottom: 2px solid #e2e8f0;
+        min-height: 400px;
+    }
+    
+    .split-panel:last-child {
+        border-bottom: none;
+    }
+    
+    .split-resizer {
+        display: none;
+    }
+    
+    .split-config-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .config-item-inline {
+        flex: 1 1 auto;
+        min-width: 200px;
+    }
+    
+    .auto-preview-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -474,5 +797,29 @@ body {
     .btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    #helpBtn {
+        top: 15px;
+        right: 15px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
+    
+    .view-toggle {
+        flex-wrap: wrap;
+    }
+    
+    .view-btn {
+        margin: 5px;
+    }
+    
+    .split-config-bar {
+        padding: 10px;
+    }
+    
+    .input-sm {
+        width: 100%;
     }
 }
