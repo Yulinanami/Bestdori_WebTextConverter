@@ -26,7 +26,8 @@ export const converter = {
             const response = await axios.post('/api/convert', {
                 text: inputText,
                 narrator_name: narratorName,
-                selected_quote_pairs: selectedQuotePairs
+                selected_quote_pairs: selectedQuotePairs,
+                character_mapping: state.currentConfig
             });
 
             ui.showProgress(100);

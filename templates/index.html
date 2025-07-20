@@ -221,7 +221,7 @@
 
     <!-- 配置管理模态框 -->
     <div class="modal" id="configModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <div class="modal-title">角色映射配置</div>
                 <button class="modal-close" onclick="ui.closeModal('configModal')">×</button>
@@ -229,13 +229,22 @@
             <div class="modal-body">
                 <div style="margin-bottom: 20px;">
                     <p style="color: #718096; margin-bottom: 10px;">配置角色名称与ID的映射关系，多个ID用逗号分隔</p>
+                    <p style="color: #e53e3e; font-size: 0.9rem;">
+                        <strong>提示：</strong>配置将保存在您的浏览器本地，每个用户都有独立的配置。
+                    </p>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
-                    <button class="btn btn-secondary" id="addConfigBtn">➕ 添加角色</button>
-                    <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="addConfigBtn">➕ 添加角色</button>
+                        <button class="btn btn-secondary" id="resetConfigBtn">🔄 恢复默认</button>
+                        <button class="btn btn-secondary" id="exportConfigBtn">📥 导出配置</button>
+                        <input type="file" id="importConfigInput" accept=".json" style="display: none;">
+                        <button class="btn btn-secondary" id="importConfigBtn">📤 导入配置</button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="ui.closeModal('configModal')">取消</button>
                         <button class="btn btn-primary" id="saveConfigBtn">保存配置</button>
-                        <button class="btn btn-secondary" onclick="ui.closeModal('configModal')" style="margin-right: 10px;">取消</button>
                     </div>
                 </div>
 
@@ -293,6 +302,8 @@
                         <li><strong>多格式支持</strong>：现在支持上传 Word文档(.docx) 和 Markdown文件(.md)</li>
                         <li><strong>分屏编辑</strong>：点击"分屏编辑"可以左侧编辑，右侧实时预览</li>
                         <li><strong>对话预览</strong>：模拟 Bestdori 的对话展示效果</li>
+                        <li><strong>本地配置</strong>：角色配置保存在浏览器本地，每个用户独立</li>
+                        <li><strong>配置导入导出</strong>：支持导出和导入配置文件，方便备份和分享</li>
                     </ul>
                 </div>
 
@@ -317,6 +328,19 @@
                         <li><strong>⚙️ 配置管理</strong>: 配置角色名称与ID的映射关系</li>
                         <li><strong>📦 批量处理</strong>: 批量转换多个文件</li>
                     </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4>⚙️ 配置管理</h4>
+                    <ul>
+                        <li><strong>添加角色</strong>：添加新的角色映射</li>
+                        <li><strong>恢复默认</strong>：恢复到系统默认配置</li>
+                        <li><strong>导出配置</strong>：将当前配置导出为JSON文件</li>
+                        <li><strong>导入配置</strong>：从JSON文件导入配置</li>
+                    </ul>
+                    <p style="color: #e53e3e; margin-top: 10px;">
+                        <strong>注意：</strong>所有配置保存在浏览器本地，清除浏览器数据会丢失配置，建议定期导出备份。
+                    </p>
                 </div>
             </div>
         </div>

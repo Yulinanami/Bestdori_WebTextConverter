@@ -77,12 +77,16 @@ class ConfigManager:
             "parsing": { "max_speaker_name_length": 50, "default_narrator_name": " " },
             "patterns": { "speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$' },
             "quotes": {
-                "quote_pairs": {'"': '"', "'": "'", "‘": "’", "「": "」", "『": "』"},
+                "quote_pairs": {
+                    '"': '"', '“': '”', "'": "'", '‘': '’', "「": "」", "『": "』"
+                },
                 "quote_categories": {
-                    "中文引号 \"...\"": ['"', '"'],
-                    "中文单引号 '...'": ["'", "'"],
-                    "日文引号 「...」": ["「", "」"], "日文书名号 『...』": ["『", "』"],
-                    "英文双引号 \"...\"": ['"', '"'], "英文单引号 '...'": ["'", "'"]
+                    "中文引号 “...”": ["“", "”"],
+                    "中文单引号 ‘...’": ["‘", "’"],
+                    "日文引号 「...」": ["「", "」"],
+                    "日文书名号 『...』": ["『", "』"],
+                    "英文双引号 \"...\"": ['"', '"'],
+                    "英文单引号 '...'": ["'", "'"]
                 }
             }
         }
@@ -298,9 +302,24 @@ def convert_text():
         input_text = data.get('text', '')
         narrator_name = data.get('narrator_name', ' ')
         selected_pairs = data.get('selected_quote_pairs', [])
+        
+        # 获取客户端传来的角色映射（如果有）
+        custom_character_mapping = data.get('character_mapping', None)
+        
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
+        
+        # 如果有自定义映射，临时使用它
+        if custom_character_mapping:
+            original_mapping = converter.character_mapping
+            converter.character_mapping = custom_character_mapping
+            
         result = converter.convert_text_to_json_format(input_text, narrator_name, selected_pairs)
+        
+        # 恢复原始映射
+        if custom_character_mapping:
+            converter.character_mapping = original_mapping
+            
         return jsonify({'result': result})
     except Exception as e:
         logger.error(f"转换失败: {e}", exc_info=True)

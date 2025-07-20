@@ -55,6 +55,41 @@ function bindClassicViewEvents() {
     document.getElementById('addConfigBtn').addEventListener('click', configManager.addConfigItem.bind(configManager));
     document.getElementById('saveConfigBtn').addEventListener('click', configManager.saveConfig.bind(configManager));
     
+    // ===== 添加这些新的事件绑定 =====
+    // 重置配置按钮
+    const resetBtn = document.getElementById('resetConfigBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', configManager.resetConfig.bind(configManager));
+    }
+    
+    // 导出配置按钮
+    const exportBtn = document.getElementById('exportConfigBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', configManager.exportConfig.bind(configManager));
+    }
+    
+    // 导入配置按钮
+    const importBtn = document.getElementById('importConfigBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            document.getElementById('importConfigInput').click();
+        });
+    }
+    
+    // 导入配置文件选择
+    const importInput = document.getElementById('importConfigInput');
+    if (importInput) {
+        importInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                configManager.importConfig(file);
+                // 清空input，允许重复导入同一文件
+                e.target.value = '';
+            }
+        });
+    }
+    // ===== 新事件绑定结束 =====
+    
     // 引号相关
     document.getElementById('addCustomQuoteBtn').addEventListener('click', quoteManager.addCustomQuoteOption.bind(quoteManager));
     

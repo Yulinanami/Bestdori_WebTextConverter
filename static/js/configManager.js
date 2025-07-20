@@ -5,12 +5,27 @@ import { ui } from './uiUtils.js';
 import { quoteManager } from './quoteManager.js';
 
 export const configManager = {
+    // 默认配置
+    defaultConfig: null,
+    
     // 加载配置
     async loadConfig() {
         try {
+            // 先从服务器获取默认配置
             const response = await axios.get('/api/config');
-            state.currentConfig = response.data.character_mapping;
+            this.defaultConfig = response.data.character_mapping;
             state.quotesConfig = response.data.quotes_config;
+            
+            // 尝试从 LocalStorage 加载用户自定义配置
+            const savedConfig = this.loadLocalConfig();
+            if (savedConfig) {
+                state.currentConfig = savedConfig;
+                console.log('已加载本地保存的配置');
+            } else {
+                state.currentConfig = { ...this.defaultConfig };
+                console.log('使用默认配置');
+            }
+            
             quoteManager.renderQuoteOptions();
         } catch (error) {
             console.error('加载配置失败:', error);
@@ -18,10 +33,47 @@ export const configManager = {
         }
     },
 
+    // 从 LocalStorage 加载配置
+    loadLocalConfig() {
+        try {
+            const saved = localStorage.getItem('bestdori_character_mapping');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('加载本地配置失败:', error);
+        }
+        return null;
+    },
+
+    // 保存配置到 LocalStorage
+    saveLocalConfig(config) {
+        try {
+            localStorage.setItem('bestdori_character_mapping', JSON.stringify(config));
+            return true;
+        } catch (error) {
+            console.error('保存本地配置失败:', error);
+            return false;
+        }
+    },
+
     // 打开配置管理模态框
     openConfigModal() {
         this.renderConfigList();
         ui.openModal('configModal');
+        
+        // 确保事件绑定（因为按钮已经在HTML中，不需要动态添加）
+        // 如果按钮是动态添加的，需要在这里重新绑定事件
+    },
+    
+    // 重置为默认配置
+    resetConfig() {
+        if (confirm('确定要恢复默认配置吗？这将清除您的所有自定义设置。')) {
+            localStorage.removeItem('bestdori_character_mapping');
+            state.currentConfig = { ...this.defaultConfig };
+            this.renderConfigList();
+            ui.showStatus('已恢复默认配置', 'success');
+        }
     },
 
     // 渲染配置列表
@@ -60,7 +112,7 @@ export const configManager = {
         configList.prepend(configItem);
     },
 
-    // 保存配置
+    // 保存配置（只保存到本地）
     async saveConfig() {
         const configItems = document.querySelectorAll('.config-item');
         const newConfig = {};
@@ -77,16 +129,50 @@ export const configManager = {
             }
         });
 
-        try {
-            await axios.post('/api/config', {
-                character_mapping: newConfig
-            });
-            
+        // 保存到 LocalStorage
+        if (this.saveLocalConfig(newConfig)) {
             state.currentConfig = newConfig;
-            ui.showStatus('配置保存成功！', 'success');
+            ui.showStatus('配置已保存到本地！', 'success');
             ui.closeModal('configModal');
-        } catch (error) {
-            ui.showStatus(`配置保存失败: ${error.response?.data?.error || error.message}`, 'error');
+            
+            // 注意：不再发送到服务器
+        } else {
+            ui.showStatus('配置保存失败，可能是存储空间不足', 'error');
         }
+    },
+
+    // 导出配置
+    exportConfig() {
+        const config = state.currentConfig;
+        const dataStr = JSON.stringify(config, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bestdori_config_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        ui.showStatus('配置已导出', 'success');
+    },
+
+    // 导入配置
+    importConfig(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const config = JSON.parse(e.target.result);
+                state.currentConfig = config;
+                this.saveLocalConfig(config);
+                this.renderConfigList();
+                ui.showStatus('配置导入成功', 'success');
+            } catch (error) {
+                ui.showStatus('配置文件格式错误', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
 };
