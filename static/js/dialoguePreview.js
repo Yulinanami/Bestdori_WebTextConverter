@@ -1,9 +1,8 @@
 // dialoguePreview.js - 对话预览相关功能
 
-import { GRADIENTS } from './constants.js';
+import { GRADIENTS, state } from './constants.js';
 import { ui } from './uiUtils.js';
 import { quoteManager } from './quoteManager.js';
-import { converter } from './converter.js';
 
 export const dialoguePreview = {
     // 根据角色ID获取头像渐变色
