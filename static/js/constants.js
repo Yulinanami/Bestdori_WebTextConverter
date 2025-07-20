@@ -4,6 +4,7 @@ export const state = {
     currentResult: '',
     currentConfig: {},
     quotesConfig: {},
+    customQuotes: [],
     batchFiles: [],
     batchResults: [],
     autoPreviewEnabled: true,

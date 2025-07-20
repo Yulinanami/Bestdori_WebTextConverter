@@ -66,12 +66,20 @@ export const configManager = {
         // 如果按钮是动态添加的，需要在这里重新绑定事件
     },
     
-    // 重置为默认配置
+    // 重置为默认配置（同时清除自定义引号）
     resetConfig() {
-        if (confirm('确定要恢复默认配置吗？这将清除您的所有自定义设置。')) {
+        if (confirm('确定要恢复默认配置吗？这将清除您的所有自定义设置，包括自定义引号。')) {
+            // 清除角色映射
             localStorage.removeItem('bestdori_character_mapping');
             state.currentConfig = { ...this.defaultConfig };
+            
+            // 清除自定义引号
+            localStorage.removeItem('bestdori_custom_quotes');
+            state.customQuotes = [];
+            
             this.renderConfigList();
+            quoteManager.renderQuoteOptions();
+            
             ui.showStatus('已恢复默认配置', 'success');
         }
     },
@@ -141,10 +149,16 @@ export const configManager = {
         }
     },
 
-    // 导出配置
+    // 导出配置（包含引号配置）
     exportConfig() {
-        const config = state.currentConfig;
-        const dataStr = JSON.stringify(config, null, 2);
+        const fullConfig = {
+            character_mapping: state.currentConfig,
+            custom_quotes: state.customQuotes,
+            export_date: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(fullConfig, null, 2);
         const blob = new Blob([dataStr], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         
@@ -156,18 +170,36 @@ export const configManager = {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        ui.showStatus('配置已导出', 'success');
+        ui.showStatus('配置已导出（包含自定义引号）', 'success');
     },
 
-    // 导入配置
+    // 导入配置（包含引号配置）
     importConfig(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const config = JSON.parse(e.target.result);
-                state.currentConfig = config;
-                this.saveLocalConfig(config);
+                
+                // 兼容旧版本（只有角色映射）
+                if (config.character_mapping) {
+                    // 新版本格式
+                    state.currentConfig = config.character_mapping;
+                    this.saveLocalConfig(config.character_mapping);
+                    
+                    // 导入自定义引号
+                    if (config.custom_quotes) {
+                        state.customQuotes = config.custom_quotes;
+                        quoteManager.saveCustomQuotes();
+                    }
+                } else {
+                    // 旧版本格式（直接是角色映射）
+                    state.currentConfig = config;
+                    this.saveLocalConfig(config);
+                }
+                
                 this.renderConfigList();
+                quoteManager.renderQuoteOptions();
+                
                 ui.showStatus('配置导入成功', 'success');
             } catch (error) {
                 ui.showStatus('配置文件格式错误', 'error');
