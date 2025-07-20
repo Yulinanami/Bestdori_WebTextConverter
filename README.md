@@ -49,5 +49,5 @@ python3 app.py
 
 如果你不想要本地部署，也可以通过网页来访问这个工具
 ```bash
-https://excrain233.pythonanywhere.com/
+https://bestdori-webtextconverter.zeabur.app/
 ```
