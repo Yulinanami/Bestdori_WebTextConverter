@@ -1,7 +1,6 @@
 // viewManager.js - 视图管理相关功能
 
 import { state } from './constants.js';
-import { quoteManager } from './quoteManager.js';
 import { converter } from './converter.js';
 
 export const viewManager = {

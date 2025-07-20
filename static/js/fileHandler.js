@@ -2,7 +2,6 @@
 
 import { state, VALID_EXTENSIONS, FILE_EXTENSIONS } from './constants.js';
 import { ui } from './uiUtils.js';
-import { quoteManager } from './quoteManager.js';
 
 export const fileHandler = {
     // 设置文件拖拽功能
