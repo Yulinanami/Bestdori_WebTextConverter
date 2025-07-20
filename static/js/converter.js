@@ -19,17 +19,16 @@ export const converter = {
         const selectedQuotePairs = quoteManager.getSelectedQuotes();
 
         try {
-        ui.setButtonLoading('convertBtn', true, '转换中...');
-        ui.showProgress(10);
-        ui.showStatus('正在处理文本...', 'info');
+            ui.setButtonLoading('convertBtn', true, '转换中...');
+            ui.showProgress(10);
+            ui.showStatus('正在处理文本...', 'info');
 
-        // 发送请求时包含当前的角色映射配置
-        const response = await axios.post('/api/convert', {
-            text: inputText,
-            narrator_name: narratorName,
-            selected_quote_pairs: selectedQuotePairs,
-            character_mapping: state.currentConfig  // 传递角色映射
-        });
+            const response = await axios.post('/api/convert', {
+                text: inputText,
+                narrator_name: narratorName,
+                selected_quote_pairs: selectedQuotePairs,
+                character_mapping: state.currentConfig  // 传递角色映射
+            });
 
             ui.showProgress(100);
             state.currentResult = response.data.result;
@@ -67,7 +66,8 @@ export const converter = {
             const response = await axios.post('/api/convert', {
                 text: inputText,
                 narrator_name: narratorName,
-                selected_quote_pairs: selectedQuotePairs
+                selected_quote_pairs: selectedQuotePairs,
+                character_mapping: state.currentConfig  // 重要：传递角色映射配置
             });
             
             const jsonResult = response.data.result;

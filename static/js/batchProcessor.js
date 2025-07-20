@@ -107,7 +107,8 @@ export const batchProcessor = {
             const response = await axios.post('/api/batch_convert/start', {
                 files: filesData,
                 narrator_name: narratorName,
-                selected_quote_pairs: selectedQuotePairs
+                selected_quote_pairs: selectedQuotePairs,
+                character_mapping: state.currentConfig  // 添加角色映射配置
             });
 
             const { task_id } = response.data;

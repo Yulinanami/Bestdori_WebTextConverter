@@ -80,7 +80,8 @@ export const dialoguePreview = {
             const response = await axios.post('/api/convert', {
                 text: inputText,
                 narrator_name: narratorName,
-                selected_quote_pairs: selectedQuotePairs
+                selected_quote_pairs: selectedQuotePairs,
+                character_mapping: state.currentConfig  // 添加角色映射配置
             });
             
             this.updateDialoguePreview(response.data.result, 'dialogueContainer');

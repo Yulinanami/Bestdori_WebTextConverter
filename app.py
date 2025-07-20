@@ -244,7 +244,7 @@ file_converter = FileFormatConverter()
 batch_tasks = {} # 用于存储所有批量任务的状态
 executor = ThreadPoolExecutor(max_workers=2) # 线程池，用于在后台执行批量任务
 
-def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, selected_quote_pairs: List[List[str]]):
+def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, selected_quote_pairs: List[List[str]], custom_character_mapping: Dict[str, List[int]] = None):
     """在后台线程中运行的批量转换函数"""
     import base64
     
@@ -278,8 +278,18 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
             else:  # .txt 或其他文本格式
                 text_content = raw_content
             
+            # 如果有自定义映射，临时使用它
+            if custom_character_mapping:
+                original_mapping = converter.character_mapping
+                converter.character_mapping = custom_character_mapping
+            
             # 使用转换后的文本内容进行处理
             json_output = converter.convert_text_to_json_format(text_content, narrator_name, selected_quote_pairs)
+            
+            # 恢复原始映射
+            if custom_character_mapping:
+                converter.character_mapping = original_mapping
+                
             task['results'].append({'name': Path(filename).with_suffix('.json').name, 'content': json_output})
             task['logs'].append(f"[SUCCESS] 处理成功: {filename}")
         except Exception as e:
@@ -347,7 +357,7 @@ def get_batch_status(task_id):
         threading.Timer(300, lambda: batch_tasks.pop(task_id, None)).start()
 
     return jsonify(response_data)
-# --- 新增：批量处理相关接口 ---
+# 批量处理相关接口
 @app.route('/api/batch_convert/start', methods=['POST'])
 def start_batch_conversion():
     try:
@@ -355,6 +365,7 @@ def start_batch_conversion():
         files_data = data.get('files', [])
         narrator_name = data.get('narrator_name', ' ')
         selected_quote_pairs = data.get('selected_quote_pairs', [])
+        custom_character_mapping = data.get('character_mapping', None)  # 获取角色映射
 
         if not files_data:
             return jsonify({'error': '没有提供任何文件'}), 400
@@ -369,8 +380,8 @@ def start_batch_conversion():
             'errors': []
         }
 
-        # 使用线程池在后台执行任务
-        executor.submit(run_batch_task, task_id, files_data, narrator_name, selected_quote_pairs)
+        # 使用线程池在后台执行任务，传递角色映射
+        executor.submit(run_batch_task, task_id, files_data, narrator_name, selected_quote_pairs, custom_character_mapping)
         
         return jsonify({'task_id': task_id})
     except Exception as e:
