@@ -5,3 +5,5 @@ gunicorn==21.2.0
 python-docx==0.8.11
 markdown2==2.4.10
 lxml==4.9.3
+gunicorn==21.2.0
+gevent==23.9.1
