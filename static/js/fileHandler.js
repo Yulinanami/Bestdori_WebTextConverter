@@ -53,6 +53,17 @@ export const fileHandler = {
             return;
         }
 
+        // 显示上传区域的加载状态
+        const fileUploadLabel = document.querySelector('.file-upload-label');
+        const originalContent = fileUploadLabel.innerHTML;
+        fileUploadLabel.innerHTML = `
+            <div>
+                <div class="loading" style="margin: 0 auto 10px; font-size: 2rem;"></div>
+                <div style="font-weight: 600;">正在上传文件...</div>
+                <div style="font-size: 0.9rem; color: #718096;">请稍候</div>
+            </div>
+        `;
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -75,6 +86,11 @@ export const fileHandler = {
         } catch (error) {
             ui.showStatus(`文件上传失败: ${error.response?.data?.error || error.message}`, 'error');
             ui.hideProgress();
+        } finally {
+            // 恢复上传区域的原始内容
+            fileUploadLabel.innerHTML = originalContent;
+            // 清空文件输入，允许重复上传同一文件
+            document.getElementById('fileInput').value = '';
         }
     },
 
@@ -85,29 +101,31 @@ export const fileHandler = {
             return;
         }
 
-        const filename = `result_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.json`;
-        
-        try {
-            const response = await axios.post('/api/download', {
-                content: state.currentResult,
-                filename: filename
-            }, {
-                responseType: 'blob'
-            });
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+        await ui.withButtonLoading('downloadBtn', async () => {
+            const filename = `result_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.json`;
             
-            ui.showStatus('文件下载成功！', 'success');
-        } catch (error) {
-            ui.showStatus(`下载失败: ${error.response?.data?.error || error.message}`, 'error');
-        }
+            try {
+                const response = await axios.post('/api/download', {
+                    content: state.currentResult,
+                    filename: filename
+                }, {
+                    responseType: 'blob'
+                });
+
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+                
+                ui.showStatus('文件下载成功！', 'success');
+            } catch (error) {
+                ui.showStatus(`下载失败: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }, '下载中...');
     },
 
     // 下载分屏结果
@@ -117,28 +135,30 @@ export const fileHandler = {
             return;
         }
         
-        const filename = `result_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.json`;
-        
-        try {
-            const response = await axios.post('/api/download', {
-                content: state.currentResult,
-                filename: filename
-            }, {
-                responseType: 'blob'
-            });
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+        await ui.withButtonLoading('splitDownloadBtn', async () => {
+            const filename = `result_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '')}.json`;
             
-            ui.showStatus('文件下载成功！', 'success');
-        } catch (error) {
-            ui.showStatus(`下载失败: ${error.response?.data?.error || error.message}`, 'error');
-        }
+            try {
+                const response = await axios.post('/api/download', {
+                    content: state.currentResult,
+                    filename: filename
+                }, {
+                    responseType: 'blob'
+                });
+
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+                
+                ui.showStatus('文件下载成功！', 'success');
+            } catch (error) {
+                ui.showStatus(`下载失败: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }, '下载中...');
     }
 };

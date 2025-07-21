@@ -72,22 +72,24 @@ export const dialoguePreview = {
             return;
         }
         
-        const narratorName = document.getElementById('narratorName').value || ' ';
-        const selectedQuotePairs = quoteManager.getSelectedQuotes();
-        
-        try {
-            const response = await axios.post('/api/convert', {
-                text: inputText,
-                narrator_name: narratorName,
-                selected_quote_pairs: selectedQuotePairs,
-                character_mapping: state.currentConfig  // 添加角色映射配置
-            });
+        await ui.withButtonLoading('previewModeBtn', async () => {
+            const narratorName = document.getElementById('narratorName').value || ' ';
+            const selectedQuotePairs = quoteManager.getSelectedQuotes();
             
-            this.updateDialoguePreview(response.data.result, 'dialogueContainer');
-            ui.openModal('dialoguePreviewModal');
-            
-        } catch (error) {
-            ui.showStatus(`预览失败: ${error.response?.data?.error || error.message}`, 'error');
-        }
+            try {
+                const response = await axios.post('/api/convert', {
+                    text: inputText,
+                    narrator_name: narratorName,
+                    selected_quote_pairs: selectedQuotePairs,
+                    character_mapping: state.currentConfig
+                });
+                
+                this.updateDialoguePreview(response.data.result, 'dialogueContainer');
+                ui.openModal('dialoguePreviewModal');
+                
+            } catch (error) {
+                ui.showStatus(`预览失败: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }, '生成预览...');
     }
 };

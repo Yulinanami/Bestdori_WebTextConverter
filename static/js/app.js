@@ -115,7 +115,9 @@ function bindClassicViewEvents() {
 function bindSplitViewEvents() {
     // 格式化和转换
     document.getElementById('formatTextSplitBtn').addEventListener('click', viewManager.formatTextSplit.bind(viewManager));
-    document.getElementById('splitConvertBtn').addEventListener('click', converter.updateSplitPreview.bind(converter));
+    document.getElementById('splitConvertBtn').addEventListener('click', () => {
+        converter.updateSplitPreview(true); // 传递 true 表示是手动点击，需要显示按钮加载状态
+    });
     document.getElementById('splitDownloadBtn').addEventListener('click', fileHandler.downloadSplitResult.bind(fileHandler));
     
     // 自动预览

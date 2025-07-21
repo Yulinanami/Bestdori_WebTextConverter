@@ -33,29 +33,59 @@ export const ui = {
         }
     },
 
-    // 设置按钮加载状态
+    // 改进的统一按钮加载状态管理
     setButtonLoading(buttonId, isLoading, loadingText = '处理中...') {
         const button = document.getElementById(buttonId);
         if (!button) return;
 
-        if (buttonId === 'convertBtn') {
-            const icon = document.getElementById('convertIcon');
-            const text = document.getElementById('convertText');
+        // 保存原始内容（如果还没保存的话）
+        if (isLoading && !button.dataset.originalContent) {
+            button.dataset.originalContent = button.innerHTML;
+        }
+
+        if (isLoading) {
+            button.disabled = true;
+            button.classList.add('btn-loading');
             
-            if (isLoading) {
-                button.disabled = true;
-                icon.innerHTML = '<div class="loading"></div>';
-                text.textContent = loadingText;
+            // 特殊处理转换按钮（因为它有图标和文字分离的结构）
+            if (buttonId === 'convertBtn') {
+                const icon = document.getElementById('convertIcon');
+                const text = document.getElementById('convertText');
+                if (icon && text) {
+                    icon.innerHTML = '<div class="loading"></div>';
+                    text.textContent = loadingText;
+                }
             } else {
-                button.disabled = false;
-                icon.textContent = '🔄';
-                text.textContent = '开始转换';
+                // 通用按钮处理
+                const loadingIcon = '<span class="loading"></span>';
+                button.innerHTML = `${loadingIcon} <span>${loadingText}</span>`;
             }
         } else {
-            button.disabled = isLoading;
-            if (isLoading) {
-                button.innerHTML = `<div class="loading"></div> ${loadingText}`;
+            button.disabled = false;
+            button.classList.remove('btn-loading');
+            
+            // 恢复原始内容
+            if (buttonId === 'convertBtn') {
+                const icon = document.getElementById('convertIcon');
+                const text = document.getElementById('convertText');
+                if (icon && text) {
+                    icon.textContent = '🔄';
+                    text.textContent = '开始转换';
+                }
+            } else if (button.dataset.originalContent) {
+                button.innerHTML = button.dataset.originalContent;
+                delete button.dataset.originalContent;
             }
+        }
+    },
+
+    // 新增：快速设置按钮加载状态的辅助方法
+    async withButtonLoading(buttonId, asyncFn, loadingText = '处理中...') {
+        this.setButtonLoading(buttonId, true, loadingText);
+        try {
+            await asyncFn();
+        } finally {
+            this.setButtonLoading(buttonId, false);
         }
     },
 

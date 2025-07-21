@@ -13,6 +13,8 @@
     align-items: center;
     gap: 8px;
     text-decoration: none;
+    position: relative;
+    overflow: hidden;
 }
 
 .btn:disabled {
@@ -53,6 +55,16 @@
 .btn-sm {
     padding: 6px 12px;
     font-size: var(--text-sm);
+}
+
+/* 按钮加载状态 */
+.btn-loading {
+    pointer-events: none;
+}
+
+.btn-loading:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 .btn-group {
@@ -214,15 +226,36 @@
     cursor: pointer;
 }
 
-/* 加载动画 */
+/* 改进的加载动画 */
 .loading {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 2px solid var(--border-primary);
+    border: 2px solid transparent;
     border-radius: var(--radius-full);
-    border-top-color: var(--color-primary);
-    animation: spin 1s ease-in-out infinite;
+    border-top-color: currentColor;
+    border-right-color: currentColor;
+    animation: spin 0.8s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+    vertical-align: middle;
+}
+
+/* 按钮内的加载动画特殊样式 */
+.btn .loading {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.btn-sm .loading {
+    width: 14px;
+    height: 14px;
+}
+
+/* 文件上传区域的大加载动画 */
+.file-upload-label .loading {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
 }
 
 /* 帮助按钮 */

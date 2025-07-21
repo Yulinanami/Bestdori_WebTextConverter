@@ -58,29 +58,35 @@ export const configManager = {
     },
 
     // 打开配置管理模态框
-    openConfigModal() {
-        this.renderConfigList();
-        ui.openModal('configModal');
-        
-        // 确保事件绑定（因为按钮已经在HTML中，不需要动态添加）
-        // 如果按钮是动态添加的，需要在这里重新绑定事件
+    async openConfigModal() {
+        await ui.withButtonLoading('configBtn', async () => {
+            // 模拟加载时间
+            await new Promise(resolve => setTimeout(resolve, 100));
+            this.renderConfigList();
+            ui.openModal('configModal');
+        }, '加载配置...');
     },
     
     // 重置为默认配置（同时清除自定义引号）
-    resetConfig() {
+    async resetConfig() {
         if (confirm('确定要恢复默认配置吗？这将清除您的所有自定义设置，包括自定义引号。')) {
-            // 清除角色映射
-            localStorage.removeItem('bestdori_character_mapping');
-            state.currentConfig = { ...this.defaultConfig };
-            
-            // 清除自定义引号
-            localStorage.removeItem('bestdori_custom_quotes');
-            state.customQuotes = [];
-            
-            this.renderConfigList();
-            quoteManager.renderQuoteOptions();
-            
-            ui.showStatus('已恢复默认配置', 'success');
+            await ui.withButtonLoading('resetConfigBtn', async () => {
+                // 清除角色映射
+                localStorage.removeItem('bestdori_character_mapping');
+                state.currentConfig = { ...this.defaultConfig };
+                
+                // 清除自定义引号
+                localStorage.removeItem('bestdori_custom_quotes');
+                state.customQuotes = [];
+                
+                // 模拟处理时间
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                this.renderConfigList();
+                quoteManager.renderQuoteOptions();
+                
+                ui.showStatus('已恢复默认配置', 'success');
+            }, '重置中...');
         }
     },
 
@@ -122,55 +128,63 @@ export const configManager = {
 
     // 保存配置（只保存到本地）
     async saveConfig() {
-        const configItems = document.querySelectorAll('.config-item');
-        const newConfig = {};
+        await ui.withButtonLoading('saveConfigBtn', async () => {
+            const configItems = document.querySelectorAll('.config-item');
+            const newConfig = {};
 
-        configItems.forEach(item => {
-            const name = item.querySelector('.config-name').value.trim();
-            const idsStr = item.querySelector('.config-ids').value.trim();
-            
-            if (name && idsStr) {
-                const ids = idsStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-                if (ids.length > 0) {
-                    newConfig[name] = ids;
+            configItems.forEach(item => {
+                const name = item.querySelector('.config-name').value.trim();
+                const idsStr = item.querySelector('.config-ids').value.trim();
+                
+                if (name && idsStr) {
+                    const ids = idsStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+                    if (ids.length > 0) {
+                        newConfig[name] = ids;
+                    }
                 }
-            }
-        });
+            });
 
-        // 保存到 LocalStorage
-        if (this.saveLocalConfig(newConfig)) {
-            state.currentConfig = newConfig;
-            ui.showStatus('配置已保存到本地！', 'success');
-            ui.closeModal('configModal');
-            
-            // 注意：不再发送到服务器
-        } else {
-            ui.showStatus('配置保存失败，可能是存储空间不足', 'error');
-        }
+            // 模拟保存时间
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // 保存到 LocalStorage
+            if (this.saveLocalConfig(newConfig)) {
+                state.currentConfig = newConfig;
+                ui.showStatus('配置已保存到本地！', 'success');
+                ui.closeModal('configModal');
+            } else {
+                ui.showStatus('配置保存失败，可能是存储空间不足', 'error');
+            }
+        }, '保存中...');
     },
 
     // 导出配置（包含引号配置）
-    exportConfig() {
-        const fullConfig = {
-            character_mapping: state.currentConfig,
-            custom_quotes: state.customQuotes,
-            export_date: new Date().toISOString(),
-            version: '1.0'
-        };
-        
-        const dataStr = JSON.stringify(fullConfig, null, 2);
-        const blob = new Blob([dataStr], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bestdori_config_${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        ui.showStatus('配置已导出（包含自定义引号）', 'success');
+    async exportConfig() {
+        await ui.withButtonLoading('exportConfigBtn', async () => {
+            const fullConfig = {
+                character_mapping: state.currentConfig,
+                custom_quotes: state.customQuotes,
+                export_date: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const dataStr = JSON.stringify(fullConfig, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            // 模拟处理时间
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bestdori_config_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            ui.showStatus('配置已导出（包含自定义引号）', 'success');
+        }, '导出中...');
     },
 
     // 导入配置（包含引号配置）
