@@ -52,12 +52,6 @@ export const quoteManager = {
             const checkboxId = `quote-check-custom-saved-${index}`;
             this.addQuoteOptionToContainer(container, checkboxId, quote.name, quote.open, quote.close, quote.checked);
         });
-        
-        // 同步到分屏容器（如果存在）
-        const splitContainer = document.getElementById('splitQuoteOptionsContainer');
-        if (splitContainer) {
-            splitContainer.innerHTML = container.innerHTML;
-        }
     },
 
     // 辅助函数：添加引号选项到指定容器
@@ -106,9 +100,73 @@ export const quoteManager = {
 
     // 删除自定义引号
     removeCustomQuote(quoteName) {
+        // 先获取当前所有引号的选中状态
+        const currentStates = {};
+        document.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            currentStates[key] = checkbox.checked;
+        });
+        
+        // 删除指定的自定义引号
         state.customQuotes = state.customQuotes.filter(q => q.name !== quoteName);
         this.saveCustomQuotes();
+        
+        // 重新渲染
         this.renderQuoteOptions();
+        
+        // 恢复选中状态
+        document.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            if (key in currentStates) {
+                checkbox.checked = currentStates[key];
+            }
+        });
+        
+        // 如果分屏模态框打开，重新生成分屏内容
+        const splitModal = document.getElementById('splitQuoteModal');
+        if (splitModal && splitModal.style.display !== 'none') {
+            // 不关闭模态框，只更新内容
+            const mainContainer = document.getElementById('quoteOptionsContainer');
+            const splitContainer = document.getElementById('splitQuoteOptionsContainer');
+            
+            // 清空并重新生成分屏内容
+            splitContainer.innerHTML = '';
+            
+            mainContainer.querySelectorAll('.quote-option-checkbox').forEach((mainCheckbox, index) => {
+                const wrapper = mainCheckbox.parentElement.cloneNode(true);
+                const checkbox = wrapper.querySelector('.quote-option-checkbox');
+                const label = wrapper.querySelector('label');
+                
+                // 为分屏容器生成唯一的ID
+                const newId = `split-${checkbox.id}`;
+                checkbox.id = newId;
+                label.htmlFor = newId;
+                
+                // 同步选中状态
+                checkbox.checked = mainCheckbox.checked;
+                
+                // 添加事件监听
+                checkbox.addEventListener('change', () => {
+                    mainCheckbox.checked = checkbox.checked;
+                    if (state.autoPreviewEnabled) {
+                        converter.updateSplitPreview();
+                    }
+                });
+                
+                // 如果有删除按钮，重新绑定事件
+                const deleteBtn = wrapper.querySelector('button');
+                if (deleteBtn && deleteBtn.textContent === '删除') {
+                    const btnQuoteName = label.textContent;
+                    deleteBtn.onclick = () => {
+                        // 递归调用，但确保正确处理
+                        this.removeCustomQuote(btnQuoteName);
+                    };
+                }
+                
+                splitContainer.appendChild(wrapper);
+            });
+        }
+        
         ui.showStatus('自定义引号已删除', 'success');
     },
 
@@ -160,6 +218,13 @@ export const quoteManager = {
             return;
         }
         
+        // 先保存当前状态
+        const currentStates = {};
+        document.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            currentStates[key] = checkbox.checked;
+        });
+        
         // 添加到状态
         state.customQuotes.push({
             name: categoryName,
@@ -173,6 +238,14 @@ export const quoteManager = {
         
         // 重新渲染
         this.renderQuoteOptions();
+        
+        // 恢复状态
+        document.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            if (key in currentStates) {
+                checkbox.checked = currentStates[key];
+            }
+        });
 
         // 清空输入
         document.getElementById('customQuoteOpen').value = '';
@@ -187,28 +260,41 @@ export const quoteManager = {
         const mainContainer = document.getElementById('quoteOptionsContainer');
         const splitContainer = document.getElementById('splitQuoteOptionsContainer');
         
-        // 克隆主要的引号选项
-        splitContainer.innerHTML = mainContainer.innerHTML;
+        // 清空分屏容器
+        splitContainer.innerHTML = '';
         
-        // 重新绑定事件
-        splitContainer.querySelectorAll('.quote-option-checkbox').forEach((checkbox, index) => {
-            const mainCheckbox = mainContainer.querySelectorAll('.quote-option-checkbox')[index];
+        // 复制每个引号选项，但使用不同的ID
+        mainContainer.querySelectorAll('.quote-option-checkbox').forEach((mainCheckbox, index) => {
+            const wrapper = mainCheckbox.parentElement.cloneNode(true);
+            const checkbox = wrapper.querySelector('.quote-option-checkbox');
+            const label = wrapper.querySelector('label');
+            
+            // 为分屏容器生成唯一的ID
+            const newId = `split-${checkbox.id}`;
+            checkbox.id = newId;
+            label.htmlFor = newId;
+            
+            // 同步选中状态
             checkbox.checked = mainCheckbox.checked;
             
+            // 添加事件监听
             checkbox.addEventListener('change', () => {
                 mainCheckbox.checked = checkbox.checked;
                 if (state.autoPreviewEnabled) {
                     converter.updateSplitPreview();
                 }
             });
-        });
-        
-        // 重新绑定删除按钮事件
-        splitContainer.querySelectorAll('button').forEach(btn => {
-            if (btn.textContent === '删除') {
-                const quoteName = btn.parentElement.querySelector('label').textContent;
-                btn.onclick = () => this.removeCustomQuote(quoteName);
+            
+            // 如果有删除按钮，重新绑定事件
+            const deleteBtn = wrapper.querySelector('button');
+            if (deleteBtn && deleteBtn.textContent === '删除') {
+                const quoteName = label.textContent;
+                deleteBtn.onclick = () => {
+                    this.removeCustomQuote(quoteName);
+                };
             }
+            
+            splitContainer.appendChild(wrapper);
         });
         
         ui.openModal('splitQuoteModal');
@@ -233,6 +319,14 @@ export const quoteManager = {
             return;
         }
         
+        // 保存当前分屏容器的选中状态
+        const splitContainer = document.getElementById('splitQuoteOptionsContainer');
+        const splitStates = {};
+        splitContainer.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            splitStates[key] = checkbox.checked;
+        });
+        
         // 添加到状态
         state.customQuotes.push({
             name: categoryName,
@@ -244,13 +338,26 @@ export const quoteManager = {
         // 保存到本地存储
         this.saveCustomQuotes();
         
-        // 重新渲染两个容器
+        // 重新渲染
         this.renderQuoteOptions();
-        this.openSplitQuoteModal(); // 重新打开以刷新内容
+        
+        // 同步状态到主容器
+        const mainContainer = document.getElementById('quoteOptionsContainer');
+        mainContainer.querySelectorAll('.quote-option-checkbox').forEach(checkbox => {
+            const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+            if (key in splitStates) {
+                checkbox.checked = splitStates[key];
+            }
+        });
+        
+        // 重新打开分屏模态框以刷新内容和事件绑定
+        this.openSplitQuoteModal();
         
         // 清空输入
         document.getElementById('splitCustomQuoteOpen').value = '';
         document.getElementById('splitCustomQuoteClose').value = '';
+        
+        ui.showStatus('自定义引号已添加', 'success');
         
         if (state.autoPreviewEnabled) {
             converter.updateSplitPreview();
