@@ -92,39 +92,109 @@ export const configManager = {
 
     // 渲染配置列表
     renderConfigList() {
-        const configList = document.getElementById('configList');
-        configList.innerHTML = '';
+    const configList = document.getElementById('configList');
+    configList.innerHTML = '';
 
-        const sortedConfig = Object.entries(state.currentConfig).sort(([, idsA], [, idsB]) => {
-            const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
-            const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
-            return idA - idB;
-        });
+    const sortedConfig = Object.entries(state.currentConfig).sort(([, idsA], [, idsB]) => {
+        const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
+        const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
+        return idA - idB;
+    });
 
-        sortedConfig.forEach(([name, ids]) => {
-            const configItem = document.createElement('div');
-            configItem.className = 'config-item';
-            configItem.innerHTML = `
-                <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
-                <input type="text" placeholder="ID列表(逗号分隔)" value="${ids.join(',')}" class="form-input config-ids">
-                <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
-            `;
-            configList.appendChild(configItem);
+    sortedConfig.forEach(([name, ids]) => {
+        const configItem = document.createElement('div');
+        configItem.className = 'config-item';
+        
+        // 获取第一个ID用于显示头像
+        const primaryId = ids && ids.length > 0 ? ids[0] : 0;
+        const avatarPath = primaryId > 0 ? `/static/images/avatars/${primaryId}.png` : '';
+        
+        configItem.innerHTML = `
+            <div class="config-avatar-wrapper">
+                <div class="config-avatar" data-id="${primaryId}">
+                    ${primaryId > 0 ? 
+                        `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
+                        : name.charAt(0)
+                    }
+                </div>
+            </div>
+            <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
+            <input type="text" placeholder="ID列表(逗号分隔)" value="${ids.join(',')}" class="form-input config-ids">
+            <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
+        `;
+        
+        // 添加ID输入变化时更新头像的事件
+        const idsInput = configItem.querySelector('.config-ids');
+        const avatarWrapper = configItem.querySelector('.config-avatar-wrapper');
+        
+        idsInput.addEventListener('input', (e) => {
+            const newIds = e.target.value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
+            
+            // 更新头像显示
+            this.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
         });
+        
+        configList.appendChild(configItem);
+    });
+},
+
+    // 新增方法：更新配置项头像
+    updateConfigAvatar(avatarWrapper, id, name) {
+        const avatar = avatarWrapper.querySelector('.config-avatar');
+        avatar.dataset.id = id;
+        
+        if (id > 0) {
+            avatar.className = 'config-avatar';
+            avatar.innerHTML = `<img src="/static/images/avatars/${id}.png" alt="${name}" class="config-avatar-img">`;
+            
+            const img = avatar.querySelector('img');
+            img.onerror = () => {
+                avatar.innerHTML = name.charAt(0);
+                avatar.classList.add('fallback');
+            };
+        } else {
+            avatar.className = 'config-avatar fallback';
+            avatar.innerHTML = name.charAt(0);
+        }
     },
 
     // 添加配置项
     addConfigItem() {
-        const configList = document.getElementById('configList');
-        const configItem = document.createElement('div');
-        configItem.className = 'config-item';
-        configItem.innerHTML = `
-            <input type="text" placeholder="角色名称" class="form-input config-name">
-            <input type="text" placeholder="ID列表(逗号分隔)" class="form-input config-ids">
-            <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
-        `;
-        configList.prepend(configItem);
-    },
+    const configList = document.getElementById('configList');
+    const configItem = document.createElement('div');
+    configItem.className = 'config-item';
+    configItem.innerHTML = `
+        <div class="config-avatar-wrapper">
+            <div class="config-avatar fallback" data-id="0">?</div>
+        </div>
+        <input type="text" placeholder="角色名称" class="form-input config-name">
+        <input type="text" placeholder="ID列表(逗号分隔)" class="form-input config-ids">
+        <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
+    `;
+    
+    // 为新添加的项也绑定事件
+    const idsInput = configItem.querySelector('.config-ids');
+    const nameInput = configItem.querySelector('.config-name');
+    const avatarWrapper = configItem.querySelector('.config-avatar-wrapper');
+    
+    idsInput.addEventListener('input', (e) => {
+        const newIds = e.target.value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+        const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
+        const name = nameInput.value || '?';
+        
+        this.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
+    });
+    
+    nameInput.addEventListener('input', (e) => {
+        const avatar = avatarWrapper.querySelector('.config-avatar');
+        if (avatar.classList.contains('fallback')) {
+            avatar.innerHTML = e.target.value.charAt(0) || '?';
+        }
+    });
+    
+    configList.prepend(configItem);
+},
 
     // 保存配置（只保存到本地）
     async saveConfig() {

@@ -73,6 +73,131 @@
     flex-wrap: wrap;
 }
 
+/* 配置项头像样式 */
+.config-avatar-wrapper {
+    flex-shrink: 0;
+}
+
+.config-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.config-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.config-avatar.fallback {
+    background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+}
+
+/* 配置项布局调整 */
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+}
+
+.config-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.config-item:hover .config-avatar {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+}
+
+/* 输入框调整 */
+.config-item .config-name {
+    flex: 2;
+    min-width: 150px;
+}
+
+.config-item .config-ids {
+    flex: 1;
+    min-width: 100px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .config-item {
+        flex-wrap: wrap;
+    }
+    
+    .config-avatar-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .config-item input {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
+
+/* 头像加载动画 */
+@keyframes avatarPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(79, 172, 254, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0);
+    }
+}
+
+.config-avatar[data-id]:not([data-id="0"]) {
+    animation: avatarPulse 2s infinite;
+}
+
+.config-avatar[data-id="0"] {
+    animation: none;
+}
+
+/* 特殊ID提示 */
+.config-avatar::after {
+    content: attr(data-id);
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--color-primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: normal;
+    display: none;
+}
+
+.config-item:hover .config-avatar[data-id]:not([data-id="0"])::after {
+    display: block;
+}
+
 /* 视图切换按钮 */
 .view-btn {
     padding: 10px 24px;
