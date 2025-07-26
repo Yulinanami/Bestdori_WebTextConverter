@@ -5,7 +5,17 @@ import { ui } from './uiUtils.js';
 import { quoteManager } from './quoteManager.js';
 
 export const dialoguePreview = {
-    // 根据角色ID获取头像渐变色
+    // 获取角色头像路径
+    getCharacterAvatar(characterId) {
+        // 如果有角色ID，使用对应的头像
+        if (characterId && characterId > 0) {
+            return `/static/images/avatars/${characterId}.png`;
+        }
+        // 默认头像或返回null
+        return null;
+    },
+
+    // 根据角色ID获取头像渐变色（作为备用方案）
     getAvatarGradient(id) {
         return GRADIENTS[id % GRADIENTS.length];
     },
@@ -30,13 +40,44 @@ export const dialoguePreview = {
                 dialogueItem.style.animationDelay = `${index * 0.05}s`;
                 
                 if (!isNarrator) {
-                    // 创建头像
+                    const characterId = action.characters && action.characters[0] ? action.characters[0] : 0;
+                    const avatarPath = this.getCharacterAvatar(characterId);
+                    
+                    // 创建头像容器
                     const avatar = document.createElement('div');
                     avatar.className = 'dialogue-avatar';
-                    avatar.textContent = action.name.charAt(0);
-                    // 根据角色ID设置不同的渐变色
-                    const characterId = action.characters && action.characters[0] ? action.characters[0] : 0;
-                    avatar.style.background = this.getAvatarGradient(characterId);
+                    
+                    if (avatarPath && characterId > 0) {
+                        // 使用角色头像图片
+                        const img = document.createElement('img');
+                        img.src = avatarPath;
+                        img.alt = action.name;
+                        img.className = 'avatar-img';
+                        
+                        // 添加加载状态
+                        avatar.classList.add('loading');
+                        
+                        img.onload = () => {
+                            // 图片加载成功，移除加载状态
+                            avatar.classList.remove('loading');
+                        };
+                        
+                        img.onerror = () => {
+                            // 图片加载失败时的回退处理
+                            avatar.classList.remove('loading');
+                            avatar.innerHTML = action.name.charAt(0);
+                            avatar.style.background = this.getAvatarGradient(characterId);
+                            avatar.classList.add('fallback');
+                        };
+                        
+                        avatar.appendChild(img);
+                    } else {
+                        // 没有头像时使用文字和渐变背景
+                        avatar.textContent = action.name.charAt(0);
+                        avatar.style.background = this.getAvatarGradient(characterId);
+                        avatar.classList.add('fallback');
+                    }
+                    
                     dialogueItem.appendChild(avatar);
                 }
                 
