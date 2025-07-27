@@ -76,6 +76,7 @@
 /* 配置项头像样式 */
 .config-avatar-wrapper {
     flex-shrink: 0;
+    padding: 5px;
 }
 
 .config-avatar {
@@ -183,15 +184,29 @@
 .config-avatar::after {
     content: attr(data-id);
     position: absolute;
-    bottom: -5px;
-    right: -5px;
+    bottom: -3px;
+    right: -3px;
     background: var(--color-primary);
     color: white;
-    font-size: 10px;
-    padding: 2px 6px;
+    font-size: 11px;
+    padding: 2px 5px;
     border-radius: 10px;
-    font-weight: normal;
+    font-weight: bold;
     display: none;
+    /* 确保角标在最上层 */
+    z-index: 10;
+    /* 添加边框让角标更清晰 */
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    /* 最小宽度确保单个数字也显示良好 */
+    min-width: 20px;
+    text-align: center;
+}
+
+/* 调整hover时显示角标 */
+.config-item:hover .config-avatar-wrapper {
+    /* 移除overflow限制 */
+    overflow: visible;
 }
 
 .config-item:hover .config-avatar[data-id]:not([data-id="0"])::after {
