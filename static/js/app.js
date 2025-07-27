@@ -158,6 +158,24 @@ function bindSplitViewEvents() {
             converter.updateSplitPreview();
         }
     });
+
+    // 新增：分屏视图的Live2D开关同步
+    const splitEnableLive2DCheckbox = document.getElementById('splitEnableLive2DCheckbox');
+    if (splitEnableLive2DCheckbox) {
+        // 初始化时同步状态
+        splitEnableLive2DCheckbox.checked = state.enableLive2D;
+        
+        splitEnableLive2DCheckbox.addEventListener('change', (e) => {
+            state.enableLive2D = e.target.checked;
+            localStorage.setItem('bestdori_enable_live2d', e.target.checked.toString());
+            // 同步到主视图的开关
+            document.getElementById('enableLive2DCheckbox').checked = e.target.checked;
+            // 如果启用了自动预览，立即更新预览
+            if (state.autoPreviewEnabled) {
+                viewManager.debouncePreview();
+            }
+        });
+    }
     
     // 引号配置
     document.getElementById('splitQuoteConfigBtn').addEventListener('click', quoteManager.openSplitQuoteModal.bind(quoteManager));

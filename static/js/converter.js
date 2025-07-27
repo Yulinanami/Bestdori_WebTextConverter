@@ -28,8 +28,8 @@ export const converter = {
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
                 character_mapping: state.currentConfig,
-                enable_live2d: state.enableLive2D,  // 新增
-                costume_mapping: state.currentCostumes  // 新增
+                enable_live2d: state.enableLive2D,        // 确保传递Live2D设置
+                costume_mapping: state.currentCostumes     // 确保传递服装映射
             });
 
             ui.showProgress(100);
@@ -52,7 +52,7 @@ export const converter = {
     },
 
     // 更新分屏预览
-    async updateSplitPreview() {
+    async updateSplitPreview(isManualRefresh = false) {
         const inputText = document.getElementById('splitInputText').value.trim();
         if (!inputText) {
             document.querySelector('#splitPreviewJson code').textContent = '// 请输入文本以查看预览';
@@ -64,12 +64,19 @@ export const converter = {
         const narratorName = document.getElementById('splitNarratorName').value || ' ';
         const selectedQuotePairs = quoteManager.getSelectedQuotes();
         
+        // 如果是手动刷新，显示按钮加载状态
+        if (isManualRefresh) {
+            ui.setButtonLoading('splitConvertBtn', true, '刷新中...');
+        }
+        
         try {
             const response = await axios.post('/api/convert', {
                 text: inputText,
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
-                character_mapping: state.currentConfig  // 重要：传递角色映射配置
+                character_mapping: state.currentConfig,
+                enable_live2d: state.enableLive2D,        // 重要：传递Live2D设置
+                costume_mapping: state.currentCostumes     // 重要：传递服装映射
             });
             
             const jsonResult = response.data.result;
@@ -86,6 +93,11 @@ export const converter = {
             const errorMsg = `转换失败: ${error.response?.data?.error || error.message}`;
             document.querySelector('#splitPreviewJson code').textContent = `// ${errorMsg}`;
             document.getElementById('splitPreviewDialogue').innerHTML = `<p style="text-align: center; color: #e53e3e;">${errorMsg}</p>`;
+        } finally {
+            // 如果是手动刷新，恢复按钮状态
+            if (isManualRefresh) {
+                ui.setButtonLoading('splitConvertBtn', false);
+            }
         }
     }
 };

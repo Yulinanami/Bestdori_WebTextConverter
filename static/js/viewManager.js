@@ -20,9 +20,18 @@ export const viewManager = {
         if (targetView === 'split') {
             this.syncTextAreas();
             this.syncConfigToSplit();
+            this.syncLive2DToSplit();  // 新增：同步Live2D设置
             if (state.autoPreviewEnabled) {
                 converter.updateSplitPreview();
             }
+        }
+    },
+    
+    // 新增：同步Live2D设置到分屏视图
+    syncLive2DToSplit() {
+        const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
+        if (splitCheckbox) {
+            splitCheckbox.checked = state.enableLive2D;
         }
     },
 

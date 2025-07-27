@@ -1,4 +1,4 @@
-// batchProcessor.js - 批量处理相关功能
+// batchProcessor.js - 批量处理相关功能（修改版）
 
 import { state, FILE_EXTENSIONS } from './constants.js';
 import { ui } from './uiUtils.js';
@@ -57,7 +57,7 @@ export const batchProcessor = {
         }
     },
 
-    // 开始批量转换
+    // 开始批量转换（修改版）
     async startBatchConversion() {
         if (state.batchFiles.length === 0) {
             ui.showStatus('请先选择文件！', 'error');
@@ -108,7 +108,9 @@ export const batchProcessor = {
                 files: filesData,
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
-                character_mapping: state.currentConfig  // 添加角色映射配置
+                character_mapping: state.currentConfig,      // 已有
+                enable_live2d: state.enableLive2D,          // 新增：传递Live2D设置
+                costume_mapping: state.currentCostumes      // 新增：传递服装映射
             });
 
             const { task_id } = response.data;

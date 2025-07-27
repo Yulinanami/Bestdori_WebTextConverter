@@ -32,12 +32,25 @@ export const dialoguePreview = {
                 return;
             }
             
-            data.actions.forEach((action, index) => {
+            // 过滤并处理actions
+            let dialogueIndex = 0;
+            data.actions.forEach((action) => {
+                // 只处理type为"talk"的action
+                if (action.type !== 'talk') {
+                    return;
+                }
+                
+                // 检查是否为旁白
                 const isNarrator = !action.name || action.name.trim() === '' || action.name === ' ';
+                
+                // 如果是旁白但没有内容，跳过
+                if (isNarrator && (!action.body || action.body.trim() === '')) {
+                    return;
+                }
                 
                 const dialogueItem = document.createElement('div');
                 dialogueItem.className = `dialogue-item ${isNarrator ? 'narrator' : ''}`;
-                dialogueItem.style.animationDelay = `${index * 0.05}s`;
+                dialogueItem.style.animationDelay = `${dialogueIndex * 0.05}s`;
                 
                 if (!isNarrator) {
                     const characterId = action.characters && action.characters[0] ? action.characters[0] : 0;
@@ -99,7 +112,15 @@ export const dialoguePreview = {
                 
                 dialogueItem.appendChild(content);
                 container.appendChild(dialogueItem);
+                
+                // 增加对话索引
+                dialogueIndex++;
             });
+            
+            // 如果没有任何对话内容被添加
+            if (dialogueIndex === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096;">没有对话内容</p>';
+            }
         } catch (error) {
             container.innerHTML = `<p style="text-align: center; color: #e53e3e;">预览失败: ${error.message}</p>`;
         }
