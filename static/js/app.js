@@ -9,6 +9,7 @@ import { configManager } from './configManager.js';
 import { quoteManager } from './quoteManager.js';
 import { dialoguePreview } from './dialoguePreview.js';
 import { batchProcessor } from './batchProcessor.js';
+import { costumeManager } from './costumeManager.js';  // 新增导入
 
 // 初始化应用
 function initializeApp() {
@@ -29,6 +30,9 @@ function initializeApp() {
     
     // 加载配置
     configManager.loadConfig();
+    
+    // 加载服装配置
+    costumeManager.loadCostumeConfig();  // 新增
     
     // 初始化全局模态框监听器
     initGlobalModalListeners();
@@ -55,7 +59,6 @@ function bindClassicViewEvents() {
     document.getElementById('addConfigBtn').addEventListener('click', configManager.addConfigItem.bind(configManager));
     document.getElementById('saveConfigBtn').addEventListener('click', configManager.saveConfig.bind(configManager));
     
-    // ===== 添加这些新的事件绑定 =====
     // 重置配置按钮
     const resetBtn = document.getElementById('resetConfigBtn');
     if (resetBtn) {
@@ -88,7 +91,35 @@ function bindClassicViewEvents() {
             }
         });
     }
-    // ===== 新事件绑定结束 =====
+    
+    // ===== 新增：Live2D相关事件绑定 =====
+    // Live2D开关
+    const enableLive2DCheckbox = document.getElementById('enableLive2DCheckbox');
+    if (enableLive2DCheckbox) {
+        enableLive2DCheckbox.addEventListener('change', (e) => {
+            state.enableLive2D = e.target.checked;
+            localStorage.setItem('bestdori_enable_live2d', e.target.checked.toString());
+        });
+    }
+    
+    // 服装配置按钮
+    const costumeConfigBtn = document.getElementById('costumeConfigBtn');
+    if (costumeConfigBtn) {
+        costumeConfigBtn.addEventListener('click', costumeManager.openCostumeModal.bind(costumeManager));
+    }
+    
+    // 保存服装配置按钮
+    const saveCostumesBtn = document.getElementById('saveCostumesBtn');
+    if (saveCostumesBtn) {
+        saveCostumesBtn.addEventListener('click', costumeManager.saveCostumes.bind(costumeManager));
+    }
+    
+    // 重置服装按钮
+    const resetCostumesBtn = document.getElementById('resetCostumesBtn');
+    if (resetCostumesBtn) {
+        resetCostumesBtn.addEventListener('click', costumeManager.resetCostumes.bind(costumeManager));
+    }
+    // ===== Live2D事件绑定结束 =====
     
     // 引号相关
     document.getElementById('addCustomQuoteBtn').addEventListener('click', quoteManager.addCustomQuoteOption.bind(quoteManager));

@@ -38,8 +38,23 @@ class ActionItem:
         if self.voices is None: self.voices = []
 
 @dataclass
+class LayoutActionItem:
+    type: str = "layout"
+    delay: int = 0
+    wait: bool = True
+    layoutType: str = "appear"
+    character: int = 0
+    costume: str = ""
+    motion: str = ""
+    expression: str = ""
+    sideFrom: str = "center"
+    sideFromOffsetX: int = 0
+    sideTo: str = "center"
+    sideToOffsetX: int = 0
+
+@dataclass
 class ConversionResult:
-    server: int = 0; voice: str = ""; background: Optional[str] = None; bgm: Optional[str] = None; actions: List[ActionItem] = None
+    server: int = 0; voice: str = ""; background: Optional[str] = None; bgm: Optional[str] = None; actions: List[Dict[str, Any]] = None
     def __post_init__(self):
         if self.actions is None: self.actions = []
 
@@ -52,7 +67,6 @@ class ConfigManager:
         logger.info(f"ConfigManager using config file: {self.config_path}")
 
     def _load_config(self) -> Dict[str, Any]:
-        # --- 解决方案2：恢复完整的默认角色列表 ---
         default_config = {
             "character_mapping": {
                 # Poppin'Party
@@ -69,10 +83,86 @@ class ConfigManager:
                 "仓田真白": [26], "桐谷透子": [27], "广町七深": [28], "二叶筑紫": [29], "八潮瑠唯": [30],
                 # RAISE A SUILEN
                 "LAYER": [31], "LOCK": [32], "MASKING": [33], "PAREO": [34], "CHU²": [35],
-                # mujica
-                "丰川祥子": [1], "若叶睦": [2], "三角初华": [3], "八幡海铃": [4], "祐天寺若麦": [5],
                 # MyGo
-                "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40]
+                "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40],
+                # Mujica
+                "三角初华": [1], "若叶睦": [2], "八幡海铃": [3], "祐天寺若麦": [4], "丰川祥子": [5]
+            },
+            "costume_mapping": { # 每个角色的服装映射
+                
+                # Poppin'Party
+                1: ["001_school_summer-2023", "001_school_winter-2023", "001_casual-2023", "001_live_r_2023"],
+                2: ["002_school_summer-2023", "002_school_winter-2023", "002_casual-2023", "002_live_r_2023"],
+                3: ["003_school_summer-2023", "003_school_winter-2023", "003_casual-2023", "003_live_r_2023"],
+                4: ["004_school_summer-2023", "004_school_winter-2023", "004_casual-2023", "004_live_r_2023"],
+                5: ["005_school_summer-2023", "005_school_winter-2023", "005_casual-2023", "005_live_r_2023"],
+                
+                # Afterglow
+                6: ["006_school_summer-2023", "006_school_winter-2023", "006_casual-2023", "006_live_r_2023"],
+                7: ["007_school_summer-2023", "007_school_winter-2023", "007_casual-2023", "007_live_r_2023"],
+                8: ["008_school_summer-2023", "008_school_winter-2023", "008_casual-2023", "008_live_r_2023"],
+                9: ["009_school_summer-2023", "009_school_winter-2023", "009_casual-2023", "009_live_r_2023"],
+                10: ["010_school_summer-2023", "010_school_winter-2023", "010_casual-2023", "010_live_r_2023"],
+                
+                # Hello, Happy World!
+                11: ["011_school_summer-2023", "011_school_winter-2023", "011_casual-2023", "011_live_r_2023"],
+                12: ["012_school_summer_s2", "012_school_winter_s2", "012_casual-2023", "012_live_r_2023"],
+                13: ["013_school_summer-2023", "013_school_winter-2023", "013_casual-2023", "013_live_r_2023"],
+                14: ["014_school_summer", "014_school_winter_v3", "014_casual-2023", "014_live_r_2023"],
+                15: ["015_school_summer-2023", "015_school_winter-2023", "015_casual-2023", "015_live_r_2023"],
+                
+                # Pastel*Palettes
+                16: ["016_school_summer", "016_school_winter", "016_casual-2023", "016_live_r_2023"],
+                17: ["017_school_summer_s2", "017_school_winter_s2", "017_casual-2023", "017_live_r_2023"],
+                18: ["018_school_summer", "018_school_winter", "018_casual-2023", "018_live_r_2023"],
+                19: ["019_school_summer_s2", "019_school_winter_s2", "019_casual-2023", "019_live_r_2023"],
+                20: ["020_school_summer-2023", "020_school_winter-2023", "020_casual-2023", "020_live_r_2023"],
+                
+                # Roselia
+                21: ["021_school_summer_s2", "021_school_winter_s2", "021_casual-2023", "021_live_r_2023"],
+                22: ["022_school_summer", "022_school_winter_v3", "022_casual-2023", "022_live_r_2023"],
+                23: ["023_school_summer_s2", "023_school_winter_s2", "023_casual-2023", "023_live_r_2023"],
+                24: ["024_school_summer-2023", "024_school_winter-2023", "024_casual-2023", "024_live_r_2023"],
+                25: ["025_school_summer", "025_school_winter_v3", "025_casual-2023", "025_live_r_2023"],
+                
+                # Morfonica
+                26: ["026_school_summer-2023", "026_school_winter-2023", "026_casual-2023", "026_live_r_2023"],
+                27: ["027_school_summer-2023", "027_school_winter-2023", "027_casual-2023", "027_live_r_2023"],
+                28: ["028_school_summer-2023", "028_school_winter-2023", "028_casual-2023", "028_live_r_2023"],
+                29: ["029_school_summer-2023", "029_school_winter-2023", "029_casual-2023", "029_live_r_2023"],
+                30: ["030_school_summer-2023", "030_school_winter-2023", "030_casual-2023", "030_live_r_2023"],
+                
+                # RAISE A SUILEN
+                31: ["031_live_r_2023", "031_casual-2023"],
+                32: ["032_school_summer-2023", "032_school_winter-2023", "032_live_r_2023", "032_casual-2023"],
+                33: ["033_school_winter", "033_live_r_2023", "033_casual-2023"],
+                34: ["034_school_winter-2023", "034_live_r_2023", "034_casual-2023"],
+                35: ["035_school_winter-2023", "035_live_r_2023", "035_casual-2023"],
+                
+                # MyGO
+                36: ["036_school_summer-2023", "036_school_winter-2023", "036_live_default", "036_casual-2023"],
+                37: ["037_school_summer-2023", "037_school_winter-2023", "037_live_default", "037_casual-2023"],
+                38: ["038_school_summer-2023", "038_school_winter-2023", "038_live_default", "038_casual-2023"],
+                39: ["039_school_summer-2023", "039_school_winter-2023", "039_live_default", "039_casual-2023"],
+                40: ["040_school_summer-2023", "040_school_winter-2023", "040_live_default", "040_casual-2023"],
+                
+                # Mujica
+                337: ["337_sumimi", "337_school_summer-2023", "337_school_winter-2023", "337_casual-2023", "337_casual-2023_nocap"],
+                338: ["338_school_summer-2023", "338_school_winter-2023", "338_casual-2023"],
+                339: ["339_school_summer-2023", "339_school_winter-2023", "339_casual-2023"],
+                340: ["340_casual-2023"],
+                341: ["341_jh_school_winter-2023", "341_school_summer-2023", "341_school_winter-2023", "341_casual-2023"],
+            },
+            "default_costumes": {  # 每个角色的默认服装
+                1: "001_casual-2023", 2: "002_casual-2023", 3: "003_casual-2023", 4: "004_casual-2023", 5: "005_casual-2023",
+                6: "006_casual-2023", 7: "007_casual-2023", 8: "008_casual-2023", 9: "009_casual-2023", 10: "010_casual-2023",
+                11: "011_casual-2023", 12: "012_casual-2023", 13: "013_casual-2023", 14: "014_casual-2023", 15: "015_casual-2023",
+                16: "016_casual-2023", 17: "017_casual-2023", 18: "018_casual-2023", 19: "019_casual-2023", 20: "020_casual-2023",
+                21: "021_casual-2023", 22: "022_casual-2023", 23: "023_casual-2023", 24: "024_casual-2023", 25: "025_casual-2023",
+                26: "026_casual-2023", 27: "027_casual-2023", 28: "028_casual-2023", 29: "029_casual-2023", 30: "030_casual-2023",
+                31: "031_casual-2023", 32: "032_casual-2023", 33: "033_casual-2023", 34: "034_casual-2023", 35: "035_casual-2023",
+                36: "036_casual-2023", 37: "037_casual-2023", 38: "038_casual-2023", 39: "039_casual-2023", 40: "040_casual-2023",
+                337: "337_casual-2023", 338: "338_casual-2023", 339: "339_casual-2023", 340: "340_casual-2023", 341: "341_casual-2023",
             },
             "parsing": { "max_speaker_name_length": 50, "default_narrator_name": " " },
             "patterns": { "speaker_pattern": r'^([\w\s]+)\s*[：:]\s*(.*)$' },
@@ -101,6 +191,11 @@ class ConfigManager:
                     logger.warning("旧的或不完整的引号配置，将使用最新的默认配置进行更新。")
                     loaded_config["quotes"] = default_config["quotes"]
                     self._save_config(loaded_config)
+                # 确保服装配置存在
+                if "costume_mapping" not in loaded_config:
+                    loaded_config["costume_mapping"] = default_config["costume_mapping"]
+                if "default_costumes" not in loaded_config:
+                    loaded_config["default_costumes"] = default_config["default_costumes"]
                 return loaded_config
         except Exception as e:
             logger.warning(f"配置文件加载失败: {e}"); return default_config
@@ -115,10 +210,11 @@ class ConfigManager:
     def get_parsing_config(self) -> Dict[str, Any]: return self.config.get("parsing", {})
     def get_patterns(self) -> Dict[str, str]: return self.config.get("patterns", {})
     def get_quotes_config(self) -> Dict[str, Any]: return self.config.get("quotes", {})
+    def get_costume_mapping(self) -> Dict[int, str]: return self.config.get("default_costumes", {})
+    def get_available_costumes(self) -> Dict[int, List[str]]: return self.config.get("costume_mapping", {})
     def update_character_mapping(self, new_mapping: Dict[str, List[int]]):
         self.config["character_mapping"] = new_mapping; self._save_config(self.config)
 
-# --- 解决方案1：清理代码，只保留新的、正确的解析器类 ---
 class DialogueParser(ABC):
     @abstractmethod
     def parse(self, line: str) -> Optional[Tuple[str, str]]: pass
@@ -135,8 +231,8 @@ class SpeakerParser(DialogueParser):
                 if len(speaker_name) < self.max_name_length:
                     return speaker_name, match.group(2).strip()
             except IndexError:
-                return None # 增加一个返回路径，确保健壮性
-        return None # 确保所有路径都有返回值
+                return None
+        return None
 
 class QuoteHandler:
     def remove_quotes(self, text: str, active_quote_pairs: Dict[str, str]) -> str:
@@ -152,6 +248,7 @@ class TextConverter:
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
         self.character_mapping = config_manager.get_character_mapping()
+        self.costume_mapping = config_manager.get_costume_mapping()
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
@@ -163,25 +260,61 @@ class TextConverter:
         )
         self.quote_handler = QuoteHandler()
 
-    def convert_text_to_json_format(self, input_text: str, narrator_name: str, selected_quote_pairs_list: List[List[str]]) -> str:
+    def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
+                                   selected_quote_pairs_list: List[List[str]], 
+                                   enable_live2d: bool = False,
+                                   custom_costume_mapping: Dict[int, str] = None) -> str:
         active_quote_pairs = {
             pair[0]: pair[1]
             for pair in selected_quote_pairs_list
             if isinstance(pair, list) and len(pair) == 2
         }
+        
         actions = []
+        appeared_characters = set()  # 记录已出现的角色
         current_action_name = narrator_name
         current_action_body_lines = []
+        
+        # 合并默认和自定义服装映射
+        effective_costume_mapping = {}
+        if enable_live2d:
+            effective_costume_mapping = self.costume_mapping.copy()
+            if custom_costume_mapping:
+                effective_costume_mapping.update(custom_costume_mapping)
+        
         def finalize_current_action():
             if current_action_body_lines:
                 body = "\n".join(current_action_body_lines).strip()
                 finalized_body = self.quote_handler.remove_quotes(body, active_quote_pairs)
                 if finalized_body:
-                    actions.append(ActionItem(
-                        characters=self.character_mapping.get(current_action_name, []),
+                    character_ids = self.character_mapping.get(current_action_name, [])
+                    
+                    # 如果启用了 Live2D 且角色有ID
+                    if enable_live2d and character_ids and current_action_name != narrator_name:
+                        primary_character_id = character_ids[0]
+                        
+                        # 检查该角色是否首次出现
+                        if primary_character_id not in appeared_characters:
+                            appeared_characters.add(primary_character_id)
+                            
+                            # 获取服装ID
+                            costume_id = effective_costume_mapping.get(primary_character_id, "")
+                            
+                            # 添加 layout action
+                            layout_action = LayoutActionItem(
+                                character=primary_character_id,
+                                costume=costume_id
+                            )
+                            actions.append(layout_action)
+                    
+                    # 添加 talk action
+                    talk_action = ActionItem(
+                        characters=character_ids,
                         name=current_action_name,
                         body=finalized_body
-                    ))
+                    )
+                    actions.append(talk_action)
+        
         for line in input_text.split('\n'):
             stripped_line = line.strip()
             if not stripped_line:
@@ -200,7 +333,16 @@ class TextConverter:
             else:
                 current_action_body_lines.append(stripped_line)
         finalize_current_action()
-        result = ConversionResult(actions=actions)
+        
+        # 处理结果，将所有 action 转换为字典
+        all_actions = []
+        for action in actions:
+            if isinstance(action, LayoutActionItem):
+                all_actions.append(asdict(action))
+            else:
+                all_actions.append(asdict(action))
+        
+        result = ConversionResult(actions=all_actions)
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
 # --- 新增：文件格式转换器 ---
@@ -244,7 +386,9 @@ file_converter = FileFormatConverter()
 batch_tasks = {} # 用于存储所有批量任务的状态
 executor = ThreadPoolExecutor(max_workers=2) # 线程池，用于在后台执行批量任务
 
-def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, selected_quote_pairs: List[List[str]], custom_character_mapping: Dict[str, List[int]] = None):
+def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name: str, 
+                   selected_quote_pairs: List[List[str]], custom_character_mapping: Dict[str, List[int]] = None,
+                   enable_live2d: bool = False, custom_costume_mapping: Dict[int, str] = None):
     """在后台线程中运行的批量转换函数"""
     import base64
     
@@ -284,7 +428,10 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
                 converter.character_mapping = custom_character_mapping
             
             # 使用转换后的文本内容进行处理
-            json_output = converter.convert_text_to_json_format(text_content, narrator_name, selected_quote_pairs)
+            json_output = converter.convert_text_to_json_format(
+                text_content, narrator_name, selected_quote_pairs,
+                enable_live2d, custom_costume_mapping
+            )
             
             # 恢复原始映射
             if custom_character_mapping:
@@ -312,9 +459,9 @@ def convert_text():
         input_text = data.get('text', '')
         narrator_name = data.get('narrator_name', ' ')
         selected_pairs = data.get('selected_quote_pairs', [])
-        
-        # 获取客户端传来的角色映射（如果有）
         custom_character_mapping = data.get('character_mapping', None)
+        enable_live2d = data.get('enable_live2d', False)  # 新增
+        custom_costume_mapping = data.get('costume_mapping', None)  # 新增
         
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
@@ -324,7 +471,10 @@ def convert_text():
             original_mapping = converter.character_mapping
             converter.character_mapping = custom_character_mapping
             
-        result = converter.convert_text_to_json_format(input_text, narrator_name, selected_pairs)
+        result = converter.convert_text_to_json_format(
+            input_text, narrator_name, selected_pairs,
+            enable_live2d, custom_costume_mapping
+        )
         
         # 恢复原始映射
         if custom_character_mapping:
@@ -357,6 +507,7 @@ def get_batch_status(task_id):
         threading.Timer(300, lambda: batch_tasks.pop(task_id, None)).start()
 
     return jsonify(response_data)
+
 # 批量处理相关接口
 @app.route('/api/batch_convert/start', methods=['POST'])
 def start_batch_conversion():
@@ -365,7 +516,9 @@ def start_batch_conversion():
         files_data = data.get('files', [])
         narrator_name = data.get('narrator_name', ' ')
         selected_quote_pairs = data.get('selected_quote_pairs', [])
-        custom_character_mapping = data.get('character_mapping', None)  # 获取角色映射
+        custom_character_mapping = data.get('character_mapping', None)
+        enable_live2d = data.get('enable_live2d', False)  # 新增
+        custom_costume_mapping = data.get('costume_mapping', None)  # 新增
 
         if not files_data:
             return jsonify({'error': '没有提供任何文件'}), 400
@@ -380,8 +533,10 @@ def start_batch_conversion():
             'errors': []
         }
 
-        # 使用线程池在后台执行任务，传递角色映射
-        executor.submit(run_batch_task, task_id, files_data, narrator_name, selected_quote_pairs, custom_character_mapping)
+        # 使用线程池在后台执行任务，传递所有参数
+        executor.submit(run_batch_task, task_id, files_data, narrator_name, 
+                       selected_quote_pairs, custom_character_mapping,
+                       enable_live2d, custom_costume_mapping)
         
         return jsonify({'task_id': task_id})
     except Exception as e:
@@ -450,6 +605,18 @@ def update_config():
         converter = TextConverter(config_manager)
         return jsonify({'message': '配置更新成功'})
     except Exception as e: logger.error(f"配置更新失败: {e}"); return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
+
+# 新增：获取服装配置的API
+@app.route('/api/costumes', methods=['GET'])
+def get_costumes():
+    try:
+        return jsonify({
+            'available_costumes': config_manager.get_available_costumes(),
+            'default_costumes': config_manager.get_costume_mapping()
+        })
+    except Exception as e:
+        logger.error(f"获取服装配置失败: {e}", exc_info=True)
+        return jsonify({'error': f'获取服装配置失败: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

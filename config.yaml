@@ -10,11 +10,11 @@ character_mapping:
   PAREO:
   - 34
   三角初华:
-  - 3
+  - 1
   上原绯玛丽:
   - 8
   丰川祥子:
-  - 1
+  - 5
   丸山彩:
   - 16
   二叶筑紫:
@@ -24,7 +24,7 @@ character_mapping:
   仓田真白:
   - 26
   八幡海铃:
-  - 4
+  - 3
   八潮瑠唯:
   - 30
   冰川日菜:
@@ -70,7 +70,7 @@ character_mapping:
   白鹭千圣:
   - 18
   祐天寺若麦:
-  - 5
+  - 4
   美竹兰:
   - 6
   羽泽鸫:
@@ -89,6 +89,269 @@ character_mapping:
   - 7
   高松灯:
   - 36
+costume_mapping:
+  1:
+  - 001_school_summer-2023
+  - 001_school_winter-2023
+  - 001_casual-2023
+  - 001_live_r_2023
+  2:
+  - 002_school_summer-2023
+  - 002_school_winter-2023
+  - 002_casual-2023
+  - 002_live_r_2023
+  3:
+  - 003_school_summer-2023
+  - 003_school_winter-2023
+  - 003_casual-2023
+  - 003_live_r_2023
+  4:
+  - 004_school_summer-2023
+  - 004_school_winter-2023
+  - 004_casual-2023
+  - 004_live_r_2023
+  5:
+  - 005_school_summer-2023
+  - 005_school_winter-2023
+  - 005_casual-2023
+  - 005_live_r_2023
+  6:
+  - 006_school_summer-2023
+  - 006_school_winter-2023
+  - 006_casual-2023
+  - 006_live_r_2023
+  7:
+  - 007_school_summer-2023
+  - 007_school_winter-2023
+  - 007_casual-2023
+  - 007_live_r_2023
+  8:
+  - 008_school_summer-2023
+  - 008_school_winter-2023
+  - 008_casual-2023
+  - 008_live_r_2023
+  9:
+  - 009_school_summer-2023
+  - 009_school_winter-2023
+  - 009_casual-2023
+  - 009_live_r_2023
+  10:
+  - 010_school_summer-2023
+  - 010_school_winter-2023
+  - 010_casual-2023
+  - 010_live_r_2023
+  11:
+  - 011_school_summer-2023
+  - 011_school_winter-2023
+  - 011_casual-2023
+  - 011_live_r_2023
+  12:
+  - 012_school_summer_s2
+  - 012_school_winter_s2
+  - 012_casual-2023
+  - 012_live_r_2023
+  13:
+  - 013_school_summer-2023
+  - 013_school_winter-2023
+  - 013_casual-2023
+  - 013_live_r_2023
+  14:
+  - 014_school_summer
+  - 014_school_winter_v3
+  - 014_casual-2023
+  - 014_live_r_2023
+  15:
+  - 015_school_summer-2023
+  - 015_school_winter-2023
+  - 015_casual-2023
+  - 015_live_r_2023
+  16:
+  - 016_school_summer
+  - 016_school_winter
+  - 016_casual-2023
+  - 016_live_r_2023
+  17:
+  - 017_school_summer_s2
+  - 017_school_winter_s2
+  - 017_casual-2023
+  - 017_live_r_2023
+  18:
+  - 018_school_summer
+  - 018_school_winter
+  - 018_casual-2023
+  - 018_live_r_2023
+  19:
+  - 019_school_summer_s2
+  - 019_school_winter_s2
+  - 019_casual-2023
+  - 019_live_r_2023
+  20:
+  - 020_school_summer-2023
+  - 020_school_winter-2023
+  - 020_casual-2023
+  - 020_live_r_2023
+  21:
+  - 021_school_summer_s2
+  - 021_school_winter_s2
+  - 021_casual-2023
+  - 021_live_r_2023
+  22:
+  - 022_school_summer
+  - 022_school_winter_v3
+  - 022_casual-2023
+  - 022_live_r_2023
+  23:
+  - 023_school_summer_s2
+  - 023_school_winter_s2
+  - 023_casual-2023
+  - 023_live_r_2023
+  24:
+  - 024_school_summer-2023
+  - 024_school_winter-2023
+  - 024_casual-2023
+  - 024_live_r_2023
+  25:
+  - 025_school_summer
+  - 025_school_winter_v3
+  - 025_casual-2023
+  - 025_live_r_2023
+  26:
+  - 026_school_summer-2023
+  - 026_school_winter-2023
+  - 026_casual-2023
+  - 026_live_r_2023
+  27:
+  - 027_school_summer-2023
+  - 027_school_winter-2023
+  - 027_casual-2023
+  - 027_live_r_2023
+  28:
+  - 028_school_summer-2023
+  - 028_school_winter-2023
+  - 028_casual-2023
+  - 028_live_r_2023
+  29:
+  - 029_school_summer-2023
+  - 029_school_winter-2023
+  - 029_casual-2023
+  - 029_live_r_2023
+  30:
+  - 030_school_summer-2023
+  - 030_school_winter-2023
+  - 030_casual-2023
+  - 030_live_r_2023
+  31:
+  - 031_live_r_2023
+  - 031_casual-2023
+  32:
+  - 032_school_summer-2023
+  - 032_school_winter-2023
+  - 032_live_r_2023
+  - 032_casual-2023
+  33:
+  - 033_school_winter
+  - 033_live_r_2023
+  - 033_casual-2023
+  34:
+  - 034_school_winter-2023
+  - 034_live_r_2023
+  - 034_casual-2023
+  35:
+  - 035_school_winter-2023
+  - 035_live_r_2023
+  - 035_casual-2023
+  36:
+  - 036_school_summer-2023
+  - 036_school_winter-2023
+  - 036_live_default
+  - 036_casual-2023
+  37:
+  - 037_school_summer-2023
+  - 037_school_winter-2023
+  - 037_live_default
+  - 037_casual-2023
+  38:
+  - 038_school_summer-2023
+  - 038_school_winter-2023
+  - 038_live_default
+  - 038_casual-2023
+  39:
+  - 039_school_summer-2023
+  - 039_school_winter-2023
+  - 039_live_default
+  - 039_casual-2023
+  40:
+  - 040_school_summer-2023
+  - 040_school_winter-2023
+  - 040_live_default
+  - 040_casual-2023
+  337:
+  - 337_sumimi
+  - 337_school_summer-2023
+  - 337_school_winter-2023
+  - 337_casual-2023
+  - 337_casual-2023_nocap
+  338:
+  - 338_school_summer-2023
+  - 338_school_winter-2023
+  - 338_casual-2023
+  339:
+  - 339_school_summer-2023
+  - 339_school_winter-2023
+  - 339_casual-2023
+  340:
+  - 340_casual-2023
+  341:
+  - 341_jh_school_winter-2023
+  - 341_school_summer-2023
+  - 341_school_winter-2023
+  - 341_casual-2023
+default_costumes:
+  1: 001_casual-2023
+  2: 002_casual-2023
+  3: 003_casual-2023
+  4: 004_casual-2023
+  5: 005_casual-2023
+  6: 006_casual-2023
+  7: 007_casual-2023
+  8: 008_casual-2023
+  9: 009_casual-2023
+  10: 010_casual-2023
+  11: 011_casual-2023
+  12: 012_casual-2023
+  13: 013_casual-2023
+  14: 014_casual-2023
+  15: 015_casual-2023
+  16: 016_casual-2023
+  17: 017_casual-2023
+  18: 018_casual-2023
+  19: 019_casual-2023
+  20: 020_casual-2023
+  21: 021_casual-2023
+  22: 022_casual-2023
+  23: 023_casual-2023
+  24: 024_casual-2023
+  25: 025_casual-2023
+  26: 026_casual-2023
+  27: 027_casual-2023
+  28: 028_casual-2023
+  29: 029_casual-2023
+  30: 030_casual-2023
+  31: 031_casual-2023
+  32: 032_casual-2023
+  33: 033_casual-2023
+  34: 034_casual-2023
+  35: 035_casual-2023
+  36: 036_casual-2023
+  37: 037_casual-2023
+  38: 038_casual-2023
+  39: 039_casual-2023
+  40: 040_casual-2023
+  337: 337_casual-2023
+  338: 338_casual-2023
+  339: 339_casual-2023
+  340: 340_casual-2023
+  341: 341_casual-2023
 parsing:
   default_narrator_name: ' '
   max_speaker_name_length: 50

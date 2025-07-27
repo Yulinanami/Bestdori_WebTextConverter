@@ -8,7 +8,9 @@ export const state = {
     batchFiles: [],
     batchResults: [],
     autoPreviewEnabled: true,
-    previewDebounceTimer: null
+    previewDebounceTimer: null,
+    enableLive2D: false,        // 新增：是否启用Live2D布局
+    currentCostumes: {}         // 新增：当前服装配置
 };
 
 export const GRADIENTS = [

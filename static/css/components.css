@@ -209,6 +209,57 @@
     display: block;
 }
 
+/* 服装配置项样式 */
+.costume-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+}
+
+.costume-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.costume-character-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.costume-character-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.costume-select-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.costume-select {
+    min-width: 200px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .costume-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+    
+    .costume-select {
+        width: 100%;
+    }
+}
+
 /* 视图切换按钮 */
 .view-btn {
     padding: 10px 24px;

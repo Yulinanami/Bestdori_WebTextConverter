@@ -27,7 +27,9 @@ export const converter = {
                 text: inputText,
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
-                character_mapping: state.currentConfig  // 传递角色映射
+                character_mapping: state.currentConfig,
+                enable_live2d: state.enableLive2D,  // 新增
+                costume_mapping: state.currentCostumes  // 新增
             });
 
             ui.showProgress(100);
