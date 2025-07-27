@@ -76,7 +76,7 @@
 /* 配置项头像样式 */
 .config-avatar-wrapper {
     flex-shrink: 0;
-    padding: 5px;
+    padding: 2px;
 }
 
 .config-avatar {
@@ -90,7 +90,7 @@
     font-size: 16px;
     color: white;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     border: 2px solid #e2e8f0;
     transition: all 0.3s ease;
@@ -184,23 +184,19 @@
 .config-avatar::after {
     content: attr(data-id);
     position: absolute;
-    bottom: -3px;
-    right: -3px;
+    bottom: -2px;
+    right: -2px;
     background: var(--color-primary);
     color: white;
     font-size: 11px;
     padding: 2px 5px;
     border-radius: 10px;
-    font-weight: bold;
+    font-weight: normal;
     display: none;
-    /* 确保角标在最上层 */
-    z-index: 10;
-    /* 添加边框让角标更清晰 */
-    border: 2px solid white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    /* 最小宽度确保单个数字也显示良好 */
     min-width: 20px;
     text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 1;
 }
 
 /* 调整hover时显示角标 */
