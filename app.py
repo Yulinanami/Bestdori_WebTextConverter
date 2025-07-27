@@ -85,8 +85,16 @@ class ConfigManager:
                 "LAYER": [31], "LOCK": [32], "MASKING": [33], "PAREO": [34], "CHU²": [35],
                 # MyGo
                 "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40],
-                # Mujica
+                # Mujica（暂时使用第一个乐队的ID）
                 "三角初华": [1], "若叶睦": [2], "八幡海铃": [3], "祐天寺若麦": [4], "丰川祥子": [5]
+            },
+            # 新增：Mujica 成员的真实ID映射
+            "mujica_real_id_mapping": {
+                "三角初华": 337,
+                "若叶睦": 338,
+                "八幡海铃": 339,
+                "祐天寺若麦": 340,
+                "丰川祥子": 341
             },
             "costume_mapping": { # 每个角色的服装映射
                 
@@ -146,7 +154,7 @@ class ConfigManager:
                 39: ["039_school_summer-2023", "039_school_winter-2023", "039_live_default", "039_casual-2023"],
                 40: ["040_school_summer-2023", "040_school_winter-2023", "040_live_default", "040_casual-2023"],
                 
-                # Mujica
+                # Mujica（使用真实ID）
                 337: ["337_sumimi", "337_school_summer-2023", "337_school_winter-2023", "337_casual-2023", "337_casual-2023_nocap"],
                 338: ["338_school_summer-2023", "338_school_winter-2023", "338_casual-2023"],
                 339: ["339_school_summer-2023", "339_school_winter-2023", "339_casual-2023"],
@@ -196,6 +204,9 @@ class ConfigManager:
                     loaded_config["costume_mapping"] = default_config["costume_mapping"]
                 if "default_costumes" not in loaded_config:
                     loaded_config["default_costumes"] = default_config["default_costumes"]
+                # 确保Mujica映射存在
+                if "mujica_real_id_mapping" not in loaded_config:
+                    loaded_config["mujica_real_id_mapping"] = default_config["mujica_real_id_mapping"]
                 return loaded_config
         except Exception as e:
             logger.warning(f"配置文件加载失败: {e}"); return default_config
@@ -212,6 +223,7 @@ class ConfigManager:
     def get_quotes_config(self) -> Dict[str, Any]: return self.config.get("quotes", {})
     def get_costume_mapping(self) -> Dict[int, str]: return self.config.get("default_costumes", {})
     def get_available_costumes(self) -> Dict[int, List[str]]: return self.config.get("costume_mapping", {})
+    def get_mujica_mapping(self) -> Dict[str, int]: return self.config.get("mujica_real_id_mapping", {})
     def update_character_mapping(self, new_mapping: Dict[str, List[int]]):
         self.config["character_mapping"] = new_mapping; self._save_config(self.config)
 
@@ -249,6 +261,7 @@ class TextConverter:
         self.config_manager = config_manager
         self.character_mapping = config_manager.get_character_mapping()
         self.costume_mapping = config_manager.get_costume_mapping()
+        self.mujica_mapping = config_manager.get_mujica_mapping()  # 新增
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
@@ -259,6 +272,14 @@ class TextConverter:
             self.parsing_config.get("max_speaker_name_length", 50)
         )
         self.quote_handler = QuoteHandler()
+
+    def _get_effective_character_id(self, character_name: str, character_ids: List[int]) -> int:
+        """获取角色的有效ID（处理Mujica特殊情况）"""
+        # 检查是否为 Mujica 成员
+        if character_name in self.mujica_mapping:
+            return self.mujica_mapping[character_name]
+        # 否则返回原始的第一个ID
+        return character_ids[0] if character_ids else 0
 
     def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
                                    selected_quote_pairs_list: List[List[str]], 
@@ -271,7 +292,7 @@ class TextConverter:
         }
         
         actions = []
-        appeared_characters = set()  # 记录已出现的角色
+        appeared_character_names = set()  # 改为基于角色名称而不是ID
         current_action_name = narrator_name
         current_action_body_lines = []
         
@@ -293,17 +314,20 @@ class TextConverter:
                     if enable_live2d and character_ids and current_action_name != narrator_name:
                         primary_character_id = character_ids[0]
                         
-                        # 检查该角色是否首次出现
-                        if primary_character_id not in appeared_characters:
-                            appeared_characters.add(primary_character_id)
+                        # 获取有效的角色ID（处理Mujica特殊情况）
+                        effective_id = self._get_effective_character_id(current_action_name, character_ids)
+                        
+                        # 检查该角色名称是否首次出现（基于名称而不是ID）
+                        if current_action_name not in appeared_character_names:
+                            appeared_character_names.add(current_action_name)
                             
-                            # 获取服装ID
-                            costume_id = effective_costume_mapping.get(primary_character_id, "")
+                            # 使用有效ID获取服装
+                            costume_id = effective_costume_mapping.get(effective_id, "")
                             
-                            # 添加 layout action
+                            # 添加 layout action（使用原始ID作为character）
                             layout_action = LayoutActionItem(
-                                character=primary_character_id,
-                                costume=costume_id
+                                character=primary_character_id,  # 保持使用显示ID
+                                costume=costume_id               # 使用有效ID对应的服装
                             )
                             actions.append(layout_action)
                     
@@ -606,13 +630,14 @@ def update_config():
         return jsonify({'message': '配置更新成功'})
     except Exception as e: logger.error(f"配置更新失败: {e}"); return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
 
-# 新增：获取服装配置的API
+# 新增：获取服装配置的API（包含Mujica映射）
 @app.route('/api/costumes', methods=['GET'])
 def get_costumes():
     try:
         return jsonify({
             'available_costumes': config_manager.get_available_costumes(),
-            'default_costumes': config_manager.get_costume_mapping()
+            'default_costumes': config_manager.get_costume_mapping(),
+            'mujica_mapping': config_manager.get_mujica_mapping()  # 新增
         })
     except Exception as e:
         logger.error(f"获取服装配置失败: {e}", exc_info=True)

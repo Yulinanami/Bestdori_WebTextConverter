@@ -7,6 +7,7 @@ export const costumeManager = {
     // 默认服装配置
     defaultCostumes: {},
     availableCostumes: {},
+    mujicaMapping: {},  // 新增：存储 Mujica 成员的真实ID映射
     
     // 加载服装配置
     async loadCostumeConfig() {
@@ -14,6 +15,7 @@ export const costumeManager = {
             const response = await axios.get('/api/costumes');
             this.availableCostumes = response.data.available_costumes;
             this.defaultCostumes = response.data.default_costumes;
+            this.mujicaMapping = response.data.mujica_mapping || {};  // 加载 Mujica 映射
             
             // 尝试从 LocalStorage 加载用户自定义配置
             const savedCostumes = this.loadLocalCostumes();
@@ -28,8 +30,15 @@ export const costumeManager = {
             state.enableLive2D = enableLive2D === 'true';
             document.getElementById('enableLive2DCheckbox').checked = state.enableLive2D;
             
+            // 同步到分屏视图（如果存在）
+            const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
+            if (splitCheckbox) {
+                splitCheckbox.checked = state.enableLive2D;
+            }
+            
         } catch (error) {
             console.error('加载服装配置失败:', error);
+            ui.showStatus('无法加载服装配置', 'error');
         }
     },
     
@@ -57,6 +66,15 @@ export const costumeManager = {
         }
     },
     
+    // 获取角色的有效ID（处理 Mujica 特殊情况）
+    getEffectiveCharacterId(characterName, primaryId) {
+        // 检查是否为 Mujica 成员
+        if (this.mujicaMapping && this.mujicaMapping[characterName]) {
+            return this.mujicaMapping[characterName];
+        }
+        return primaryId;
+    },
+    
     // 打开服装配置模态框
     async openCostumeModal() {
         await ui.withButtonLoading('costumeConfigBtn', async () => {
@@ -82,11 +100,18 @@ export const costumeManager = {
             if (!ids || ids.length === 0) return;
             
             const primaryId = ids[0];
-            const availableForCharacter = this.availableCostumes[primaryId] || [];
-            const currentCostume = state.currentCostumes[primaryId] || '';
+            // 获取有效ID（处理Mujica特殊情况）
+            const effectiveId = this.getEffectiveCharacterId(name, primaryId);
+            
+            const availableForCharacter = this.availableCostumes[effectiveId] || [];
+            const currentCostume = state.currentCostumes[effectiveId] || '';
             
             const costumeItem = document.createElement('div');
             costumeItem.className = 'costume-item';
+            
+            // 如果是 Mujica 成员，添加特殊标记
+            const isMujica = effectiveId !== primaryId;
+            
             costumeItem.innerHTML = `
                 <div class="costume-character-info">
                     <div class="config-avatar" data-id="${primaryId}">
@@ -95,10 +120,12 @@ export const costumeManager = {
                             : name.charAt(0)
                         }
                     </div>
-                    <span class="costume-character-name">${name} (ID: ${primaryId})</span>
+                    <span class="costume-character-name">
+                        ${name} (ID: ${primaryId}${isMujica ? ` → ${effectiveId}` : ''})
+                    </span>
                 </div>
                 <div class="costume-select-wrapper">
-                    <select class="form-input costume-select" data-character-id="${primaryId}">
+                    <select class="form-input costume-select" data-character-id="${effectiveId}" data-character-name="${name}">
                         <option value="">无服装</option>
                         ${availableForCharacter.map(costume => 
                             `<option value="${costume}" ${costume === currentCostume ? 'selected' : ''}>${costume}</option>`
@@ -106,20 +133,27 @@ export const costumeManager = {
                         ${currentCostume && !availableForCharacter.includes(currentCostume) ? 
                             `<option value="${currentCostume}" selected>自定义: ${currentCostume}</option>` : ''}
                     </select>
-                    <button class="btn btn-secondary btn-sm" onclick="costumeManager.addCustomCostume(${primaryId})">➕</button>
+                    <button class="btn btn-secondary btn-sm" onclick="costumeManager.addCustomCostume(${effectiveId}, '${name}')">➕</button>
                 </div>
             `;
+            
+            // 如果是 Mujica 成员，添加提示样式
+            if (isMujica) {
+                costumeItem.style.background = '#fef3c7';  // 淡黄色背景
+                costumeItem.title = '此角色暂时使用替代ID显示，但服装配置独立';
+            }
             
             costumeList.appendChild(costumeItem);
         });
     },
     
     // 添加自定义服装
-    addCustomCostume(characterId) {
-        const customCostume = prompt('请输入自定义服装ID：');
+    addCustomCostume(characterId, characterName) {
+        const customCostume = prompt(`请输入 ${characterName} 的自定义服装ID：`);
         if (customCostume && customCostume.trim()) {
             state.currentCostumes[characterId] = customCostume.trim();
             this.renderCostumeList();
+            ui.showStatus(`已添加自定义服装: ${customCostume.trim()}`, 'success');
         }
     },
     
@@ -150,7 +184,7 @@ export const costumeManager = {
     
     // 重置为默认服装
     async resetCostumes() {
-        if (confirm('确定要恢复默认服装配置吗？')) {
+        if (confirm('确定要恢复默认服装配置吗？这将清除所有自定义服装设置。')) {
             await ui.withButtonLoading('resetCostumesBtn', async () => {
                 localStorage.removeItem('bestdori_costume_mapping');
                 state.currentCostumes = { ...this.defaultCostumes };
@@ -181,10 +215,43 @@ export const costumeManager = {
         if (typeof config.enable_live2d === 'boolean') {
             state.enableLive2D = config.enable_live2d;
             localStorage.setItem('bestdori_enable_live2d', config.enable_live2d.toString());
-            document.getElementById('enableLive2DCheckbox').checked = config.enable_live2d;
+            
+            // 更新主视图开关
+            const mainCheckbox = document.getElementById('enableLive2DCheckbox');
+            if (mainCheckbox) {
+                mainCheckbox.checked = config.enable_live2d;
+            }
+            
+            // 更新分屏视图开关
+            const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
+            if (splitCheckbox) {
+                splitCheckbox.checked = config.enable_live2d;
+            }
         }
+    },
+    
+    // 获取当前配置摘要（用于调试或显示）
+    getConfigSummary() {
+        const summary = {
+            enableLive2D: state.enableLive2D,
+            totalCustomCostumes: Object.keys(state.currentCostumes).length,
+            mujicaMembers: []
+        };
+        
+        // 找出所有 Mujica 成员
+        Object.entries(this.mujicaMapping).forEach(([name, realId]) => {
+            const costume = state.currentCostumes[realId] || '无';
+            summary.mujicaMembers.push({
+                name: name,
+                displayId: state.currentConfig[name]?.[0] || '未知',
+                realId: realId,
+                costume: costume
+            });
+        });
+        
+        return summary;
     }
 };
 
-// 暴露到全局作用域
+// 暴露到全局作用域（因为 HTML 中的 onclick 需要）
 window.costumeManager = costumeManager;
