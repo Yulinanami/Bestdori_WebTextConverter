@@ -9,7 +9,6 @@ export const costumeManager = {
     defaultCostumes: {},
     availableCostumes: {},
     mujicaMapping: {},  // 存储 Mujica 成员的真实ID映射
-    customCharacters: {}, // 新增：存储用户自定义的角色
     
     // 加载服装配置
     async loadCostumeConfig() {
@@ -18,15 +17,7 @@ export const costumeManager = {
             this.availableCostumes = response.data.available_costumes;
             this.defaultCostumes = response.data.default_costumes;
             this.mujicaMapping = response.data.mujica_mapping || {};
-            
-            // 加载用户自定义角色
-            const savedCustomCharacters = this.loadLocalCustomCharacters();
-            if (savedCustomCharacters) {
-                this.customCharacters = savedCustomCharacters;
-                // 将自定义角色合并到当前配置中
-                Object.assign(state.currentConfig, this.customCharacters);
-            }
-            
+        
             // 尝试从 LocalStorage 加载用户自定义配置
             const savedCostumes = this.loadLocalCostumes();
             if (savedCostumes) {
@@ -171,7 +162,6 @@ export const costumeManager = {
             
             const primaryId = ids[0];
             const effectiveId = this.getEffectiveCharacterId(name, primaryId);
-            const isCustomCharacter = this.customCharacters.hasOwnProperty(name);
             
             // 获取该角色的可用服装列表
             const availableForCharacter = this.availableCostumes[effectiveId] || [];
@@ -185,9 +175,6 @@ export const costumeManager = {
             if (isMujica) {
                 costumeItem.style.background = '#fef3c7';  // 淡黄色背景
                 costumeItem.title = '此角色暂时使用替代ID显示，但服装配置独立';
-            } else if (isCustomCharacter) {
-                costumeItem.style.background = '#e0f2fe';  // 淡蓝色背景
-                costumeItem.title = '自定义角色';
             }
             
             costumeItem.innerHTML = `
@@ -201,15 +188,9 @@ export const costumeManager = {
                         </div>
                         <span class="costume-character-name">
                             ${name} (ID: ${primaryId}${isMujica ? ` → ${effectiveId}` : ''})
-                            ${isCustomCharacter ? ' <span class="custom-badge">自定义</span>' : ''}
                         </span>
                     </div>
                     <div class="costume-actions">
-                        ${isCustomCharacter ? `
-                            <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCharacter('${name}')" title="删除角色">
-                                🗑️
-                            </button>
-                        ` : ''}
                         <button class="btn btn-sm btn-secondary" onclick="costumeManager.toggleCostumeDetails(${effectiveId})">
                             <span id="toggle-${effectiveId}">▼</span> 服装管理
                         </button>
@@ -248,17 +229,7 @@ export const costumeManager = {
             select.addEventListener('change', (e) => {
                 state.currentCostumes[effectiveId] = e.target.value;
             });
-        });
-        
-        // 添加"新增角色"按钮
-        const addNewCharacterBtn = document.createElement('div');
-        addNewCharacterBtn.className = 'add-new-character-section';
-        addNewCharacterBtn.innerHTML = `
-            <button class="btn btn-primary" onclick="costumeManager.addNewCharacter()">
-                ➕ 添加新角色服装配置
-            </button>
-        `;
-        costumeList.appendChild(addNewCharacterBtn);
+        }); 
     },
     
     // 渲染服装列表项
@@ -458,7 +429,8 @@ export const costumeManager = {
         this.availableCostumes[characterId] = [];
         state.currentCostumes[characterId] = '';
         
-        // 保存
+        // 保存 - 需要添加保存角色映射
+        configManager.saveLocalConfig(state.currentConfig);  // 添加这一行
         this.saveLocalCustomCharacters(this.customCharacters);
         this.saveLocalAvailableCostumes();
         
@@ -506,13 +478,6 @@ export const costumeManager = {
                 // 清除本地存储
                 localStorage.removeItem('bestdori_costume_mapping');
                 localStorage.removeItem('bestdori_available_costumes');
-                localStorage.removeItem('bestdori_custom_characters');
-                
-                // 清除自定义角色
-                Object.keys(this.customCharacters).forEach(name => {
-                    delete state.currentConfig[name];
-                });
-                this.customCharacters = {};
                 
                 // 重新加载默认配置
                 state.currentCostumes = { ...this.defaultCostumes };
@@ -535,7 +500,6 @@ export const costumeManager = {
             ...config,
             costume_mapping: state.currentCostumes,
             available_costumes: this.availableCostumes,
-            custom_characters: this.customCharacters,  // 新增：导出自定义角色
             enable_live2d: state.enableLive2D
         };
     },
@@ -551,13 +515,6 @@ export const costumeManager = {
         if (config.available_costumes) {
             this.availableCostumes = { ...this.availableCostumes, ...config.available_costumes };
             this.saveLocalAvailableCostumes();
-        }
-        
-        // 导入自定义角色
-        if (config.custom_characters) {
-            this.customCharacters = config.custom_characters;
-            Object.assign(state.currentConfig, this.customCharacters);
-            this.saveLocalCustomCharacters(this.customCharacters);
         }
         
         if (typeof config.enable_live2d === 'boolean') {
