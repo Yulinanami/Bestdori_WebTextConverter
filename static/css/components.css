@@ -260,6 +260,139 @@
     }
 }
 
+/* 自定义角色标记 */
+.custom-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: var(--text-xs);
+    background: var(--color-primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    margin-left: 4px;
+}
+
+.costume-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+/* 服装配置项样式 */
+.costume-config-item {
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.costume-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+}
+
+.costume-details {
+    padding: 0 var(--spacing-md) var(--spacing-md);
+    border-top: 1px solid var(--border-primary);
+}
+
+.costume-current {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding-top: var(--spacing-md);
+}
+
+.costume-current label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.costume-available-list {
+    margin-top: var(--spacing-md);
+}
+
+.costume-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.costume-list-header label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.costume-list-items {
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.costume-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s ease;
+}
+
+.costume-list-item:hover {
+    background: var(--bg-secondary);
+}
+
+.costume-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.costume-item-actions .btn {
+    padding: 2px 8px;
+    font-size: var(--text-xs);
+}
+
+.btn-danger {
+    background: #fee;
+    color: var(--color-error);
+}
+
+.btn-danger:hover {
+    background: #fdd;
+}
+
+.empty-costume-list {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--spacing-md);
+}
+
+.add-new-character-section {
+    text-align: center;
+    padding: var(--spacing-lg);
+    border-top: 2px dashed var(--border-primary);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .costume-item-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .costume-current {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 /* 视图切换按钮 */
 .view-btn {
     padding: 10px 24px;
