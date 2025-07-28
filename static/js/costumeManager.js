@@ -159,29 +159,32 @@ export const costumeManager = {
     
     // 保存服装配置
     async saveCostumes() {
-        await ui.withButtonLoading('saveCostumesBtn', async () => {
-            const newCostumes = {};
-            
-            document.querySelectorAll('.costume-select').forEach(select => {
-                const characterId = parseInt(select.dataset.characterId);
-                const costume = select.value;
-                if (costume) {
-                    newCostumes[characterId] = costume;
-                }
-            });
-            
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (this.saveLocalCostumes(newCostumes)) {
-                state.currentCostumes = newCostumes;
-                ui.showStatus('服装配置已保存！', 'success');
-                ui.closeModal('costumeModal');
-            } else {
-                ui.showStatus('服装配置保存失败', 'error');
+    await ui.withButtonLoading('saveCostumesBtn', async () => {
+        const newCostumes = {};
+        
+        document.querySelectorAll('.costume-select').forEach(select => {
+            const characterId = parseInt(select.dataset.characterId);
+            const costume = select.value;
+            if (costume) {
+                newCostumes[characterId] = costume;
             }
-        }, '保存中...');
-    },
-    
+        });
+        
+        // 添加调试日志
+        console.log('保存的服装配置:', newCostumes);
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        if (this.saveLocalCostumes(newCostumes)) {
+            state.currentCostumes = newCostumes;
+            console.log('state.currentCostumes 已更新:', state.currentCostumes);
+            ui.showStatus('服装配置已保存！', 'success');
+            ui.closeModal('costumeModal');
+        } else {
+            ui.showStatus('服装配置保存失败', 'error');
+        }
+    }, '保存中...');
+},
     // 重置为默认服装
     async resetCostumes() {
         if (confirm('确定要恢复默认服装配置吗？这将清除所有自定义服装设置。')) {

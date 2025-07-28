@@ -292,7 +292,7 @@ class TextConverter:
         }
         
         actions = []
-        appeared_character_names = set()  # 改为基于角色名称而不是ID
+        appeared_character_names = set()  # 基于角色名称而不是ID
         current_action_name = narrator_name
         current_action_body_lines = []
         
@@ -301,7 +301,9 @@ class TextConverter:
         if enable_live2d:
             effective_costume_mapping = self.costume_mapping.copy()
             if custom_costume_mapping:
+                logger.info(f"自定义服装映射: {custom_costume_mapping}")
                 effective_costume_mapping.update(custom_costume_mapping)
+                logger.info(f"合并后的服装映射（部分）: {dict(list(effective_costume_mapping.items())[:5])}")
         
         def finalize_current_action():
             if current_action_body_lines:
@@ -323,6 +325,7 @@ class TextConverter:
                             
                             # 使用有效ID获取服装
                             costume_id = effective_costume_mapping.get(effective_id, "")
+                            logger.info(f"角色 {current_action_name} (显示ID: {primary_character_id}, 有效ID: {effective_id}) 使用服装: {costume_id}")
                             
                             # 添加 layout action（使用原始ID作为character）
                             layout_action = LayoutActionItem(
@@ -414,7 +417,18 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
                    selected_quote_pairs: List[List[str]], custom_character_mapping: Dict[str, List[int]] = None,
                    enable_live2d: bool = False, custom_costume_mapping: Dict[int, str] = None):
     """在后台线程中运行的批量转换函数"""
-    import base64
+    
+    # 修复：处理服装映射的类型转换
+    if custom_costume_mapping:
+        fixed_costume_mapping = {}
+        for str_key, value in custom_costume_mapping.items():
+            try:
+                int_key = int(str_key)
+                fixed_costume_mapping[int_key] = value
+            except (ValueError, AttributeError):
+                # 如果已经是整数或转换失败，保留原始键
+                fixed_costume_mapping[str_key] = value
+        custom_costume_mapping = fixed_costume_mapping
     
     total_files = len(files_data)
     task = batch_tasks[task_id]
@@ -484,8 +498,21 @@ def convert_text():
         narrator_name = data.get('narrator_name', ' ')
         selected_pairs = data.get('selected_quote_pairs', [])
         custom_character_mapping = data.get('character_mapping', None)
-        enable_live2d = data.get('enable_live2d', False)  # 新增
-        custom_costume_mapping = data.get('costume_mapping', None)  # 新增
+        enable_live2d = data.get('enable_live2d', False)
+        custom_costume_mapping = data.get('costume_mapping', None)
+        
+        # 修复：将字符串键转换为整数键
+        if custom_costume_mapping:
+            fixed_costume_mapping = {}
+            for str_key, value in custom_costume_mapping.items():
+                try:
+                    int_key = int(str_key)
+                    fixed_costume_mapping[int_key] = value
+                except ValueError:
+                    # 如果转换失败，保留原始键
+                    fixed_costume_mapping[str_key] = value
+            custom_costume_mapping = fixed_costume_mapping
+            logger.info(f"修复后的服装映射: {custom_costume_mapping}")
         
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
