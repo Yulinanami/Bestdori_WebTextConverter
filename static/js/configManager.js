@@ -8,6 +8,18 @@ import { costumeManager } from './costumeManager.js';  // 新增导入
 export const configManager = {
     // 默认配置
     defaultConfig: null,
+
+    getAvatarId(characterId) {
+        const mujicaAvatarMapping = {
+            337: 1,  // 三角初华
+            338: 2,  // 若叶睦
+            339: 3,  // 八幡海铃
+            340: 4,  // 祐天寺若麦
+            341: 5   // 丰川祥子
+        };
+        
+        return mujicaAvatarMapping[characterId] || characterId;
+    },
     
     // 加载配置
     async loadConfig() {
@@ -112,14 +124,16 @@ export const configManager = {
             const configItem = document.createElement('div');
             configItem.className = 'config-item';
             
-            // 获取第一个ID用于显示头像
             const primaryId = ids && ids.length > 0 ? ids[0] : 0;
-            const avatarPath = primaryId > 0 ? `/static/images/avatars/${primaryId}.png` : '';
+            
+            // 获取头像显示ID
+            const avatarId = this.getAvatarId(primaryId);
+            const avatarPath = avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : '';
             
             configItem.innerHTML = `
                 <div class="config-avatar-wrapper">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${primaryId > 0 ? 
+                        ${avatarId > 0 ? 
                             `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
                             : name.charAt(0)
                         }
@@ -151,9 +165,11 @@ export const configManager = {
         const avatar = avatarWrapper.querySelector('.config-avatar');
         avatar.dataset.id = id;
         
-        if (id > 0) {
+        const avatarId = this.getAvatarId(id); // 使用头像映射
+        
+        if (avatarId > 0) {
             avatar.className = 'config-avatar';
-            avatar.innerHTML = `<img src="/static/images/avatars/${id}.png" alt="${name}" class="config-avatar-img">`;
+            avatar.innerHTML = `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img">`;
             
             const img = avatar.querySelector('img');
             img.onerror = () => {

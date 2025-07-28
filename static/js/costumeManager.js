@@ -9,6 +9,26 @@ export const costumeManager = {
     defaultCostumes: {},
     availableCostumes: {},
     mujicaMapping: {},  // 存储 Mujica 成员的真实ID映射
+
+    // 获取显示用的头像ID（处理Mujica特殊映射）
+    getAvatarId(characterId) {
+        // Mujica成员的ID映射
+        const mujicaAvatarMapping = {
+            337: 1,  // 三角初华
+            338: 2,  // 若叶睦
+            339: 3,  // 八幡海铃
+            340: 4,  // 祐天寺若麦
+            341: 5   // 丰川祥子
+        };
+        
+        // 如果是Mujica成员，返回映射的头像ID
+        if (mujicaAvatarMapping[characterId]) {
+            return mujicaAvatarMapping[characterId];
+        }
+        
+        // 否则返回原ID
+        return characterId;
+    },
     
     // 加载服装配置
     async loadCostumeConfig() {
@@ -129,13 +149,9 @@ export const costumeManager = {
     
     // 获取角色的有效ID（处理 Mujica 特殊情况）
     getEffectiveCharacterId(characterName, primaryId) {
-        // 检查是否为 Mujica 成员
-        if (this.mujicaMapping && this.mujicaMapping[characterName]) {
-            return this.mujicaMapping[characterName];
-        }
+        // 现在不需要特殊处理，直接返回primaryId
         return primaryId;
     },
-    
     // 打开服装配置模态框
     async openCostumeModal() {
         await ui.withButtonLoading('costumeConfigBtn', async () => {
@@ -162,6 +178,7 @@ export const costumeManager = {
             
             const primaryId = ids[0];
             const effectiveId = this.getEffectiveCharacterId(name, primaryId);
+            const avatarId = this.getAvatarId(primaryId);
             
             // 获取该角色的可用服装列表
             const availableForCharacter = this.availableCostumes[effectiveId] || [];
@@ -178,18 +195,18 @@ export const costumeManager = {
             }
             
             costumeItem.innerHTML = `
-                <div class="costume-item-header">
-                    <div class="costume-character-info">
-                        <div class="config-avatar" data-id="${primaryId}">
-                            ${primaryId > 0 ? 
-                                `<img src="/static/images/avatars/${primaryId}.png" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
-                                : name.charAt(0)
-                            }
-                        </div>
-                        <span class="costume-character-name">
-                            ${name} (ID: ${primaryId}${isMujica ? ` → ${effectiveId}` : ''})
-                        </span>
+            <div class="costume-item-header">
+                <div class="costume-character-info">
+                    <div class="config-avatar" data-id="${primaryId}">
+                        ${avatarId > 0 ? 
+                            `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
+                            : name.charAt(0)
+                        }
                     </div>
+                    <span class="costume-character-name">
+                        ${name} (ID: ${primaryId})
+                    </span>
+                </div>
                     <div class="costume-actions">
                         <button class="btn btn-sm btn-secondary" onclick="costumeManager.toggleCostumeDetails(${effectiveId})">
                             <span id="toggle-${effectiveId}">▼</span> 服装管理

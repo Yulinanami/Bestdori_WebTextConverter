@@ -10,11 +10,11 @@ character_mapping:
   PAREO:
   - 34
   三角初华:
-  - 1
+  - 337
   上原绯玛丽:
   - 8
   丰川祥子:
-  - 5
+  - 341
   丸山彩:
   - 16
   二叶筑紫:
@@ -24,7 +24,7 @@ character_mapping:
   仓田真白:
   - 26
   八幡海铃:
-  - 3
+  - 339
   八潮瑠唯:
   - 30
   冰川日菜:
@@ -70,7 +70,7 @@ character_mapping:
   白鹭千圣:
   - 18
   祐天寺若麦:
-  - 4
+  - 340
   美竹兰:
   - 6
   羽泽鸫:
@@ -78,7 +78,7 @@ character_mapping:
   花园多惠:
   - 2
   若叶睦:
-  - 2
+  - 338
   若宫伊芙:
   - 20
   要乐奈:
@@ -352,12 +352,6 @@ default_costumes:
   339: 339_casual-2023
   340: 340_casual-2023
   341: 341_casual-2023
-mujica_real_id_mapping:
-  三角初华: 337
-  丰川祥子: 341
-  八幡海铃: 339
-  祐天寺若麦: 340
-  若叶睦: 338
 parsing:
   default_narrator_name: ' '
   max_speaker_name_length: 50

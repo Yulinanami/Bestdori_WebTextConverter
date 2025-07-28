@@ -85,17 +85,17 @@ class ConfigManager:
                 "LAYER": [31], "LOCK": [32], "MASKING": [33], "PAREO": [34], "CHU²": [35],
                 # MyGo
                 "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40],
-                # Mujica（暂时使用第一个乐队的ID）
-                "三角初华": [1], "若叶睦": [2], "八幡海铃": [3], "祐天寺若麦": [4], "丰川祥子": [5]
+                # Mujica
+                "三角初华": [337], "若叶睦": [338], "八幡海铃": [339], "祐天寺若麦": [340], "丰川祥子": [341]
             },
             # 新增：Mujica 成员的真实ID映射
-            "mujica_real_id_mapping": {
-                "三角初华": 337,
-                "若叶睦": 338,
-                "八幡海铃": 339,
-                "祐天寺若麦": 340,
-                "丰川祥子": 341
-            },
+            # "mujica_real_id_mapping": {
+            #     "三角初华": 337,
+            #     "若叶睦": 338,
+            #     "八幡海铃": 339,
+            #     "祐天寺若麦": 340,
+            #     "丰川祥子": 341
+            # },
             "costume_mapping": { # 每个角色的服装映射
                 
                 # Poppin'Party
@@ -261,10 +261,19 @@ class TextConverter:
         self.config_manager = config_manager
         self.character_mapping = config_manager.get_character_mapping()
         self.costume_mapping = config_manager.get_costume_mapping()
-        self.mujica_mapping = config_manager.get_mujica_mapping()  # 新增
+        self.mujica_mapping = config_manager.get_mujica_mapping()
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
+        
+        # 添加 Mujica ID 反向映射（用于输出）
+        self.mujica_output_mapping = {
+            337: 1,  # 三角初华
+            338: 2,  # 若叶睦
+            339: 3,  # 八幡海铃
+            340: 4,  # 祐天寺若麦
+            341: 5   # 丰川祥子
+        }
 
     def _init_parsers(self):
         self.parser = SpeakerParser(
@@ -272,6 +281,17 @@ class TextConverter:
             self.parsing_config.get("max_speaker_name_length", 50)
         )
         self.quote_handler = QuoteHandler()
+        
+    def _get_output_character_ids(self, character_ids: List[int]) -> List[int]:
+        """将角色ID转换为输出用的ID（处理Mujica的特殊情况）"""
+        output_ids = []
+        for char_id in character_ids:
+            # 如果是 Mujica 成员的ID，转换为1-5
+            if char_id in self.mujica_output_mapping:
+                output_ids.append(self.mujica_output_mapping[char_id])
+            else:
+                output_ids.append(char_id)
+        return output_ids
 
     def _get_effective_character_id(self, character_name: str, character_ids: List[int]) -> int:
         """获取角色的有效ID（处理Mujica特殊情况）"""
@@ -282,9 +302,9 @@ class TextConverter:
         return character_ids[0] if character_ids else 0
 
     def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
-                                   selected_quote_pairs_list: List[List[str]], 
-                                   enable_live2d: bool = False,
-                                   custom_costume_mapping: Dict[int, str] = None) -> str:
+                               selected_quote_pairs_list: List[List[str]], 
+                               enable_live2d: bool = False,
+                               custom_costume_mapping: Dict[int, str] = None) -> str:
         active_quote_pairs = {
             pair[0]: pair[1]
             for pair in selected_quote_pairs_list
@@ -319,7 +339,7 @@ class TextConverter:
                         # 获取有效的角色ID（处理Mujica特殊情况）
                         effective_id = self._get_effective_character_id(current_action_name, character_ids)
                         
-                        # 检查该角色名称是否首次出现（基于名称而不是ID）
+                        # 检查该角色名称是否首次出现
                         if current_action_name not in appeared_character_names:
                             appeared_character_names.add(current_action_name)
                             
@@ -327,16 +347,19 @@ class TextConverter:
                             costume_id = effective_costume_mapping.get(effective_id, "")
                             logger.info(f"角色 {current_action_name} (显示ID: {primary_character_id}, 有效ID: {effective_id}) 使用服装: {costume_id}")
                             
-                            # 添加 layout action（使用原始ID作为character）
+                            # 添加 layout action
+                            # 注意：character 字段也需要使用输出ID
+                            output_char_id = self.mujica_output_mapping.get(primary_character_id, primary_character_id)
                             layout_action = LayoutActionItem(
-                                character=primary_character_id,  # 保持使用显示ID
-                                costume=costume_id               # 使用有效ID对应的服装
+                                character=output_char_id,  # 使用输出ID
+                                costume=costume_id         # 服装ID保持不变
                             )
                             actions.append(layout_action)
                     
-                    # 添加 talk action
+                    # 添加 talk action - 使用映射后的ID
+                    output_character_ids = self._get_output_character_ids(character_ids)
                     talk_action = ActionItem(
-                        characters=character_ids,
+                        characters=output_character_ids,  # 使用映射后的ID
                         name=current_action_name,
                         body=finalized_body
                     )
