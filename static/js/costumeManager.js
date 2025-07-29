@@ -243,7 +243,7 @@ export const costumeManager = {
         }, '加载配置...');
     },
     
-    // 修改渲染服装列表的方法
+    // 渲染服装列表
     renderCostumeList() {
         const costumeList = document.getElementById('costumeList');
         costumeList.innerHTML = '';
@@ -262,7 +262,6 @@ export const costumeManager = {
             const safeDomId = this.getSafeDomId(name);
             const avatarId = this.getAvatarId(primaryId);
             
-            // 使用临时存储中的值
             const availableForCharacter = this.availableCostumes[characterKey] || [];
             const currentCostume = this.tempCostumeChanges[characterKey] || '';
             
@@ -303,9 +302,14 @@ export const costumeManager = {
                 <div class="costume-available-list">
                     <div class="costume-list-header">
                         <label>可用服装列表：</label>
-                        <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume('${characterKey}', '${safeDomId}')">
-                            ➕ 添加服装
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume('${characterKey}', '${safeDomId}')">
+                                ➕ 添加服装
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="costumeManager.openLive2DDatabase()" title="在新标签页查看 Bestdori Live2D 数据库">
+                                🔍 浏览数据库
+                            </button>
+                        </div>
                     </div>
                     <div id="costume-list-${safeDomId}" class="costume-list-items">
                         ${this.renderCostumeListItems(characterKey, availableForCharacter, safeDomId)}
@@ -316,13 +320,17 @@ export const costumeManager = {
             
             costumeList.appendChild(costumeItem);
             
-            // 修改：只更新临时存储，不直接修改state
             const select = costumeItem.querySelector('.costume-select');
             select.addEventListener('change', (e) => {
                 const key = e.target.dataset.characterKey;
                 this.tempCostumeChanges[key] = e.target.value;
             });
         }); 
+    },
+
+    // 添加打开 Live2D 数据库的方法
+    openLive2DDatabase() {
+        window.open('https://bestdori.com/tool/explorer/asset/jp/live2d/chara', '_blank');
     },
     
     // 渲染服装列表项

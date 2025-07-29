@@ -359,6 +359,57 @@
     font-size: var(--text-xs);
 }
 
+/* 服装列表头部按钮组 */
+.costume-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.costume-list-header label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.costume-list-header > div {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Live2D 数据库按钮样式 */
+.costume-list-header .btn-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    font-size: var(--text-xs);
+}
+
+.costume-list-header .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .costume-list-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .costume-list-header > div {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .costume-list-header > div .btn {
+        flex: 1;
+    }
+}
+
 .btn-danger {
     background: #fee;
     color: var(--color-error);
