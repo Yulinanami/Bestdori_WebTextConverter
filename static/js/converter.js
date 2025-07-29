@@ -28,8 +28,12 @@ export const converter = {
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
                 character_mapping: state.currentConfig,
-                enable_live2d: state.enableLive2D,        // 确保传递Live2D设置
-                costume_mapping: state.currentCostumes     // 确保传递服装映射
+                enable_live2d: state.enableLive2D,
+                costume_mapping: state.currentCostumes,
+                position_config: {
+                    autoPositionMode: positionManager.autoPositionMode,
+                    manualPositions: positionManager.manualPositions
+                }
             });
 
             ui.showProgress(100);
@@ -75,8 +79,12 @@ export const converter = {
                 narrator_name: narratorName,
                 selected_quote_pairs: selectedQuotePairs,
                 character_mapping: state.currentConfig,
-                enable_live2d: state.enableLive2D,        // 重要：传递Live2D设置
-                costume_mapping: state.currentCostumes     // 重要：传递服装映射
+                enable_live2d: state.enableLive2D,
+                costume_mapping: state.currentCostumes,
+                position_config: {
+                    autoPositionMode: positionManager.autoPositionMode,
+                    manualPositions: positionManager.manualPositions
+                }
             });
             
             const jsonResult = response.data.result;

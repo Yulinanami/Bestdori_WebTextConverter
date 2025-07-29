@@ -10,6 +10,7 @@ import { quoteManager } from './quoteManager.js';
 import { dialoguePreview } from './dialoguePreview.js';
 import { batchProcessor } from './batchProcessor.js';
 import { costumeManager } from './costumeManager.js';  // 新增导入
+import { positionManager } from './positionManager.js';
 
 // 初始化应用
 function initializeApp() {
@@ -24,6 +25,9 @@ function initializeApp() {
     
     // 绑定模态框事件
     bindModalEvents();
+
+    // 初始化位置管理器
+    positionManager.init();
     
     // 初始化文件拖拽
     fileHandler.setupFileDragDrop();
@@ -96,14 +100,27 @@ function bindClassicViewEvents() {
             }
         });
     }
-    
-    // ===== 新增：Live2D相关事件绑定 =====
+
     // Live2D开关
     const enableLive2DCheckbox = document.getElementById('enableLive2DCheckbox');
     if (enableLive2DCheckbox) {
         enableLive2DCheckbox.addEventListener('change', (e) => {
             state.enableLive2D = e.target.checked;
             localStorage.setItem('bestdori_enable_live2d', e.target.checked.toString());
+            
+            // 启用/禁用位置配置按钮
+            const positionBtn = document.getElementById('positionConfigBtn');
+            if (positionBtn) {
+                positionBtn.disabled = !e.target.checked;
+            }
+        });
+    }
+
+    // 位置配置按钮
+    const positionConfigBtn = document.getElementById('positionConfigBtn');
+    if (positionConfigBtn) {
+        positionConfigBtn.addEventListener('click', () => {
+            positionManager.openPositionModal();
         });
     }
     

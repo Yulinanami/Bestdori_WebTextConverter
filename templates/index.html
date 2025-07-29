@@ -112,6 +112,47 @@
                                 <span style="font-weight: 500;">启用自动 Live2D 布局</span>
                             </label>
                             <button class="btn btn-secondary btn-sm" id="costumeConfigBtn">🎭 服装配置</button>
+                            <button class="btn btn-secondary btn-sm" id="positionConfigBtn" disabled>📍 位置配置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 位置配置模态框 -->
+                <div class="modal" id="positionModal">
+                    <div class="modal-content" style="max-width: 700px;">
+                        <div class="modal-header">
+                            <div class="modal-title">📍 Live2D 位置配置</div>
+                            <button class="modal-close" onclick="positionManager.closePositionModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="margin-bottom: 20px;">
+                                <p style="color: #718096; margin-bottom: 10px;">
+                                    配置角色的默认出现位置。您可以为每个角色单独设置，或使用自动分配模式。
+                                </p>
+                            </div>
+
+                            <!-- 将按钮组移到顶部 -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                                <button class="btn btn-secondary" id="resetPositionsBtn">🔄 恢复默认</button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-secondary" onclick="positionManager.closePositionModal()">取消</button>
+                                    <button class="btn btn-primary" id="savePositionsBtn">保存配置</button>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 20px; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                                <label class="auto-preview-label">
+                                    <input type="checkbox" id="autoPositionCheckbox" checked>
+                                    <span style="font-weight: 500;">自动分配位置模式</span>
+                                </label>
+                                <p style="color: #718096; font-size: 0.9rem; margin-top: 8px; margin-bottom: 0;">
+                                    启用后，角色将按出场顺序自动分配到不同位置（左、中、右循环）
+                                </p>
+                            </div>
+
+                            <div id="manualPositionConfig" style="display: none;">
+                                <div id="positionList"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

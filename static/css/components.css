@@ -444,6 +444,51 @@
     }
 }
 
+/* 位置配置项样式 */
+.position-config-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+}
+
+.position-config-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.position-character-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.position-character-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.position-select {
+    width: 150px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .position-config-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+    
+    .position-select {
+        width: 100%;
+    }
+}
+
 /* 视图切换按钮 */
 .view-btn {
     padding: 10px 24px;

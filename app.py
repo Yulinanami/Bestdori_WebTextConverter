@@ -47,10 +47,10 @@ class LayoutActionItem:
     costume: str = ""
     motion: str = ""
     expression: str = ""
-    sideFrom: str = "center"
-    sideFromOffsetX: int = 0
-    sideTo: str = "center"
-    sideToOffsetX: int = 0
+    sideFrom: str = "center"        # 起始位置
+    sideFromOffsetX: int = 0        # 起始X偏移
+    sideTo: str = "center"          # 目标位置
+    sideToOffsetX: int = 0          # 目标X偏移
 
 @dataclass
 class ConversionResult:
@@ -288,7 +288,8 @@ class TextConverter:
     def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
                                selected_quote_pairs_list: List[List[str]], 
                                enable_live2d: bool = False,
-                               custom_costume_mapping: Dict[str, str] = None) -> str:
+                               custom_costume_mapping: Dict[str, str] = None,
+                               position_config: Dict[str, Any] = None) -> str:
         active_quote_pairs = {
             pair[0]: pair[1]
             for pair in selected_quote_pairs_list
@@ -297,6 +298,7 @@ class TextConverter:
         
         actions = []
         appeared_character_names = set()  # 基于角色名称而不是ID
+        appearance_order = {}  # 新增：记录角色出场顺序
         current_action_name = narrator_name
         current_action_body_lines = []
         
@@ -308,6 +310,30 @@ class TextConverter:
                 logger.info(f"自定义服装映射: {custom_costume_mapping}")
                 effective_costume_mapping.update(custom_costume_mapping)
                 logger.info(f"合并后的服装映射（部分）: {dict(list(effective_costume_mapping.items())[:5])}")
+        
+        # 新增：处理位置配置
+        auto_position_mode = True
+        manual_positions = {}
+        positions = ['leftInside', 'center', 'rightInside']
+        
+        if position_config:
+            auto_position_mode = position_config.get('autoPositionMode', True)
+            manual_positions = position_config.get('manualPositions', {})
+            logger.info(f"位置配置 - 自动模式: {auto_position_mode}, 手动配置: {manual_positions}")
+        
+        # 新增：获取角色位置的辅助函数
+        def get_character_position(character_name: str, order: int) -> str:
+            """根据配置获取角色的位置"""
+            if auto_position_mode:
+                # 自动分配模式：按出场顺序循环分配
+                position = positions[order % len(positions)]
+                logger.info(f"自动分配位置 - 角色: {character_name}, 顺序: {order}, 位置: {position}")
+                return position
+            else:
+                # 手动模式：使用配置的位置，默认为中间
+                position = manual_positions.get(character_name, 'center')
+                logger.info(f"手动配置位置 - 角色: {character_name}, 位置: {position}")
+                return position
         
         def finalize_current_action():
             if current_action_body_lines:
@@ -323,6 +349,13 @@ class TextConverter:
                         if current_action_name not in appeared_character_names:
                             appeared_character_names.add(current_action_name)
                             
+                            # 记录出场顺序
+                            order = len(appearance_order)
+                            appearance_order[current_action_name] = order
+                            
+                            # 获取角色位置
+                            position = get_character_position(current_action_name, order)
+                            
                             # 使用角色名称作为key来获取服装
                             costume_id = ""
                             if custom_costume_mapping:
@@ -336,11 +369,18 @@ class TextConverter:
                                 logger.info(f"从默认映射获取 ID {effective_id} 的服装: {costume_id}")
                             
                             logger.info(f"角色 {current_action_name} (ID: {primary_character_id}) 最终使用服装: {costume_id}")
+                            logger.info(f"角色 {current_action_name} 分配到位置: {position}")
                             
                             output_char_id = self.mujica_output_mapping.get(primary_character_id, primary_character_id)
+                            
+                            # 创建 layout action，包含位置信息
                             layout_action = LayoutActionItem(
                                 character=output_char_id,
-                                costume=costume_id
+                                costume=costume_id,
+                                sideFrom=position,      # 设置起始位置
+                                sideTo=position,        # 设置目标位置
+                                sideFromOffsetX=0,      # X轴偏移量
+                                sideToOffsetX=0         # X轴偏移量
                             )
                             actions.append(layout_action)
                     
@@ -511,6 +551,7 @@ def convert_text():
         custom_character_mapping = data.get('character_mapping', None)
         enable_live2d = data.get('enable_live2d', False)
         custom_costume_mapping = data.get('costume_mapping', None)
+        position_config = data.get('position_config', None)  # 新增
         
         # 修复：将字符串键转换为整数键
         if custom_costume_mapping:
@@ -535,7 +576,8 @@ def convert_text():
             
         result = converter.convert_text_to_json_format(
             input_text, narrator_name, selected_pairs,
-            enable_live2d, custom_costume_mapping
+            enable_live2d, custom_costume_mapping,
+            position_config  # 新增：传递位置配置
         )
         
         # 恢复原始映射

@@ -1,0 +1,206 @@
+// positionManager.js - Live2D 位置管理功能
+
+import { state } from './constants.js';
+import { ui } from './uiUtils.js';
+
+export const positionManager = {
+    // 可用的位置选项
+    positions: ['leftInside', 'center', 'rightInside'],
+    positionNames: {
+        'leftInside': '左侧',
+        'center': '中间',
+        'rightInside': '右侧'
+    },
+    
+    // 默认配置
+    autoPositionMode: true,
+    manualPositions: {}, // 手动配置的角色位置
+    positionCounter: 0,  // 用于自动分配的计数器
+    
+    // 初始化
+    init() {
+        // 加载保存的配置
+        this.loadPositionConfig();
+        
+        // 绑定事件
+        const autoCheckbox = document.getElementById('autoPositionCheckbox');
+        if (autoCheckbox) {
+            autoCheckbox.addEventListener('change', (e) => {
+                this.autoPositionMode = e.target.checked;
+                this.toggleManualConfig();
+            });
+        }
+        
+        const saveBtn = document.getElementById('savePositionsBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.savePositions());
+        }
+        
+        // 新增：绑定重置按钮事件
+        const resetBtn = document.getElementById('resetPositionsBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetPositions());
+        }
+    },
+    
+    // 加载配置
+    loadPositionConfig() {
+        const saved = localStorage.getItem('bestdori_position_config');
+        if (saved) {
+            try {
+                const config = JSON.parse(saved);
+                this.autoPositionMode = config.autoPositionMode !== false;
+                this.manualPositions = config.manualPositions || {};
+            } catch (e) {
+                console.error('加载位置配置失败:', e);
+            }
+        }
+    },
+    
+    // 保存配置
+    savePositionConfig() {
+        const config = {
+            autoPositionMode: this.autoPositionMode,
+            manualPositions: this.manualPositions
+        };
+        localStorage.setItem('bestdori_position_config', JSON.stringify(config));
+    },
+    
+    // 打开位置配置模态框
+    openPositionModal() {
+        // 更新自动模式复选框
+        const autoCheckbox = document.getElementById('autoPositionCheckbox');
+        if (autoCheckbox) {
+            autoCheckbox.checked = this.autoPositionMode;
+        }
+        
+        // 渲染手动配置列表
+        this.renderPositionList();
+        this.toggleManualConfig();
+        
+        ui.openModal('positionModal');
+    },
+    
+    // 关闭模态框
+    closePositionModal() {
+        ui.closeModal('positionModal');
+    },
+    
+    // 切换手动配置显示
+    toggleManualConfig() {
+        const manualConfig = document.getElementById('manualPositionConfig');
+        if (manualConfig) {
+            manualConfig.style.display = this.autoPositionMode ? 'none' : 'block';
+        }
+    },
+    
+    // 渲染位置列表
+    renderPositionList() {
+        const positionList = document.getElementById('positionList');
+        if (!positionList) return;
+        
+        positionList.innerHTML = '';
+        
+        // 获取所有配置的角色
+        const characters = Object.entries(state.currentConfig).sort(([, idsA], [, idsB]) => {
+            const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
+            const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
+            return idA - idB;
+        });
+        
+        characters.forEach(([name, ids]) => {
+            if (!ids || ids.length === 0) return;
+            
+            const primaryId = ids[0];
+            const currentPosition = this.manualPositions[name] || 'center';
+            
+            const item = document.createElement('div');
+            item.className = 'position-config-item';
+            item.innerHTML = `
+                <div class="position-character-info">
+                    <span class="position-character-name">${name} (ID: ${primaryId})</span>
+                </div>
+                <select class="form-input position-select" data-character="${name}">
+                    ${this.positions.map(pos => 
+                        `<option value="${pos}" ${pos === currentPosition ? 'selected' : ''}>
+                            ${this.positionNames[pos]}
+                        </option>`
+                    ).join('')}
+                </select>
+            `;
+            
+            // 添加事件监听
+            const select = item.querySelector('.position-select');
+            select.addEventListener('change', (e) => {
+                this.manualPositions[e.target.dataset.character] = e.target.value;
+            });
+            
+            positionList.appendChild(item);
+        });
+    },
+    
+    // 保存位置配置
+    async savePositions() {
+        await ui.withButtonLoading('savePositionsBtn', async () => {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            this.savePositionConfig();
+            ui.showStatus('位置配置已保存！', 'success');
+            this.closePositionModal();
+        }, '保存中...');
+    },
+    
+    // 新增：重置为默认位置（全部设为中间）
+    async resetPositions() {
+        if (confirm('确定要将所有角色的位置恢复为默认（中间）吗？')) {
+            await ui.withButtonLoading('resetPositionsBtn', async () => {
+                // 重置自动模式为开启
+                this.autoPositionMode = true;
+                
+                // 清空手动配置
+                this.manualPositions = {};
+                
+                // 更新所有选择框为center
+                document.querySelectorAll('.position-select').forEach(select => {
+                    select.value = 'center';
+                });
+                
+                // 更新自动模式复选框
+                const autoCheckbox = document.getElementById('autoPositionCheckbox');
+                if (autoCheckbox) {
+                    autoCheckbox.checked = true;
+                }
+                
+                // 切换显示
+                this.toggleManualConfig();
+                
+                // 模拟处理时间
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // 保存配置
+                this.savePositionConfig();
+                
+                ui.showStatus('已恢复默认位置配置！', 'success');
+            }, '重置中...');
+        }
+    },
+    
+    // 获取角色的位置
+    getCharacterPosition(characterName, appearanceOrder) {
+        if (this.autoPositionMode) {
+            // 自动分配模式：按出场顺序循环分配
+            return this.positions[appearanceOrder % this.positions.length];
+        } else {
+            // 手动模式：使用配置的位置，默认为中间
+            return this.manualPositions[characterName] || 'center';
+        }
+    },
+    
+    // 重置位置计数器
+    resetPositionCounter() {
+        this.positionCounter = 0;
+    }
+};
+
+// 暴露到全局
+window.positionManager = positionManager;

@@ -136,6 +136,12 @@ export const costumeManager = {
             if (splitCheckbox) {
                 splitCheckbox.checked = state.enableLive2D;
             }
+
+            // 在此更新位置配置按钮的初始状态
+            const positionBtn = document.getElementById('positionConfigBtn');
+            if (positionBtn) {
+                positionBtn.disabled = !state.enableLive2D;
+            }
             
         } catch (error) {
             console.error('加载服装配置失败:', error);
