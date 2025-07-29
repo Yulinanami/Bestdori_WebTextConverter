@@ -100,8 +100,7 @@ export const costumeManager = {
             const response = await axios.get('/api/costumes');
             this.defaultAvailableCostumes = response.data.available_costumes; // 保存原始数据
             this.defaultCostumes = response.data.default_costumes;
-            this.mujicaMapping = response.data.mujica_mapping || {};
-
+            
             // 获取并存储内置角色名称
             const configResponse = await axios.get('/api/config');
             this.builtInCharacters = new Set(Object.keys(configResponse.data.character_mapping));

@@ -88,14 +88,6 @@ class ConfigManager:
                 # Mujica
                 "三角初华": [337], "若叶睦": [338], "八幡海铃": [339], "祐天寺若麦": [340], "丰川祥子": [341]
             },
-            # 新增：Mujica 成员的真实ID映射
-            "mujica_real_id_mapping": {
-                "三角初华": 337,
-                "若叶睦": 338,
-                "八幡海铃": 339,
-                "祐天寺若麦": 340,
-                "丰川祥子": 341
-            },
             "costume_mapping": { # 每个角色的服装映射
                 
                 # Poppin'Party
@@ -204,9 +196,7 @@ class ConfigManager:
                     loaded_config["costume_mapping"] = default_config["costume_mapping"]
                 if "default_costumes" not in loaded_config:
                     loaded_config["default_costumes"] = default_config["default_costumes"]
-                # 确保Mujica映射存在
-                if "mujica_real_id_mapping" not in loaded_config:
-                    loaded_config["mujica_real_id_mapping"] = default_config["mujica_real_id_mapping"]
+
                 return loaded_config
         except Exception as e:
             logger.warning(f"配置文件加载失败: {e}"); return default_config
@@ -223,7 +213,6 @@ class ConfigManager:
     def get_quotes_config(self) -> Dict[str, Any]: return self.config.get("quotes", {})
     def get_costume_mapping(self) -> Dict[int, str]: return self.config.get("default_costumes", {})
     def get_available_costumes(self) -> Dict[int, List[str]]: return self.config.get("costume_mapping", {})
-    def get_mujica_mapping(self) -> Dict[str, int]: return self.config.get("mujica_real_id_mapping", {})
     def update_character_mapping(self, new_mapping: Dict[str, List[int]]):
         self.config["character_mapping"] = new_mapping; self._save_config(self.config)
 
@@ -261,7 +250,6 @@ class TextConverter:
         self.config_manager = config_manager
         self.character_mapping = config_manager.get_character_mapping()
         self.costume_mapping = config_manager.get_costume_mapping()
-        self.mujica_mapping = config_manager.get_mujica_mapping()
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
@@ -294,11 +282,7 @@ class TextConverter:
         return output_ids
 
     def _get_effective_character_id(self, character_name: str, character_ids: List[int]) -> int:
-        """获取角色的有效ID（处理Mujica特殊情况）"""
-        # 检查是否为 Mujica 成员
-        if character_name in self.mujica_mapping:
-            return self.mujica_mapping[character_name]
-        # 否则返回原始的第一个ID
+        """获取角色的有效ID"""
         return character_ids[0] if character_ids else 0
 
     def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
@@ -691,7 +675,6 @@ def get_costumes():
         return jsonify({
             'available_costumes': config_manager.get_available_costumes(),
             'default_costumes': config_manager.get_costume_mapping(),
-            'mujica_mapping': config_manager.get_mujica_mapping()  # 新增
         })
     except Exception as e:
         logger.error(f"获取服装配置失败: {e}", exc_info=True)
