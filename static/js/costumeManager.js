@@ -10,6 +10,9 @@ export const costumeManager = {
     defaultAvailableCostumes: {}, // 存储原始的基于ID的可用服装
     availableCostumes: {},        // 改为基于角色名称的可用服装
     mujicaMapping: {},
+    // 添加临时存储，用于存储未保存的更改
+    tempCostumeChanges: {},
+    originalCostumes: {}, // 存储打开模态框时的原始状态
 
     // 生成角色的唯一标识符（使用角色名称）
     getCharacterKey(characterName) {
@@ -169,9 +172,18 @@ export const costumeManager = {
         return null;
     },
     
-    // 保存可用服装列表到本地
+    // 修改保存可用服装列表的方法，添加验证
     saveLocalAvailableCostumes() {
         try {
+            // 验证数据完整性
+            const hasValidData = Object.keys(this.availableCostumes).length > 0 &&
+                                Object.values(this.availableCostumes).some(list => Array.isArray(list));
+            
+            if (!hasValidData) {
+                console.warn('尝试保存空的可用服装列表，操作已取消');
+                return false;
+            }
+            
             localStorage.setItem('bestdori_available_costumes_v2', JSON.stringify(this.availableCostumes));
             return true;
         } catch (error) {
@@ -189,12 +201,17 @@ export const costumeManager = {
     async openCostumeModal() {
         await ui.withButtonLoading('costumeConfigBtn', async () => {
             await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 保存当前状态作为原始状态
+            this.originalCostumes = JSON.parse(JSON.stringify(state.currentCostumes));
+            this.tempCostumeChanges = JSON.parse(JSON.stringify(state.currentCostumes));
+            
             this.renderCostumeList();
             ui.openModal('costumeModal');
         }, '加载配置...');
     },
     
-    // 渲染服装列表
+    // 修改渲染服装列表的方法
     renderCostumeList() {
         const costumeList = document.getElementById('costumeList');
         costumeList.innerHTML = '';
@@ -213,10 +230,9 @@ export const costumeManager = {
             const safeDomId = this.getSafeDomId(name);
             const avatarId = this.getAvatarId(primaryId);
             
-            // 获取该角色的可用服装列表（基于角色名称）
+            // 使用临时存储中的值
             const availableForCharacter = this.availableCostumes[characterKey] || [];
-            // 获取当前服装（基于角色名称）
-            const currentCostume = state.currentCostumes[characterKey] || '';
+            const currentCostume = this.tempCostumeChanges[characterKey] || '';
             
             const costumeItem = document.createElement('div');
             costumeItem.className = 'costume-config-item';
@@ -268,11 +284,11 @@ export const costumeManager = {
             
             costumeList.appendChild(costumeItem);
             
-            // 绑定当前服装选择变化事件
+            // 修改：只更新临时存储，不直接修改state
             const select = costumeItem.querySelector('.costume-select');
             select.addEventListener('change', (e) => {
                 const key = e.target.dataset.characterKey;
-                state.currentCostumes[key] = e.target.value;
+                this.tempCostumeChanges[key] = e.target.value;
             });
         }); 
     },
@@ -493,21 +509,15 @@ export const costumeManager = {
     // 保存服装配置
     async saveCostumes() {
         await ui.withButtonLoading('saveCostumesBtn', async () => {
-            const newCostumes = {};
-            
-            document.querySelectorAll('.costume-select').forEach(select => {
-                const characterKey = select.dataset.characterKey;
-                const costume = select.value;
-                if (costume) {
-                    newCostumes[characterKey] = costume;
-                }
-            });
+            // 使用临时存储中的值
+            const newCostumes = { ...this.tempCostumeChanges };
             
             console.log('保存的服装配置:', newCostumes);
             
             await new Promise(resolve => setTimeout(resolve, 300));
             
             if (this.saveLocalCostumes(newCostumes)) {
+                // 只有在成功保存后才更新state
                 state.currentCostumes = newCostumes;
                 this.saveLocalAvailableCostumes();
                 
@@ -537,6 +547,14 @@ export const costumeManager = {
                 ui.showStatus('已恢复默认服装配置', 'success');
             }, '重置中...');
         }
+    },
+
+    // 添加取消/关闭模态框时的处理
+    cancelCostumeChanges() {
+        // 恢复原始状态
+        state.currentCostumes = { ...this.originalCostumes };
+        this.tempCostumeChanges = {};
+        ui.closeModal('costumeModal');
     },
     
     // 导出配置时包含服装配置

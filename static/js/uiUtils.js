@@ -104,6 +104,14 @@ export function initGlobalModalListeners() {
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
             if (event.target === modal) {
+                // 特殊处理服装配置模态框
+                if (modal.id === 'costumeModal') {
+                    // 恢复原始状态
+                    if (window.costumeManager && window.costumeManager.originalCostumes) {
+                        window.costumeManager.cancelCostumeChanges();
+                        return; // 不使用通用的closeModal
+                    }
+                }
                 ui.closeModal(modal.id);
             }
         });
@@ -113,7 +121,16 @@ export function initGlobalModalListeners() {
         if (event.key === 'Escape') {
             const modals = document.querySelectorAll('.modal');
             modals.forEach(modal => {
-                ui.closeModal(modal.id);
+                if (modal.style.display !== 'none') {
+                    // 特殊处理服装配置模态框
+                    if (modal.id === 'costumeModal') {
+                        if (window.costumeManager && window.costumeManager.originalCostumes) {
+                            window.costumeManager.cancelCostumeChanges();
+                            return;
+                        }
+                    }
+                    ui.closeModal(modal.id);
+                }
             });
         }
     });
