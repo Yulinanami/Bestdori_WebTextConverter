@@ -36,7 +36,7 @@ export const positionManager = {
             saveBtn.addEventListener('click', () => this.savePositions());
         }
         
-        // 新增：绑定重置按钮事件
+        // 绑定重置按钮事件
         const resetBtn = document.getElementById('resetPositionsBtn');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => this.resetPositions());
@@ -64,6 +64,19 @@ export const positionManager = {
             manualPositions: this.manualPositions
         };
         localStorage.setItem('bestdori_position_config', JSON.stringify(config));
+    },
+    
+    // 获取头像ID（处理 Mujica 特殊映射）
+    getAvatarId(characterId) {
+        const mujicaAvatarMapping = {
+            337: 1,  // 三角初华
+            338: 2,  // 若叶睦
+            339: 3,  // 八幡海铃
+            340: 4,  // 祐天寺若麦
+            341: 5   // 丰川祥子
+        };
+        
+        return mujicaAvatarMapping[characterId] || characterId;
     },
     
     // 打开位置配置模态框
@@ -112,12 +125,22 @@ export const positionManager = {
             if (!ids || ids.length === 0) return;
             
             const primaryId = ids[0];
+            const avatarId = this.getAvatarId(primaryId);
+            const avatarPath = avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : '';
             const currentPosition = this.manualPositions[name] || 'center';
             
             const item = document.createElement('div');
             item.className = 'position-config-item';
             item.innerHTML = `
                 <div class="position-character-info">
+                    <div class="config-avatar-wrapper"> 
+                        <div class="config-avatar" data-id="${primaryId}">
+                            ${avatarId > 0 ? 
+                                `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
+                                : name.charAt(0)
+                            }
+                        </div>
+                    </div>
                     <span class="position-character-name">${name} (ID: ${primaryId})</span>
                 </div>
                 <select class="form-input position-select" data-character="${name}">
@@ -150,7 +173,7 @@ export const positionManager = {
         }, '保存中...');
     },
     
-    // 新增：重置为默认位置（全部设为中间）
+    // 重置为默认位置（全部设为中间）
     async resetPositions() {
         if (confirm('确定要将所有角色的位置恢复为默认（中间）吗？')) {
             await ui.withButtonLoading('resetPositionsBtn', async () => {
