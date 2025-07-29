@@ -7,60 +7,96 @@ import { configManager } from './configManager.js';
 export const costumeManager = {
     // 默认服装配置
     defaultCostumes: {},
-    availableCostumes: {},
-    mujicaMapping: {},  // 存储 Mujica 成员的真实ID映射
+    defaultAvailableCostumes: {}, // 存储原始的基于ID的可用服装
+    availableCostumes: {},        // 改为基于角色名称的可用服装
+    mujicaMapping: {},
 
-    // 获取显示用的头像ID（处理Mujica特殊映射）
+    // 生成角色的唯一标识符（使用角色名称）
+    getCharacterKey(characterName) {
+        return characterName;
+    },
+
+    // 生成DOM安全的ID（处理特殊字符）
+    getSafeDomId(characterName) {
+        return characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
+    },
+
+    // 获取显示用的头像ID
     getAvatarId(characterId) {
-        // Mujica成员的ID映射
         const mujicaAvatarMapping = {
-            337: 1,  // 三角初华
-            338: 2,  // 若叶睦
-            339: 3,  // 八幡海铃
-            340: 4,  // 祐天寺若麦
-            341: 5   // 丰川祥子
+            337: 1,
+            338: 2,
+            339: 3,
+            340: 4,
+            341: 5
         };
         
-        // 如果是Mujica成员，返回映射的头像ID
-        if (mujicaAvatarMapping[characterId]) {
-            return mujicaAvatarMapping[characterId];
-        }
-        
-        // 否则返回原ID
-        return characterId;
+        return mujicaAvatarMapping[characterId] || characterId;
+    },
+
+    // 转换可用服装列表为基于角色名称的映射
+    convertAvailableCostumesToNameBased() {
+        const nameBased = {};
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const primaryId = ids[0];
+                const characterKey = this.getCharacterKey(name);
+                // 为每个角色创建独立的服装列表副本
+                if (this.defaultAvailableCostumes[primaryId]) {
+                    nameBased[characterKey] = [...this.defaultAvailableCostumes[primaryId]];
+                } else {
+                    nameBased[characterKey] = [];
+                }
+            }
+        });
+        return nameBased;
+    },
+
+    // 转换默认服装配置为基于角色名称的映射
+    convertDefaultCostumesToNameBased() {
+        const nameBased = {};
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const primaryId = ids[0];
+                const defaultCostume = this.defaultCostumes[primaryId];
+                if (defaultCostume) {
+                    nameBased[this.getCharacterKey(name)] = defaultCostume;
+                }
+            }
+        });
+        return nameBased;
     },
     
     // 加载服装配置
     async loadCostumeConfig() {
         try {
             const response = await axios.get('/api/costumes');
-            this.availableCostumes = response.data.available_costumes;
+            this.defaultAvailableCostumes = response.data.available_costumes; // 保存原始数据
             this.defaultCostumes = response.data.default_costumes;
             this.mujicaMapping = response.data.mujica_mapping || {};
         
-            // 尝试从 LocalStorage 加载用户自定义配置
+            // 加载用户自定义配置
             const savedCostumes = this.loadLocalCostumes();
             if (savedCostumes) {
                 state.currentCostumes = savedCostumes;
             } else {
-                state.currentCostumes = { ...this.defaultCostumes };
+                state.currentCostumes = this.convertDefaultCostumesToNameBased();
             }
             
-            // 加载用户自定义的可用服装列表
+            // 加载基于角色名称的可用服装列表
             const savedAvailableCostumes = this.loadLocalAvailableCostumes();
             if (savedAvailableCostumes) {
-                // 将保存的列表合并到从服务器获取的列表中。
-                // Object.assign 会用 savedAvailableCostumes 中的属性覆盖 this.availableCostumes 中的同名属性。
-                // 这确保了用户的修改（包括删除的空列表）能够覆盖默认值。
-                Object.assign(this.availableCostumes, savedAvailableCostumes);
+                this.availableCostumes = savedAvailableCostumes;
+            } else {
+                // 转换默认的可用服装为基于角色名称的格式
+                this.availableCostumes = this.convertAvailableCostumesToNameBased();
             }
             
-            // 加载启用状态
+            // 加载Live2D启用状态
             const enableLive2D = localStorage.getItem('bestdori_enable_live2d');
             state.enableLive2D = enableLive2D === 'true';
             document.getElementById('enableLive2DCheckbox').checked = state.enableLive2D;
             
-            // 同步到分屏视图（如果存在）
             const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
             if (splitCheckbox) {
                 splitCheckbox.checked = state.enableLive2D;
@@ -75,7 +111,7 @@ export const costumeManager = {
     // 从 LocalStorage 加载服装配置
     loadLocalCostumes() {
         try {
-            const saved = localStorage.getItem('bestdori_costume_mapping');
+            const saved = localStorage.getItem('bestdori_costume_mapping_v2');
             if (saved) {
                 return JSON.parse(saved);
             }
@@ -88,7 +124,7 @@ export const costumeManager = {
     // 保存服装配置到 LocalStorage
     saveLocalCostumes(costumes) {
         try {
-            localStorage.setItem('bestdori_costume_mapping', JSON.stringify(costumes));
+            localStorage.setItem('bestdori_costume_mapping_v2', JSON.stringify(costumes));
             return true;
         } catch (error) {
             console.error('保存本地服装配置失败:', error);
@@ -123,7 +159,7 @@ export const costumeManager = {
     // 加载本地可用服装列表
     loadLocalAvailableCostumes() {
         try {
-            const saved = localStorage.getItem('bestdori_available_costumes');
+            const saved = localStorage.getItem('bestdori_available_costumes_v2'); // 使用新版本
             if (saved) {
                 return JSON.parse(saved);
             }
@@ -136,10 +172,7 @@ export const costumeManager = {
     // 保存可用服装列表到本地
     saveLocalAvailableCostumes() {
         try {
-            // 直接保存整个 availableCostumes 对象。
-            // 这个对象已经包含了用户的所有修改（添加、编辑、删除），
-            // 所以我们不需要再和默认配置进行比较。
-            localStorage.setItem('bestdori_available_costumes', JSON.stringify(this.availableCostumes));
+            localStorage.setItem('bestdori_available_costumes_v2', JSON.stringify(this.availableCostumes));
             return true;
         } catch (error) {
             console.error('保存可用服装列表失败:', error);
@@ -161,12 +194,11 @@ export const costumeManager = {
         }, '加载配置...');
     },
     
-    // 渲染服装列表（新版本）
+    // 渲染服装列表
     renderCostumeList() {
         const costumeList = document.getElementById('costumeList');
         costumeList.innerHTML = '';
         
-        // 获取所有需要显示的角色（来自角色映射）
         const characterEntries = Object.entries(state.currentConfig).sort(([, idsA], [, idsB]) => {
             const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
             const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
@@ -177,22 +209,17 @@ export const costumeManager = {
             if (!ids || ids.length === 0) return;
             
             const primaryId = ids[0];
-            const effectiveId = this.getEffectiveCharacterId(name, primaryId);
+            const characterKey = this.getCharacterKey(name);
+            const safeDomId = this.getSafeDomId(name);
             const avatarId = this.getAvatarId(primaryId);
             
-            // 获取该角色的可用服装列表
-            const availableForCharacter = this.availableCostumes[effectiveId] || [];
-            const currentCostume = state.currentCostumes[effectiveId] || '';
+            // 获取该角色的可用服装列表（基于角色名称）
+            const availableForCharacter = this.availableCostumes[characterKey] || [];
+            // 获取当前服装（基于角色名称）
+            const currentCostume = state.currentCostumes[characterKey] || '';
             
             const costumeItem = document.createElement('div');
             costumeItem.className = 'costume-config-item';
-            
-            // 如果是 Mujica 成员，添加特殊标记
-            const isMujica = effectiveId !== primaryId;
-            if (isMujica) {
-                costumeItem.style.background = '#fef3c7';  // 淡黄色背景
-                costumeItem.title = '此角色暂时使用替代ID显示，但服装配置独立';
-            }
             
             costumeItem.innerHTML = `
             <div class="costume-item-header">
@@ -207,36 +234,36 @@ export const costumeManager = {
                         ${name} (ID: ${primaryId})
                     </span>
                 </div>
-                    <div class="costume-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="costumeManager.toggleCostumeDetails(${effectiveId})">
-                            <span id="toggle-${effectiveId}">▼</span> 服装管理
-                        </button>
-                    </div>
+                <div class="costume-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="costumeManager.toggleCostumeDetails('${safeDomId}')">
+                        <span id="toggle-${safeDomId}">▼</span> 服装管理
+                    </button>
+                </div>
+            </div>
+            
+            <div id="costume-details-${safeDomId}" class="costume-details" style="display: none;">
+                <div class="costume-current">
+                    <label>当前服装：</label>
+                    <select class="form-input costume-select" data-character-key="${characterKey}">
+                        <option value="">无服装</option>
+                        ${availableForCharacter.map(costume => 
+                            `<option value="${costume}" ${costume === currentCostume ? 'selected' : ''}>${costume}</option>`
+                        ).join('')}
+                    </select>
                 </div>
                 
-                <div id="costume-details-${effectiveId}" class="costume-details" style="display: none;">
-                    <div class="costume-current">
-                        <label>当前服装：</label>
-                        <select class="form-input costume-select" data-character-id="${effectiveId}">
-                            <option value="">无服装</option>
-                            ${availableForCharacter.map(costume => 
-                                `<option value="${costume}" ${costume === currentCostume ? 'selected' : ''}>${costume}</option>`
-                            ).join('')}
-                        </select>
+                <div class="costume-available-list">
+                    <div class="costume-list-header">
+                        <label>可用服装列表：</label>
+                        <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume('${characterKey}', '${safeDomId}')">
+                            ➕ 添加服装
+                        </button>
                     </div>
-                    
-                    <div class="costume-available-list">
-                        <div class="costume-list-header">
-                            <label>可用服装列表：</label>
-                            <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume(${effectiveId})">
-                                ➕ 添加服装
-                            </button>
-                        </div>
-                        <div id="costume-list-${effectiveId}" class="costume-list-items">
-                            ${this.renderCostumeListItems(effectiveId, availableForCharacter)}
-                        </div>
+                    <div id="costume-list-${safeDomId}" class="costume-list-items">
+                        ${this.renderCostumeListItems(characterKey, availableForCharacter, safeDomId)}
                     </div>
                 </div>
+            </div>
             `;
             
             costumeList.appendChild(costumeItem);
@@ -244,13 +271,14 @@ export const costumeManager = {
             // 绑定当前服装选择变化事件
             const select = costumeItem.querySelector('.costume-select');
             select.addEventListener('change', (e) => {
-                state.currentCostumes[effectiveId] = e.target.value;
+                const key = e.target.dataset.characterKey;
+                state.currentCostumes[key] = e.target.value;
             });
         }); 
     },
     
     // 渲染服装列表项
-    renderCostumeListItems(characterId, costumes) {
+    renderCostumeListItems(characterKey, costumes, safeDomId) {
         if (!costumes || costumes.length === 0) {
             return '<div class="empty-costume-list">暂无可用服装</div>';
         }
@@ -259,17 +287,17 @@ export const costumeManager = {
             <div class="costume-list-item">
                 <span>${costume}</span>
                 <div class="costume-item-actions">
-                    <button class="btn btn-sm" onclick="costumeManager.editCostume(${characterId}, ${index}, '${costume}')">✏️</button>
-                    <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCostume(${characterId}, ${index})">🗑️</button>
+                    <button class="btn btn-sm" onclick="costumeManager.editCostume('${characterKey}', ${index}, '${costume}', '${safeDomId}')">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCostume('${characterKey}', ${index}, '${safeDomId}')">🗑️</button>
                 </div>
             </div>
         `).join('');
     },
     
     // 切换服装详情显示
-    toggleCostumeDetails(characterId) {
-        const details = document.getElementById(`costume-details-${characterId}`);
-        const toggle = document.getElementById(`toggle-${characterId}`);
+    toggleCostumeDetails(safeDomId) {
+        const details = document.getElementById(`costume-details-${safeDomId}`);
+        const toggle = document.getElementById(`toggle-${safeDomId}`);
         
         if (details.style.display === 'none') {
             details.style.display = 'block';
@@ -280,81 +308,81 @@ export const costumeManager = {
         }
     },
     
-    // 添加新服装
-    addNewCostume(characterId) {
+    // 添加新服装（基于角色名称）
+    addNewCostume(characterKey, safeDomId) {
         const costumeId = prompt('请输入新的服装ID：');
         if (costumeId && costumeId.trim()) {
             const trimmedId = costumeId.trim();
             
             // 确保该角色有服装列表
-            if (!this.availableCostumes[characterId]) {
-                this.availableCostumes[characterId] = [];
+            if (!this.availableCostumes[characterKey]) {
+                this.availableCostumes[characterKey] = [];
             }
             
             // 检查是否已存在
-            if (this.availableCostumes[characterId].includes(trimmedId)) {
+            if (this.availableCostumes[characterKey].includes(trimmedId)) {
                 ui.showStatus('该服装ID已存在', 'error');
                 return;
             }
             
             // 添加服装
-            this.availableCostumes[characterId].push(trimmedId);
+            this.availableCostumes[characterKey].push(trimmedId);
             
             // 保存到本地
             this.saveLocalAvailableCostumes();
             
             // 更新UI
-            this.updateCostumeListUI(characterId);
+            this.updateCostumeListUI(characterKey, safeDomId);
             ui.showStatus(`已添加服装: ${trimmedId}`, 'success');
         }
     },
     
-    // 编辑服装
-    editCostume(characterId, index, oldCostume) {
+    // 编辑服装（基于角色名称）
+    editCostume(characterKey, index, oldCostume, safeDomId) {
         const newCostume = prompt('编辑服装ID：', oldCostume);
         if (newCostume && newCostume.trim() && newCostume !== oldCostume) {
             const trimmedId = newCostume.trim();
             
             // 检查是否已存在
-            if (this.availableCostumes[characterId].includes(trimmedId)) {
+            if (this.availableCostumes[characterKey].includes(trimmedId)) {
                 ui.showStatus('该服装ID已存在', 'error');
                 return;
             }
             
             // 更新服装列表
-            this.availableCostumes[characterId][index] = trimmedId;
+            this.availableCostumes[characterKey][index] = trimmedId;
             
             // 如果当前选择的是这个服装，也要更新
-            if (state.currentCostumes[characterId] === oldCostume) {
-                state.currentCostumes[characterId] = trimmedId;
+            if (state.currentCostumes[characterKey] === oldCostume) {
+                state.currentCostumes[characterKey] = trimmedId;
             }
             
             // 保存到本地
             this.saveLocalAvailableCostumes();
             
             // 更新UI
-            this.updateCostumeListUI(characterId);
+            this.updateCostumeListUI(characterKey, safeDomId);
             ui.showStatus('服装ID已更新', 'success');
         }
     },
     
-    // 删除服装
-    deleteCostume(characterId, index) {
-        const costume = this.availableCostumes[characterId][index];
+    // 删除服装（基于角色名称）
+    deleteCostume(characterKey, index, safeDomId) {
+        const costume = this.availableCostumes[characterKey][index];
         if (confirm(`确定要删除服装 "${costume}" 吗？`)) {
             // 从列表中移除
-            this.availableCostumes[characterId].splice(index, 1);
+            this.availableCostumes[characterKey].splice(index, 1);
             
             // 如果当前选择的是这个服装，清空选择
-            if (state.currentCostumes[characterId] === costume) {
-                state.currentCostumes[characterId] = '';
+            if (state.currentCostumes[characterKey] === costume) {
+                state.currentCostumes[characterKey] = '';
             }
             
             // 保存到本地
             this.saveLocalAvailableCostumes();
             
             // 更新UI
-            this.updateCostumeListUI(characterId);
+            this.updateCostumeListUI(characterKey, safeDomId);
             ui.showStatus('服装已删除', 'success');
         }
     },
@@ -388,26 +416,32 @@ export const costumeManager = {
         }
     },
     
-    // 更新服装列表UI
-    updateCostumeListUI(characterId) {
+    // 更新服装列表UI（基于角色名称）
+    updateCostumeListUI(characterKey, safeDomId) {
         // 更新服装列表
-        const listContainer = document.getElementById(`costume-list-${characterId}`);
+        const listContainer = document.getElementById(`costume-list-${safeDomId}`);
         if (listContainer) {
-            listContainer.innerHTML = this.renderCostumeListItems(characterId, this.availableCostumes[characterId]);
+            const costumes = this.availableCostumes[characterKey] || [];
+            listContainer.innerHTML = this.renderCostumeListItems(characterKey, costumes, safeDomId);
         }
         
         // 更新选择框
-        const select = document.querySelector(`.costume-select[data-character-id="${characterId}"]`);
-        if (select) {
-            const currentValue = select.value;
-            const availableForCharacter = this.availableCostumes[characterId] || [];
-            
-            select.innerHTML = `
-                <option value="">无服装</option>
-                ${availableForCharacter.map(costume => 
-                    `<option value="${costume}" ${costume === currentValue ? 'selected' : ''}>${costume}</option>`
-                ).join('')}
-            `;
+        const costumeDetailsContainer = document.getElementById(`costume-details-${safeDomId}`);
+        if (costumeDetailsContainer) {
+            const select = costumeDetailsContainer.querySelector('.costume-select');
+            if (select && select.dataset.characterKey === characterKey) {
+                const currentValue = state.currentCostumes[characterKey] || '';
+                const availableForCharacter = this.availableCostumes[characterKey] || [];
+                
+                select.innerHTML = `
+                    <option value="">无服装</option>
+                    ${availableForCharacter.map(costume => 
+                        `<option value="${costume}" ${costume === currentValue ? 'selected' : ''}>${costume}</option>`
+                    ).join('')}
+                `;
+                
+                select.value = currentValue;
+            }
         }
     },
     
@@ -459,14 +493,13 @@ export const costumeManager = {
     // 保存服装配置
     async saveCostumes() {
         await ui.withButtonLoading('saveCostumesBtn', async () => {
-            // 收集所有服装选择
             const newCostumes = {};
             
             document.querySelectorAll('.costume-select').forEach(select => {
-                const characterId = parseInt(select.dataset.characterId);
+                const characterKey = select.dataset.characterKey;
                 const costume = select.value;
                 if (costume) {
-                    newCostumes[characterId] = costume;
+                    newCostumes[characterKey] = costume;
                 }
             });
             
@@ -476,9 +509,7 @@ export const costumeManager = {
             
             if (this.saveLocalCostumes(newCostumes)) {
                 state.currentCostumes = newCostumes;
-                // 同时保存其他相关配置
                 this.saveLocalAvailableCostumes();
-                this.saveLocalCustomCharacters(this.customCharacters);
                 
                 ui.showStatus('服装配置已保存！', 'success');
                 ui.closeModal('costumeModal');
@@ -490,18 +521,15 @@ export const costumeManager = {
     
     // 重置为默认服装
     async resetCostumes() {
-        if (confirm('确定要恢复默认服装配置吗？这将清除所有自定义服装设置和自定义角色。')) {
+        if (confirm('确定要恢复默认服装配置吗？这将清除所有自定义服装设置。')) {
             await ui.withButtonLoading('resetCostumesBtn', async () => {
                 // 清除本地存储
-                localStorage.removeItem('bestdori_costume_mapping');
-                localStorage.removeItem('bestdori_available_costumes');
+                localStorage.removeItem('bestdori_costume_mapping_v2');
+                localStorage.removeItem('bestdori_available_costumes_v2');
                 
                 // 重新加载默认配置
-                state.currentCostumes = { ...this.defaultCostumes };
-                
-                // 重新从服务器加载可用服装列表
-                const response = await axios.get('/api/costumes');
-                this.availableCostumes = response.data.available_costumes;
+                state.currentCostumes = this.convertDefaultCostumesToNameBased();
+                this.availableCostumes = this.convertAvailableCostumesToNameBased();
                 
                 await new Promise(resolve => setTimeout(resolve, 300));
                 
@@ -530,7 +558,14 @@ export const costumeManager = {
         
         // 导入可用服装列表
         if (config.available_costumes) {
-            this.availableCostumes = { ...this.availableCostumes, ...config.available_costumes };
+            // 如果导入的是旧版本（基于ID的），需要转换
+            if (Object.keys(config.available_costumes).every(key => !isNaN(parseInt(key)))) {
+                // 旧版本格式，需要转换
+                this.availableCostumes = this.convertImportedAvailableCostumes(config.available_costumes);
+            } else {
+                // 新版本格式，直接使用
+                this.availableCostumes = { ...this.availableCostumes, ...config.available_costumes };
+            }
             this.saveLocalAvailableCostumes();
         }
         
@@ -538,20 +573,33 @@ export const costumeManager = {
             state.enableLive2D = config.enable_live2d;
             localStorage.setItem('bestdori_enable_live2d', config.enable_live2d.toString());
             
-            // 更新主视图开关
             const mainCheckbox = document.getElementById('enableLive2DCheckbox');
             if (mainCheckbox) {
                 mainCheckbox.checked = config.enable_live2d;
             }
             
-            // 更新分屏视图开关
             const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
             if (splitCheckbox) {
                 splitCheckbox.checked = config.enable_live2d;
             }
         }
+    },
+    
+    // 转换导入的基于ID的可用服装为基于名称的格式
+    convertImportedAvailableCostumes(idBasedCostumes) {
+        const nameBased = {};
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const primaryId = ids[0];
+                const characterKey = this.getCharacterKey(name);
+                if (idBasedCostumes[primaryId]) {
+                    nameBased[characterKey] = [...idBasedCostumes[primaryId]];
+                }
+            }
+        });
+        return nameBased;
     }
 };
 
-// 暴露到全局作用域（因为 HTML 中的 onclick 需要）
+// 暴露到全局作用域
 window.costumeManager = costumeManager;

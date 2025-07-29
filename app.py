@@ -304,7 +304,7 @@ class TextConverter:
     def convert_text_to_json_format(self, input_text: str, narrator_name: str, 
                                selected_quote_pairs_list: List[List[str]], 
                                enable_live2d: bool = False,
-                               custom_costume_mapping: Dict[int, str] = None) -> str:
+                               custom_costume_mapping: Dict[str, str] = None) -> str:
         active_quote_pairs = {
             pair[0]: pair[1]
             for pair in selected_quote_pairs_list
@@ -332,27 +332,31 @@ class TextConverter:
                 if finalized_body:
                     character_ids = self.character_mapping.get(current_action_name, [])
                     
-                    # 如果启用了 Live2D 且角色有ID
                     if enable_live2d and character_ids and current_action_name != narrator_name:
                         primary_character_id = character_ids[0]
-                        
-                        # 获取有效的角色ID（处理Mujica特殊情况）
                         effective_id = self._get_effective_character_id(current_action_name, character_ids)
                         
-                        # 检查该角色名称是否首次出现
                         if current_action_name not in appeared_character_names:
                             appeared_character_names.add(current_action_name)
                             
-                            # 使用有效ID获取服装
-                            costume_id = effective_costume_mapping.get(effective_id, "")
-                            logger.info(f"角色 {current_action_name} (显示ID: {primary_character_id}, 有效ID: {effective_id}) 使用服装: {costume_id}")
+                            # 使用角色名称作为key来获取服装
+                            costume_id = ""
+                            if custom_costume_mapping:
+                                # 使用角色名称作为key
+                                costume_id = custom_costume_mapping.get(current_action_name, "")
+                                logger.info(f"从自定义映射获取 {current_action_name} 的服装: {costume_id}")
                             
-                            # 添加 layout action
-                            # 注意：character 字段也需要使用输出ID
+                            # 如果自定义映射中没有，尝试默认映射
+                            if not costume_id and effective_costume_mapping:
+                                costume_id = effective_costume_mapping.get(effective_id, "")
+                                logger.info(f"从默认映射获取 ID {effective_id} 的服装: {costume_id}")
+                            
+                            logger.info(f"角色 {current_action_name} (ID: {primary_character_id}) 最终使用服装: {costume_id}")
+                            
                             output_char_id = self.mujica_output_mapping.get(primary_character_id, primary_character_id)
                             layout_action = LayoutActionItem(
-                                character=output_char_id,  # 使用输出ID
-                                costume=costume_id         # 服装ID保持不变
+                                character=output_char_id,
+                                costume=costume_id
                             )
                             actions.append(layout_action)
                     
