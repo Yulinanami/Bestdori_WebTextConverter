@@ -637,16 +637,14 @@ export const costumeManager = {
             this.saveLocalCostumes(config.costume_mapping);
         }
         
-        // 导入可用服装列表
+        // 导入可用服装列表（新增）
         if (config.available_costumes) {
-            // 如果导入的是旧版本（基于ID的），需要转换
-            if (Object.keys(config.available_costumes).every(key => !isNaN(parseInt(key)))) {
-                // 旧版本格式，需要转换
-                this.availableCostumes = this.convertImportedAvailableCostumes(config.available_costumes);
-            } else {
-                // 新版本格式，直接使用
-                this.availableCostumes = { ...this.availableCostumes, ...config.available_costumes };
-            }
+            // 如果是基于角色名称的格式（v1.2+），直接使用
+            this.availableCostumes = config.available_costumes;
+            this.saveLocalAvailableCostumes();
+        } else if (config.costume_mapping && !config.available_costumes) {
+            // 兼容旧版本：如果只有costume_mapping，需要重建available_costumes
+            this.availableCostumes = this.convertAvailableCostumesToNameBased();
             this.saveLocalAvailableCostumes();
         }
         

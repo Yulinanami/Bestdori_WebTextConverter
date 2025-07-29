@@ -80,10 +80,14 @@ export const configManager = {
         }, '加载配置...');
     },
     
-    // 重置为默认配置（同时清除自定义引号和服装）
+    // 重置为默认配置（修改版：保留服装配置）
     async resetConfig() {
-        if (confirm('确定要恢复默认配置吗？这将清除您的所有自定义设置，包括自定义引号和服装配置。')) {
+        if (confirm('确定要恢复默认角色配置吗？这将清除您的自定义角色映射和引号设置，但会保留服装配置。')) {
             await ui.withButtonLoading('resetConfigBtn', async () => {
+                // 保存当前的服装配置
+                const currentCostumes = { ...state.currentCostumes };
+                const currentAvailableCostumes = costumeManager ? { ...costumeManager.availableCostumes } : {};
+                
                 // 清除角色映射
                 localStorage.removeItem('bestdori_character_mapping');
                 state.currentConfig = { ...this.defaultConfig };
@@ -92,10 +96,10 @@ export const configManager = {
                 localStorage.removeItem('bestdori_custom_quotes');
                 state.customQuotes = [];
                 
-                // 清除服装配置
-                localStorage.removeItem('bestdori_costume_mapping');
-                if (costumeManager && costumeManager.defaultCostumes) {
-                    state.currentCostumes = { ...costumeManager.defaultCostumes };
+                // 不清除服装配置，而是更新它
+                if (costumeManager) {
+                    // 为新的角色映射更新服装配置
+                    await this.updateCostumesAfterConfigReset(currentCostumes, currentAvailableCostumes);
                 }
                 
                 // 模拟处理时间
@@ -104,9 +108,48 @@ export const configManager = {
                 this.renderConfigList();
                 quoteManager.renderQuoteOptions();
                 
-                ui.showStatus('已恢复默认配置', 'success');
+                ui.showStatus('已恢复默认角色配置（服装配置已保留）', 'success');
             }, '重置中...');
         }
+    },
+
+    async updateCostumesAfterConfigReset(previousCostumes, previousAvailableCostumes) {
+        // 创建新的服装配置对象
+        const newCostumes = {};
+        const newAvailableCostumes = {};
+        
+        // 遍历新的角色配置
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const characterKey = costumeManager.getCharacterKey(name);
+                const primaryId = ids[0];
+                
+                // 如果之前有这个角色的服装配置，保留它
+                if (previousCostumes[characterKey] !== undefined) {
+                    newCostumes[characterKey] = previousCostumes[characterKey];
+                    newAvailableCostumes[characterKey] = previousAvailableCostumes[characterKey] || [];
+                } else {
+                    // 新角色，使用默认服装
+                    const defaultCostume = costumeManager.defaultCostumes[primaryId] || '';
+                    newCostumes[characterKey] = defaultCostume;
+                    
+                    // 从默认可用服装列表复制
+                    if (costumeManager.defaultAvailableCostumes[primaryId]) {
+                        newAvailableCostumes[characterKey] = [...costumeManager.defaultAvailableCostumes[primaryId]];
+                    } else {
+                        newAvailableCostumes[characterKey] = [];
+                    }
+                }
+            }
+        });
+
+        // 更新状态
+        state.currentCostumes = newCostumes;
+        costumeManager.availableCostumes = newAvailableCostumes;
+        
+        // 保存到本地存储
+        costumeManager.saveLocalCostumes(newCostumes);
+        costumeManager.saveLocalAvailableCostumes();
     },
 
     // 渲染配置列表
@@ -257,10 +300,11 @@ export const configManager = {
             const fullConfig = {
                 character_mapping: state.currentConfig,
                 custom_quotes: state.customQuotes,
-                costume_mapping: state.currentCostumes,      // 新增
-                enable_live2d: state.enableLive2D,            // 新增
+                costume_mapping: state.currentCostumes,
+                available_costumes: costumeManager ? costumeManager.availableCostumes : {}, // 添加可用服装列表
+                enable_live2d: state.enableLive2D,
                 export_date: new Date().toISOString(),
-                version: '1.1'                                // 更新版本
+                version: '1.2' // 更新版本号
             };
             
             const dataStr = JSON.stringify(fullConfig, null, 2);
@@ -289,7 +333,7 @@ export const configManager = {
             try {
                 const config = JSON.parse(e.target.result);
                 
-                // 兼容旧版本（只有角色映射）
+                // 处理不同版本的配置文件
                 if (config.character_mapping) {
                     // 新版本格式
                     state.currentConfig = config.character_mapping;
@@ -301,8 +345,9 @@ export const configManager = {
                         quoteManager.saveCustomQuotes();
                     }
                     
-                    // 导入服装配置
-                    if (config.costume_mapping || typeof config.enable_live2d === 'boolean') {
+                    // 导入服装配置（包括可用服装列表）
+                    if (config.costume_mapping || config.available_costumes || typeof config.enable_live2d === 'boolean') {
+                        // 传递完整的配置对象
                         costumeManager.importCostumes(config);
                     }
                 } else {
@@ -320,5 +365,5 @@ export const configManager = {
             }
         };
         reader.readAsText(file);
-    }
-};
+        }
+    };
