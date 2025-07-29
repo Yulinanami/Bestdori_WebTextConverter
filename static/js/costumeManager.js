@@ -102,6 +102,12 @@ export const costumeManager = {
             this.defaultCostumes = response.data.default_costumes;
             this.mujicaMapping = response.data.mujica_mapping || {};
 
+            // 获取并存储内置角色名称
+            const configResponse = await axios.get('/api/config');
+            this.builtInCharacters = new Set(Object.keys(configResponse.data.character_mapping));
+            
+            console.log('内置角色列表:', Array.from(this.builtInCharacters));
+
             console.log('加载的默认服装配置:', this.defaultCostumes);
             console.log('加载的可用服装列表:', this.defaultAvailableCostumes);
         
@@ -558,23 +564,43 @@ export const costumeManager = {
     
     // 重置为默认服装
     async resetCostumes() {
-        if (confirm('确定要恢复默认服装配置吗？这将清除所有自定义服装设置。')) {
+        if (confirm('确定要恢复默认服装配置吗？这将只重置内置角色的服装设置，自定义角色的服装配置将保留。')) {
             await ui.withButtonLoading('resetCostumesBtn', async () => {
                 try {
+                    // 保存当前自定义角色的服装配置
+                    const customCharacterCostumes = {};
+                    const customCharacterAvailableCostumes = {};
+                    
+                    // 遍历当前配置，保存自定义角色的服装
+                    Object.entries(state.currentConfig).forEach(([name, ids]) => {
+                        if (!this.builtInCharacters.has(name)) {
+                            // 这是自定义角色，保存其配置
+                            const characterKey = this.getCharacterKey(name);
+                            if (state.currentCostumes[characterKey] !== undefined) {
+                                customCharacterCostumes[characterKey] = state.currentCostumes[characterKey];
+                            }
+                            if (this.availableCostumes[characterKey]) {
+                                customCharacterAvailableCostumes[characterKey] = [...this.availableCostumes[characterKey]];
+                            }
+                        }
+                    });
+                    
+                    console.log('保留的自定义角色服装配置:', customCharacterCostumes);
+                    
                     // 清除本地存储
                     localStorage.removeItem('bestdori_costume_mapping_v2');
                     localStorage.removeItem('bestdori_available_costumes_v2');
                     
-                    // 重新从服务器获取默认配置以确保数据最新
+                    // 重新从服务器获取默认配置
                     const response = await axios.get('/api/costumes');
                     this.defaultAvailableCostumes = response.data.available_costumes;
                     this.defaultCostumes = response.data.default_costumes;
                     
-                    // 重新生成基于角色名称的配置
-                    state.currentCostumes = this.convertDefaultCostumesToNameBased();
-                    this.availableCostumes = this.convertAvailableCostumesToNameBased();
+                    // 重新生成基于角色名称的配置（只包含内置角色）
+                    state.currentCostumes = this.convertDefaultCostumesToNameBasedWithCustom(customCharacterCostumes);
+                    this.availableCostumes = this.convertAvailableCostumesToNameBasedWithCustom(customCharacterAvailableCostumes);
                     
-                    // 更新临时存储为新的默认值
+                    // 更新临时存储
                     this.tempCostumeChanges = JSON.parse(JSON.stringify(state.currentCostumes));
                     this.originalCostumes = JSON.parse(JSON.stringify(state.currentCostumes));
                     
@@ -586,13 +612,84 @@ export const costumeManager = {
                     // 强制更新所有选择框的值
                     this.forceUpdateAllSelects();
                     
-                    ui.showStatus('已恢复默认服装配置', 'success');
+                    ui.showStatus('已恢复内置角色的默认服装配置（自定义角色配置已保留）', 'success');
                 } catch (error) {
                     console.error('重置服装配置失败:', error);
                     ui.showStatus('重置服装配置失败', 'error');
                 }
             }, '重置中...');
         }
+    },
+
+    convertDefaultCostumesToNameBasedWithCustom(customCharacterCostumes) {
+        const nameBased = {};
+        
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const characterKey = this.getCharacterKey(name);
+                
+                if (this.builtInCharacters.has(name)) {
+                    // 内置角色，使用默认服装
+                    const primaryId = ids[0];
+                    const defaultCostume = this.defaultCostumes[primaryId];
+                    
+                    if (defaultCostume) {
+                        const availableList = this.defaultAvailableCostumes[primaryId] || [];
+                        if (availableList.includes(defaultCostume)) {
+                            nameBased[characterKey] = defaultCostume;
+                        } else {
+                            nameBased[characterKey] = availableList[0] || '';
+                        }
+                    } else {
+                        nameBased[characterKey] = '';
+                    }
+                } else {
+                    // 自定义角色，保留原有配置
+                    if (customCharacterCostumes[characterKey] !== undefined) {
+                        nameBased[characterKey] = customCharacterCostumes[characterKey];
+                    } else {
+                        nameBased[characterKey] = '';
+                    }
+                }
+            }
+        });
+        
+        return nameBased;
+    },
+
+    convertAvailableCostumesToNameBasedWithCustom(customCharacterAvailableCostumes) {
+        const nameBased = {};
+        
+        Object.entries(state.currentConfig).forEach(([name, ids]) => {
+            if (ids && ids.length > 0) {
+                const characterKey = this.getCharacterKey(name);
+                
+                if (this.builtInCharacters.has(name)) {
+                    // 内置角色，使用默认可用服装列表
+                    const primaryId = ids[0];
+                    if (this.defaultAvailableCostumes[primaryId]) {
+                        nameBased[characterKey] = [...this.defaultAvailableCostumes[primaryId]];
+                    } else {
+                        nameBased[characterKey] = [];
+                    }
+                    
+                    // 确保默认服装在列表中
+                    const defaultCostume = this.defaultCostumes[primaryId];
+                    if (defaultCostume && !nameBased[characterKey].includes(defaultCostume)) {
+                        nameBased[characterKey].push(defaultCostume);
+                    }
+                } else {
+                    // 自定义角色，保留原有列表
+                    if (customCharacterAvailableCostumes[characterKey]) {
+                        nameBased[characterKey] = [...customCharacterAvailableCostumes[characterKey]];
+                    } else {
+                        nameBased[characterKey] = [];
+                    }
+                }
+            }
+        });
+        
+        return nameBased;
     },
 
     forceUpdateAllSelects() {
@@ -635,6 +732,11 @@ export const costumeManager = {
         if (config.costume_mapping) {
             state.currentCostumes = config.costume_mapping;
             this.saveLocalCostumes(config.costume_mapping);
+        }
+
+        // 如果配置中包含内置角色信息，更新它
+        if (config.built_in_characters) {
+            this.builtInCharacters = new Set(config.built_in_characters);
         }
         
         // 导入可用服装列表（新增）

@@ -294,24 +294,24 @@ export const configManager = {
         }, '保存中...');
     },
 
-    // 导出配置（包含引号配置和服装配置）
+    // 导出配置（包含内置角色信息）
     async exportConfig() {
         await ui.withButtonLoading('exportConfigBtn', async () => {
             const fullConfig = {
                 character_mapping: state.currentConfig,
                 custom_quotes: state.customQuotes,
                 costume_mapping: state.currentCostumes,
-                available_costumes: costumeManager ? costumeManager.availableCostumes : {}, // 添加可用服装列表
+                available_costumes: costumeManager ? costumeManager.availableCostumes : {},
+                built_in_characters: costumeManager ? Array.from(costumeManager.builtInCharacters) : [], // 新增
                 enable_live2d: state.enableLive2D,
                 export_date: new Date().toISOString(),
-                version: '1.2' // 更新版本号
+                version: '1.3' // 更新版本号
             };
             
             const dataStr = JSON.stringify(fullConfig, null, 2);
             const blob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             
-            // 模拟处理时间
             await new Promise(resolve => setTimeout(resolve, 300));
             
             const a = document.createElement('a');
@@ -322,7 +322,7 @@ export const configManager = {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            ui.showStatus('配置已导出（包含自定义引号和服装配置）', 'success');
+            ui.showStatus('配置已导出（包含自定义角色信息）', 'success');
         }, '导出中...');
     },
 
