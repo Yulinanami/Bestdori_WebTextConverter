@@ -27,11 +27,12 @@ export const costumeManager = {
     // 获取显示用的头像ID
     getAvatarId(characterId) {
         const mujicaAvatarMapping = {
-            337: 1,
-            338: 2,
-            339: 3,
-            340: 4,
-            341: 5
+            229: 6,   // 纯田真奈
+            337: 1,   // 三角初华
+            338: 2,   // 若叶睦
+            339: 3,   // 八幡海铃
+            340: 4,   // 祐天寺若麦
+            341: 5    // 丰川祥子
         };
         
         return mujicaAvatarMapping[characterId] || characterId;

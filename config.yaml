@@ -71,6 +71,8 @@ character_mapping:
   - 18
   祐天寺若麦:
   - 340
+  纯田真奈:
+  - 229
   美竹兰:
   - 6
   羽泽鸫:
@@ -285,6 +287,8 @@ costume_mapping:
   - 040_school_winter-2023
   - 040_live_default
   - 040_casual-2023
+  229:
+  - 229_sumimi
   337:
   - 337_sumimi
   - 337_school_summer-2023
@@ -347,6 +351,7 @@ default_costumes:
   38: 038_casual-2023
   39: 039_casual-2023
   40: 040_casual-2023
+  229: 229_sumimi
   337: 337_casual-2023
   338: 338_casual-2023
   339: 339_casual-2023

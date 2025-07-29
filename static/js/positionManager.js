@@ -69,6 +69,7 @@ export const positionManager = {
     // 获取头像ID（处理 Mujica 特殊映射）
     getAvatarId(characterId) {
         const mujicaAvatarMapping = {
+            229: 6,   // 纯田真奈
             337: 1,  // 三角初华
             338: 2,  // 若叶睦
             339: 3,  // 八幡海铃

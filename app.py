@@ -85,6 +85,8 @@ class ConfigManager:
                 "LAYER": [31], "LOCK": [32], "MASKING": [33], "PAREO": [34], "CHU²": [35],
                 # MyGo
                 "高松灯": [36], "千早爱音": [37], "要乐奈": [38], "长崎素世": [39], "椎名立希": [40],
+                # Sumimi
+                "纯田真奈": [229],
                 # Mujica
                 "三角初华": [337], "若叶睦": [338], "八幡海铃": [339], "祐天寺若麦": [340], "丰川祥子": [341]
             },
@@ -146,6 +148,9 @@ class ConfigManager:
                 39: ["039_school_summer-2023", "039_school_winter-2023", "039_live_default", "039_casual-2023"],
                 40: ["040_school_summer-2023", "040_school_winter-2023", "040_live_default", "040_casual-2023"],
                 
+                # Sumimi
+                229: ["229_sumimi"],  # 纯田真奈
+                
                 # Mujica（使用真实ID）
                 337: ["337_sumimi", "337_school_summer-2023", "337_school_winter-2023", "337_casual-2023", "337_casual-2023_nocap"],
                 338: ["338_school_summer-2023", "338_school_winter-2023", "338_casual-2023"],
@@ -162,6 +167,7 @@ class ConfigManager:
                 26: "026_casual-2023", 27: "027_casual-2023", 28: "028_casual-2023", 29: "029_casual-2023", 30: "030_casual-2023",
                 31: "031_casual-2023", 32: "032_casual-2023", 33: "033_casual-2023", 34: "034_casual-2023", 35: "035_casual-2023",
                 36: "036_casual-2023", 37: "037_casual-2023", 38: "038_casual-2023", 39: "039_casual-2023", 40: "040_casual-2023",
+                229: "229_sumimi",  # 纯田真奈
                 337: "337_casual-2023", 338: "338_casual-2023", 339: "339_casual-2023", 340: "340_casual-2023", 341: "341_casual-2023",
             },
             "parsing": { "max_speaker_name_length": 50, "default_narrator_name": " " },
@@ -256,6 +262,7 @@ class TextConverter:
         
         # 添加 Mujica ID 反向映射（用于输出）
         self.mujica_output_mapping = {
+            229: 6,  # 纯田真奈            
             337: 1,  # 三角初华
             338: 2,  # 若叶睦
             339: 3,  # 八幡海铃
