@@ -135,22 +135,29 @@
                         </button>
                     </div>
 
-                    <!-- 进度条 -->
+                    <!-- 进度条容器 -->
                     <div class="progress-container" id="progressContainer" style="display: none;">
                         <div class="progress-bar">
                             <div class="progress-fill" id="progressFill"></div>
                         </div>
-                        <div id="statusMessage" class="status-message status-info">准备转换...</div>
                     </div>
+
+                    <!-- 状态消息容器 (现在是独立的了) -->
+                    <div id="statusMessage" class="status-message status-info" style="display: none;"></div>
                 </div>
 
-                <!-- 结果显示区域 -->
+                <!-- 经典视图的结果显示区域 -->
                 <div class="section" id="resultSection" style="display: none;">
                     <div class="result-header">
                         <div class="section-title">📋 转换结果</div>
-                        <button class="btn btn-success" id="downloadBtn">
-                            💾 下载JSON
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" id="downloadBtn">
+                                💾 下载JSON
+                            </button>
+                            <button class="btn btn-primary" id="gotoBestdoriBtn" title="在新标签页打开 Bestdori 故事编辑器">
+                                🌐 跳转到 Bestdori
+                            </button>
+                        </div>
                     </div>
                     <div class="result-content">
                         <pre><code class="language-json" id="resultContent"></code></pre>
@@ -223,6 +230,7 @@
             <div class="split-actions">
                 <button class="btn btn-primary" id="splitConvertBtn">🔄 手动刷新预览</button>
                 <button class="btn btn-success" id="splitDownloadBtn">💾 下载结果</button>
+                <button class="btn btn-primary" id="splitGotoBestdoriBtn">🌐 跳转到 Bestdori</button>
             </div>
         </div>
     </div>

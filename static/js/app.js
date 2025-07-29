@@ -59,6 +59,11 @@ function bindClassicViewEvents() {
     document.getElementById('addConfigBtn').addEventListener('click', configManager.addConfigItem.bind(configManager));
     document.getElementById('saveConfigBtn').addEventListener('click', configManager.saveConfig.bind(configManager));
     
+    // 添加 Bestdori 跳转按钮事件
+    document.getElementById('gotoBestdoriBtn').addEventListener('click', () => {
+        ui.goToBestdori();
+    });
+
     // 重置配置按钮
     const resetBtn = document.getElementById('resetConfigBtn');
     if (resetBtn) {
@@ -157,6 +162,11 @@ function bindSplitViewEvents() {
         if (state.autoPreviewEnabled) {
             converter.updateSplitPreview();
         }
+    });
+
+    // 添加分屏视图的 Bestdori 跳转按钮事件
+    document.getElementById('splitGotoBestdoriBtn').addEventListener('click', () => {
+        ui.goToBestdori();
     });
 
     // 新增：分屏视图的Live2D开关同步

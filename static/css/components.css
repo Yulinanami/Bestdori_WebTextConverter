@@ -601,3 +601,20 @@
     background: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px) scale(1.05);
 }
+
+/* Bestdori 跳转按钮样式 */
+#gotoBestdoriBtn, #splitGotoBestdoriBtn {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+#gotoBestdoriBtn:hover, #splitGotoBestdoriBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
+
+/* 结果区域按钮组布局 */
+.result-header > div:last-child {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}

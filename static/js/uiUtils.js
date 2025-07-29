@@ -1,4 +1,7 @@
 // uiUtils.js - UI相关的工具函数
+import { state } from './constants.js';
+
+let statusTimer = null;
 
 export const ui = {
     showProgress(percent) {
@@ -14,9 +17,18 @@ export const ui = {
     showStatus(message, type) {
         const statusElement = document.getElementById('statusMessage');
         if (!statusElement) return;
+
+        // 清除上一个计时器，防止消息闪烁
+        clearTimeout(statusTimer);
+
         statusElement.textContent = message;
         statusElement.className = `status-message status-${type}`;
         statusElement.style.display = 'block';
+
+        // 设置一个计时器，在4秒后自动隐藏该消息
+        statusTimer = setTimeout(() => {
+            statusElement.style.display = 'none';
+        }, 4000);
     },
 
     openModal(modalId) {
@@ -95,6 +107,31 @@ export const ui = {
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
         }
+    },
+    // 添加复制到剪贴板的方法
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (err) {
+            console.error('复制失败:', err);
+            return false;
+        }
+    },
+    
+    // 添加跳转到 Bestdori 的方法
+    async goToBestdori() {
+        if (state.currentResult) {
+            const copied = await this.copyToClipboard(state.currentResult);
+            if (copied) {
+                this.showStatus('JSON 已复制到剪贴板，正在跳转到 Bestdori...', 'success');
+            }
+        }
+        
+        // 延迟一下让用户看到提示
+        setTimeout(() => {
+            window.open('https://bestdori.com/community/stories/new', '_blank');
+        }, 500);
     }
 };
 
