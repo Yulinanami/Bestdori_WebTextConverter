@@ -464,7 +464,6 @@ class FileFormatConverter:
             raise ValueError(f"无法解析Markdown: {str(e)}")
 
 config_manager = ConfigManager()
-converter = TextConverter(config_manager)
 file_converter = FileFormatConverter()
 
 # --- 新增：任务管理 ---
@@ -484,12 +483,18 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
                 int_key = int(str_key)
                 fixed_costume_mapping[int_key] = value
             except (ValueError, AttributeError):
-                # 如果已经是整数或转换失败，保留原始键
                 fixed_costume_mapping[str_key] = value
         custom_costume_mapping = fixed_costume_mapping
     
     total_files = len(files_data)
     task = batch_tasks[task_id]
+    
+    # 新增：为这个批量任务创建独立的转换器实例
+    batch_converter = TextConverter(config_manager)
+    
+    # 如果有自定义映射，设置到转换器实例
+    if custom_character_mapping:
+        batch_converter.character_mapping = custom_character_mapping
     
     for i, file_data in enumerate(files_data):
         filename = file_data.get('name', 'unknown.txt')
@@ -505,7 +510,6 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
             # 根据文件类型和编码处理内容
             text_content = ''
             if encoding == 'base64' and filename.lower().endswith('.docx'):
-                # 从 Data URL 中提取 Base64 部分并解码
                 content_parts = raw_content.split(',')
                 if len(content_parts) > 1:
                     base64_content = content_parts[1]
@@ -515,23 +519,14 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
                     raise ValueError("无效的 Base64 数据")
             elif filename.lower().endswith('.md'):
                 text_content = file_converter.markdown_to_text(raw_content)
-            else:  # .txt 或其他文本格式
+            else:
                 text_content = raw_content
             
-            # 如果有自定义映射，临时使用它
-            if custom_character_mapping:
-                original_mapping = converter.character_mapping
-                converter.character_mapping = custom_character_mapping
-            
-            # 使用转换后的文本内容进行处理
-            json_output = converter.convert_text_to_json_format(
+            # 使用批量任务专用的转换器实例
+            json_output = batch_converter.convert_text_to_json_format(
                 text_content, narrator_name, selected_quote_pairs,
                 enable_live2d, custom_costume_mapping
             )
-            
-            # 恢复原始映射
-            if custom_character_mapping:
-                converter.character_mapping = original_mapping
                 
             task['results'].append({'name': Path(filename).with_suffix('.json').name, 'content': json_output})
             task['logs'].append(f"[SUCCESS] 处理成功: {filename}")
@@ -558,7 +553,7 @@ def convert_text():
         custom_character_mapping = data.get('character_mapping', None)
         enable_live2d = data.get('enable_live2d', False)
         custom_costume_mapping = data.get('costume_mapping', None)
-        position_config = data.get('position_config', None)  # 新增
+        position_config = data.get('position_config', None)
         
         # 修复：将字符串键转换为整数键
         if custom_costume_mapping:
@@ -568,7 +563,6 @@ def convert_text():
                     int_key = int(str_key)
                     fixed_costume_mapping[int_key] = value
                 except ValueError:
-                    # 如果转换失败，保留原始键
                     fixed_costume_mapping[str_key] = value
             custom_costume_mapping = fixed_costume_mapping
             logger.info(f"修复后的服装映射: {custom_costume_mapping}")
@@ -576,21 +570,20 @@ def convert_text():
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
         
-        # 如果有自定义映射，临时使用它
+        # 新增：为这个请求创建独立的转换器实例
+        request_converter = TextConverter(config_manager)
+        
+        # 如果有自定义映射，直接设置到新实例
         if custom_character_mapping:
-            original_mapping = converter.character_mapping
-            converter.character_mapping = custom_character_mapping
+            request_converter.character_mapping = custom_character_mapping
             
-        result = converter.convert_text_to_json_format(
+        # 使用请求专用的转换器实例
+        result = request_converter.convert_text_to_json_format(
             input_text, narrator_name, selected_pairs,
             enable_live2d, custom_costume_mapping,
-            position_config  # 新增：传递位置配置
+            position_config
         )
         
-        # 恢复原始映射
-        if custom_character_mapping:
-            converter.character_mapping = original_mapping
-            
         return jsonify({'result': result})
     except Exception as e:
         logger.error(f"转换失败: {e}", exc_info=True)
@@ -705,17 +698,22 @@ def get_config():
 @app.route('/api/config', methods=['POST'])
 def update_config():
     try:
-        data = request.get_json(); character_mapping = data.get('character_mapping', {})
+        data = request.get_json()
+        character_mapping = data.get('character_mapping', {})
         validated_mapping = {}
         for name, ids in character_mapping.items():
             if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
                 validated_mapping[name] = ids
         config_manager.update_character_mapping(validated_mapping)
-        # 重新初始化转换器以确保配置生效
-        global converter
-        converter = TextConverter(config_manager)
+        
+        # 删除这些行，因为不再有全局 converter
+        # global converter
+        # converter = TextConverter(config_manager)
+        
         return jsonify({'message': '配置更新成功'})
-    except Exception as e: logger.error(f"配置更新失败: {e}"); return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
+    except Exception as e:
+        logger.error(f"配置更新失败: {e}")
+        return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
 
 # 新增：获取服装配置的API（包含Mujica映射）
 @app.route('/api/costumes', methods=['GET'])
