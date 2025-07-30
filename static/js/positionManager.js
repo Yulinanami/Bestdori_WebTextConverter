@@ -288,6 +288,31 @@ export const positionManager = {
             };
         }
     },
+
+    // 导入位置配置
+    importPositions(positionConfig) {
+        if (!positionConfig) return;
+        
+        // 导入自动模式设置
+        if (typeof positionConfig.autoPositionMode === 'boolean') {
+            this.autoPositionMode = positionConfig.autoPositionMode;
+        }
+        
+        // 导入手动位置配置
+        if (positionConfig.manualPositions) {
+            this.manualPositions = positionConfig.manualPositions;
+            // 确保格式正确
+            this.ensurePositionFormat();
+        }
+        
+        // 保存到本地存储
+        this.savePositionConfig();
+        
+        console.log('位置配置已导入:', {
+            autoMode: this.autoPositionMode,
+            manualPositions: this.manualPositions
+        });
+    },
     
     // 重置位置计数器
     resetPositionCounter() {

@@ -3,7 +3,8 @@
 import { state } from './constants.js';
 import { ui } from './uiUtils.js';
 import { quoteManager } from './quoteManager.js';
-import { costumeManager } from './costumeManager.js';  // 新增导入
+import { costumeManager } from './costumeManager.js'; 
+import { positionManager } from './positionManager.js';
 
 export const configManager = {
     // 默认配置
@@ -295,7 +296,7 @@ export const configManager = {
         }, '保存中...');
     },
 
-    // 导出配置（包含内置角色信息）
+    // 导出配置（包含位置配置）
     async exportConfig() {
         await ui.withButtonLoading('exportConfigBtn', async () => {
             const fullConfig = {
@@ -303,10 +304,15 @@ export const configManager = {
                 custom_quotes: state.customQuotes,
                 costume_mapping: state.currentCostumes,
                 available_costumes: costumeManager ? costumeManager.availableCostumes : {},
-                built_in_characters: costumeManager ? Array.from(costumeManager.builtInCharacters) : [], // 新增
+                built_in_characters: costumeManager ? Array.from(costumeManager.builtInCharacters) : [],
                 enable_live2d: state.enableLive2D,
+                // 新增：导出位置配置
+                position_config: {
+                    autoPositionMode: positionManager ? positionManager.autoPositionMode : true,
+                    manualPositions: positionManager ? positionManager.manualPositions : {}
+                },
                 export_date: new Date().toISOString(),
-                version: '1.3' // 更新版本号
+                version: '1.4' // 更新版本号以标识包含位置配置
             };
             
             const dataStr = JSON.stringify(fullConfig, null, 2);
@@ -323,48 +329,81 @@ export const configManager = {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            ui.showStatus('配置已导出（包含自定义角色信息）', 'success');
+            ui.showStatus('配置已导出（包含位置配置）', 'success');
         }, '导出中...');
     },
 
-    // 导入配置（包含引号配置和服装配置）
+    // 导入配置（包含所有子配置）
     importConfig(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
+                // 解析 JSON
                 const config = JSON.parse(e.target.result);
+                console.log('导入的配置:', config);
                 
-                // 处理不同版本的配置文件
+                // 检查是否是有效的配置文件
+                if (!config || typeof config !== 'object') {
+                    throw new Error('无效的配置文件格式');
+                }
+                
+                // 处理角色映射
                 if (config.character_mapping) {
                     // 新版本格式
                     state.currentConfig = config.character_mapping;
                     this.saveLocalConfig(config.character_mapping);
+                    console.log('角色映射已导入');
                     
                     // 导入自定义引号
-                    if (config.custom_quotes) {
+                    if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
                         state.customQuotes = config.custom_quotes;
-                        quoteManager.saveCustomQuotes();
+                        if (typeof quoteManager !== 'undefined' && quoteManager.saveCustomQuotes) {
+                            quoteManager.saveCustomQuotes();
+                            console.log('自定义引号已导入');
+                        }
                     }
                     
-                    // 导入服装配置（包括可用服装列表）
-                    if (config.costume_mapping || config.available_costumes || typeof config.enable_live2d === 'boolean') {
-                        // 传递完整的配置对象
-                        costumeManager.importCostumes(config);
+                    // 导入服装配置
+                    if (typeof costumeManager !== 'undefined' && costumeManager.importCostumes) {
+                        if (config.costume_mapping || config.available_costumes || typeof config.enable_live2d === 'boolean') {
+                            costumeManager.importCostumes(config);
+                            console.log('服装配置已导入');
+                        }
                     }
-                } else {
+                    
+                    // 导入位置配置
+                    if (config.position_config && typeof positionManager !== 'undefined' && positionManager.importPositions) {
+                        positionManager.importPositions(config.position_config);
+                        console.log('位置配置已导入');
+                    }
+                    
+                } else if (config && Object.keys(config).length > 0) {
                     // 旧版本格式（直接是角色映射）
                     state.currentConfig = config;
                     this.saveLocalConfig(config);
+                    console.log('旧版本配置已导入');
+                } else {
+                    throw new Error('配置文件中没有有效数据');
                 }
                 
+                // 刷新界面
                 this.renderConfigList();
-                quoteManager.renderQuoteOptions();
+                if (typeof quoteManager !== 'undefined' && quoteManager.renderQuoteOptions) {
+                    quoteManager.renderQuoteOptions();
+                }
                 
                 ui.showStatus('配置导入成功', 'success');
+                
             } catch (error) {
-                ui.showStatus('配置文件格式错误', 'error');
+                console.error('配置导入失败:', error);
+                ui.showStatus(`配置文件格式错误: ${error.message}`, 'error');
             }
         };
+        
+        reader.onerror = () => {
+            ui.showStatus('文件读取失败', 'error');
+        };
+        
         reader.readAsText(file);
-        }
-    };
+    }
+};
