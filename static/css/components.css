@@ -455,6 +455,7 @@
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     transition: all 0.3s ease;
+    gap: var(--spacing-md);
 }
 
 .position-config-item:hover {
@@ -462,25 +463,70 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 添加头像悬停效果 */
-.position-config-item:hover .config-avatar {
-    transform: scale(1.1);
-    border-color: var(--color-primary);
-}
-
 .position-character-info {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+    flex: 1;
 }
 
-.position-character-name {
-    font-weight: 500;
-    color: var(--text-primary);
+.position-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 .position-select {
-    width: 150px;
+    width: 120px;
+}
+
+.position-offset-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.position-offset-label {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.position-offset-input {
+    width: 80px;
+    padding: 6px 10px;
+    font-size: var(--text-sm);
+    text-align: center;
+    border: 2px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 确保输入框在各种状态下都可见 */
+.position-offset-input:hover {
+    border-color: var(--border-secondary);
+}
+
+.position-offset-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.position-offset-input:disabled {
+    background: var(--bg-secondary);
+    cursor: not-allowed;
+}
+
+/* 偏移单位提示 */
+.position-offset-hint {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    margin-left: -4px;
 }
 
 /* 响应式调整 */
@@ -488,18 +534,33 @@
     .position-config-item {
         flex-direction: column;
         align-items: stretch;
-        gap: var(--spacing-sm);
     }
     
     .position-character-info {
         justify-content: center;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .position-controls {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        width: 100%;
     }
     
     .position-select {
         width: 100%;
     }
+    
+    .position-offset-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .position-offset-input {
+        flex: 1;
+        max-width: 200px;
+    }
 }
-
 /* 视图切换按钮 */
 .view-btn {
     padding: 10px 24px;

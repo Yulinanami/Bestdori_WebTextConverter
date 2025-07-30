@@ -32,10 +32,9 @@ export const converter = {
                 costume_mapping: state.currentCostumes,
                 position_config: {
                     autoPositionMode: positionManager.autoPositionMode,
-                    manualPositions: positionManager.manualPositions
+                    manualPositions: positionManager.manualPositions  // 现在包含位置和偏移
                 }
             });
-
             ui.showProgress(100);
             state.currentResult = response.data.result;
             
@@ -83,7 +82,7 @@ export const converter = {
                 costume_mapping: state.currentCostumes,
                 position_config: {
                     autoPositionMode: positionManager.autoPositionMode,
-                    manualPositions: positionManager.manualPositions
+                    manualPositions: positionManager.manualPositions  // 现在包含位置和偏移
                 }
             });
             

@@ -119,7 +119,7 @@
 
                 <!-- 位置配置模态框 -->
                 <div class="modal" id="positionModal">
-                    <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-content" style="max-width: 800px;"> <!-- 增加宽度 -->
                         <div class="modal-header">
                             <div class="modal-title">📍 Live2D 位置配置</div>
                             <button class="modal-close" onclick="positionManager.closePositionModal()">×</button>
@@ -129,9 +129,12 @@
                                 <p style="color: #718096; margin-bottom: 10px;">
                                     配置角色的默认出现位置。您可以为每个角色单独设置，或使用自动分配模式。
                                 </p>
+                                <p style="color: #3182ce; font-size: 0.9rem;">
+                                    💡 提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
+                                </p>
                             </div>
 
-                            <!-- 将按钮组移到顶部 -->
+                            <!-- 按钮组保持不变 -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                                 <button class="btn btn-secondary" id="resetPositionsBtn">🔄 恢复默认</button>
                                 <div style="display: flex; gap: 10px;">

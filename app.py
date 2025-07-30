@@ -329,18 +329,29 @@ class TextConverter:
             logger.info(f"位置配置 - 自动模式: {auto_position_mode}, 手动配置: {manual_positions}")
         
         # 新增：获取角色位置的辅助函数
-        def get_character_position(character_name: str, order: int) -> str:
-            """根据配置获取角色的位置"""
+        def get_character_position_config(character_name: str, order: int) -> Dict[str, Any]:
+            """根据配置获取角色的位置和偏移"""
             if auto_position_mode:
-                # 自动分配模式：按出场顺序循环分配
-                position = positions[order % len(positions)]
-                logger.info(f"自动分配位置 - 角色: {character_name}, 顺序: {order}, 位置: {position}")
-                return position
+                # 自动分配模式：按出场顺序循环分配，没有偏移
+                return {
+                    'position': positions[order % len(positions)],
+                    'offset': 0
+                }
             else:
-                # 手动模式：使用配置的位置，默认为中间
-                position = manual_positions.get(character_name, 'center')
-                logger.info(f"手动配置位置 - 角色: {character_name}, 位置: {position}")
-                return position
+                # 手动模式：使用配置的位置和偏移
+                config = manual_positions.get(character_name, {})
+                if isinstance(config, str):
+                    # 兼容旧格式
+                    return {
+                        'position': config,
+                        'offset': 0
+                    }
+                else:
+                    # 新格式
+                    return {
+                        'position': config.get('position', 'center'),
+                        'offset': config.get('offset', 0)
+                    }
         
         def finalize_current_action():
             if current_action_body_lines:
@@ -360,41 +371,41 @@ class TextConverter:
                             order = len(appearance_order)
                             appearance_order[current_action_name] = order
                             
-                            # 获取角色位置
-                            position = get_character_position(current_action_name, order)
+                            # 获取角色位置和偏移配置
+                            position_config = get_character_position_config(current_action_name, order)
+                            position = position_config['position']
+                            offset = position_config['offset']
                             
                             # 使用角色名称作为key来获取服装
                             costume_id = ""
                             if custom_costume_mapping:
-                                # 使用角色名称作为key
                                 costume_id = custom_costume_mapping.get(current_action_name, "")
                                 logger.info(f"从自定义映射获取 {current_action_name} 的服装: {costume_id}")
                             
-                            # 如果自定义映射中没有，尝试默认映射
                             if not costume_id and effective_costume_mapping:
                                 costume_id = effective_costume_mapping.get(effective_id, "")
                                 logger.info(f"从默认映射获取 ID {effective_id} 的服装: {costume_id}")
                             
                             logger.info(f"角色 {current_action_name} (ID: {primary_character_id}) 最终使用服装: {costume_id}")
-                            logger.info(f"角色 {current_action_name} 分配到位置: {position}")
+                            logger.info(f"角色 {current_action_name} 分配到位置: {position}，偏移: {offset}")
                             
                             output_char_id = self.mujica_output_mapping.get(primary_character_id, primary_character_id)
                             
-                            # 创建 layout action，包含位置信息
+                            # 创建 layout action，包含位置和偏移信息
                             layout_action = LayoutActionItem(
                                 character=output_char_id,
                                 costume=costume_id,
-                                sideFrom=position,      # 设置起始位置
-                                sideTo=position,        # 设置目标位置
-                                sideFromOffsetX=0,      # X轴偏移量
-                                sideToOffsetX=0         # X轴偏移量
+                                sideFrom=position,
+                                sideTo=position,
+                                sideFromOffsetX=offset,  # 添加偏移值
+                                sideToOffsetX=offset     # 添加偏移值
                             )
                             actions.append(layout_action)
                     
-                    # 添加 talk action - 使用映射后的ID
+                    # 添加 talk action
                     output_character_ids = self._get_output_character_ids(character_ids)
                     talk_action = ActionItem(
-                        characters=output_character_ids,  # 使用映射后的ID
+                        characters=output_character_ids,
                         name=current_action_name,
                         body=finalized_body
                     )

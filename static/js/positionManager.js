@@ -14,7 +14,7 @@ export const positionManager = {
     
     // 默认配置
     autoPositionMode: true,
-    manualPositions: {}, // 手动配置的角色位置
+    manualPositions: {}, // 手动配置的角色位置和偏移
     positionCounter: 0,  // 用于自动分配的计数器
     
     // 初始化
@@ -51,10 +51,34 @@ export const positionManager = {
                 const config = JSON.parse(saved);
                 this.autoPositionMode = config.autoPositionMode !== false;
                 this.manualPositions = config.manualPositions || {};
+                
+                // 确保旧配置的兼容性
+                this.ensurePositionFormat();
             } catch (e) {
                 console.error('加载位置配置失败:', e);
             }
         }
+    },
+    
+    // 确保位置配置格式正确（兼容旧版本）
+    ensurePositionFormat() {
+        const updatedPositions = {};
+        for (const [name, value] of Object.entries(this.manualPositions)) {
+            if (typeof value === 'string') {
+                // 旧格式：只有位置字符串
+                updatedPositions[name] = {
+                    position: value,
+                    offset: 0
+                };
+            } else {
+                // 新格式：对象包含位置和偏移
+                updatedPositions[name] = {
+                    position: value.position || 'center',
+                    offset: value.offset || 0
+                };
+            }
+        }
+        this.manualPositions = updatedPositions;
     },
     
     // 保存配置
@@ -68,16 +92,16 @@ export const positionManager = {
     
     // 获取头像ID（处理 Mujica 特殊映射）
     getAvatarId(characterId) {
-        const mujicaAvatarMapping = {
+        const avatarMapping = {
             229: 6,   // 纯田真奈
-            337: 1,  // 三角初华
-            338: 2,  // 若叶睦
-            339: 3,  // 八幡海铃
-            340: 4,  // 祐天寺若麦
-            341: 5   // 丰川祥子
+            337: 1,   // 三角初华
+            338: 2,   // 若叶睦
+            339: 3,   // 八幡海铃
+            340: 4,   // 祐天寺若麦
+            341: 5    // 丰川祥子
         };
         
-        return mujicaAvatarMapping[characterId] || characterId;
+        return avatarMapping[characterId] || characterId;
     },
     
     // 打开位置配置模态框
@@ -128,13 +152,17 @@ export const positionManager = {
             const primaryId = ids[0];
             const avatarId = this.getAvatarId(primaryId);
             const avatarPath = avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : '';
-            const currentPosition = this.manualPositions[name] || 'center';
+            
+            // 获取当前配置
+            const currentConfig = this.manualPositions[name] || { position: 'center', offset: 0 };
+            const currentPosition = currentConfig.position || 'center';
+            const currentOffset = currentConfig.offset || 0;
             
             const item = document.createElement('div');
             item.className = 'position-config-item';
             item.innerHTML = `
                 <div class="position-character-info">
-                    <div class="config-avatar-wrapper"> 
+                    <div class="config-avatar-wrapper">
                         <div class="config-avatar" data-id="${primaryId}">
                             ${avatarId > 0 ? 
                                 `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">` 
@@ -144,19 +172,49 @@ export const positionManager = {
                     </div>
                     <span class="position-character-name">${name} (ID: ${primaryId})</span>
                 </div>
-                <select class="form-input position-select" data-character="${name}">
-                    ${this.positions.map(pos => 
-                        `<option value="${pos}" ${pos === currentPosition ? 'selected' : ''}>
-                            ${this.positionNames[pos]}
-                        </option>`
-                    ).join('')}
-                </select>
+                <div class="position-controls">
+                    <select class="form-input position-select" data-character="${name}">
+                        ${this.positions.map(pos => 
+                            `<option value="${pos}" ${pos === currentPosition ? 'selected' : ''}>
+                                ${this.positionNames[pos]}
+                            </option>`
+                        ).join('')}
+                    </select>
+                    <div class="position-offset-group">
+                        <label class="position-offset-label" for="offset-${name}">偏移:</label>
+                        <input type="number" 
+                            id="offset-${name}"
+                            class="form-input position-offset-input" 
+                            data-character="${name}"
+                            value="${currentOffset}"
+                            step="10"
+                            placeholder="0"
+                            title="设置水平偏移量，正值向右，负值向左">
+                        <span class="position-offset-hint">px</span>
+                    </div>
+                </div>
             `;
             
             // 添加事件监听
             const select = item.querySelector('.position-select');
             select.addEventListener('change', (e) => {
-                this.manualPositions[e.target.dataset.character] = e.target.value;
+                const charName = e.target.dataset.character;
+                if (!this.manualPositions[charName]) {
+                    this.manualPositions[charName] = { position: 'center', offset: 0 };
+                }
+                this.manualPositions[charName].position = e.target.value;
+            });
+            
+            // 添加偏移值输入事件
+            const offsetInput = item.querySelector('.position-offset-input');
+            offsetInput.addEventListener('input', (e) => {
+                const charName = e.target.dataset.character;
+                const offset = parseInt(e.target.value) || 0;
+                
+                if (!this.manualPositions[charName]) {
+                    this.manualPositions[charName] = { position: 'center', offset: 0 };
+                }
+                this.manualPositions[charName].offset = offset;
             });
             
             positionList.appendChild(item);
@@ -174,9 +232,9 @@ export const positionManager = {
         }, '保存中...');
     },
     
-    // 重置为默认位置（全部设为中间）
+    // 重置为默认位置（全部设为中间，偏移清零）
     async resetPositions() {
-        if (confirm('确定要将所有角色的位置恢复为默认（中间）吗？')) {
+        if (confirm('确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？')) {
             await ui.withButtonLoading('resetPositionsBtn', async () => {
                 // 重置自动模式为开启
                 this.autoPositionMode = true;
@@ -184,9 +242,13 @@ export const positionManager = {
                 // 清空手动配置
                 this.manualPositions = {};
                 
-                // 更新所有选择框为center
+                // 更新所有选择框为center，偏移为0
                 document.querySelectorAll('.position-select').forEach(select => {
                     select.value = 'center';
+                });
+                
+                document.querySelectorAll('.position-offset-input').forEach(input => {
+                    input.value = '0';
                 });
                 
                 // 更新自动模式复选框
@@ -209,14 +271,21 @@ export const positionManager = {
         }
     },
     
-    // 获取角色的位置
-    getCharacterPosition(characterName, appearanceOrder) {
+    // 获取角色的位置和偏移
+    getCharacterPositionConfig(characterName, appearanceOrder) {
         if (this.autoPositionMode) {
-            // 自动分配模式：按出场顺序循环分配
-            return this.positions[appearanceOrder % this.positions.length];
+            // 自动分配模式：按出场顺序循环分配，没有偏移
+            return {
+                position: this.positions[appearanceOrder % this.positions.length],
+                offset: 0
+            };
         } else {
-            // 手动模式：使用配置的位置，默认为中间
-            return this.manualPositions[characterName] || 'center';
+            // 手动模式：使用配置的位置和偏移，默认为中间、偏移0
+            const config = this.manualPositions[characterName] || { position: 'center', offset: 0 };
+            return {
+                position: config.position || 'center',
+                offset: config.offset || 0
+            };
         }
     },
     
