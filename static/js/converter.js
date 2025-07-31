@@ -4,6 +4,11 @@ import { state } from './constants.js';
 import { ui } from './uiUtils.js';
 import { quoteManager } from './quoteManager.js';
 import { dialoguePreview } from './dialoguePreview.js';
+import { ResultCache, PreviewCache } from './cache.js';
+
+// 创建缓存实例
+const resultCache = new ResultCache();
+const previewCache = new PreviewCache();
 
 export const converter = {
     // 文本转换
@@ -17,6 +22,40 @@ export const converter = {
         }
 
         const selectedQuotePairs = quoteManager.getSelectedQuotes();
+        
+        // 生成缓存配置
+        const cacheConfig = {
+            narratorName,
+            selectedQuotePairs,
+            characterMapping: state.currentConfig,
+            enableLive2D: state.enableLive2D,
+            costumeMapping: state.currentCostumes,
+            positionConfig: {
+                autoPositionMode: positionManager.autoPositionMode,
+                manualPositions: positionManager.manualPositions
+            }
+        };
+        
+        // 检查缓存
+        const cacheKey = resultCache.generateKey(inputText, cacheConfig);
+        const cachedResult = resultCache.get(cacheKey);
+        
+        if (cachedResult) {
+            // 使用缓存结果
+            resultCache.hits = (resultCache.hits || 0) + 1;
+            console.log('使用缓存结果');
+            
+            state.currentResult = cachedResult;
+            document.getElementById('resultContent').textContent = cachedResult;
+            Prism.highlightElement(document.getElementById('resultContent'));
+            document.getElementById('resultSection').style.display = 'block';
+            
+            ui.showStatus('转换完成！(使用缓存)', 'success');
+            ui.scrollToElement('resultSection');
+            return;
+        }
+        
+        resultCache.requests = (resultCache.requests || 0) + 1;
 
         try {
             ui.setButtonLoading('convertBtn', true, '转换中...');
@@ -30,15 +69,17 @@ export const converter = {
                 character_mapping: state.currentConfig,
                 enable_live2d: state.enableLive2D,
                 costume_mapping: state.currentCostumes,
-                position_config: {
-                    autoPositionMode: positionManager.autoPositionMode,
-                    manualPositions: positionManager.manualPositions  // 现在包含位置和偏移
-                }
+                position_config: cacheConfig.positionConfig
             });
-            ui.showProgress(100);
-            state.currentResult = response.data.result;
             
-            document.getElementById('resultContent').textContent = state.currentResult;
+            ui.showProgress(100);
+            const result = response.data.result;
+            
+            // 存入缓存
+            resultCache.set(cacheKey, result);
+            
+            state.currentResult = result;
+            document.getElementById('resultContent').textContent = result;
             Prism.highlightElement(document.getElementById('resultContent'));
             document.getElementById('resultSection').style.display = 'block';
             
@@ -63,11 +104,29 @@ export const converter = {
             return;
         }
         
-        // 使用分屏视图中的旁白名称设置
         const narratorName = document.getElementById('splitNarratorName').value || ' ';
         const selectedQuotePairs = quoteManager.getSelectedQuotes();
         
-        // 如果是手动刷新，显示按钮加载状态
+        // 预览缓存配置
+        const previewConfig = {
+            narratorName,
+            selectedQuotePairs,
+            enableLive2D: state.enableLive2D
+        };
+        
+        // 检查预览缓存
+        const cacheKey = previewCache.generatePreviewKey(inputText, previewConfig);
+        const cachedPreview = previewCache.get(cacheKey);
+        
+        if (cachedPreview && !isManualRefresh) {
+            // 使用缓存的预览
+            state.currentResult = cachedPreview;
+            document.querySelector('#splitPreviewJson code').textContent = cachedPreview;
+            Prism.highlightElement(document.querySelector('#splitPreviewJson code'));
+            dialoguePreview.updateDialoguePreview(cachedPreview, 'splitPreviewDialogue');
+            return;
+        }
+        
         if (isManualRefresh) {
             ui.setButtonLoading('splitConvertBtn', true, '刷新中...');
         }
@@ -82,18 +141,18 @@ export const converter = {
                 costume_mapping: state.currentCostumes,
                 position_config: {
                     autoPositionMode: positionManager.autoPositionMode,
-                    manualPositions: positionManager.manualPositions  // 现在包含位置和偏移
+                    manualPositions: positionManager.manualPositions
                 }
             });
             
             const jsonResult = response.data.result;
-            state.currentResult = jsonResult;
             
-            // 更新JSON预览
+            // 存入预览缓存
+            previewCache.set(cacheKey, jsonResult);
+            
+            state.currentResult = jsonResult;
             document.querySelector('#splitPreviewJson code').textContent = jsonResult;
             Prism.highlightElement(document.querySelector('#splitPreviewJson code'));
-            
-            // 更新对话预览
             dialoguePreview.updateDialoguePreview(jsonResult, 'splitPreviewDialogue');
             
         } catch (error) {
@@ -101,10 +160,11 @@ export const converter = {
             document.querySelector('#splitPreviewJson code').textContent = `// ${errorMsg}`;
             document.getElementById('splitPreviewDialogue').innerHTML = `<p style="text-align: center; color: #e53e3e;">${errorMsg}</p>`;
         } finally {
-            // 如果是手动刷新，恢复按钮状态
             if (isManualRefresh) {
                 ui.setButtonLoading('splitConvertBtn', false);
             }
         }
     }
 };
+
+export { resultCache };

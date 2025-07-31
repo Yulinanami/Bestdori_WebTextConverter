@@ -157,13 +157,21 @@ export const configManager = {
     // 渲染配置列表
     renderConfigList() {
         const configList = document.getElementById('configList');
-        configList.innerHTML = '';
-
+        
+        // 准备数据
         const sortedConfig = Object.entries(state.currentConfig).sort(([, idsA], [, idsB]) => {
             const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
             const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
             return idA - idB;
         });
+        
+        this.renderNormalConfigList(sortedConfig);
+    },
+
+    renderNormalConfigList(sortedConfig) {
+        const configList = document.getElementById('configList');
+        configList.innerHTML = '';
+        configList.style.height = 'auto'; // 恢复自动高度
 
         sortedConfig.forEach(([name, ids]) => {
             const configItem = document.createElement('div');

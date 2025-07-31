@@ -4,13 +4,14 @@ import { state } from './constants.js';
 import { ui, initGlobalModalListeners } from './uiUtils.js';
 import { viewManager } from './viewManager.js';
 import { fileHandler } from './fileHandler.js';
-import { converter } from './converter.js';
+import { converter, resultCache } from './converter.js';
 import { configManager } from './configManager.js';
 import { quoteManager } from './quoteManager.js';
 import { dialoguePreview } from './dialoguePreview.js';
 import { batchProcessor } from './batchProcessor.js';
 import { costumeManager } from './costumeManager.js';  // 新增导入
 import { positionManager } from './positionManager.js';
+import { perfMonitor } from './performance.js';
 
 // 初始化应用
 function initializeApp() {
@@ -25,6 +26,9 @@ function initializeApp() {
     
     // 绑定模态框事件
     bindModalEvents();
+
+    // 初始化性能监控
+    initializePerformanceOptimizations();
 
     // 初始化位置管理器
     positionManager.init();
@@ -43,6 +47,85 @@ function initializeApp() {
     
     // 初始化分隔条拖动功能
     viewManager.initializeSplitResizer();
+
+    // 添加性能监控面板
+    if (window.location.search.includes('debug=true')) {
+        addPerformancePanel();
+    }
+}
+
+function initializePerformanceOptimizations() {
+    // 包装需要监控的函数
+    converter.convertText = perfMonitor.measureTime(
+        converter.convertText.bind(converter),
+        'convertText'
+    );
+    
+    converter.updateSplitPreview = perfMonitor.measureTime(
+        converter.updateSplitPreview.bind(converter),
+        'updateSplitPreview'
+    );
+    
+    // 启用请求拦截器监控API响应时间
+    axios.interceptors.request.use(config => {
+        config.metadata = { startTime: performance.now() };
+        return config;
+    });
+    
+    axios.interceptors.response.use(
+        response => {
+            if (response.config.metadata) {
+                const duration = performance.now() - response.config.metadata.startTime;
+                perfMonitor.recordMetric('apiResponseTime', duration);
+            }
+            return response;
+        },
+        error => {
+            if (error.config && error.config.metadata) {
+                const duration = performance.now() - error.config.metadata.startTime;
+                perfMonitor.recordMetric('apiResponseTime', duration);
+            }
+            return Promise.reject(error);
+        }
+    );
+}
+
+// 添加性能监控面板（调试模式）
+function addPerformancePanel() {
+    const panel = document.createElement('div');
+    panel.id = 'performance-panel';
+    panel.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 10000;
+        min-width: 200px;
+    `;
+    
+    document.body.appendChild(panel);
+    
+    // 定期更新性能数据
+    setInterval(() => {
+        const report = perfMonitor.getReport();
+        const cacheStats = resultCache.getStats();
+
+        window.perfMonitor = perfMonitor;
+        
+        panel.innerHTML = `
+            <h4 style="margin: 0 0 10px 0;">Performance Monitor</h4>
+            <div>Cache Hit Rate: ${cacheStats.hitRate}</div>
+            <div>Cache Size: ${cacheStats.count}/${resultCache.maxSize}</div>
+            <div>API Avg: ${report.apiResponseTime?.average?.toFixed(2) || 0}ms</div>
+            <div>Convert Avg: ${report.convertText?.average?.toFixed(2) || 0}ms</div>
+            <button onclick="perfMonitor.exportData()" style="margin-top: 10px;">Export Data</button>
+        `;
+    }, 2000);
 }
 
 // 绑定经典视图事件
