@@ -29,9 +29,20 @@ export const viewManager = {
     
     // 新增：同步Live2D设置到分屏视图
     syncLive2DToSplit() {
-        const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
+    const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
         if (splitCheckbox) {
             splitCheckbox.checked = state.enableLive2D;
+        }
+        
+        // 同步按钮状态（如果分屏视图中有这些按钮的话）
+        const positionBtn = document.getElementById('positionConfigBtn');
+        if (positionBtn) {
+            positionBtn.disabled = !state.enableLive2D;
+        }
+        
+        const costumeBtn = document.getElementById('costumeConfigBtn');
+        if (costumeBtn) {
+            costumeBtn.disabled = !state.enableLive2D;
         }
     },
 

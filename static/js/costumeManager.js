@@ -144,6 +144,12 @@ export const costumeManager = {
                 positionBtn.disabled = !state.enableLive2D;
             }
             
+            // 更新服装配置按钮的初始状态（新增）
+            const costumeBtn = document.getElementById('costumeConfigBtn');
+            if (costumeBtn) {
+                costumeBtn.disabled = !state.enableLive2D;
+            }
+            
         } catch (error) {
             console.error('加载服装配置失败:', error);
             ui.showStatus('无法加载服装配置', 'error');
@@ -776,6 +782,17 @@ export const costumeManager = {
             const splitCheckbox = document.getElementById('splitEnableLive2DCheckbox');
             if (splitCheckbox) {
                 splitCheckbox.checked = config.enable_live2d;
+            }
+            
+            // 更新按钮状态（新增）
+            const positionBtn = document.getElementById('positionConfigBtn');
+            if (positionBtn) {
+                positionBtn.disabled = !config.enable_live2d;
+            }
+            
+            const costumeBtn = document.getElementById('costumeConfigBtn');
+            if (costumeBtn) {
+                costumeBtn.disabled = !config.enable_live2d;
             }
         }
     },

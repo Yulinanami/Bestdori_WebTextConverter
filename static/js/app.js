@@ -196,6 +196,12 @@ function bindClassicViewEvents() {
             if (positionBtn) {
                 positionBtn.disabled = !e.target.checked;
             }
+            
+            // 启用/禁用服装配置按钮（新增）
+            const costumeBtn = document.getElementById('costumeConfigBtn');
+            if (costumeBtn) {
+                costumeBtn.disabled = !e.target.checked;
+            }
         });
     }
 
