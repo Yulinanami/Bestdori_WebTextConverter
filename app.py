@@ -9,8 +9,8 @@ import os
 import multiprocessing
 import uuid
 import threading
-from concurrent.futures import ThreadPoolExecutor
 import markdown2 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from docx import Document  
@@ -667,7 +667,7 @@ def get_batch_status(task_id):
     if not task:
         return jsonify({'error': '未找到该任务'}), 404
     
-    # 为了减少数据传输，通常只返回状态和进度，结果在完成后一次性获取或分块获取
+    # 为了减少数据传输，只返回状态和进度，结果在完成后一次性获取或分块获取
     response_data = {
         'status': task['status'],
         'progress': task['progress'],
