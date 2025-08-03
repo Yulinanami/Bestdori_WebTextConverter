@@ -91,7 +91,7 @@ export const ui = {
     }
   },
 
-  // 新增：快速设置按钮加载状态的辅助方法
+  // 快速设置按钮加载状态的辅助方法
   async withButtonLoading(buttonId, asyncFn, loadingText = "处理中...") {
     this.setButtonLoading(buttonId, true, loadingText);
     try {
