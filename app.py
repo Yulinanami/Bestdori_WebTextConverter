@@ -1,25 +1,25 @@
-from flask import Flask, render_template, request, jsonify, send_file
 import json
 import re
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, asdict
-from abc import ABC, abstractmethod
+import io
+import base64 
 import yaml
 import tempfile
 import os
-from werkzeug.utils import secure_filename
-import asyncio
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import multiprocessing
 import uuid
 import threading
 from concurrent.futures import ThreadPoolExecutor
-import markdown2  # 新增：支持Markdown
-from docx import Document  # 新增：支持Word文档
-import io
-import base64  # 新增：用于处理批量上传的二进制文件
+import markdown2 
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Any
+from docx import Document  
+from dataclasses import dataclass, asdict
+from abc import ABC, abstractmethod
+from werkzeug.utils import secure_filename
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from flask import Flask, render_template, request, jsonify, send_file
+
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -212,7 +212,7 @@ class ConfigManager:
                 # Sumimi
                 229: ["229_sumimi"],  # 纯田真奈
                 
-                # Mujica（使用真实ID）
+                # Mujica
                 337: ["337_sumimi", "337_school_summer-2023", "337_school_winter-2023", "337_casual-2023", "337_casual-2023_nocap"],
                 338: ["338_school_summer-2023", "338_school_winter-2023", "338_casual-2023"],
                 339: ["339_school_summer-2023", "339_school_winter-2023", "339_casual-2023"],
@@ -366,7 +366,7 @@ class TextConverter:
         
         actions = []
         appeared_character_names = set()  # 基于角色名称而不是ID
-        appearance_order = {}  # 新增：记录角色出场顺序
+        appearance_order = {}  # 记录角色出场顺序
         current_action_name = narrator_name
         current_action_body_lines = []
         
@@ -379,7 +379,7 @@ class TextConverter:
                 effective_costume_mapping.update(custom_costume_mapping)
                 logger.info(f"合并后的服装映射（部分）: {dict(list(effective_costume_mapping.items())[:5])}")
         
-        # 新增：处理位置配置
+        # 处理位置配置
         auto_position_mode = True
         manual_positions = {}
         positions = ['leftInside', 'center', 'rightInside']
@@ -389,7 +389,7 @@ class TextConverter:
             manual_positions = position_config.get('manualPositions', {})
             logger.info(f"位置配置 - 自动模式: {auto_position_mode}, 手动配置: {manual_positions}")
         
-        # 新增：获取角色位置的辅助函数
+        # 获取角色位置的辅助函数
         def get_character_position_config(character_name: str, order: int) -> Dict[str, Any]:
             """根据配置获取角色的位置和偏移"""
             if auto_position_mode:
@@ -458,8 +458,8 @@ class TextConverter:
                                 costume=costume_id,
                                 sideFrom=position,
                                 sideTo=position,
-                                sideFromOffsetX=offset,  # 添加偏移值
-                                sideToOffsetX=offset     # 添加偏移值
+                                sideFromOffsetX=offset,  
+                                sideToOffsetX=offset     
                             )
                             actions.append(layout_action)
                     
@@ -502,7 +502,7 @@ class TextConverter:
         result = ConversionResult(actions=all_actions)
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
-# --- 新增：文件格式转换器 ---
+# 文件格式转换器 
 class FileFormatConverter:
     @staticmethod
     def docx_to_text(file_content: bytes) -> str:
@@ -538,7 +538,7 @@ class FileFormatConverter:
 config_manager = ConfigManager()
 file_converter = FileFormatConverter()
 
-# --- 新增：任务管理 ---
+# 任务管理
 batch_tasks = {} # 用于存储所有批量任务的状态
 executor = ThreadPoolExecutor(max_workers=2) # 线程池，用于在后台执行批量任务
 
@@ -547,7 +547,7 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
                    enable_live2d: bool = False, custom_costume_mapping: Dict[int, str] = None):
     """在后台线程中运行的批量转换函数"""
     
-    # 修复：处理服装映射的类型转换
+    # 处理服装映射的类型转换
     if custom_costume_mapping:
         fixed_costume_mapping = {}
         for str_key, value in custom_costume_mapping.items():
@@ -561,7 +561,7 @@ def run_batch_task(task_id: str, files_data: List[Dict[str, str]], narrator_name
     total_files = len(files_data)
     task = batch_tasks[task_id]
     
-    # 新增：为这个批量任务创建独立的转换器实例
+    # 为这个批量任务创建独立的转换器实例
     batch_converter = TextConverter(config_manager)
     
     # 如果有自定义映射，设置到转换器实例
@@ -627,7 +627,7 @@ def convert_text():
         custom_costume_mapping = data.get('costume_mapping', None)
         position_config = data.get('position_config', None)
         
-        # 修复：将字符串键转换为整数键
+        # 将字符串键转换为整数键
         if custom_costume_mapping:
             fixed_costume_mapping = {}
             for str_key, value in custom_costume_mapping.items():
@@ -642,7 +642,7 @@ def convert_text():
         if not input_text.strip():
             return jsonify({'error': '输入文本不能为空'}), 400
         
-        # 新增：为这个请求创建独立的转换器实例
+        # 为这个请求创建独立的转换器实例
         request_converter = TextConverter(config_manager)
         
         # 如果有自定义映射，直接设置到新实例
@@ -679,7 +679,7 @@ def get_batch_status(task_id):
     if task['status'] == 'completed':
         response_data['results'] = task['results']
         response_data['errors'] = task['errors']
-        # (可选) 在一段时间后从内存中移除已完成的任务，以防内存泄漏
+        # 在一段时间后从内存中移除已完成的任务，以防内存泄漏
         threading.Timer(300, lambda: batch_tasks.pop(task_id, None)).start()
 
     return jsonify(response_data)
@@ -828,16 +828,12 @@ def update_config():
                 validated_mapping[name] = ids
         config_manager.update_character_mapping(validated_mapping)
         
-        # 删除这些行，因为不再有全局 converter
-        # global converter
-        # converter = TextConverter(config_manager)
-        
         return jsonify({'message': '配置更新成功'})
     except Exception as e:
         logger.error(f"配置更新失败: {e}")
         return jsonify({'error': f'配置更新失败: {str(e)}'}), 500
 
-# 新增：获取服装配置的API（包含Mujica映射）
+# 获取服装配置的API（包含Mujica映射）
 @app.route('/api/costumes', methods=['GET'])
 def get_costumes():
     try:
