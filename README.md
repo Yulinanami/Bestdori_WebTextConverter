@@ -1,6 +1,7 @@
 # BanG Dream! 剧情文本转换器 - 功能全览
 
-这是一个专为 BanG Dream! (Bestdori) 社区设计的剧情文本转换工具，可以将普通对话文本转换为 Bestdori 平台可用的 JSON 格式，快捷创作剧情。
+这是一个专为 BanG Dream! (Bestdori) 社区设计的剧情文本转换工具，可以将普通对话文本转换为 Bestdori 平台可用的 JSON 格式。
+可以让您直接把已写好的剧情文本导入到Bestdori里，不用一句一句地复制文本、设置角色名字、图标和对话内容。
 
 通过网页来访问这个工具：
 [https://bestdori-webtextconverter.zeabur.app/](https://bestdori-webtextconverter.zeabur.app/)
