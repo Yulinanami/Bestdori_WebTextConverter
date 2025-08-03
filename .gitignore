@@ -1,0 +1,58 @@
+venv/
+.venv/
+env/
+.env/
+*.env
+env.bak/
+venv.bak/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+
+# Visual Studio Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+*.log
+logs/
+*.tmp
+*~
+*.swp
+*.swo
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+
+*.prof
+*.lprof
+build/
+dist/
+*.egg-info/
+*.egg
+
+config.local.yaml
+secrets.yaml
+.secrets
