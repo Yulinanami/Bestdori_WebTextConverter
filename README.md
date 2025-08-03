@@ -4,7 +4,7 @@
 
 可以让您直接把已写好的剧情文本导入到Bestdori里快捷编辑，不用一句一句地复制文本、设置角色名字、图标、Live2D服装和对话内容。
 
-注意：生成的JSON仅为初稿，可能还需要自行完善角色的动作表情等
+注意：生成的JSON仅为初稿，可能还需要自行完善角色的动作表情等配置
 
 通过网页来访问这个工具：
 [https://bestdori-webtextconverter.zeabur.app/](https://bestdori-webtextconverter.zeabur.app/)
