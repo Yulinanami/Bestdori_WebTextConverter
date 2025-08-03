@@ -176,4 +176,4 @@
 
 ##  许可证
 
-使用MPL-2.0 license
+使用MIT license
