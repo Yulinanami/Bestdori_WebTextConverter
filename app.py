@@ -1215,21 +1215,23 @@ def get_config():
         return jsonify({"error": f"获取配置失败: {str(e)}"}), 500
 
 
-@app.route("/api/config", methods=["POST"])
-def update_config():
-    try:
-        data = request.get_json()
-        character_mapping = data.get("character_mapping", {})
-        validated_mapping = {}
-        for name, ids in character_mapping.items():
-            if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
-                validated_mapping[name] = ids
-        config_manager.update_character_mapping(validated_mapping)
+# update_config()用于把更新后的配置写回config.yaml
+# 用户修改的配置保存在浏览器的localStorage中，不再使用这个函数
+# @app.route("/api/config", methods=["POST"])
+# def update_config():
+#     try:
+#         data = request.get_json()
+#         character_mapping = data.get("character_mapping", {})
+#         validated_mapping = {}
+#         for name, ids in character_mapping.items():
+#             if isinstance(ids, list) and all(isinstance(id_, int) for id_ in ids):
+#                 validated_mapping[name] = ids
+#         config_manager.update_character_mapping(validated_mapping)
 
-        return jsonify({"message": "配置更新成功"})
-    except Exception as e:
-        logger.error(f"配置更新失败: {e}")
-        return jsonify({"error": f"配置更新失败: {str(e)}"}), 500
+#         return jsonify({"message": "配置更新成功"})
+#     except Exception as e:
+#         logger.error(f"配置更新失败: {e}")
+#         return jsonify({"error": f"配置更新失败: {str(e)}"}), 500
 
 
 # 获取服装配置的API（包含Mujica映射）
