@@ -839,6 +839,7 @@ class TextConverter:
         finalize_current_action()
 
         # 处理结果，将所有 action 转换为字典
+        # all_actions = []
         # for action in actions:
         #     if isinstance(action, LayoutActionItem):
         #         all_actions.append(asdict(action))
