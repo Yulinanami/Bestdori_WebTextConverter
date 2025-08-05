@@ -31,7 +31,7 @@ template_folder = os.path.join(project_root, "templates")
 static_folder = os.path.join(project_root, "static")
 app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-app.config["UPLOAD_FOLDER"] = "/tmp"
+# app.config["UPLOAD_FOLDER"] = "/tmp"
 
 
 class OptimizedBatchProcessor:
@@ -839,12 +839,12 @@ class TextConverter:
         finalize_current_action()
 
         # 处理结果，将所有 action 转换为字典
-        all_actions = []
-        for action in actions:
-            if isinstance(action, LayoutActionItem):
-                all_actions.append(asdict(action))
-            else:
-                all_actions.append(asdict(action))
+        # for action in actions:
+        #     if isinstance(action, LayoutActionItem):
+        #         all_actions.append(asdict(action))
+        #     else:
+        #         all_actions.append(asdict(action))
+        all_actions = [asdict(action) for action in actions]
 
         result = ConversionResult(actions=all_actions)
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
