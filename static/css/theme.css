@@ -2,17 +2,17 @@
 
 :root {
   /* 主要颜色 */
-  --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --secondary-gradient: linear-gradient(135deg, #fdf6e3 0%, #ffffff 100%);
+  --primary-gradient: #333333;
+  --secondary-gradient: #f4f4f5;
 
   /* 基础颜色 */
-  --color-primary: #4facfe;
-  --color-primary-dark: #00f2fe;
+  --color-primary: #333333;
+  --color-primary-dark: #000000;
   --color-secondary: #e2e8f0;
   --color-success: #48bb78;
   --color-success-dark: #38a169;
   --color-error: #e53e3e;
-  --color-info: #3182ce;
+  --color-info: #5a6268;
 
   /* 文本颜色 */
   --text-primary: #2d3748;
@@ -30,7 +30,7 @@
   /* 边框颜色 */
   --border-primary: #e2e8f0;
   --border-secondary: #cbd5e0;
-  --border-focus: #4facfe;
+  --border-focus: #555555;
 
   /* 阴影 */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -73,6 +73,15 @@
   --text-2xl: 1.5rem;
   --text-3xl: 2rem;
   --text-4xl: 2.5rem;
+
+  --gradient-1: #555;
+  --gradient-2: #666;
+  --gradient-3: #777;
+  --gradient-4: #888;
+  --gradient-5: #999;
+  --gradient-6: #aaa;
+  --gradient-7: #bbb;
+  --gradient-8: #ccc;
 }
 
 /* 头像渐变色 */

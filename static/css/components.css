@@ -29,7 +29,7 @@
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
@@ -43,11 +43,7 @@
 }
 
 .btn-success {
-  background: linear-gradient(
-    135deg,
-    var(--color-success) 0%,
-    var(--color-success-dark) 100%
-  );
+  background: var(--color-success);
   color: var(--text-white);
 }
 
@@ -388,14 +384,14 @@
 
 /* Live2D 数据库按钮样式 */
 .costume-list-header .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: #555;
   color: white;
   font-size: var(--text-xs);
 }
 
 .costume-list-header .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* 响应式调整 */
@@ -655,12 +651,12 @@
 
 .file-upload:hover .file-upload-label {
   border-color: var(--border-focus);
-  background: #e6f7ff;
+  background: #e9ecef;
 }
 
 .file-upload.dragover .file-upload-label {
   border-color: var(--border-focus);
-  background: #e6f7ff;
+  background: #e9ecef;
   transform: scale(1.02);
 }
 
@@ -777,13 +773,13 @@
 /* Bestdori 跳转按钮样式 */
 #gotoBestdoriBtn,
 #splitGotoBestdoriBtn {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: #555;
 }
 
 #gotoBestdoriBtn:hover,
 #splitGotoBestdoriBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* 结果区域按钮组布局 */
