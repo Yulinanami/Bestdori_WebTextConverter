@@ -28,7 +28,6 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -39,7 +38,6 @@
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--border-secondary);
-  transform: translateY(-1px);
 }
 
 .btn-success {
@@ -48,7 +46,6 @@
 }
 
 .btn-success:hover:not(:disabled) {
-  transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
 }
 
@@ -390,7 +387,6 @@
 }
 
 .costume-list-header .btn-primary:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -767,7 +763,7 @@
 
 #helpBtn:hover {
   background: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px) scale(1.05);
+  transform: scale(1.05);
 }
 
 /* Bestdori 跳转按钮样式 */
@@ -778,7 +774,6 @@
 
 #gotoBestdoriBtn:hover,
 #splitGotoBestdoriBtn:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
