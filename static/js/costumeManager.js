@@ -356,10 +356,10 @@ export const costumeManager = {
                         <label>可用服装列表：</label>
                         <div style="display: flex; gap: 8px;">
                             <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume('${characterKey}', '${safeDomId}')">
-                                ➕ 添加服装
+                                添加服装
                             </button>
                             <button class="btn btn-sm btn-primary" onclick="costumeManager.openLive2DDatabase()" title="在新标签页查看 Bestdori Live2D 数据库">
-                                🔍 浏览数据库
+                                浏览数据库
                             </button>
                         </div>
                     </div>
@@ -404,8 +404,8 @@ export const costumeManager = {
             <div class="costume-list-item">
                 <span>${costume}</span>
                 <div class="costume-item-actions">
-                    <button class="btn btn-sm" onclick="costumeManager.editCostume('${characterKey}', ${index}, '${costume}', '${safeDomId}')">✏️</button>
-                    <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCostume('${characterKey}', ${index}, '${safeDomId}')">🗑️</button>
+                    <button class="btn btn-sm" onclick="costumeManager.editCostume('${characterKey}', ${index}, '${costume}', '${safeDomId}')">编辑</button>
+                    <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCostume('${characterKey}', ${index}, '${safeDomId}')">删除</button>
                 </div>
             </div>
         `

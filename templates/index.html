@@ -39,12 +39,11 @@
         <div class="main-content">
           <!-- 1. 文件上传区域 -->
           <div class="section">
-            <div class="section-title">📁 文件上传</div>
+            <div class="section-title">文件上传</div>
             <div class="file-upload" id="fileUpload">
               <input type="file" accept=".txt,.docx,.md" id="fileInput" />
               <div class="file-upload-label">
                 <div>
-                  <div style="font-size: 2rem; margin-bottom: 10px">📄</div>
                   <div style="font-weight: 600; margin-bottom: 5px">
                     点击或拖拽上传文件
                   </div>
@@ -59,13 +58,13 @@
           <!-- 2. 文本输入区域 -->
           <div class="section">
             <div class="section-title">
-              ✏️ 文本输入
+              文本输入
               <button
                 class="btn btn-secondary"
                 id="formatTextBtn"
                 style="margin-left: auto"
               >
-                📐 格式化文本
+                格式化文本
               </button>
             </div>
             <div class="form-group">
@@ -88,7 +87,7 @@
 
           <!-- 3. 处理选项区域 -->
           <div class="section">
-            <div class="section-title">⚙️ 处理选项</div>
+            <div class="section-title">处理选项</div>
 
             <!-- 旁白名称 -->
             <div class="form-group">
@@ -166,7 +165,7 @@
                     class="btn btn-secondary"
                     style="flex-shrink: 0"
                   >
-                    ➕ 添加
+                    添加
                   </button>
                 </div>
               </div>
@@ -210,14 +209,14 @@
                   id="costumeConfigBtn"
                   disabled
                 >
-                  🎭 服装配置
+                  服装配置
                 </button>
                 <button
                   class="btn btn-secondary btn-sm"
                   id="positionConfigBtn"
                   disabled
                 >
-                  📍 位置配置
+                  位置配置
                 </button>
               </div>
             </div>
@@ -228,7 +227,7 @@
             <div class="modal-content" style="max-width: 800px">
               <!-- 增加宽度 -->
               <div class="modal-header">
-                <div class="modal-title">📍 Live2D 位置配置</div>
+                <div class="modal-title">Live2D 位置配置</div>
                 <button
                   class="modal-close"
                   onclick="positionManager.closePositionModal()"
@@ -242,7 +241,6 @@
                     配置角色的默认出现位置。您可以为每个角色单独设置，或使用自动分配模式。
                   </p>
                   <p style="color: #3182ce; font-size: 0.9rem">
-                    💡
                     提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
                   </p>
                 </div>
@@ -259,7 +257,7 @@
                   "
                 >
                   <button class="btn btn-secondary" id="resetPositionsBtn">
-                    🔄 恢复默认
+                    恢复默认
                   </button>
                   <div style="display: flex; gap: 10px">
                     <button
@@ -307,20 +305,19 @@
 
           <!-- 4. 操作按钮 -->
           <div class="section">
-            <div class="section-title">⚡ 操作</div>
+            <div class="section-title">操作</div>
             <div class="btn-group">
               <button class="btn btn-primary" id="convertBtn">
-                <span id="convertIcon">🔄</span>
                 <span id="convertText">开始转换</span>
               </button>
               <button class="btn btn-secondary" id="previewModeBtn">
-                🎭 对话预览
+                对话预览
               </button>
               <button class="btn btn-secondary" id="configBtn">
-                ⚙️ 配置管理
+                配置管理
               </button>
               <button class="btn btn-secondary" id="batchProcessBtn">
-                📦 批量处理
+                批量处理
               </button>
             </div>
 
@@ -346,17 +343,17 @@
           <!-- 经典视图的结果显示区域 -->
           <div class="section" id="resultSection" style="display: none">
             <div class="result-header">
-              <div class="section-title">📋 转换结果</div>
+              <div class="section-title">转换结果</div>
               <div style="display: flex; gap: 10px">
                 <button class="btn btn-success" id="downloadBtn">
-                  💾 下载JSON
+                  下载JSON
                 </button>
                 <button
                   class="btn btn-primary"
                   id="gotoBestdoriBtn"
                   title="在新标签页打开 Bestdori 故事编辑器"
                 >
-                  🌐 跳转到 Bestdori
+                  跳转到 Bestdori
                 </button>
               </div>
             </div>
@@ -404,9 +401,9 @@
           <!-- 左侧编辑区 -->
           <div class="split-panel left-panel">
             <div class="panel-header">
-              <h3>📝 编辑区</h3>
+              <h3>编辑区</h3>
               <button class="btn btn-secondary btn-sm" id="formatTextSplitBtn">
-                📐 格式化
+                格式化
               </button>
             </div>
             <div class="panel-content">
@@ -424,7 +421,7 @@
           <!-- 右侧预览区 -->
           <div class="split-panel right-panel">
             <div class="panel-header">
-              <h3>👁️ 实时预览</h3>
+              <h3>实时预览</h3>
               <div class="preview-mode-toggle">
                 <button class="preview-mode-btn active" data-mode="json">
                   JSON
@@ -452,13 +449,13 @@
         <!-- 分屏视图的操作按钮 -->
         <div class="split-actions">
           <button class="btn btn-primary" id="splitConvertBtn">
-            🔄 手动刷新预览
+            手动刷新预览
           </button>
           <button class="btn btn-success" id="splitDownloadBtn">
-            💾 下载结果
+            下载结果
           </button>
           <button class="btn btn-primary" id="splitGotoBestdoriBtn">
-            🌐 跳转到 Bestdori
+            跳转到 Bestdori
           </button>
         </div>
       </div>
@@ -468,7 +465,7 @@
     <div class="modal" id="dialoguePreviewModal">
       <div class="modal-content" style="max-width: 900px">
         <div class="modal-header">
-          <div class="modal-title">🎭 对话预览模式</div>
+          <div class="modal-title">对话预览模式</div>
           <button
             class="modal-close"
             onclick="ui.closeModal('dialoguePreviewModal')"
@@ -518,13 +515,13 @@
           >
             <div style="display: flex; gap: 10px; flex-wrap: wrap">
               <button class="btn btn-secondary" id="addConfigBtn">
-                ➕ 添加角色
+                添加角色
               </button>
               <button class="btn btn-secondary" id="resetConfigBtn">
-                🔄 恢复默认
+                恢复默认
               </button>
               <button class="btn btn-secondary" id="exportConfigBtn">
-                📥 导出配置
+                导出配置
               </button>
               <input
                 type="file"
@@ -533,7 +530,7 @@
                 style="display: none"
               />
               <button class="btn btn-secondary" id="importConfigBtn">
-                📤 导入配置
+                导入配置
               </button>
             </div>
             <div style="display: flex; gap: 10px">
@@ -558,7 +555,7 @@
     <div class="modal" id="costumeModal">
       <div class="modal-content" style="max-width: 800px">
         <div class="modal-header">
-          <div class="modal-title">🎭 角色服装配置</div>
+          <div class="modal-title">角色服装配置</div>
           <button
             class="modal-close"
             onclick="costumeManager.cancelCostumeChanges()"
@@ -572,7 +569,7 @@
               为每个角色配置默认服装。您可以从预设服装中选择，或添加自定义服装ID。
             </p>
             <p style="color: #3182ce; font-size: 0.9rem">
-              💡 提示：点击"浏览数据库"可以查看 Bestdori 的所有可用服装ID。
+              提示：点击"浏览数据库"可以查看 Bestdori 的所有可用服装ID。
             </p>
             <p style="color: #e53e3e; font-size: 0.9rem">
               <strong>提示：</strong>服装配置将保存在您的浏览器本地。
@@ -587,7 +584,7 @@
             "
           >
             <button class="btn btn-secondary" id="resetCostumesBtn">
-              🔄 恢复默认
+              恢复默认
             </button>
             <button class="btn btn-primary" id="saveCostumesBtn">
               保存配置
@@ -690,14 +687,14 @@
     <div class="modal" id="helpModal">
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">📘 使用说明</div>
+          <div class="modal-title">使用说明</div>
           <button class="modal-close" onclick="ui.closeModal('helpModal')">
             ×
           </button>
         </div>
         <div class="modal-body" id="helpContent">
           <div class="help-section">
-            <h4>🆕 新功能说明</h4>
+            <h4>功能说明</h4>
             <ul>
               <li>
                 <strong>多格式支持</strong>：现在支持上传 Word文档(.docx) 和
@@ -724,7 +721,7 @@
           </div>
 
           <div class="help-section">
-            <h4>📁 文件上传</h4>
+            <h4>文件上传</h4>
             <p>
               点击或将文件拖拽到此区域，支持
               <code>.txt</code>、<code>.docx</code>、<code>.md</code>
@@ -733,29 +730,29 @@
           </div>
 
           <div class="help-section">
-            <h4>✏️ 文本输入</h4>
+            <h4>文本输入</h4>
             <p>
               在此处直接粘贴或编辑你的对话文本。标准格式为
               <strong>角色名:对话内容</strong> 或
               <strong>角色名：对话内容</strong>（中英文冒号均可）。
             </p>
             <ul>
-              <li><strong>📐 格式化文本</strong>: 自动整理文本间距</li>
+              <li><strong>格式化文本</strong>: 自动整理文本间距</li>
             </ul>
           </div>
 
           <div class="help-section">
-            <h4>⚡ 操作</h4>
+            <h4>操作</h4>
             <ul>
-              <li><strong>🔄 开始转换</strong>: 将文本转换为JSON格式</li>
-              <li><strong>🎭 对话预览</strong>: 以对话形式预览转换结果</li>
-              <li><strong>⚙️ 配置管理</strong>: 配置角色名称与ID的映射关系</li>
-              <li><strong>📦 批量处理</strong>: 批量转换多个文件</li>
+              <li><strong>开始转换</strong>: 将文本转换为JSON格式</li>
+              <li><strong>对话预览</strong>: 以对话形式预览转换结果</li>
+              <li><strong>配置管理</strong>: 配置角色名称与ID的映射关系</li>
+              <li><strong>批量处理</strong>: 批量转换多个文件</li>
             </ul>
           </div>
 
           <div class="help-section">
-            <h4>🎭 Live2D 布局功能</h4>
+            <h4>Live2D 布局功能</h4>
             <ul>
               <li>
                 <strong>启用功能</strong>：勾选"启用自动 Live2D
@@ -777,7 +774,7 @@
           </div>
 
           <div class="help-section">
-            <h4>⚙️ 配置管理</h4>
+            <h4>配置管理</h4>
             <ul>
               <li><strong>添加角色</strong>：添加新的角色映射</li>
               <li><strong>恢复默认</strong>：恢复到系统默认配置</li>
@@ -851,7 +848,7 @@
                 class="btn btn-secondary"
                 style="flex-shrink: 0"
               >
-                ➕ 添加
+                添加
               </button>
             </div>
           </div>
