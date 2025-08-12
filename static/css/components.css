@@ -85,8 +85,8 @@
   justify-content: center;
   font-weight: bold;
   font-size: 16px;
-  color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--text-secondary);
+  background: var(--color-secondary);
   overflow: hidden; /* 改为 hidden 以确保内容不会溢出圆形边界 */
   position: relative;
   border: 2px solid #e2e8f0;
@@ -102,7 +102,8 @@
 }
 
 .config-avatar.fallback {
-  background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+  background: var(--color-secondary);
+  color: var(--text-secondary);
 }
 
 /* 配置项布局调整 */
@@ -115,16 +116,6 @@
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   transition: all 0.3s ease;
-}
-
-.config-item:hover {
-  transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.config-item:hover .config-avatar {
-  transform: scale(1.1);
-  border-color: var(--color-primary);
 }
 
 /* 输入框调整 */
@@ -170,10 +161,6 @@
   }
 }
 
-.config-avatar[data-id]:not([data-id="0"]) {
-  animation: avatarPulse 2s infinite;
-}
-
 .config-avatar[data-id="0"] {
   animation: none;
 }
@@ -195,16 +182,6 @@
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   z-index: 1;
-}
-
-/* 调整hover时显示角标 */
-.config-item:hover .config-avatar-wrapper {
-  /* 移除overflow限制 */
-  overflow: visible;
-}
-
-.config-item:hover .config-avatar[data-id]:not([data-id="0"])::after {
-  display: block;
 }
 
 /* 服装配置项样式 */
@@ -452,11 +429,6 @@
   border-radius: var(--radius-md);
   transition: all 0.3s ease;
   gap: var(--spacing-md);
-}
-
-.position-config-item:hover {
-  transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .position-character-info {
@@ -763,7 +735,6 @@
 
 #helpBtn:hover {
   background: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
 }
 
 /* Bestdori 跳转按钮样式 */

@@ -264,6 +264,8 @@
 
 /* 回退样式（显示文字） */
 .dialogue-avatar.fallback {
+  background: var(--color-secondary) !important;
+  color: var(--text-secondary) !important;
   transition: all var(--transition-normal);
 }
 
@@ -278,12 +280,6 @@
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.3);
   pointer-events: none;
-}
-
-/* 鼠标悬停效果 */
-.dialogue-item:hover .dialogue-avatar {
-  transform: scale(1.05);
-  transition: transform var(--transition-normal);
 }
 
 .dialogue-item:hover .dialogue-avatar::after {
