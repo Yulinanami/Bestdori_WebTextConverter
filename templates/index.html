@@ -313,9 +313,7 @@
               <button class="btn btn-secondary" id="previewModeBtn">
                 对话预览
               </button>
-              <button class="btn btn-secondary" id="configBtn">
-                配置管理
-              </button>
+              <button class="btn btn-secondary" id="configBtn">配置管理</button>
               <button class="btn btn-secondary" id="batchProcessBtn">
                 批量处理
               </button>
@@ -531,6 +529,13 @@
               />
               <button class="btn btn-secondary" id="importConfigBtn">
                 导入配置
+              </button>
+              <button
+                class="btn btn-danger"
+                id="clearCacheBtn"
+                title="清除所有保存在浏览器中的用户数据，包括角色、服装和引号配置，并将应用重置为初始状态。"
+              >
+                清除缓存
               </button>
             </div>
             <div style="display: flex; gap: 10px">
@@ -780,6 +785,7 @@
               <li><strong>恢复默认</strong>：恢复到系统默认配置</li>
               <li><strong>导出配置</strong>：将当前配置导出为JSON文件</li>
               <li><strong>导入配置</strong>：从JSON文件导入配置</li>
+              <li><strong>清除配置</strong>：清空浏览器的本地存储空间，如果遇到一些奇怪的bug可以试着清除</li>
             </ul>
             <p style="color: #e53e3e; margin-top: 10px">
               <strong>注意：</strong

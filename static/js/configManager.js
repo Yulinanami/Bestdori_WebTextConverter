@@ -490,4 +490,46 @@ export const configManager = {
 
     reader.readAsText(file);
   },
+  // 清除所有本地存储
+  async clearLocalStorage() {
+    if (
+      !confirm(
+        "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
+          "  - 自定义角色映射\n" +
+          "  - 所有角色的服装配置\n" +
+          "  - 自定义引号\n" +
+          "  - Live2D 布局和位置设置\n\n" +
+          "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
+      )
+    ) {
+      return;
+    }
+
+    await ui.withButtonLoading(
+      "clearCacheBtn",
+      async () => {
+        const keysToRemove = [
+          "bestdori_character_mapping",
+          "bestdori_custom_quotes",
+          "bestdori_costume_mapping_v2",
+          "bestdori_available_costumes_v2",
+          "bestdori_position_config",
+          "bestdori_enable_live2d",
+          "bestdori_costume_mapping",
+          "bestdori_custom_characters",
+        ];
+
+        console.log("正在清除以下本地缓存:", keysToRemove);
+
+        keysToRemove.forEach((key) => {
+          localStorage.removeItem(key);
+        });
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        alert("缓存已成功清除！网页即将重新加载。");
+        location.reload();
+      },
+      "清除中..."
+    );
+  },
 };

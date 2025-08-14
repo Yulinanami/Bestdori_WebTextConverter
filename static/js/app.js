@@ -216,6 +216,15 @@ function bindClassicViewEvents() {
     });
   }
 
+  // 清除缓存按钮
+  const clearCacheBtn = document.getElementById("clearCacheBtn");
+  if (clearCacheBtn) {
+    clearCacheBtn.addEventListener(
+      "click",
+      configManager.clearLocalStorage.bind(configManager)
+    );
+  }
+
   // Live2D开关
   const enableLive2DCheckbox = document.getElementById("enableLive2DCheckbox");
   if (enableLive2DCheckbox) {
