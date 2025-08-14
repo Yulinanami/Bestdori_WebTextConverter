@@ -425,6 +425,7 @@ class ConfigManager:
                     "038_school_winter-2023",
                     "038_live_default",
                     "038_casual-2023",
+                    "343_event_286_story_01",
                 ],
                 39: [
                     "039_school_summer-2023",
@@ -447,23 +448,30 @@ class ConfigManager:
                     "337_school_winter-2023",
                     "337_casual-2023",
                     "337_casual-2023_nocap",
+                    "337_event_297_story_01",
                 ],
                 338: [
                     "338_school_summer-2023",
                     "338_school_winter-2023",
                     "338_casual-2023",
+                    "338_event_297_story_01",
                 ],
                 339: [
                     "339_school_summer-2023",
                     "339_school_winter-2023",
                     "339_casual-2023",
+                    "339_event_297_story_01",
                 ],
-                340: ["340_casual-2023"],
+                340: [
+                    "340_casual-2023",
+                    "340_event_297_story_01",
+                ],
                 341: [
                     "341_jh_school_winter-2023",
                     "341_school_summer-2023",
                     "341_school_winter-2023",
                     "341_casual-2023",
+                    "341_event_297_story_01",
                 ],
             },
             "default_costumes": {  # 每个角色的默认服装
