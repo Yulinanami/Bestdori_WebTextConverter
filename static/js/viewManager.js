@@ -6,7 +6,14 @@ import { converter } from "./converter.js";
 export const viewManager = {
   // 视图切换
   switchView(e) {
-    const targetView = e.target.dataset.view;
+    const button = e.target.closest(".view-btn");
+
+    if (!button) {
+      console.error("无法找到 .view-btn 按钮。");
+      return;
+    }
+
+    const targetView = button.dataset.view;
 
     // 切换按钮状态
     document
@@ -18,7 +25,14 @@ export const viewManager = {
     document
       .querySelectorAll(".view-content")
       .forEach((view) => view.classList.remove("active"));
-    document.getElementById(targetView + "View").classList.add("active");
+    const targetViewElement = document.getElementById(targetView + "View");
+    if (targetViewElement) {
+      targetViewElement.classList.add("active");
+    } else {
+      console.error(
+        `无法找到视图元素: #${targetView}View。可能是由于页面翻译工具修改了DOM。`
+      );
+    }
 
     // 如果切换到分屏视图，同步内容并更新预览
     if (targetView === "split") {
