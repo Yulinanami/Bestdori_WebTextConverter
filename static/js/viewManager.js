@@ -70,13 +70,22 @@ export const viewManager = {
 
   // 预览模式切换
   switchPreviewMode(e) {
-    const mode = e.target.dataset.mode;
+    const button = e.target.closest(".preview-mode-btn");
+    if (!button) {
+      console.error("无法找到 .preview-mode-btn 按钮。");
+      return;
+    }
 
-    // 切换按钮状态
-    document
-      .querySelectorAll(".preview-mode-btn")
-      .forEach((btn) => btn.classList.remove("active"));
-    e.target.classList.add("active");
+    const mode = button.dataset.mode;
+
+    // 2. 使用更精确的方式更新高亮状态，防止翻译脚本干扰
+    const currentActiveButton = document.querySelector(
+      ".preview-mode-btn.active"
+    );
+    if (currentActiveButton) {
+      currentActiveButton.classList.remove("active");
+    }
+    button.classList.add("active");
 
     // 切换预览内容
     if (mode === "json") {
