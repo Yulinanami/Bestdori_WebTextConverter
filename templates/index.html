@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bestdori剧情文本转JSON转换器</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
@@ -785,7 +786,10 @@
               <li><strong>恢复默认</strong>：恢复到系统默认配置</li>
               <li><strong>导出配置</strong>：将当前配置导出为JSON文件</li>
               <li><strong>导入配置</strong>：从JSON文件导入配置</li>
-              <li><strong>清除配置</strong>：清空浏览器的本地存储空间，如果遇到一些奇怪的bug可以试着清除</li>
+              <li>
+                <strong>清除配置</strong
+                >：清空浏览器的本地存储空间，如果遇到一些奇怪的bug可以试着清除
+              </li>
             </ul>
             <p style="color: #e53e3e; margin-top: 10px">
               <strong>注意：</strong
