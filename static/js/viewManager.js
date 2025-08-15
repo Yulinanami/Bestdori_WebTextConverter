@@ -16,11 +16,15 @@ export const viewManager = {
     const targetView = button.dataset.view;
 
     // 切换按钮状态
-    document
-      .querySelectorAll(".view-btn")
-      .forEach((btn) => btn.classList.remove("active"));
-    e.target.classList.add("active");
+    const currentActiveButton = document.querySelector(".view-btn.active");
 
+    // 2. 如果找到了，就只移除它的 active 状态
+    if (currentActiveButton) {
+      currentActiveButton.classList.remove("active");
+    }
+
+    // 3. 给新点击的按钮添加 active 状态
+    button.classList.add("active");
     // 切换视图内容
     document
       .querySelectorAll(".view-content")
