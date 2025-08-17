@@ -9,6 +9,7 @@ import os
 import multiprocessing
 import uuid
 import threading
+import webbrowser
 import markdown2
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -675,7 +676,9 @@ class TextConverter:
         return output_ids
 
     def _get_effective_character_id(
-        self, character_name: str, character_ids: List[int]
+        self,
+        character_name: str,
+        character_ids: List[int],
     ) -> int:
         """获取角色的有效ID"""
         return character_ids[0] if character_ids else 0
@@ -726,7 +729,8 @@ class TextConverter:
 
         # 获取角色位置的辅助函数
         def get_character_position_config(
-            character_name: str, order: int
+            character_name: str,
+            order: int,
         ) -> Dict[str, Any]:
             """根据配置获取角色的位置和偏移"""
             if auto_position_mode:
@@ -1259,4 +1263,9 @@ def get_costumes():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
+
+    def open_browser():
+        webbrowser.open_new("http://127.0.0.1:5000")
+
+    threading.Timer(1, open_browser).start()
+    app.run(debug=False, host="0.0.0.0", port=5000)

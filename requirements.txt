@@ -1,8 +1,4 @@
 Flask==2.3.3
 PyYAML==6.0.1
-Werkzeug==2.3.7
-gunicorn==21.2.0
 python-docx==0.8.11
 markdown2==2.4.10
-lxml==4.9.3
-gevent==23.9.1

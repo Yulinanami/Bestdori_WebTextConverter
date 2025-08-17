@@ -52,6 +52,8 @@ build/
 dist/
 *.egg-info/
 *.egg
+*.spec
+*.ico
 
 config.local.yaml
 secrets.yaml
