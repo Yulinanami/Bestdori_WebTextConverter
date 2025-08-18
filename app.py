@@ -1149,27 +1149,32 @@ def get_costumes():
         return jsonify({"error": f"获取服装配置失败: {str(e)}"}), 500
 
 
-@app.route("/api/check_update", methods=["GET"])
-def check_update():
+@app.route("/api/update", methods=["POST"])
+def update():
     try:
+        # First, check if there are any updates
         subprocess.run(["git", "fetch"], check=True, capture_output=True)
         status_result = subprocess.run(
             ["git", "status", "-uno"], check=True, capture_output=True, text=True
         )
         status_output = status_result.stdout
+
         if "Your branch is up to date" in status_output:
             return jsonify({"status": "up_to_date", "message": "当前已是最新版本。"})
+
         elif "Your branch is behind" in status_output:
-            return jsonify(
-                {
-                    "status": "behind",
-                    "message": "发现新版本，请在命令行中运行 'git pull' 来更新。",
-                }
+            # If behind, pull the changes
+            pull_result = subprocess.run(
+                ["git", "pull"], check=True, capture_output=True, text=True
             )
+            logger.info(f"Git pull successful: {pull_result.stdout}")
+            return jsonify({"status": "success", "message": "更新成功！页面将在5秒后刷新。"})
+
         else:
             return jsonify(
                 {"status": "unknown", "message": "无法确定更新状态，请手动检查。"}
             )
+
     except FileNotFoundError:
         return (
             jsonify(

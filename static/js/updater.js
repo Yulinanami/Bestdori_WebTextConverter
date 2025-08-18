@@ -21,21 +21,20 @@ class Updater {
     const button = this.checkUpdateBtn;
     const originalText = button.innerHTML;
     button.disabled = true;
-    button.innerHTML = '<span class="spinner"></span>正在检查...';
+    button.innerHTML = '<span class="spinner"></span>正在更新...';
     try {
-      const response = await axios.get("/api/check_update");
+      const response = await axios.post("/api/update");
       const data = response.data;
-      if (data.status === "up_to_date") {
-        ui.showStatus(data.message, "success");
-      } else if (data.status === "behind") {
-        ui.showStatus(data.message, "info");
-      } else {
-        ui.showStatus(data.message, "warning");
+      ui.showStatus(data.message, data.status === 'success' ? 'success' : 'info');
+      if (data.status === "success") {
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
       }
     } catch (error) {
-      console.error("检查更新失败:", error);
+      console.error("更新失败:", error);
       const errorMessage =
-        error.response?.data?.message || "检查更新时发生网络错误或服务器错误。";
+        error.response?.data?.message || "更新时发生网络错误或服务器错误。";
       ui.showStatus(errorMessage, "error");
     } finally {
       button.disabled = false;
