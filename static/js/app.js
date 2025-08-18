@@ -12,7 +12,6 @@ import { batchProcessor } from "./batchProcessor.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { perfMonitor } from "./performance.js";
-import { updater } from "./updater.js";
 
 // 初始化应用
 function initializeApp() {
@@ -42,9 +41,6 @@ function initializeApp() {
 
   // 加载服装配置
   costumeManager.loadCostumeConfig();
-
-  // 初始化更新检查器
-  updater.init();
 
   // 初始化全局模态框监听器
   initGlobalModalListeners();

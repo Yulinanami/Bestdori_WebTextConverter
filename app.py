@@ -11,7 +11,6 @@ import uuid
 import threading
 import webbrowser
 import markdown2
-import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -1149,56 +1148,10 @@ def get_costumes():
         return jsonify({"error": f"获取服装配置失败: {str(e)}"}), 500
 
 
-@app.route("/api/check_update", methods=["GET"])
-def check_update():
-    try:
-        subprocess.run(["git", "fetch"], check=True, capture_output=True)
-        status_result = subprocess.run(
-            ["git", "status", "-uno"], check=True, capture_output=True, text=True
-        )
-        status_output = status_result.stdout
-        if "Your branch is up to date" in status_output:
-            return jsonify({"status": "up_to_date", "message": "当前已是最新版本。"})
-        elif "Your branch is behind" in status_output:
-            return jsonify(
-                {
-                    "status": "behind",
-                    "message": "发现新版本，请在命令行中运行 'git pull' 来更新。",
-                }
-            )
-        else:
-            return jsonify(
-                {"status": "unknown", "message": "无法确定更新状态，请手动检查。"}
-            )
-    except FileNotFoundError:
-        return (
-            jsonify(
-                {
-                    "status": "error",
-                    "message": "错误：'git' 命令未找到。请确保 Git 已经安装并配置在系统的 PATH 中。",
-                }
-            ),
-            500,
-        )
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Git command failed: {e.stderr}")
-        return (
-            jsonify({"status": "error", "message": f"执行 git 命令失败: {e.stderr}"}),
-            500,
-        )
-    except Exception as e:
-        logger.error(f"检查更新失败: {e}", exc_info=True)
-        return (
-            jsonify(
-                {"status": "error", "message": f"检查更新时发生未知错误: {str(e)}"}
-            ),
-            500,
-        )
-
-
 if __name__ == "__main__":
 
     def open_browser():
         webbrowser.open_new("http://127.0.0.1:5000")
+
     threading.Timer(1, open_browser).start()
     app.run(debug=False, host="0.0.0.0", port=5000)
