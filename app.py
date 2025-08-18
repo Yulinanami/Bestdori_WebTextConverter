@@ -8,6 +8,7 @@ import tempfile
 import os
 import multiprocessing
 import uuid
+import sys
 import threading
 import webbrowser
 import markdown2
@@ -1152,27 +1153,60 @@ def get_costumes():
 @app.route("/api/update", methods=["POST"])
 def update():
     try:
-        # First, check if there are any updates
-        subprocess.run(["git", "fetch"], check=True, capture_output=True)
+        # 检查git仓库状态
+        fetch_result = subprocess.run(["git", "fetch"], capture_output=True, text=True)
+        if fetch_result.returncode != 0:
+            logger.error(f"Git fetch failed: {fetch_result.stderr}")
+            return jsonify({"status": "error", "message": f"Git fetch 失败: {fetch_result.stderr}"}), 500
+
         status_result = subprocess.run(
-            ["git", "status", "-uno"], check=True, capture_output=True, text=True
+            ["git", "status", "-uno"], capture_output=True, text=True, check=True
         )
         status_output = status_result.stdout
 
         if "Your branch is up to date" in status_output:
             return jsonify({"status": "up_to_date", "message": "当前已是最新版本。"})
 
-        elif "Your branch is behind" in status_output:
-            # If behind, pull the changes
-            pull_result = subprocess.run(
-                ["git", "pull"], check=True, capture_output=True, text=True
+        if "Your branch is behind" in status_output or "have diverged" in status_output:
+            # Forcing update to the latest version of the remote branch
+            branch_result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True)
+            branch_name = branch_result.stdout.strip()
+            
+            # Stash local changes to be safe, especially for untracked files that might be part of the update
+            subprocess.run(["git", "stash", "save", "Auto-stashed before force update"], capture_output=True)
+
+            reset_result = subprocess.run(
+                ["git", "reset", "--hard", f"origin/{branch_name}"], capture_output=True, text=True, check=True
             )
-            logger.info(f"Git pull successful: {pull_result.stdout}")
-            return jsonify({"status": "success", "message": "更新成功！页面将在5秒后刷新。"})
+            
+            # Clean untracked files and directories that might have been pulled
+            clean_result = subprocess.run(
+                ["git", "clean", "-fd"], capture_output=True, text=True, check=True
+            )
+
+            logger.info(f"Git reset successful: {reset_result.stdout}")
+            logger.info(f"Git clean successful: {clean_result.stdout}")
+
+            # Schedule a restart to apply changes
+            def restart_server():
+                logger.info("Restarting server to apply updates...")
+                
+                def _restart():
+                    import time
+                    time.sleep(1)  # Give client time to receive response
+                    os.execv(sys.executable, [sys.executable] + sys.argv)
+                
+                restart_thread = threading.Thread(target=_restart)
+                restart_thread.daemon = True
+                restart_thread.start()
+
+            restart_server()
+            
+            return jsonify({"status": "success", "message": "更新成功！服务器正在重启，请稍后手动刷新页面。"})
 
         else:
             return jsonify(
-                {"status": "unknown", "message": "无法确定更新状态，请手动检查。"}
+                {"status": "unknown", "message": "无法自动更新。您的本地分支与远程分支有差异，但不是简单的落后。建议手动处理。"}
             )
 
     except FileNotFoundError:
@@ -1186,9 +1220,10 @@ def update():
             500,
         )
     except subprocess.CalledProcessError as e:
-        logger.error(f"Git command failed: {e.stderr}")
+        error_message = e.stderr or e.stdout
+        logger.error(f"Git command failed: {error_message}")
         return (
-            jsonify({"status": "error", "message": f"执行 git 命令失败: {e.stderr}"}),
+            jsonify({"status": "error", "message": f"执行 git 命令失败: {error_message}"}),
             500,
         )
     except Exception as e:
