@@ -8,6 +8,7 @@ import tempfile
 import os
 import multiprocessing
 import uuid
+import sys
 import threading
 import webbrowser
 import markdown2
