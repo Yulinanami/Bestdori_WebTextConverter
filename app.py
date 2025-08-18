@@ -22,13 +22,11 @@ from werkzeug.utils import secure_filename
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from flask import Flask, render_template, request, jsonify, send_file
 
-
 project_root = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
 template_folder = os.path.join(project_root, "templates")
 static_folder = os.path.join(project_root, "static")
 app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
@@ -38,26 +36,19 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 class OptimizedBatchProcessor:
     def __init__(self):
-        # 使用CPU核心数确定最佳工作进程数
         self.max_workers = min(multiprocessing.cpu_count(), 4)
         self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers)
 
     def process_single_file_wrapper(self, args):
-        """进程池需要的包装函数"""
         file_data, converter_config = args
-        # 为每个进程创建独立的转换器实例
         converter = TextConverter(ConfigManager())
-
-        # 设置配置
         if converter_config.get("character_mapping"):
             converter.character_mapping = converter_config["character_mapping"]
-
         filename = file_data.get("name", "unknown.txt")
         raw_content = file_data.get("content", "")
         encoding = file_data.get("encoding", "text")
 
         try:
-            # 处理不同文件类型
             if encoding == "base64" and filename.lower().endswith(".docx"):
                 content_parts = raw_content.split(",")
                 if len(content_parts) > 1:
@@ -69,8 +60,6 @@ class OptimizedBatchProcessor:
                 text_content = FileFormatConverter.markdown_to_text(raw_content)
             else:
                 text_content = raw_content
-
-            # 转换文本
             json_output = converter.convert_text_to_json_format(
                 text_content,
                 converter_config.get("narrator_name", " "),
@@ -79,7 +68,6 @@ class OptimizedBatchProcessor:
                 converter_config.get("custom_costume_mapping"),
                 converter_config.get("position_config"),
             )
-
             return {
                 "success": True,
                 "name": Path(filename).with_suffix(".json").name,
@@ -89,7 +77,6 @@ class OptimizedBatchProcessor:
             return {"success": False, "name": filename, "error": str(e)}
 
 
-# 创建全局批量处理器实例
 batch_processor = OptimizedBatchProcessor()
 
 
@@ -124,10 +111,10 @@ class LayoutActionItem:
     costume: str = ""
     motion: str = ""
     expression: str = ""
-    sideFrom: str = "center"  # 起始位置
-    sideFromOffsetX: int = 0  # 起始X偏移
-    sideTo: str = "center"  # 目标位置
-    sideToOffsetX: int = 0  # 目标X偏移
+    sideFrom: str = "center"
+    sideFromOffsetX: int = 0
+    sideTo: str = "center"
+    sideToOffsetX: int = 0
 
 
 @dataclass
@@ -442,7 +429,7 @@ class ConfigManager:
                     "040_casual-2023",
                 ],
                 # Sumimi
-                229: ["229_sumimi"],  # 纯田真奈
+                229: ["229_sumimi"],
                 # Mujica
                 337: [
                     "337_sumimi",
@@ -517,7 +504,7 @@ class ConfigManager:
                 38: "038_casual-2023",
                 39: "039_casual-2023",
                 40: "040_casual-2023",
-                229: "229_sumimi",  # 纯田真奈
+                229: "229_sumimi",
                 337: "337_casual-2023",
                 338: "338_casual-2023",
                 339: "339_casual-2023",
@@ -561,14 +548,12 @@ class ConfigManager:
                     )
                     loaded_config["quotes"] = default_config["quotes"]
                     self._save_config(loaded_config)
-                # 确保服装配置存在
                 if "costume_mapping" not in loaded_config:
                     loaded_config["costume_mapping"] = default_config["costume_mapping"]
                 if "default_costumes" not in loaded_config:
                     loaded_config["default_costumes"] = default_config[
                         "default_costumes"
                     ]
-
                 return loaded_config
         except Exception as e:
             logger.warning(f"配置文件加载失败: {e}")
@@ -647,8 +632,6 @@ class TextConverter:
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
-
-        # 添加 Mujica ID 反向映射（用于输出）
         self.mujica_output_mapping = {
             229: 6,  # 纯田真奈
             337: 1,  # 三角初华
@@ -666,10 +649,8 @@ class TextConverter:
         self.quote_handler = QuoteHandler()
 
     def _get_output_character_ids(self, character_ids: List[int]) -> List[int]:
-        """将角色ID转换为输出用的ID（处理Mujica的特殊情况）"""
         output_ids = []
         for char_id in character_ids:
-            # 如果是 Mujica 成员的ID，转换为1-5
             if char_id in self.mujica_output_mapping:
                 output_ids.append(self.mujica_output_mapping[char_id])
             else:
@@ -698,14 +679,11 @@ class TextConverter:
             for pair in selected_quote_pairs_list
             if isinstance(pair, list) and len(pair) == 2
         }
-
         actions = []
-        appeared_character_names = set()  # 基于角色名称而不是ID
-        appearance_order = {}  # 记录角色出场顺序
+        appeared_character_names = set()
+        appearance_order = {}
         current_action_name = narrator_name
         current_action_body_lines = []
-
-        # 合并默认和自定义服装映射
         effective_costume_mapping = {}
         if enable_live2d:
             effective_costume_mapping = self.costume_mapping.copy()
@@ -715,12 +693,9 @@ class TextConverter:
                 logger.info(
                     f"合并后的服装映射（部分）: {dict(list(effective_costume_mapping.items())[:5])}"
                 )
-
-        # 处理位置配置
         auto_position_mode = True
         manual_positions = {}
         positions = ["leftInside", "center", "rightInside"]
-
         if position_config:
             auto_position_mode = position_config.get("autoPositionMode", True)
             manual_positions = position_config.get("manualPositions", {})
@@ -735,16 +710,12 @@ class TextConverter:
         ) -> Dict[str, Any]:
             """根据配置获取角色的位置和偏移"""
             if auto_position_mode:
-                # 自动分配模式：按出场顺序循环分配，没有偏移
                 return {"position": positions[order % len(positions)], "offset": 0}
             else:
-                # 手动模式：使用配置的位置和偏移
                 config = manual_positions.get(character_name, {})
                 if isinstance(config, str):
-                    # 兼容旧格式
                     return {"position": config, "offset": 0}
                 else:
-                    # 新格式
                     return {
                         "position": config.get("position", "center"),
                         "offset": config.get("offset", 0),
@@ -768,22 +739,15 @@ class TextConverter:
                         effective_id = self._get_effective_character_id(
                             current_action_name, character_ids
                         )
-
                         if current_action_name not in appeared_character_names:
                             appeared_character_names.add(current_action_name)
-
-                            # 记录出场顺序
                             order = len(appearance_order)
                             appearance_order[current_action_name] = order
-
-                            # 获取角色位置和偏移配置
                             position_config = get_character_position_config(
                                 current_action_name, order
                             )
                             position = position_config["position"]
                             offset = position_config["offset"]
-
-                            # 使用角色名称作为key来获取服装
                             costume_id = ""
                             if custom_costume_mapping:
                                 costume_id = custom_costume_mapping.get(
@@ -792,7 +756,6 @@ class TextConverter:
                                 logger.info(
                                     f"从自定义映射获取 {current_action_name} 的服装: {costume_id}"
                                 )
-
                             if not costume_id and effective_costume_mapping:
                                 costume_id = effective_costume_mapping.get(
                                     effective_id, ""
@@ -800,19 +763,15 @@ class TextConverter:
                                 logger.info(
                                     f"从默认映射获取 ID {effective_id} 的服装: {costume_id}"
                                 )
-
                             logger.info(
                                 f"角色 {current_action_name} (ID: {primary_character_id}) 最终使用服装: {costume_id}"
                             )
                             logger.info(
                                 f"角色 {current_action_name} 分配到位置: {position}，偏移: {offset}"
                             )
-
                             output_char_id = self.mujica_output_mapping.get(
                                 primary_character_id, primary_character_id
                             )
-
-                            # 创建 layout action，包含位置和偏移信息
                             layout_action = LayoutActionItem(
                                 character=output_char_id,
                                 costume=costume_id,
@@ -822,8 +781,6 @@ class TextConverter:
                                 sideToOffsetX=offset,
                             )
                             actions.append(layout_action)
-
-                    # 添加 talk action
                     output_character_ids = self._get_output_character_ids(character_ids)
                     talk_action = ActionItem(
                         characters=output_character_ids,
@@ -850,16 +807,7 @@ class TextConverter:
             else:
                 current_action_body_lines.append(stripped_line)
         finalize_current_action()
-
-        # 处理结果，将所有 action 转换为字典
-        # all_actions = []
-        # for action in actions:
-        #     if isinstance(action, LayoutActionItem):
-        #         all_actions.append(asdict(action))
-        #     else:
-        #         all_actions.append(asdict(action))
         all_actions = [asdict(action) for action in actions]
-
         result = ConversionResult(actions=all_actions)
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
@@ -868,7 +816,6 @@ class TextConverter:
 class FileFormatConverter:
     @staticmethod
     def docx_to_text(file_content: bytes) -> str:
-        """将Word文档转换为纯文本"""
         try:
             doc = Document(io.BytesIO(file_content))
             text_lines = []
@@ -884,13 +831,9 @@ class FileFormatConverter:
     def markdown_to_text(md_content: str) -> str:
         """将Markdown转换为纯文本，保留对话格式"""
         try:
-            # 先转换Markdown到HTML
             html = markdown2.markdown(md_content)
-            # 移除HTML标签，保留文本
             text = re.sub(r"<[^>]+>", "", html)
-            # 处理特殊字符
             text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
-            # 清理多余的空行
             lines = [line.strip() for line in text.split("\n") if line.strip()]
             return "\n\n".join(lines)
         except Exception as e:
@@ -900,10 +843,8 @@ class FileFormatConverter:
 
 config_manager = ConfigManager()
 file_converter = FileFormatConverter()
-
-# 任务管理
-batch_tasks = {}  # 用于存储所有批量任务的状态
-executor = ThreadPoolExecutor(max_workers=2)  # 线程池，用于在后台执行批量任务
+batch_tasks = {}
+executor = ThreadPoolExecutor(max_workers=2)
 
 
 def run_batch_task(
@@ -915,9 +856,6 @@ def run_batch_task(
     enable_live2d: bool = False,
     custom_costume_mapping: Dict[int, str] = None,
 ):
-    """在后台线程中运行的批量转换函数"""
-
-    # 处理服装映射的类型转换
     if custom_costume_mapping:
         fixed_costume_mapping = {}
         for str_key, value in custom_costume_mapping.items():
@@ -927,29 +865,19 @@ def run_batch_task(
             except (ValueError, AttributeError):
                 fixed_costume_mapping[str_key] = value
         custom_costume_mapping = fixed_costume_mapping
-
     total_files = len(files_data)
     task = batch_tasks[task_id]
-
-    # 为这个批量任务创建独立的转换器实例
     batch_converter = TextConverter(config_manager)
-
-    # 如果有自定义映射，设置到转换器实例
     if custom_character_mapping:
         batch_converter.character_mapping = custom_character_mapping
-
     for i, file_data in enumerate(files_data):
         filename = file_data.get("name", "unknown.txt")
         raw_content = file_data.get("content", "")
         encoding = file_data.get("encoding", "text")
-
-        # 更新任务状态
         task["progress"] = (i / total_files) * 100
         task["status_text"] = f"正在处理 ({i+1}/{total_files}): {filename}"
         task["logs"].append(f"[INFO] 开始处理: {filename}")
-
         try:
-            # 根据文件类型和编码处理内容
             text_content = ""
             if encoding == "base64" and filename.lower().endswith(".docx"):
                 content_parts = raw_content.split(",")
@@ -963,8 +891,6 @@ def run_batch_task(
                 text_content = file_converter.markdown_to_text(raw_content)
             else:
                 text_content = raw_content
-
-            # 使用批量任务专用的转换器实例
             json_output = batch_converter.convert_text_to_json_format(
                 text_content,
                 narrator_name,
@@ -972,7 +898,6 @@ def run_batch_task(
                 enable_live2d,
                 custom_costume_mapping,
             )
-
             task["results"].append(
                 {
                     "name": Path(filename).with_suffix(".json").name,
@@ -984,7 +909,6 @@ def run_batch_task(
             error_msg = f"处理失败: {filename} - {e}"
             task["logs"].append(f"[ERROR] {error_msg}")
             task["errors"].append(error_msg)
-
     task["progress"] = 100
     task["status_text"] = (
         f"处理完成！成功: {len(task['results'])}, 失败: {len(task['errors'])}."
@@ -1009,8 +933,6 @@ def convert_text():
         enable_live2d = data.get("enable_live2d", False)
         custom_costume_mapping = data.get("costume_mapping", None)
         position_config = data.get("position_config", None)
-
-        # 将字符串键转换为整数键
         if custom_costume_mapping:
             fixed_costume_mapping = {}
             for str_key, value in custom_costume_mapping.items():
@@ -1021,18 +943,11 @@ def convert_text():
                     fixed_costume_mapping[str_key] = value
             custom_costume_mapping = fixed_costume_mapping
             logger.info(f"修复后的服装映射: {custom_costume_mapping}")
-
         if not input_text.strip():
             return jsonify({"error": "输入文本不能为空"}), 400
-
-        # 为这个请求创建独立的转换器实例
         request_converter = TextConverter(config_manager)
-
-        # 如果有自定义映射，直接设置到新实例
         if custom_character_mapping:
             request_converter.character_mapping = custom_character_mapping
-
-        # 使用请求专用的转换器实例
         result = request_converter.convert_text_to_json_format(
             input_text,
             narrator_name,
@@ -1041,7 +956,6 @@ def convert_text():
             custom_costume_mapping,
             position_config,
         )
-
         return jsonify({"result": result})
     except Exception as e:
         logger.error(f"转换失败: {e}", exc_info=True)
@@ -1053,22 +967,17 @@ def get_batch_status(task_id):
     task = batch_tasks.get(task_id)
     if not task:
         return jsonify({"error": "未找到该任务"}), 404
-
-    # 为了减少数据传输，只返回状态和进度，结果在完成后一次性获取或分块获取
     response_data = {
         "status": task["status"],
         "progress": task["progress"],
         "status_text": task["status_text"],
         "logs": task["logs"],
     }
-
-    # 如果任务完成，附上结果
     if task["status"] == "completed":
         response_data["results"] = task["results"]
         response_data["errors"] = task["errors"]
         # 在一段时间后从内存中移除已完成的任务，以防内存泄漏
         threading.Timer(300, lambda: batch_tasks.pop(task_id, None)).start()
-
     return jsonify(response_data)
 
 
@@ -1078,11 +987,8 @@ def start_batch_conversion():
     try:
         data = request.get_json()
         files_data = data.get("files", [])
-
         if not files_data:
             return jsonify({"error": "没有提供任何文件"}), 400
-
-        # 准备转换配置
         converter_config = {
             "narrator_name": data.get("narrator_name", " "),
             "selected_quote_pairs": data.get("selected_quote_pairs", []),
@@ -1091,10 +997,8 @@ def start_batch_conversion():
             "custom_costume_mapping": data.get("costume_mapping"),
             "position_config": data.get("position_config"),
         }
-
         task_id = str(uuid.uuid4())
 
-        # 使用线程池执行批量处理
         def run_batch_async():
             batch_tasks[task_id] = {
                 "status": "running",
@@ -1104,13 +1008,8 @@ def start_batch_conversion():
                 "results": [],
                 "errors": [],
             }
-
             total_files = len(files_data)
-
-            # 准备参数列表
             args_list = [(file_data, converter_config) for file_data in files_data]
-
-            # 使用进程池并行处理
             with ThreadPoolExecutor(max_workers=4) as executor:
                 futures = []
                 for i, args in enumerate(args_list):
@@ -1118,16 +1017,11 @@ def start_batch_conversion():
                         batch_processor.process_single_file_wrapper, args
                     )
                     futures.append((i, future))
-
-                # 处理结果
                 for i, future in futures:
                     try:
-                        result = future.result(timeout=30)  # 30秒超时
-
-                        # 更新进度
+                        result = future.result(timeout=30)
                         progress = ((i + 1) / total_files) * 100
                         batch_tasks[task_id]["progress"] = progress
-
                         if result["success"]:
                             batch_tasks[task_id]["results"].append(
                                 {"name": result["name"], "content": result["content"]}
@@ -1145,16 +1039,13 @@ def start_batch_conversion():
                         batch_tasks[task_id]["logs"].append(
                             f"[ERROR] 处理超时或异常: {args_list[i][0].get('name', 'unknown')}"
                         )
-
             batch_tasks[task_id]["status"] = "completed"
             batch_tasks[task_id]["progress"] = 100
             batch_tasks[task_id][
                 "status_text"
             ] = f"处理完成！成功: {len(batch_tasks[task_id]['results'])}, 失败: {len(batch_tasks[task_id]['errors'])}"
 
-        # 在后台线程中运行
         executor.submit(run_batch_async)
-
         return jsonify({"task_id": task_id})
     except Exception as e:
         logger.error(f"启动批量转换失败: {e}", exc_info=True)
@@ -1169,11 +1060,8 @@ def upload_file():
         file = request.files["file"]
         if file.filename == "":
             return jsonify({"error": "没有选择文件"}), 400
-
         filename = file.filename.lower()
         file_content = file.read()
-
-        # 根据文件类型处理
         if filename.endswith(".txt"):
             content = file_content.decode("utf-8")
         elif filename.endswith(".docx"):
@@ -1185,7 +1073,6 @@ def upload_file():
                 jsonify({"error": "不支持的文件格式，请上传 .txt, .docx 或 .md 文件"}),
                 400,
             )
-
         return jsonify({"content": content})
     except Exception as e:
         logger.error(f"文件上传失败: {e}")
@@ -1248,7 +1135,6 @@ def get_config():
 #         return jsonify({"error": f"配置更新失败: {str(e)}"}), 500
 
 
-# 获取服装配置的API（包含Mujica映射）
 @app.route("/api/costumes", methods=["GET"])
 def get_costumes():
     try:
@@ -1266,36 +1152,53 @@ def get_costumes():
 @app.route("/api/check_update", methods=["GET"])
 def check_update():
     try:
-        # First, fetch the latest updates from the remote
         subprocess.run(["git", "fetch"], check=True, capture_output=True)
-
-        # Check the status
         status_result = subprocess.run(
             ["git", "status", "-uno"], check=True, capture_output=True, text=True
         )
         status_output = status_result.stdout
-
         if "Your branch is up to date" in status_output:
             return jsonify({"status": "up_to_date", "message": "当前已是最新版本。"})
         elif "Your branch is behind" in status_output:
-            return jsonify({"status": "behind", "message": "发现新版本，请在命令行中运行 'git pull' 来更新。"})
+            return jsonify(
+                {
+                    "status": "behind",
+                    "message": "发现新版本，请在命令行中运行 'git pull' 来更新。",
+                }
+            )
         else:
-            return jsonify({"status": "unknown", "message": "无法确定更新状态，请手动检查。"})
-
+            return jsonify(
+                {"status": "unknown", "message": "无法确定更新状态，请手动检查。"}
+            )
     except FileNotFoundError:
-        return jsonify({"status": "error", "message": "错误：'git' 命令未找到。请确保 Git 已经安装并配置在系统的 PATH 中。"}), 500
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": "错误：'git' 命令未找到。请确保 Git 已经安装并配置在系统的 PATH 中。",
+                }
+            ),
+            500,
+        )
     except subprocess.CalledProcessError as e:
         logger.error(f"Git command failed: {e.stderr}")
-        return jsonify({"status": "error", "message": f"执行 git 命令失败: {e.stderr}"}), 500
+        return (
+            jsonify({"status": "error", "message": f"执行 git 命令失败: {e.stderr}"}),
+            500,
+        )
     except Exception as e:
         logger.error(f"检查更新失败: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": f"检查更新时发生未知错误: {str(e)}"}), 500
+        return (
+            jsonify(
+                {"status": "error", "message": f"检查更新时发生未知错误: {str(e)}"}
+            ),
+            500,
+        )
 
 
 if __name__ == "__main__":
 
     def open_browser():
         webbrowser.open_new("http://127.0.0.1:5000")
-
     threading.Timer(1, open_browser).start()
     app.run(debug=False, host="0.0.0.0", port=5000)

@@ -5,36 +5,29 @@ import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 
 export const batchProcessor = {
-  // 打开批量处理模态框
   openBatchModal() {
     document.getElementById("batchFileInput").value = "";
     const fileList = document.getElementById("batchFileList");
     if (fileList) fileList.innerHTML = "";
-
     const progressSection = document.getElementById("batchProgressSection");
     const logSection = document.getElementById("batchLogSection");
     const progressBar = document.getElementById("batchProgressBar");
     const statusText = document.getElementById("batchStatusText");
-
     progressSection.style.display = "none";
     logSection.style.display = "none";
     progressBar.style.width = "0%";
     statusText.textContent = "正在处理...";
-
     document.getElementById("downloadBatchResultBtn").style.display = "none";
     const startBtn = document.getElementById("startBatchBtn");
     startBtn.style.display = "inline-flex";
     startBtn.disabled = true;
     startBtn.innerHTML = "开始批量转换";
-
     const cancelBtn = document.querySelector(
       '#batchConvertModal .btn-secondary[onclick*="batchConvertModal"]'
     );
     if (cancelBtn) cancelBtn.style.display = "inline-flex";
-
     state.batchFiles = [];
     state.batchResults = [];
-
     ui.openModal("batchConvertModal");
   },
 
@@ -44,7 +37,6 @@ export const batchProcessor = {
     const fileList = document.getElementById("batchFileList");
     fileList.innerHTML = "";
     state.batchFiles = Array.from(fileInput.files);
-
     if (state.batchFiles.length > 0) {
       state.batchFiles.forEach((file) => {
         const li = document.createElement("li");
@@ -70,19 +62,15 @@ export const batchProcessor = {
       ui.showStatus("请先选择文件！", "error");
       return;
     }
-
     const startBtn = document.getElementById("startBatchBtn");
     startBtn.disabled = true;
     startBtn.innerHTML = '<div class="loading"></div> 上传并准备中...';
-
     try {
       const filesData = await Promise.all(
         state.batchFiles.map((file) => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
             const filename = file.name.toLowerCase();
-
-            // 根据文件类型选择读取方式
             if (filename.endsWith(FILE_EXTENSIONS.DOCX)) {
               reader.onload = () =>
                 resolve({
@@ -104,15 +92,12 @@ export const batchProcessor = {
           });
         })
       );
-
       startBtn.style.display = "none";
       document.getElementById("batchProgressSection").style.display = "block";
       document.getElementById("batchLogSection").style.display = "block";
       document.getElementById("batchLogOutput").innerHTML = "";
-
       const narratorName = document.getElementById("narratorName").value || " ";
       const selectedQuotePairs = quoteManager.getSelectedQuotes();
-
       const response = await axios.post("/api/batch_convert/start", {
         files: filesData,
         narrator_name: narratorName,
@@ -121,7 +106,6 @@ export const batchProcessor = {
         enable_live2d: state.enableLive2D,
         costume_mapping: state.currentCostumes,
       });
-
       const { task_id } = response.data;
       if (task_id) {
         this.pollBatchStatus(task_id);
@@ -147,7 +131,6 @@ export const batchProcessor = {
       try {
         const response = await axios.get(`/api/batch_convert/status/${taskId}`);
         const data = response.data;
-
         document.getElementById(
           "batchProgressBar"
         ).style.width = `${data.progress}%`;
@@ -156,22 +139,17 @@ export const batchProcessor = {
         const logOutput = document.getElementById("batchLogOutput");
         logOutput.innerHTML = data.logs.join("<br>");
         logOutput.scrollTop = logOutput.scrollHeight;
-
         if (data.status === "completed") {
           clearInterval(intervalId);
-
           state.batchResults = data.results || [];
-
           if (state.batchResults.length > 0) {
             document.getElementById("downloadBatchResultBtn").style.display =
               "inline-flex";
           }
-
           const cancelBtn = document.querySelector(
             "#batchConvertModal .btn-secondary"
           );
           if (cancelBtn) cancelBtn.style.display = "none";
-
           ui.showStatus("批量处理完成！", "success");
         }
       } catch (error) {
@@ -189,13 +167,10 @@ export const batchProcessor = {
       ui.showStatus("没有可下载的批量处理结果！", "error");
       return;
     }
-
     const zip = new JSZip();
-
     state.batchResults.forEach((result) => {
       zip.file(result.name, result.content);
     });
-
     zip
       .generateAsync({ type: "blob" })
       .then(function (content) {

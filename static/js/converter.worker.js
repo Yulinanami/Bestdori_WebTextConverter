@@ -17,7 +17,6 @@ function performConversion(data) {
   try {
     const { text, config } = data;
     const result = processText(text, config);
-
     self.postMessage({
       type: "result",
       data: result,
@@ -31,12 +30,8 @@ function performConversion(data) {
 }
 
 function processText(text, config) {
-  // 这里实现文本处理逻辑
-  // 由于 Worker 中不能访问 DOM，需要将转换逻辑提取出来
   const lines = text.split("\n");
   const actions = [];
-
-  // 简化的处理逻辑示例
   lines.forEach((line) => {
     const match = line.match(/^([\w\s]+)\s*[：:]\s*(.*)$/);
     if (match) {
