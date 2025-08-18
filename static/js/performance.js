@@ -8,12 +8,10 @@ export class PerformanceMonitor {
       memoryUsage: [],
       apiResponseTime: [],
     };
-
     this.startMonitoring();
   }
 
   startMonitoring() {
-    // 监控内存使用
     if (performance.memory) {
       setInterval(() => {
         this.metrics.memoryUsage.push({
@@ -21,8 +19,6 @@ export class PerformanceMonitor {
           used: performance.memory.usedJSHeapSize,
           total: performance.memory.totalJSHeapSize,
         });
-
-        // 只保留最近100个数据点
         if (this.metrics.memoryUsage.length > 100) {
           this.metrics.memoryUsage.shift();
         }
@@ -37,10 +33,8 @@ export class PerformanceMonitor {
       try {
         const result = await fn(...args);
         const duration = performance.now() - start;
-
         this.recordMetric(label, duration);
         console.log(`[Performance] ${label}: ${duration.toFixed(2)}ms`);
-
         return result;
       } catch (error) {
         const duration = performance.now() - start;
@@ -54,13 +48,10 @@ export class PerformanceMonitor {
     if (!this.metrics[label]) {
       this.metrics[label] = [];
     }
-
     this.metrics[label].push({
       timestamp: Date.now(),
       value: value,
     });
-
-    // 保留最近100个记录
     if (this.metrics[label].length > 100) {
       this.metrics[label].shift();
     }
@@ -68,7 +59,6 @@ export class PerformanceMonitor {
 
   getReport() {
     const report = {};
-
     Object.keys(this.metrics).forEach((key) => {
       const data = this.metrics[key];
       if (Array.isArray(data) && data.length > 0) {
@@ -81,7 +71,6 @@ export class PerformanceMonitor {
         };
       }
     });
-
     return report;
   }
 
@@ -92,11 +81,9 @@ export class PerformanceMonitor {
       metrics: this.metrics,
       report: this.getReport(),
     };
-
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
     });
-
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -106,5 +93,4 @@ export class PerformanceMonitor {
   }
 }
 
-// 创建全局性能监控实例
 export const perfMonitor = new PerformanceMonitor();

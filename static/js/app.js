@@ -55,18 +55,14 @@ function initializeApp() {
 }
 
 function initializePerformanceOptimizations() {
-  // 包装需要监控的函数
   converter.convertText = perfMonitor.measureTime(
     converter.convertText.bind(converter),
     "convertText"
   );
-
   converter.updateSplitPreview = perfMonitor.measureTime(
     converter.updateSplitPreview.bind(converter),
     "updateSplitPreview"
   );
-
-  // 启用请求拦截器监控API响应时间
   axios.interceptors.request.use((config) => {
     config.metadata = { startTime: performance.now() };
     return config;
@@ -109,14 +105,10 @@ function addPerformancePanel() {
     `;
 
   document.body.appendChild(panel);
-
-  // 定期更新性能数据
   setInterval(() => {
     const report = perfMonitor.getReport();
     const cacheStats = resultCache.getStats();
-
     window.perfMonitor = perfMonitor;
-
     panel.innerHTML = `
             <h4 style="margin: 0 0 10px 0;">Performance Monitor</h4>
             <div>Cache Hit Rate: ${cacheStats.hitRate}</div>
@@ -210,7 +202,6 @@ function bindClassicViewEvents() {
       const file = e.target.files[0];
       if (file) {
         configManager.importConfig(file);
-        // 清空input，允许重复导入同一文件
         e.target.value = "";
       }
     });
@@ -336,12 +327,11 @@ function bindClassicViewEvents() {
 
 // 绑定分屏视图事件
 function bindSplitViewEvents() {
-  // 格式化和转换
   document
     .getElementById("formatTextSplitBtn")
     .addEventListener("click", viewManager.formatTextSplit.bind(viewManager));
   document.getElementById("splitConvertBtn").addEventListener("click", () => {
-    converter.updateSplitPreview(true); // 传递 true 表示是手动点击，需要显示按钮加载状态
+    converter.updateSplitPreview(true); 
   });
   document
     .getElementById("splitDownloadBtn")
@@ -367,24 +357,20 @@ function bindSplitViewEvents() {
       ui.goToBestdori();
     });
 
-  // 新增：分屏视图的Live2D开关同步
+  // 分屏视图的Live2D开关同步
   const splitEnableLive2DCheckbox = document.getElementById(
     "splitEnableLive2DCheckbox"
   );
   if (splitEnableLive2DCheckbox) {
-    // 初始化时同步状态
     splitEnableLive2DCheckbox.checked = state.enableLive2D;
-
     splitEnableLive2DCheckbox.addEventListener("change", (e) => {
       state.enableLive2D = e.target.checked;
       localStorage.setItem(
         "bestdori_enable_live2d",
         e.target.checked.toString()
       );
-      // 同步到主视图的开关
       document.getElementById("enableLive2DCheckbox").checked =
         e.target.checked;
-      // 如果启用了自动预览，立即更新预览
       if (state.autoPreviewEnabled) {
         viewManager.debouncePreview();
       }
@@ -424,12 +410,9 @@ function bindSplitViewEvents() {
 
 // 绑定视图切换事件
 function bindViewSwitchEvents() {
-  // 视图切换按钮
   document.querySelectorAll(".view-btn").forEach((btn) => {
     btn.addEventListener("click", viewManager.switchView.bind(viewManager));
   });
-
-  // 预览模式切换按钮
   document.querySelectorAll(".preview-mode-btn").forEach((btn) => {
     btn.addEventListener(
       "click",

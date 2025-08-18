@@ -4,28 +4,20 @@ import { state } from "./constants.js";
 import { converter } from "./converter.js";
 
 export const viewManager = {
+
   // 视图切换
   switchView(e) {
     const button = e.target.closest(".view-btn");
-
     if (!button) {
       console.error("无法找到 .view-btn 按钮。");
       return;
     }
-
     const targetView = button.dataset.view;
-
-    // 切换按钮状态
     const currentActiveButton = document.querySelector(".view-btn.active");
-
-    // 2. 如果找到了，就只移除它的 active 状态
     if (currentActiveButton) {
       currentActiveButton.classList.remove("active");
     }
-
-    // 3. 给新点击的按钮添加 active 状态
     button.classList.add("active");
-    // 切换视图内容
     document
       .querySelectorAll(".view-content")
       .forEach((view) => view.classList.remove("active"));
@@ -37,8 +29,6 @@ export const viewManager = {
         `无法找到视图元素: #${targetView}View。可能是由于页面翻译工具修改了DOM。`
       );
     }
-
-    // 如果切换到分屏视图，同步内容并更新预览
     if (targetView === "split") {
       this.syncTextAreas();
       this.syncConfigToSplit();
@@ -55,13 +45,10 @@ export const viewManager = {
     if (splitCheckbox) {
       splitCheckbox.checked = state.enableLive2D;
     }
-
-    // 同步按钮状态（如果分屏视图中有这些按钮的话）
     const positionBtn = document.getElementById("positionConfigBtn");
     if (positionBtn) {
       positionBtn.disabled = !state.enableLive2D;
     }
-
     const costumeBtn = document.getElementById("costumeConfigBtn");
     if (costumeBtn) {
       costumeBtn.disabled = !state.enableLive2D;
@@ -75,10 +62,7 @@ export const viewManager = {
       console.error("无法找到 .preview-mode-btn 按钮。");
       return;
     }
-
     const mode = button.dataset.mode;
-
-    // 2. 使用更精确的方式更新高亮状态，防止翻译脚本干扰
     const currentActiveButton = document.querySelector(
       ".preview-mode-btn.active"
     );
@@ -86,8 +70,6 @@ export const viewManager = {
       currentActiveButton.classList.remove("active");
     }
     button.classList.add("active");
-
-    // 切换预览内容
     if (mode === "json") {
       document.getElementById("splitPreviewJson").style.display = "block";
       document.getElementById("splitPreviewDialogue").style.display = "none";
@@ -101,7 +83,6 @@ export const viewManager = {
   syncTextAreas() {
     const classicText = document.getElementById("inputText").value;
     const splitText = document.getElementById("splitInputText").value;
-
     if (document.getElementById("classicView").classList.contains("active")) {
       document.getElementById("splitInputText").value = classicText;
     } else {
@@ -121,45 +102,34 @@ export const viewManager = {
     const leftPanel = document.querySelector(".left-panel");
     const rightPanel = document.querySelector(".right-panel");
     const container = document.querySelector(".split-container");
-
     if (!resizer) return;
-
     let isResizing = false;
     let startX = 0;
     let startLeftWidth = 0;
-
     resizer.addEventListener("mousedown", (e) => {
       isResizing = true;
       startX = e.clientX;
       startLeftWidth = leftPanel.offsetWidth;
-
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
-
       e.preventDefault();
     });
 
     document.addEventListener("mousemove", (e) => {
       if (!isResizing) return;
-
       const dx = e.clientX - startX;
       const containerWidth = container.offsetWidth;
       const newLeftWidth = startLeftWidth + dx;
-
-      // 设置最小和最大宽度限制
       const minWidth = 300;
       const maxWidth = containerWidth - minWidth - resizer.offsetWidth;
-
       if (newLeftWidth >= minWidth && newLeftWidth <= maxWidth) {
         const leftPercent = (newLeftWidth / containerWidth) * 100;
         const rightPercent =
           100 - leftPercent - (resizer.offsetWidth / containerWidth) * 100;
-
         leftPanel.style.flex = `0 0 ${leftPercent}%`;
         rightPanel.style.flex = `0 0 ${rightPercent}%`;
       }
     });
-
     document.addEventListener("mouseup", () => {
       if (isResizing) {
         isResizing = false;
@@ -173,21 +143,17 @@ export const viewManager = {
   formatTextSplit() {
     const textarea = document.getElementById("splitInputText");
     const originalText = textarea.value;
-
     if (!originalText.trim()) {
       ui.showStatus("文本内容为空，无需格式化。", "info");
       return;
     }
-
     const lines = originalText.split(/\r?\n/);
     const contentLines = lines
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
     const formattedText = contentLines.join("\n\n");
-
     textarea.value = formattedText;
     ui.showStatus("文本已成功格式化！", "success");
-
     if (state.autoPreviewEnabled) {
       converter.updateSplitPreview();
     }
@@ -197,18 +163,15 @@ export const viewManager = {
   formatText() {
     const textarea = document.getElementById("inputText");
     const originalText = textarea.value;
-
     if (!originalText.trim()) {
       ui.showStatus("文本内容为空，无需格式化。", "info");
       return;
     }
-
     const lines = originalText.split(/\r?\n/);
     const contentLines = lines
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
     const formattedText = contentLines.join("\n\n");
-
     textarea.value = formattedText;
     ui.showStatus("文本已成功格式化！", "success");
   },
@@ -216,7 +179,6 @@ export const viewManager = {
   // 防抖预览更新
   debouncePreview() {
     if (!state.autoPreviewEnabled) return;
-
     clearTimeout(state.previewDebounceTimer);
     state.previewDebounceTimer = setTimeout(() => {
       converter.updateSplitPreview();

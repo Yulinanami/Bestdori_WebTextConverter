@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bestdori剧情文本转JSON转换器</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='images/favicon.svg') }}"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
@@ -69,7 +73,6 @@
               </button>
             </div>
             <div class="form-group">
-              <!-- 恢复为简单的 textarea -->
               <textarea
                 class="form-input textarea"
                 id="inputText"
@@ -101,8 +104,6 @@
                 placeholder="设置旁白的名称"
               />
             </div>
-
-            <!-- 分隔线 -->
             <hr
               style="
                 border: none;
@@ -171,8 +172,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- 分隔线 -->
             <hr
               style="
                 border: none;
@@ -226,7 +225,6 @@
           <!-- 位置配置模态框 -->
           <div class="modal" id="positionModal">
             <div class="modal-content" style="max-width: 800px">
-              <!-- 增加宽度 -->
               <div class="modal-header">
                 <div class="modal-title">Live2D 位置配置</div>
                 <button
@@ -245,8 +243,6 @@
                     提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
                   </p>
                 </div>
-
-                <!-- 按钮组保持不变 -->
                 <div
                   style="
                     display: flex;
@@ -365,7 +361,6 @@
 
       <!-- 分屏视图 -->
       <div id="splitView" class="view-content">
-        <!-- 分屏配置栏 -->
         <div class="split-config-bar">
           <div class="config-item-inline">
             <label>旁白名称：</label>
@@ -374,7 +369,7 @@
               class="form-input input-sm"
               id="splitNarratorName"
               value=" "
-              placeholder="设置旁白名称"
+              placeholder="设置旁白的名称"
             />
           </div>
           <div class="config-item-inline">
@@ -396,8 +391,8 @@
           </div>
         </div>
 
+        <!-- 分屏编辑区 -->
         <div class="split-container">
-          <!-- 左侧编辑区 -->
           <div class="split-panel left-panel">
             <div class="panel-header">
               <h3>编辑区</h3>
