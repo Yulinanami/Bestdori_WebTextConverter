@@ -8,7 +8,6 @@ import tempfile
 import os
 import multiprocessing
 import uuid
-import sys
 import threading
 import webbrowser
 import markdown2
@@ -47,7 +46,6 @@ class OptimizedBatchProcessor:
         filename = file_data.get("name", "unknown.txt")
         raw_content = file_data.get("content", "")
         encoding = file_data.get("encoding", "text")
-
         try:
             if encoding == "base64" and filename.lower().endswith(".docx"):
                 content_parts = raw_content.split(",")
@@ -845,76 +843,6 @@ config_manager = ConfigManager()
 file_converter = FileFormatConverter()
 batch_tasks = {}
 executor = ThreadPoolExecutor(max_workers=2)
-
-
-def run_batch_task(
-    task_id: str,
-    files_data: List[Dict[str, str]],
-    narrator_name: str,
-    selected_quote_pairs: List[List[str]],
-    custom_character_mapping: Dict[str, List[int]] = None,
-    enable_live2d: bool = False,
-    custom_costume_mapping: Dict[int, str] = None,
-):
-    if custom_costume_mapping:
-        fixed_costume_mapping = {}
-        for str_key, value in custom_costume_mapping.items():
-            try:
-                int_key = int(str_key)
-                fixed_costume_mapping[int_key] = value
-            except (ValueError, AttributeError):
-                fixed_costume_mapping[str_key] = value
-        custom_costume_mapping = fixed_costume_mapping
-    total_files = len(files_data)
-    task = batch_tasks[task_id]
-    batch_converter = TextConverter(config_manager)
-    if custom_character_mapping:
-        batch_converter.character_mapping = custom_character_mapping
-    for i, file_data in enumerate(files_data):
-        filename = file_data.get("name", "unknown.txt")
-        raw_content = file_data.get("content", "")
-        encoding = file_data.get("encoding", "text")
-        task["progress"] = (i / total_files) * 100
-        task["status_text"] = f"正在处理 ({i+1}/{total_files}): {filename}"
-        task["logs"].append(f"[INFO] 开始处理: {filename}")
-        try:
-            text_content = ""
-            if encoding == "base64" and filename.lower().endswith(".docx"):
-                content_parts = raw_content.split(",")
-                if len(content_parts) > 1:
-                    base64_content = content_parts[1]
-                    decoded_bytes = base64.b64decode(base64_content)
-                    text_content = file_converter.docx_to_text(decoded_bytes)
-                else:
-                    raise ValueError("无效的 Base64 数据")
-            elif filename.lower().endswith(".md"):
-                text_content = file_converter.markdown_to_text(raw_content)
-            else:
-                text_content = raw_content
-            json_output = batch_converter.convert_text_to_json_format(
-                text_content,
-                narrator_name,
-                selected_quote_pairs,
-                enable_live2d,
-                custom_costume_mapping,
-            )
-            task["results"].append(
-                {
-                    "name": Path(filename).with_suffix(".json").name,
-                    "content": json_output,
-                }
-            )
-            task["logs"].append(f"[SUCCESS] 处理成功: {filename}")
-        except Exception as e:
-            error_msg = f"处理失败: {filename} - {e}"
-            task["logs"].append(f"[ERROR] {error_msg}")
-            task["errors"].append(error_msg)
-    task["progress"] = 100
-    task["status_text"] = (
-        f"处理完成！成功: {len(task['results'])}, 失败: {len(task['errors'])}."
-    )
-    task["status"] = "completed"
-    task["logs"].append(f"[INFO] {task['status_text']}")
 
 
 @app.route("/")
