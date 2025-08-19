@@ -410,7 +410,7 @@ class ConfigManager:
                 33: ["033_school_winter", "033_live_r_2023", "033_casual-2023"],
                 34: ["034_school_winter-2023", "034_live_r_2023", "034_casual-2023"],
                 35: ["035_school_winter-2023", "035_live_r_2023", "035_casual-2023"],
-                # MyGO
+                # It's MyGO
                 36: [
                     "036_school_summer-2023",
                     "036_school_winter-2023",
@@ -444,7 +444,7 @@ class ConfigManager:
                 ],
                 # Sumimi
                 229: ["229_sumimi"],
-                # Mujica
+                # Ave Mujica
                 337: [
                     "337_sumimi",
                     "337_school_summer-2023",
@@ -646,7 +646,7 @@ class TextConverter:
         self.parsing_config = config_manager.get_parsing_config()
         self.patterns = config_manager.get_patterns()
         self._init_parsers()
-        self.mujica_output_mapping = {
+        self.mujica_output_mapping = {  # 因为Mujica的角色图标还没有出来，所以暂时使用ppp的角色ID映射
             229: 6,  # 纯田真奈
             337: 1,  # 三角初华
             338: 2,  # 若叶睦
@@ -670,14 +670,6 @@ class TextConverter:
             else:
                 output_ids.append(char_id)
         return output_ids
-
-    def _get_effective_character_id(
-        self,
-        character_name: str,
-        character_ids: List[int],
-    ) -> int:
-        """获取角色的有效ID"""
-        return character_ids[0] if character_ids else 0
 
     def convert_text_to_json_format(
         self,
@@ -722,7 +714,6 @@ class TextConverter:
             character_name: str,
             order: int,
         ) -> Dict[str, Any]:
-            """根据配置获取角色的位置和偏移"""
             if auto_position_mode:
                 return {"position": positions[order % len(positions)], "offset": 0}
             else:
@@ -743,16 +734,12 @@ class TextConverter:
                 )
                 if finalized_body:
                     character_ids = self.character_mapping.get(current_action_name, [])
-
                     if (
                         enable_live2d
                         and character_ids
                         and current_action_name != narrator_name
                     ):
                         primary_character_id = character_ids[0]
-                        effective_id = self._get_effective_character_id(
-                            current_action_name, character_ids
-                        )
                         if current_action_name not in appeared_character_names:
                             appeared_character_names.add(current_action_name)
                             order = len(appearance_order)
@@ -772,10 +759,10 @@ class TextConverter:
                                 )
                             if not costume_id and effective_costume_mapping:
                                 costume_id = effective_costume_mapping.get(
-                                    effective_id, ""
+                                    primary_character_id, ""
                                 )
                                 logger.info(
-                                    f"从默认映射获取 ID {effective_id} 的服装: {costume_id}"
+                                    f"从默认映射获取 ID {primary_character_id} 的服装: {costume_id}"
                                 )
                             logger.info(
                                 f"角色 {current_action_name} (ID: {primary_character_id}) 最终使用服装: {costume_id}"
