@@ -288,5 +288,3 @@ export const positionManager = {
     this.positionCounter = 0;
   },
 };
-
-window.positionManager = positionManager;

@@ -5,6 +5,7 @@ import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { dialoguePreview } from "./dialoguePreview.js";
 import { ResultCache, PreviewCache } from "./cache.js";
+import { positionManager } from "./positionManager.js";
 
 const resultCache = new ResultCache();
 const previewCache = new PreviewCache();

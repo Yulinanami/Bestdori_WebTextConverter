@@ -41,6 +41,7 @@ function initializeApp() {
   fileHandler.setupFileDragDrop();
 
   // 加载配置
+  configManager.init();
   configManager.loadConfig();
 
   // 加载服装配置

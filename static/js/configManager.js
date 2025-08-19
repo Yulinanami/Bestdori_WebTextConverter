@@ -9,6 +9,17 @@ import { positionManager } from "./positionManager.js";
 export const configManager = {
   defaultConfig: null,
 
+  init() {
+    const configList = document.getElementById('configList');
+    if (configList) {
+      configList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-btn')) {
+          event.target.closest('.config-item').remove();
+        }
+      });
+    }
+  },
+
   getAvatarId(characterId) {
     const mujicaAvatarMapping = {
       229: 6, // 纯田真奈
@@ -122,28 +133,20 @@ export const configManager = {
   ) {
     const newCostumes = {};
     const newAvailableCostumes = {};
-    Object.entries(state.currentConfig).forEach(([name, ids]) => {
-      if (ids && ids.length > 0) {
+
+    Object.entries(this.defaultConfig).forEach(([name, ids]) => {
         const characterKey = costumeManager.getCharacterKey(name);
         const primaryId = ids[0];
-        if (previousCostumes[characterKey] !== undefined) {
-          newCostumes[characterKey] = previousCostumes[characterKey];
-          newAvailableCostumes[characterKey] =
-            previousAvailableCostumes[characterKey] || [];
+
+        if (previousCostumes.hasOwnProperty(characterKey)) {
+            newCostumes[characterKey] = previousCostumes[characterKey];
+            newAvailableCostumes[characterKey] = previousAvailableCostumes[characterKey] || [];
         } else {
-          const defaultCostume =
-            costumeManager.defaultCostumes[primaryId] || "";
-          newCostumes[characterKey] = defaultCostume;
-          if (costumeManager.defaultAvailableCostumes[primaryId]) {
-            newAvailableCostumes[characterKey] = [
-              ...costumeManager.defaultAvailableCostumes[primaryId],
-            ];
-          } else {
-            newAvailableCostumes[characterKey] = [];
-          }
+            newCostumes[characterKey] = costumeManager.defaultCostumes[primaryId] || "";
+            newAvailableCostumes[characterKey] = costumeManager.defaultAvailableCostumes[primaryId] || [];
         }
-      }
     });
+
     state.currentCostumes = newCostumes;
     costumeManager.availableCostumes = newAvailableCostumes;
     costumeManager.saveLocalCostumes(newCostumes);
@@ -178,7 +181,7 @@ export const configManager = {
       configItem.innerHTML = `
                 <div class="config-avatar-wrapper">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${
+                        ${ 
                           avatarId > 0
                             ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                 0
@@ -188,10 +191,8 @@ export const configManager = {
                     </div>
                 </div>
                 <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
-                <input type="text" placeholder="ID列表(逗号分隔)" value="${ids.join(
-                  ","
-                )}" class="form-input config-ids">
-                <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
+                <input type="text" placeholder="ID列表(逗号分隔)" value="${Array.isArray(ids) ? ids.join(",") : ids}" class="form-input config-ids">
+                <button class="remove-btn">删除</button>
             `;
       const idsInput = configItem.querySelector(".config-ids");
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
@@ -237,7 +238,7 @@ export const configManager = {
             </div>
             <input type="text" placeholder="角色名称" class="form-input config-name">
             <input type="text" placeholder="ID列表(逗号分隔)" class="form-input config-ids">
-            <button class="remove-btn" onclick="removeConfigItem(this)">删除</button>
+            <button class="remove-btn">删除</button>
         `;
     const idsInput = configItem.querySelector(".config-ids");
     const nameInput = configItem.querySelector(".config-name");

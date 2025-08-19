@@ -806,6 +806,3 @@ export const costumeManager = {
     return nameBased;
   },
 };
-
-// 暴露到全局作用域
-window.costumeManager = costumeManager;

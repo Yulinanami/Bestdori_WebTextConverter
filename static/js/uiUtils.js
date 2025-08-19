@@ -1,5 +1,7 @@
 // uiUtils.js - UI相关的工具函数
 import { state } from "./constants.js";
+import { costumeManager } from "./costumeManager.js"; // <-- 导入
+import { positionManager } from "./positionManager.js"; // <-- 导入
 
 let statusTimer = null;
 
@@ -130,10 +132,8 @@ export function initGlobalModalListeners() {
     modals.forEach((modal) => {
       if (event.target === modal) {
         if (modal.id === "costumeModal") {
-          if (window.costumeManager && window.costumeManager.originalCostumes) {
-            window.costumeManager.cancelCostumeChanges();
-            return;
-          }
+          costumeManager.cancelCostumeChanges();
+          return;
         }
         ui.closeModal(modal.id);
       }
@@ -145,13 +145,8 @@ export function initGlobalModalListeners() {
       modals.forEach((modal) => {
         if (modal.style.display !== "none") {
           if (modal.id === "costumeModal") {
-            if (
-              window.costumeManager &&
-              window.costumeManager.originalCostumes
-            ) {
-              window.costumeManager.cancelCostumeChanges();
-              return;
-            }
+            costumeManager.cancelCostumeChanges();
+            return;
           }
           ui.closeModal(modal.id);
         }
@@ -168,13 +163,9 @@ export function initializeModalCloseButtons() {
         const modalId = button.dataset.modalId || button.closest(".modal").id;
         if (modalId) {
           if (modalId === "costumeModal") {
-            if (window.costumeManager) {
-              window.costumeManager.cancelCostumeChanges();
-            }
+            costumeManager.cancelCostumeChanges();
           } else if (modalId === "positionModal") {
-            if (window.positionManager) {
-              window.positionManager.closePositionModal();
-            }
+            positionManager.closePositionModal();
           } else {
             ui.closeModal(modalId);
           }
@@ -182,8 +173,3 @@ export function initializeModalCloseButtons() {
       });
     });
 }
-window.removeConfigItem = function (button) {
-  button.parentElement.remove();
-};
-
-window.ui = ui;
