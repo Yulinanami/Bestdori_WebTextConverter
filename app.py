@@ -6,10 +6,13 @@ import base64
 import yaml
 import tempfile
 import os
+import sys
+import atexit
 import multiprocessing
 import uuid
 import threading
 import webbrowser
+import time
 import markdown2
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -18,7 +21,7 @@ from docx import Document
 from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
 from werkzeug.utils import secure_filename
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, request, jsonify, send_file
 
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -33,46 +36,59 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 # app.config["UPLOAD_FOLDER"] = "/tmp"
 
 
+def batch_worker(args: Tuple[Dict[str, Any], Dict[str, Any]]) -> Dict[str, Any]:
+    file_data, converter_config = args
+    converter = TextConverter(ConfigManager())
+    if converter_config.get("character_mapping"):
+        converter.character_mapping = converter_config["character_mapping"]
+    filename = file_data.get("name", "unknown.txt")
+    raw_content = file_data.get("content", "")
+    encoding = file_data.get("encoding", "text")
+    try:
+        if encoding == "base64" and filename.lower().endswith(".docx"):
+            content_parts = raw_content.split(",")
+            if len(content_parts) > 1:
+                decoded_bytes = base64.b64decode(content_parts[1])
+                text_content = FileFormatConverter.docx_to_text(decoded_bytes)
+            else:
+                raise ValueError("无效的 Base64 数据")
+        elif filename.lower().endswith(".md"):
+            text_content = FileFormatConverter.markdown_to_text(raw_content)
+        else:
+            text_content = raw_content
+        json_output = converter.convert_text_to_json_format(
+            text_content,
+            converter_config.get("narrator_name", " "),
+            converter_config.get("selected_quote_pairs", []),
+            converter_config.get("enable_live2d", False),
+            converter_config.get("custom_costume_mapping"),
+            converter_config.get("position_config"),
+        )
+        return {
+            "success": True,
+            "name": Path(filename).with_suffix(".json").name,
+            "content": json_output,
+            "original_name": filename,
+        }
+    except Exception as e:
+        logger.error(f"处理文件 {filename} 时出错: {e}", exc_info=True)
+        return {
+            "success": False,
+            "name": filename,
+            "error": str(e),
+            "original_name": filename,
+        }
+
+
 class OptimizedBatchProcessor:
     def __init__(self):
         self.max_workers = min(multiprocessing.cpu_count(), 4)
-        self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers)
-
-    def process_single_file_wrapper(self, args):
-        file_data, converter_config = args
-        converter = TextConverter(ConfigManager())
-        if converter_config.get("character_mapping"):
-            converter.character_mapping = converter_config["character_mapping"]
-        filename = file_data.get("name", "unknown.txt")
-        raw_content = file_data.get("content", "")
-        encoding = file_data.get("encoding", "text")
         try:
-            if encoding == "base64" and filename.lower().endswith(".docx"):
-                content_parts = raw_content.split(",")
-                if len(content_parts) > 1:
-                    decoded_bytes = base64.b64decode(content_parts[1])
-                    text_content = FileFormatConverter.docx_to_text(decoded_bytes)
-                else:
-                    raise ValueError("无效的 Base64 数据")
-            elif filename.lower().endswith(".md"):
-                text_content = FileFormatConverter.markdown_to_text(raw_content)
-            else:
-                text_content = raw_content
-            json_output = converter.convert_text_to_json_format(
-                text_content,
-                converter_config.get("narrator_name", " "),
-                converter_config.get("selected_quote_pairs", []),
-                converter_config.get("enable_live2d", False),
-                converter_config.get("custom_costume_mapping"),
-                converter_config.get("position_config"),
-            )
-            return {
-                "success": True,
-                "name": Path(filename).with_suffix(".json").name,
-                "content": json_output,
-            }
-        except Exception as e:
-            return {"success": False, "name": filename, "error": str(e)}
+            if sys.platform.startswith("win"):
+                multiprocessing.set_start_method("spawn", force=True)
+        except RuntimeError:
+            pass
+        self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers)
 
 
 batch_processor = OptimizedBatchProcessor()
@@ -845,6 +861,16 @@ batch_tasks = {}
 executor = ThreadPoolExecutor(max_workers=2)
 
 
+def cleanup_executors():
+    print("正在关闭执行器...")
+    executor.shutdown(wait=True)
+    batch_processor.process_pool.shutdown(wait=True, cancel_futures=True)
+    print("执行器已关闭。")
+
+
+atexit.register(cleanup_executors)
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -927,53 +953,68 @@ def start_batch_conversion():
         }
         task_id = str(uuid.uuid4())
 
-        def run_batch_async():
+        def run_in_background():
+            """在后台线程中运行，管理进程池并更新任务状态"""
             batch_tasks[task_id] = {
                 "status": "running",
                 "progress": 0,
                 "status_text": "正在准备...",
-                "logs": [],
+                "logs": ["INFO: 任务已开始，正在分配进程..."],
                 "results": [],
                 "errors": [],
             }
             total_files = len(files_data)
             args_list = [(file_data, converter_config) for file_data in files_data]
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                futures = []
-                for i, args in enumerate(args_list):
-                    future = executor.submit(
-                        batch_processor.process_single_file_wrapper, args
+            processed_files = 0
+            try:
+                future_to_original_name = {
+                    batch_processor.process_pool.submit(batch_worker, arg): arg[0].get(
+                        "name", "unknown"
                     )
-                    futures.append((i, future))
-                for i, future in futures:
+                    for arg in args_list
+                }
+                for future in as_completed(future_to_original_name):
+                    original_name = future_to_original_name[future]
                     try:
-                        result = future.result(timeout=30)
-                        progress = ((i + 1) / total_files) * 100
-                        batch_tasks[task_id]["progress"] = progress
+                        result = future.result(timeout=60)  # 每个文件60秒超时
                         if result["success"]:
                             batch_tasks[task_id]["results"].append(
                                 {"name": result["name"], "content": result["content"]}
                             )
                             batch_tasks[task_id]["logs"].append(
-                                f"[SUCCESS] 处理成功: {result['name']}"
+                                f"[SUCCESS] 处理成功: {result['original_name']}"
                             )
                         else:
-                            batch_tasks[task_id]["errors"].append(result["error"])
-                            batch_tasks[task_id]["logs"].append(
-                                f"[ERROR] 处理失败: {result['name']} - {result['error']}"
+                            error_message = (
+                                f"处理失败: {result['name']} - {result['error']}"
                             )
-                    except Exception as e:
-                        batch_tasks[task_id]["errors"].append(str(e))
-                        batch_tasks[task_id]["logs"].append(
-                            f"[ERROR] 处理超时或异常: {args_list[i][0].get('name', 'unknown')}"
-                        )
+                            batch_tasks[task_id]["errors"].append(error_message)
+                            batch_tasks[task_id]["logs"].append(
+                                f"[ERROR] {error_message}"
+                            )
+                    except Exception as exc:
+                        error_message = f"处理文件 {original_name} 时发生异常: {exc}"
+                        logger.error(error_message, exc_info=True)
+                        batch_tasks[task_id]["errors"].append(error_message)
+                        batch_tasks[task_id]["logs"].append(f"[ERROR] {error_message}")
+                    processed_files += 1
+                    progress = (processed_files / total_files) * 100
+                    batch_tasks[task_id]["progress"] = progress
+                    batch_tasks[task_id][
+                        "status_text"
+                    ] = f"处理中... ({processed_files}/{total_files})"
+                    time.sleep(0.1)
+            except Exception as e:
+                logger.error(f"批量处理任务 {task_id} 发生严重错误: {e}", exc_info=True)
+                batch_tasks[task_id]["errors"].append(f"处理池发生严重错误: {e}")
+                batch_tasks[task_id]["logs"].append(f"[FATAL] 任务意外终止: {e}")
             batch_tasks[task_id]["status"] = "completed"
             batch_tasks[task_id]["progress"] = 100
-            batch_tasks[task_id][
-                "status_text"
-            ] = f"处理完成！成功: {len(batch_tasks[task_id]['results'])}, 失败: {len(batch_tasks[task_id]['errors'])}"
+            final_status_text = f"处理完成！成功: {len(batch_tasks[task_id]['results'])}, 失败: {len(batch_tasks[task_id]['errors'])}"
+            batch_tasks[task_id]["status_text"] = final_status_text
+            batch_tasks[task_id]["logs"].append(f"INFO: {final_status_text}")
 
-        executor.submit(run_batch_async)
+        executor.submit(run_in_background)
         return jsonify({"task_id": task_id})
     except Exception as e:
         logger.error(f"启动批量转换失败: {e}", exc_info=True)
@@ -1083,4 +1124,4 @@ if __name__ == "__main__":
         webbrowser.open_new("http://127.0.0.1:5000")
 
     threading.Timer(1, open_browser).start()
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
