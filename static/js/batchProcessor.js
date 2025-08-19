@@ -3,6 +3,7 @@
 import { state, FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
+import { positionManager } from "./positionManager.js";
 
 export const batchProcessor = {
   openBatchModal() {
@@ -105,6 +106,10 @@ export const batchProcessor = {
         character_mapping: state.currentConfig,
         enable_live2d: state.enableLive2D,
         costume_mapping: state.currentCostumes,
+        position_config: {
+          autoPositionMode: positionManager.autoPositionMode,
+          manualPositions: positionManager.manualPositions,
+        },
       });
       const { task_id } = response.data;
       if (task_id) {
