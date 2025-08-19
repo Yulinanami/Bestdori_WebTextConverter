@@ -132,7 +132,7 @@ export function initGlobalModalListeners() {
         if (modal.id === "costumeModal") {
           if (window.costumeManager && window.costumeManager.originalCostumes) {
             window.costumeManager.cancelCostumeChanges();
-            return; 
+            return;
           }
         }
         ui.closeModal(modal.id);
@@ -158,6 +158,29 @@ export function initGlobalModalListeners() {
       });
     }
   });
+}
+
+export function initializeModalCloseButtons() {
+  document
+    .querySelectorAll(".modal-close, .btn-modal-close")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const modalId = button.dataset.modalId || button.closest(".modal").id;
+        if (modalId) {
+          if (modalId === "costumeModal") {
+            if (window.costumeManager) {
+              window.costumeManager.cancelCostumeChanges();
+            }
+          } else if (modalId === "positionModal") {
+            if (window.positionManager) {
+              window.positionManager.closePositionModal();
+            }
+          } else {
+            ui.closeModal(modalId);
+          }
+        }
+      });
+    });
 }
 window.removeConfigItem = function (button) {
   button.parentElement.remove();

@@ -289,7 +289,7 @@ export const costumeManager = {
                     </span>
                 </div>
                 <div class="costume-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="costumeManager.toggleCostumeDetails('${safeDomId}')">
+                    <button class="btn btn-sm btn-secondary toggle-costume-details-btn" data-safe-dom-id="${safeDomId}">
                         <span id="toggle-${safeDomId}">▼</span> 服装管理
                     </button>
                 </div>
@@ -315,10 +315,10 @@ export const costumeManager = {
                     <div class="costume-list-header">
                         <label>可用服装列表：</label>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-sm btn-secondary" onclick="costumeManager.addNewCostume('${characterKey}', '${safeDomId}')">
+                            <button class="btn btn-sm btn-secondary add-costume-btn" data-character-key="${characterKey}" data-safe-dom-id="${safeDomId}">
                                 添加服装
                             </button>
-                            <button class="btn btn-sm btn-primary" onclick="costumeManager.openLive2DDatabase()" title="在新标签页查看 Bestdori Live2D 数据库">
+                            <button class="btn btn-sm btn-primary open-live2d-db-btn" title="在新标签页查看 Bestdori Live2D 数据库">
                                 浏览数据库
                             </button>
                         </div>
@@ -334,11 +334,29 @@ export const costumeManager = {
             </div>
             `;
       costumeList.appendChild(costumeItem);
+
+      costumeItem.querySelector('.toggle-costume-details-btn').addEventListener('click', (e) => {
+          const safeDomId = e.currentTarget.dataset.safeDomId;
+          this.toggleCostumeDetails(safeDomId);
+      });
+
+      costumeItem.querySelector('.add-costume-btn').addEventListener('click', (e) => {
+            const characterKey = e.currentTarget.dataset.characterKey;
+            const safeDomId = e.currentTarget.dataset.safeDomId;
+            this.addNewCostume(characterKey, safeDomId);
+      });
+
+        costumeItem.querySelector('.open-live2d-db-btn').addEventListener('click', () => {
+            this.openLive2DDatabase();
+        });
+
       const select = costumeItem.querySelector(".costume-select");
       select.addEventListener("change", (e) => {
         const key = e.target.dataset.characterKey;
         this.tempCostumeChanges[key] = e.target.value;
       });
+
+      this.updateCostumeListUI(characterKey, safeDomId);
     });
   },
 
@@ -362,8 +380,8 @@ export const costumeManager = {
             <div class="costume-list-item">
                 <span>${costume}</span>
                 <div class="costume-item-actions">
-                    <button class="btn btn-sm" onclick="costumeManager.editCostume('${characterKey}', ${index}, '${costume}', '${safeDomId}')">编辑</button>
-                    <button class="btn btn-sm btn-danger" onclick="costumeManager.deleteCostume('${characterKey}', ${index}, '${safeDomId}')">删除</button>
+                    <button class="btn btn-sm edit-costume-btn" data-character-key="${characterKey}" data-index="${index}" data-costume="${costume}" data-safe-dom-id="${safeDomId}">编辑</button>
+                    <button class="btn btn-sm btn-danger delete-costume-btn" data-character-key="${characterKey}" data-index="${index}" data-safe-dom-id="${safeDomId}">删除</button>
                 </div>
             </div>
         `
@@ -471,6 +489,19 @@ export const costumeManager = {
         costumes,
         safeDomId
       );
+      listContainer.querySelectorAll(".edit-costume-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const { characterKey, index, costume, safeDomId } =
+            e.currentTarget.dataset;
+          this.editCostume(characterKey, parseInt(index), costume, safeDomId);
+        });
+      });
+      listContainer.querySelectorAll(".delete-costume-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const { characterKey, index, safeDomId } = e.currentTarget.dataset;
+          this.deleteCostume(characterKey, parseInt(index), safeDomId);
+        });
+      });
     }
     const costumeDetailsContainer = document.getElementById(
       `costume-details-${safeDomId}`

@@ -1,7 +1,11 @@
 // app.js - 主应用入口文件
 
 import { state } from "./constants.js";
-import { ui, initGlobalModalListeners } from "./uiUtils.js";
+import {
+  ui,
+  initGlobalModalListeners,
+  initializeModalCloseButtons,
+} from "./uiUtils.js";
 import { viewManager } from "./viewManager.js";
 import { fileHandler } from "./fileHandler.js";
 import { converter, resultCache } from "./converter.js";
@@ -331,7 +335,7 @@ function bindSplitViewEvents() {
     .getElementById("formatTextSplitBtn")
     .addEventListener("click", viewManager.formatTextSplit.bind(viewManager));
   document.getElementById("splitConvertBtn").addEventListener("click", () => {
-    converter.updateSplitPreview(true); 
+    converter.updateSplitPreview(true);
   });
   document
     .getElementById("splitDownloadBtn")
@@ -423,7 +427,7 @@ function bindViewSwitchEvents() {
 
 // 绑定模态框事件
 function bindModalEvents() {
-  // 注意：模态框的关闭按钮在HTML中使用了onclick，已经通过uiUtils.js暴露到全局
+  initializeModalCloseButtons();
 }
 
 // DOM加载完成后初始化应用
