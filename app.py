@@ -1106,6 +1106,7 @@ def get_costumes():
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
 
     def open_browser():
         webbrowser.open_new("http://127.0.0.1:5000")
