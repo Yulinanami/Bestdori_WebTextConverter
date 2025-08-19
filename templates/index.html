@@ -9,19 +9,19 @@
       type="image/svg+xml"
       href="{{ url_for('static', filename='images/favicon.svg') }}"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      href="{{ url_for('static', filename='css/lib/prism-tomorrow.min.css') }}"
     />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/main.css') }}"
     />
+    <script src="{{ url_for('static', filename='js/lib/axios.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/jszip.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/FileSaver.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/prism.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/prism-json.min.js') }}"></script>
   </head>
   <body>
     <div class="container">
