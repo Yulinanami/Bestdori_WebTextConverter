@@ -165,9 +165,9 @@
 4.  **启动项目**
     ```bash
     # 运行应用
-    python app.py
+    python run.py
     # 或
-    python3 app.py
+    python3 run.py
     ```
 
 5.  **访问**
