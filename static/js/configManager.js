@@ -10,11 +10,11 @@ export const configManager = {
   defaultConfig: null,
 
   init() {
-    const configList = document.getElementById('configList');
+    const configList = document.getElementById("configList");
     if (configList) {
-      configList.addEventListener('click', (event) => {
-        if (event.target.classList.contains('remove-btn')) {
-          event.target.closest('.config-item').remove();
+      configList.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-btn")) {
+          event.target.closest(".config-item").remove();
         }
       });
     }
@@ -97,7 +97,9 @@ export const configManager = {
   async resetConfig() {
     if (
       confirm(
-        "确定要恢复默认角色配置吗？这将清除您的自定义角色映射和引号设置，但会保留服装配置。"
+        "【警告】此操作将恢复为系统默认角色列表。\n\n" +
+          "所有自定义添加的角色及其服装配置都将被删除。\n\n" +
+          "确定要继续吗？"
       )
     ) {
       await ui.withButtonLoading(
@@ -135,16 +137,19 @@ export const configManager = {
     const newAvailableCostumes = {};
 
     Object.entries(this.defaultConfig).forEach(([name, ids]) => {
-        const characterKey = costumeManager.getCharacterKey(name);
-        const primaryId = ids[0];
+      const characterKey = costumeManager.getCharacterKey(name);
+      const primaryId = ids[0];
 
-        if (previousCostumes.hasOwnProperty(characterKey)) {
-            newCostumes[characterKey] = previousCostumes[characterKey];
-            newAvailableCostumes[characterKey] = previousAvailableCostumes[characterKey] || [];
-        } else {
-            newCostumes[characterKey] = costumeManager.defaultCostumes[primaryId] || "";
-            newAvailableCostumes[characterKey] = costumeManager.defaultAvailableCostumes[primaryId] || [];
-        }
+      if (previousCostumes.hasOwnProperty(characterKey)) {
+        newCostumes[characterKey] = previousCostumes[characterKey];
+        newAvailableCostumes[characterKey] =
+          previousAvailableCostumes[characterKey] || [];
+      } else {
+        newCostumes[characterKey] =
+          costumeManager.defaultCostumes[primaryId] || "";
+        newAvailableCostumes[characterKey] =
+          costumeManager.defaultAvailableCostumes[primaryId] || [];
+      }
     });
 
     state.currentCostumes = newCostumes;
@@ -181,7 +186,7 @@ export const configManager = {
       configItem.innerHTML = `
                 <div class="config-avatar-wrapper">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${ 
+                        ${
                           avatarId > 0
                             ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                 0
@@ -191,7 +196,9 @@ export const configManager = {
                     </div>
                 </div>
                 <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
-                <input type="text" placeholder="ID列表(逗号分隔)" value="${Array.isArray(ids) ? ids.join(",") : ids}" class="form-input config-ids">
+                <input type="text" placeholder="ID列表(逗号分隔)" value="${
+                  Array.isArray(ids) ? ids.join(",") : ids
+                }" class="form-input config-ids">
                 <button class="remove-btn">删除</button>
             `;
       const idsInput = configItem.querySelector(".config-ids");

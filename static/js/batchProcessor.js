@@ -163,7 +163,7 @@ export const batchProcessor = {
           "轮询状态失败，任务可能已在后台完成或中断。";
         ui.showStatus(`获取处理状态失败: ${error.message}`, "error");
       }
-    }, 10);
+    }, 500);
   },
 
   // 处理批量下载
