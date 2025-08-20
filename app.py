@@ -12,7 +12,6 @@ import multiprocessing
 import uuid
 import threading
 import webbrowser
-import time
 import markdown2
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -23,6 +22,7 @@ from abc import ABC, abstractmethod
 from werkzeug.utils import secure_filename
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, request, jsonify, send_file
+from waitress import serve
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(
@@ -990,7 +990,6 @@ def start_batch_conversion():
                     batch_tasks[task_id][
                         "status_text"
                     ] = f"处理中... ({processed_files}/{total_files})"
-                    time.sleep(0.1)
             except Exception as e:
                 logger.error(f"批量处理任务 {task_id} 发生严重错误: {e}", exc_info=True)
                 batch_tasks[task_id]["errors"].append(f"处理池发生严重错误: {e}")
@@ -1112,4 +1111,6 @@ if __name__ == "__main__":
         webbrowser.open_new("http://127.0.0.1:5000")
 
     threading.Timer(1, open_browser).start()
-    app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
+    # app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
+    print("Starting server with waitress...")
+    serve(app, host="0.0.0.0", port=5000, threads=8)
