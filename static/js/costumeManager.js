@@ -262,7 +262,7 @@ export const costumeManager = {
             <div class="costume-item-header">
                 <div class="costume-character-info">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${
+                        ${ 
                           avatarId > 0
                             ? `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                 0
@@ -289,7 +289,7 @@ export const costumeManager = {
                         ${availableForCharacter
                           .map(
                             (costume) =>
-                              `<option value="${costume}" ${
+                              `<option value="${costume}" ${ 
                                 costume === currentCostume ? "selected" : ""
                               }>${costume}</option>`
                           )
@@ -440,31 +440,6 @@ export const costumeManager = {
     }
   },
 
-  // 删除角色
-  deleteCharacter(characterName) {
-    if (!this.customCharacters[characterName]) {
-      ui.showStatus("只能删除自定义角色", "error");
-      return;
-    }
-
-    if (
-      confirm(
-        `确定要删除角色 "${characterName}" 吗？这将同时删除该角色的所有服装配置。`
-      )
-    ) {
-      const characterId = state.currentConfig[characterName][0];
-      delete state.currentConfig[characterName];
-      delete this.customCharacters[characterName];
-      delete state.currentCostumes[characterId];
-      delete this.availableCostumes[characterId];
-      this.saveLocalCustomCharacters(this.customCharacters);
-      this.saveLocalCostumes(state.currentCostumes);
-      this.saveLocalAvailableCostumes();
-      this.renderCostumeList();
-      ui.showStatus(`已删除角色: ${characterName}`, "success");
-    }
-  },
-
   // 更新服装列表UI（基于角色名称）
   updateCostumeListUI(characterKey, safeDomId) {
     const listContainer = document.getElementById(`costume-list-${safeDomId}`);
@@ -503,7 +478,7 @@ export const costumeManager = {
                     ${availableForCharacter
                       .map(
                         (costume) =>
-                          `<option value="${costume}" ${
+                          `<option value="${costume}" ${ 
                             costume === currentValue ? "selected" : ""
                           }>${costume}</option>`
                       )
@@ -512,42 +487,6 @@ export const costumeManager = {
         select.value = currentValue;
       }
     }
-  },
-
-  // 添加新角色
-  addNewCharacter() {
-    const characterName = prompt("请输入新角色名称：");
-    if (!characterName || !characterName.trim()) return;
-    const characterIdStr = prompt("请输入角色ID（必须是数字）：");
-    if (!characterIdStr || !characterIdStr.trim()) return;
-    const characterId = parseInt(characterIdStr);
-    if (isNaN(characterId)) {
-      ui.showStatus("角色ID必须是数字", "error");
-      return;
-    }
-    if (state.currentConfig[characterName]) {
-      ui.showStatus("该角色名称已存在", "error");
-      return;
-    }
-    const isIdUsed = Object.values(state.currentConfig).some((ids) =>
-      ids.includes(characterId)
-    );
-    if (isIdUsed) {
-      ui.showStatus("该角色ID已被使用", "error");
-      return;
-    }
-    state.currentConfig[characterName] = [characterId];
-    this.customCharacters[characterName] = [characterId];
-    this.availableCostumes[characterId] = [];
-    state.currentCostumes[characterId] = "";
-    configManager.saveLocalConfig(state.currentConfig);
-    this.saveLocalCustomCharacters(this.customCharacters);
-    this.saveLocalAvailableCostumes();
-    this.renderCostumeList();
-    ui.showStatus(
-      `已添加新角色: ${characterName} (ID: ${characterId})`,
-      "success"
-    );
   },
 
   // 保存服装配置
