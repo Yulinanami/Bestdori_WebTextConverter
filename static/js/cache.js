@@ -1,7 +1,7 @@
 // cache.js - 缓存管理模块
 
 export class ResultCache {
-  constructor(maxSize = 50, maxAge = 300000) {
+  constructor(maxSize = 5, maxAge = 300000) {
     this.cache = new Map();
     this.maxSize = maxSize;
     this.maxAge = maxAge;
