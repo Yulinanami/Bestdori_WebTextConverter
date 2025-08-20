@@ -1,3 +1,4 @@
+# 批量处理模块
 import base64
 import logging
 import multiprocessing

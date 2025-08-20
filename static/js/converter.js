@@ -1,5 +1,4 @@
-// converter.js - 文本转换核心功能
-
+// 文本转换管理
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";

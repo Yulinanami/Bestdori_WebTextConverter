@@ -1,3 +1,4 @@
+# JSON的数据模型
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 

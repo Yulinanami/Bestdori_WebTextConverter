@@ -1,5 +1,4 @@
-// cache.js - 缓存管理模块
-
+// 缓存管理模块
 export class ResultCache {
   constructor(maxSize = 5, maxAge = 300000) {
     this.cache = new Map();

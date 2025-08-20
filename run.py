@@ -1,3 +1,4 @@
+# 应用入口文件
 import multiprocessing
 import threading
 import webbrowser

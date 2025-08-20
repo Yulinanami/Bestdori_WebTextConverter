@@ -1,5 +1,4 @@
-// batchProcessor.js - 批量处理相关功能（修改版）
-
+// 批量处理相关功能
 import { state, FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";

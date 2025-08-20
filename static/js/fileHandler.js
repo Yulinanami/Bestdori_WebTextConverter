@@ -1,5 +1,4 @@
-// fileHandler.js - 文件处理相关功能
-
+// 文件处理相关功能
 import { state, VALID_EXTENSIONS, FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 

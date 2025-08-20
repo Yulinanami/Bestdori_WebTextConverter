@@ -1,5 +1,4 @@
-// viewManager.js - 视图管理相关功能
-
+// 视图管理相关功能
 import { state } from "./constants.js";
 import { converter } from "./converter.js";
 import { ui } from "./uiUtils.js";

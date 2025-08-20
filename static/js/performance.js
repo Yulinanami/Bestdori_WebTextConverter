@@ -1,5 +1,4 @@
-// performance.js - 性能监控模块
-
+// 性能监控模块
 export class PerformanceMonitor {
   constructor() {
     this.metrics = {

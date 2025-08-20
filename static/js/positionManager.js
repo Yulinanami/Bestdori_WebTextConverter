@@ -1,5 +1,4 @@
-// positionManager.js - Live2D 位置管理功能
-
+// Live2D 位置管理功能
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 

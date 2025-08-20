@@ -1,5 +1,4 @@
-// dialoguePreview.js - 对话预览相关功能
-
+// 对话预览相关功能
 import { GRADIENTS, state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";

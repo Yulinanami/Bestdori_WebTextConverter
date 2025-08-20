@@ -1,5 +1,4 @@
-// quoteManager.js - 引号管理相关功能
-
+// 引号管理相关功能
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { converter } from "./converter.js";

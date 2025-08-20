@@ -1,3 +1,4 @@
+# 文本转换器
 import json
 import logging
 from dataclasses import asdict

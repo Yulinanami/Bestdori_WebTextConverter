@@ -1,5 +1,4 @@
-// costumeManager.js - 服装管理相关功能
-
+// 服装管理相关功能
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";

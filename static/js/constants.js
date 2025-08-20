@@ -1,5 +1,4 @@
-// constants.js - 常量和共享状态管理
-
+// 常量和共享状态管理
 export const state = {
   currentResult: "",
   currentConfig: {},

@@ -1,5 +1,4 @@
-// app.js - 主应用入口文件
-
+// 主应用入口文件
 import { state } from "./constants.js";
 import {
   ui,

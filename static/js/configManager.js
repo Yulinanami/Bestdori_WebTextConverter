@@ -1,5 +1,4 @@
-// configManager.js - 配置管理相关功能
-
+// 配置管理相关功能
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";

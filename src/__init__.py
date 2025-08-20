@@ -1,3 +1,4 @@
+# 初始化文件
 import logging
 import sys
 from .app import app
