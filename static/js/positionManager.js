@@ -4,7 +4,6 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 
 export const positionManager = {
-
   positions: ["leftInside", "center", "rightInside"],
   positionNames: {
     leftInside: "左侧",
@@ -15,13 +14,17 @@ export const positionManager = {
   manualPositions: {},
   positionCounter: 0,
 
+  // 模态框内的临时状态
+  tempManualPositions: {},
+  tempAutoPositionMode: true,
+
   // 初始化
   init() {
     this.loadPositionConfig();
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
       autoCheckbox.addEventListener("change", (e) => {
-        this.autoPositionMode = e.target.checked;
+        this.tempAutoPositionMode = e.target.checked;
         this.toggleManualConfig();
       });
     }
@@ -60,9 +63,11 @@ export const positionManager = {
 
   // 打开位置配置模态框
   openPositionModal() {
+    this.tempAutoPositionMode = this.autoPositionMode;
+    this.tempManualPositions = JSON.parse(JSON.stringify(this.manualPositions));
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
-      autoCheckbox.checked = this.autoPositionMode;
+      autoCheckbox.checked = this.tempAutoPositionMode;
     }
     this.renderPositionList();
     this.toggleManualConfig();
@@ -78,7 +83,7 @@ export const positionManager = {
   toggleManualConfig() {
     const manualConfig = document.getElementById("manualPositionConfig");
     if (manualConfig) {
-      manualConfig.style.display = this.autoPositionMode ? "none" : "block";
+      manualConfig.style.display = this.tempAutoPositionMode ? "none" : "block";
     }
   },
 
@@ -100,7 +105,7 @@ export const positionManager = {
       const avatarId = configManager.getAvatarId(primaryId);
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
-      const currentConfig = this.manualPositions[name] || {
+      const currentConfig = this.tempManualPositions[name] || {
         position: "center",
         offset: 0,
       };
@@ -112,7 +117,7 @@ export const positionManager = {
                 <div class="position-character-info">
                     <div class="config-avatar-wrapper">
                         <div class="config-avatar" data-id="${primaryId}">
-                            ${ 
+                            ${
                               avatarId > 0
                                 ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                     0
@@ -128,7 +133,7 @@ export const positionManager = {
                         ${this.positions
                           .map(
                             (pos) =>
-                              `<option value="${pos}" ${ 
+                              `<option value="${pos}" ${
                                 pos === currentPosition ? "selected" : ""
                               }>${this.positionNames[pos]}</option>`
                           )
@@ -136,9 +141,9 @@ export const positionManager = {
                     </select>
                     <div class="position-offset-group">
                         <label class="position-offset-label" for="offset-${name}">偏移:</label>
-                        <input type="number" 
+                        <input type="number"
                             id="offset-${name}"
-                            class="form-input position-offset-input" 
+                            class="form-input position-offset-input"
                             data-character="${name}"
                             value="${currentOffset}"
                             step="10"
@@ -151,19 +156,25 @@ export const positionManager = {
       const select = item.querySelector(".position-select");
       select.addEventListener("change", (e) => {
         const charName = e.target.dataset.character;
-        if (!this.manualPositions[charName]) {
-          this.manualPositions[charName] = { position: "center", offset: 0 };
+        if (!this.tempManualPositions[charName]) {
+          this.tempManualPositions[charName] = {
+            position: "center",
+            offset: 0,
+          };
         }
-        this.manualPositions[charName].position = e.target.value;
+        this.tempManualPositions[charName].position = e.target.value;
       });
       const offsetInput = item.querySelector(".position-offset-input");
       offsetInput.addEventListener("input", (e) => {
         const charName = e.target.dataset.character;
         const offset = parseInt(e.target.value) || 0;
-        if (!this.manualPositions[charName]) {
-          this.manualPositions[charName] = { position: "center", offset: 0 };
+        if (!this.tempManualPositions[charName]) {
+          this.tempManualPositions[charName] = {
+            position: "center",
+            offset: 0,
+          };
         }
-        this.manualPositions[charName].offset = offset;
+        this.tempManualPositions[charName].offset = offset;
       });
       positionList.appendChild(item);
     });
@@ -174,6 +185,10 @@ export const positionManager = {
     await ui.withButtonLoading(
       "savePositionsBtn",
       async () => {
+        this.autoPositionMode = this.tempAutoPositionMode;
+        this.manualPositions = JSON.parse(
+          JSON.stringify(this.tempManualPositions)
+        );
         await new Promise((resolve) => setTimeout(resolve, 300));
         this.savePositionConfig();
         ui.showStatus("位置配置已保存！", "success");
@@ -189,24 +204,16 @@ export const positionManager = {
       await ui.withButtonLoading(
         "resetPositionsBtn",
         async () => {
-          this.autoPositionMode = true;
-          this.manualPositions = {};
-          document.querySelectorAll(".position-select").forEach((select) => {
-            select.value = "center";
-          });
-          document
-            .querySelectorAll(".position-offset-input")
-            .forEach((input) => {
-              input.value = "0";
-            });
+          this.tempAutoPositionMode = true;
+          this.tempManualPositions = {};
+          this.renderPositionList();
           const autoCheckbox = document.getElementById("autoPositionCheckbox");
           if (autoCheckbox) {
             autoCheckbox.checked = true;
           }
           this.toggleManualConfig();
           await new Promise((resolve) => setTimeout(resolve, 300));
-          this.savePositionConfig();
-          ui.showStatus("已恢复默认位置配置！", "success");
+          ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
         },
         "重置中..."
       );
