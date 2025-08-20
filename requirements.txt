@@ -2,3 +2,4 @@ Flask==2.3.3
 PyYAML==6.0.1
 python-docx==0.8.11
 markdown2==2.4.10
+waitress==3.0.2
