@@ -185,7 +185,7 @@ export const configManager = {
       configItem.innerHTML = `
                 <div class="config-avatar-wrapper">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${
+                        ${ 
                           avatarId > 0
                             ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                 0
@@ -195,7 +195,7 @@ export const configManager = {
                     </div>
                 </div>
                 <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
-                <input type="text" placeholder="ID列表(逗号分隔)" value="${
+                <input type="text" placeholder="ID列表(逗号分隔)" value="${ 
                   Array.isArray(ids) ? ids.join(",") : ids
                 }" class="form-input config-ids">
                 <button class="remove-btn">删除</button>
@@ -391,10 +391,6 @@ export const configManager = {
             positionManager.importPositions(config.position_config);
             console.log("位置配置已导入");
           }
-        } else if (config && Object.keys(config).length > 0) {
-          state.currentConfig = config;
-          this.saveLocalConfig(config);
-          console.log("旧版本配置已导入");
         } else {
           throw new Error("配置文件中没有有效数据");
         }

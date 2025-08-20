@@ -43,30 +43,10 @@ export const positionManager = {
         const config = JSON.parse(saved);
         this.autoPositionMode = config.autoPositionMode !== false;
         this.manualPositions = config.manualPositions || {};
-        this.ensurePositionFormat();
       } catch (e) {
         console.error("加载位置配置失败:", e);
       }
     }
-  },
-
-  // 确保位置配置格式正确（兼容旧版本）
-  ensurePositionFormat() {
-    const updatedPositions = {};
-    for (const [name, value] of Object.entries(this.manualPositions)) {
-      if (typeof value === "string") {
-        updatedPositions[name] = {
-          position: value,
-          offset: 0,
-        };
-      } else {
-        updatedPositions[name] = {
-          position: value.position || "center",
-          offset: value.offset || 0,
-        };
-      }
-    }
-    this.manualPositions = updatedPositions;
   },
 
   // 保存配置
@@ -260,7 +240,6 @@ export const positionManager = {
     }
     if (positionConfig.manualPositions) {
       this.manualPositions = positionConfig.manualPositions;
-      this.ensurePositionFormat();
     }
     this.savePositionConfig();
     console.log("位置配置已导入:", {
