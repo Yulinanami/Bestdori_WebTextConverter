@@ -1,6 +1,7 @@
 // Live2D 位置管理功能
 import { state } from "./constants.js";
 import { ui } from "./uiUtils.js";
+import { configManager } from "./configManager.js";
 
 export const positionManager = {
 
@@ -77,18 +78,6 @@ export const positionManager = {
     localStorage.setItem("bestdori_position_config", JSON.stringify(config));
   },
 
-  getAvatarId(characterId) {
-    const avatarMapping = {
-      229: 6, // 纯田真奈
-      337: 1, // 三角初华
-      338: 2, // 若叶睦
-      339: 3, // 八幡海铃
-      340: 4, // 祐天寺若麦
-      341: 5, // 丰川祥子
-    };
-    return avatarMapping[characterId] || characterId;
-  },
-
   // 打开位置配置模态框
   openPositionModal() {
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
@@ -128,7 +117,7 @@ export const positionManager = {
     characters.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
       const primaryId = ids[0];
-      const avatarId = this.getAvatarId(primaryId);
+      const avatarId = configManager.getAvatarId(primaryId);
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
       const currentConfig = this.manualPositions[name] || {
@@ -143,7 +132,7 @@ export const positionManager = {
                 <div class="position-character-info">
                     <div class="config-avatar-wrapper">
                         <div class="config-avatar" data-id="${primaryId}">
-                            ${
+                            ${ 
                               avatarId > 0
                                 ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                     0
@@ -159,11 +148,9 @@ export const positionManager = {
                         ${this.positions
                           .map(
                             (pos) =>
-                              `<option value="${pos}" ${
+                              `<option value="${pos}" ${ 
                                 pos === currentPosition ? "selected" : ""
-                              }>
-                                ${this.positionNames[pos]}
-                            </option>`
+                              }>${this.positionNames[pos]}</option>`
                           )
                           .join("")}
                     </select>

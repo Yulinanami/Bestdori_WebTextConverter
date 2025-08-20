@@ -87,14 +87,14 @@ export const fileHandler = {
     }
   },
 
-  // 下载结果
-  async downloadResult() {
+  // 通用的下载逻辑
+  async _download(buttonId) {
     if (!state.currentResult) {
       ui.showStatus("没有可下载的结果！", "error");
       return;
     }
     await ui.withButtonLoading(
-      "downloadBtn",
+      buttonId,
       async () => {
         const filename = `result_${new Date()
           .toISOString()
@@ -131,47 +131,13 @@ export const fileHandler = {
     );
   },
 
+  // 下载结果
+  async downloadResult() {
+    await this._download("downloadBtn");
+  },
+
   // 下载分屏结果
   async downloadSplitResult() {
-    if (!state.currentResult) {
-      ui.showStatus("没有可下载的结果！", "error");
-      return;
-    }
-    await ui.withButtonLoading(
-      "splitDownloadBtn",
-      async () => {
-        const filename = `result_${new Date()
-          .toISOString()
-          .slice(0, 19)
-          .replace(/[:-]/g, "")}.json`;
-        try {
-          const response = await axios.post(
-            "/api/download",
-            {
-              content: state.currentResult,
-              filename: filename,
-            },
-            {
-              responseType: "blob",
-            }
-          );
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", filename);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          window.URL.revokeObjectURL(url);
-          ui.showStatus("文件下载成功！", "success");
-        } catch (error) {
-          ui.showStatus(
-            `下载失败: ${error.response?.data?.error || error.message}`,
-            "error"
-          );
-        }
-      },
-      "下载中..."
-    );
+    await this._download("splitDownloadBtn");
   },
 };

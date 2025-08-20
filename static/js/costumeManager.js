@@ -20,19 +20,6 @@ export const costumeManager = {
     return characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "_");
   },
 
-  getAvatarId(characterId) {
-    const mujicaAvatarMapping = {
-      229: 6, // 纯田真奈
-      337: 1, // 三角初华
-      338: 2, // 若叶睦
-      339: 3, // 八幡海铃
-      340: 4, // 祐天寺若麦
-      341: 5, // 丰川祥子
-    };
-
-    return mujicaAvatarMapping[characterId] || characterId;
-  },
-
   // 转换可用服装列表为基于角色名称的映射
   convertAvailableCostumesToNameBased() {
     const nameBased = {};
@@ -266,7 +253,7 @@ export const costumeManager = {
       const primaryId = ids[0];
       const characterKey = this.getCharacterKey(name);
       const safeDomId = this.getSafeDomId(name);
-      const avatarId = this.getAvatarId(primaryId);
+      const avatarId = configManager.getAvatarId(primaryId);
       const availableForCharacter = this.availableCostumes[characterKey] || [];
       const currentCostume = this.tempCostumeChanges[characterKey] || "";
       const costumeItem = document.createElement("div");
