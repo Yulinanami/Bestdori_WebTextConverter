@@ -441,8 +441,6 @@ export const configManager = {
           "bestdori_available_costumes_v2",
           "bestdori_position_config",
           "bestdori_enable_live2d",
-          "bestdori_costume_mapping",
-          "bestdori_custom_characters",
         ];
         console.log("正在清除以下本地缓存:", keysToRemove);
         keysToRemove.forEach((key) => {
