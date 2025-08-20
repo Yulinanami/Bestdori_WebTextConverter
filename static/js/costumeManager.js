@@ -262,7 +262,7 @@ export const costumeManager = {
             <div class="costume-item-header">
                 <div class="costume-character-info">
                     <div class="config-avatar" data-id="${primaryId}">
-                        ${ 
+                        ${
                           avatarId > 0
                             ? `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
                                 0
@@ -289,7 +289,7 @@ export const costumeManager = {
                         ${availableForCharacter
                           .map(
                             (costume) =>
-                              `<option value="${costume}" ${ 
+                              `<option value="${costume}" ${
                                 costume === currentCostume ? "selected" : ""
                               }>${costume}</option>`
                           )
@@ -321,19 +321,25 @@ export const costumeManager = {
             `;
       costumeList.appendChild(costumeItem);
 
-      costumeItem.querySelector('.toggle-costume-details-btn').addEventListener('click', (e) => {
+      costumeItem
+        .querySelector(".toggle-costume-details-btn")
+        .addEventListener("click", (e) => {
           const safeDomId = e.currentTarget.dataset.safeDomId;
           this.toggleCostumeDetails(safeDomId);
-      });
+        });
 
-      costumeItem.querySelector('.add-costume-btn').addEventListener('click', (e) => {
-            const characterKey = e.currentTarget.dataset.characterKey;
-            const safeDomId = e.currentTarget.dataset.safeDomId;
-            this.addNewCostume(characterKey, safeDomId);
-      });
+      costumeItem
+        .querySelector(".add-costume-btn")
+        .addEventListener("click", (e) => {
+          const characterKey = e.currentTarget.dataset.characterKey;
+          const safeDomId = e.currentTarget.dataset.safeDomId;
+          this.addNewCostume(characterKey, safeDomId);
+        });
 
-        costumeItem.querySelector('.open-live2d-db-btn').addEventListener('click', () => {
-            this.openLive2DDatabase();
+      costumeItem
+        .querySelector(".open-live2d-db-btn")
+        .addEventListener("click", () => {
+          this.openLive2DDatabase();
         });
 
       const select = costumeItem.querySelector(".costume-select");
@@ -417,8 +423,12 @@ export const costumeManager = {
         return;
       }
       this.availableCostumes[characterKey][index] = trimmedId;
+      if (this.tempCostumeChanges[characterKey] === oldCostume) {
+        this.tempCostumeChanges[characterKey] = trimmedId;
+      }
       if (state.currentCostumes[characterKey] === oldCostume) {
         state.currentCostumes[characterKey] = trimmedId;
+        this.saveLocalCostumes(state.currentCostumes);
       }
       this.saveLocalAvailableCostumes();
       this.updateCostumeListUI(characterKey, safeDomId);
@@ -431,8 +441,12 @@ export const costumeManager = {
     const costume = this.availableCostumes[characterKey][index];
     if (confirm(`确定要删除服装 "${costume}" 吗？`)) {
       this.availableCostumes[characterKey].splice(index, 1);
+      if (this.tempCostumeChanges[characterKey] === costume) {
+        this.tempCostumeChanges[characterKey] = "";
+      }
       if (state.currentCostumes[characterKey] === costume) {
         state.currentCostumes[characterKey] = "";
+        this.saveLocalCostumes(state.currentCostumes);
       }
       this.saveLocalAvailableCostumes();
       this.updateCostumeListUI(characterKey, safeDomId);
@@ -478,7 +492,7 @@ export const costumeManager = {
                     ${availableForCharacter
                       .map(
                         (costume) =>
-                          `<option value="${costume}" ${ 
+                          `<option value="${costume}" ${
                             costume === currentValue ? "selected" : ""
                           }>${costume}</option>`
                       )
