@@ -1,7 +1,7 @@
 // UI相关的工具
 import { state } from "./constants.js";
 import { costumeManager } from "./costumeManager.js";
-import { positionManager } from "./positionManager.js"; 
+import { positionManager } from "./positionManager.js";
 
 let statusTimer = null;
 

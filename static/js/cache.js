@@ -4,7 +4,7 @@ export class ResultCache {
     this.cache = new Map();
     this.maxSize = maxSize;
     this.maxAge = maxAge;
-    this.accessOrder = []; 
+    this.accessOrder = [];
   }
 
   // 生成缓存键

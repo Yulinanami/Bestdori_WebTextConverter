@@ -4,7 +4,6 @@ import { ui } from "./uiUtils.js";
 import { converter } from "./converter.js";
 
 export const quoteManager = {
-
   // 加载自定义引号
   loadCustomQuotes() {
     try {

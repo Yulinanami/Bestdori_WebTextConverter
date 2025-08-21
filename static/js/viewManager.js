@@ -4,7 +4,6 @@ import { converter } from "./converter.js";
 import { ui } from "./uiUtils.js";
 
 export const viewManager = {
-
   // 视图切换
   switchView(e) {
     const button = e.target.closest(".view-btn");

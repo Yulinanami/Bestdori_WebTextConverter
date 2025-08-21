@@ -4,7 +4,6 @@ import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 
 export const dialoguePreview = {
-  
   // 获取角色头像路径
   getCharacterAvatar(characterId) {
     if (characterId && characterId > 0) {
