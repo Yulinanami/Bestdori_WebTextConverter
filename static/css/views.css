@@ -140,69 +140,6 @@
   animation: fadeIn var(--transition-normal);
 }
 
-.dialogue-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-white);
-  font-weight: bold;
-  font-size: var(--text-lg);
-  margin-right: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-.dialogue-content {
-  flex: 1;
-}
-
-.dialogue-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
-  font-size: 0.95rem;
-}
-
-.dialogue-text {
-  background: var(--bg-primary);
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  line-height: 1.6;
-  position: relative;
-}
-
-.dialogue-text::before {
-  content: "";
-  position: absolute;
-  left: -8px;
-  top: 15px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 8px solid var(--bg-primary);
-}
-
-/* 旁白样式 */
-.dialogue-item.narrator {
-  justify-content: center;
-}
-
-.dialogue-item.narrator .dialogue-text {
-  background: var(--color-secondary);
-  font-style: italic;
-  text-align: center;
-  max-width: 80%;
-}
-
-.dialogue-item.narrator .dialogue-text::before {
-  display: none;
-}
-
 /* 头像容器基础样式 */
 .dialogue-avatar {
   width: 50px;
@@ -381,16 +318,4 @@
 
 .dialogue-item.narrator .dialogue-text::before {
   display: none;
-}
-
-/* 角色头像加载错误提示 */
-.dialogue-avatar[data-error]::after {
-  content: attr(data-error);
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  color: var(--text-muted);
-  white-space: nowrap;
 }

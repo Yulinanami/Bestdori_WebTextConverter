@@ -60,6 +60,7 @@
 .modal-close:hover {
   background: var(--bg-secondary);
   color: var(--text-primary);
+  transform: scale(1.1);
 }
 
 /* 模态框内容 */
@@ -91,7 +92,6 @@
 .help-section ul {
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: var(--spacing-sm);
 }
 
 .help-section ul {
@@ -102,7 +102,7 @@
 /* 对话预览模态框 */
 .dialogue-container {
   padding: var(--spacing-lg);
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   min-height: 400px;
   border-radius: var(--radius-lg);
 }

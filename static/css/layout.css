@@ -27,7 +27,6 @@
 
 .header p {
   font-size: var(--text-lg);
-  opacity: 0.9;
 }
 
 /* 主要内容区域 */
@@ -47,7 +46,7 @@
 }
 
 .section:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* 分区标题 */
@@ -105,7 +104,6 @@
   line-height: 1.5;
   max-height: 400px;
   overflow-y: auto;
-  white-space: pre-wrap;
 }
 
 /* 进度条容器 */
@@ -139,17 +137,17 @@
 .status-success {
   background: #f0fff4;
   color: var(--color-success);
-  border: 1px solid #9ae6b4;
+  border: 1px solid var(--color-success);
 }
 
 .status-error {
   background: #fed7d7;
   color: var(--color-error);
-  border: 1px solid #feb2b2;
+  border: 1px solid var(--color-error);
 }
 
 .status-info {
   background: #eeeeee;
   color: var(--color-info);
-  border: 1px solid #dddddd;
+  border: 1px solid var(--border-secondary);
 }

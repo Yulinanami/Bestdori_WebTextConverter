@@ -129,38 +129,6 @@
   min-width: 100px;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .config-item {
-    flex-wrap: wrap;
-  }
-
-  .config-avatar-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .config-item input {
-    flex: 1 1 auto;
-    width: 100%;
-  }
-}
-
-/* 头像加载动画 */
-@keyframes avatarPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(79, 172, 254, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(79, 172, 254, 0);
-  }
-}
-
 .config-avatar[data-id="0"] {
   animation: none;
 }
@@ -220,19 +188,6 @@
 
 .costume-select {
   min-width: 200px;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .costume-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-md);
-  }
-
-  .costume-select {
-    width: 100%;
-  }
 }
 
 /* 自定义角色标记 */
@@ -296,11 +251,20 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
 
 .costume-list-header label {
   font-weight: 500;
   color: var(--text-secondary);
+  margin: 0;
+}
+
+.costume-list-header > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .costume-list-items {
@@ -334,28 +298,6 @@
   font-size: var(--text-xs);
 }
 
-/* 服装列表头部按钮组 */
-.costume-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-sm);
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-.costume-list-header label {
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.costume-list-header > div {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 /* Live2D 数据库按钮样式 */
 .costume-list-header .btn-primary {
   background: #555;
@@ -365,23 +307,6 @@
 
 .costume-list-header .btn-primary:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .costume-list-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .costume-list-header > div {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .costume-list-header > div .btn {
-    flex: 1;
-  }
 }
 
 .btn-danger {
@@ -403,19 +328,6 @@
   text-align: center;
   padding: var(--spacing-lg);
   border-top: 2px dashed var(--border-primary);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .costume-item-header {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-
-  .costume-current {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 /* 位置配置项样式 */
@@ -497,38 +409,6 @@
   margin-left: -4px;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .position-config-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .position-character-info {
-    justify-content: center;
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .position-controls {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    width: 100%;
-  }
-
-  .position-select {
-    width: 100%;
-  }
-
-  .position-offset-group {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .position-offset-input {
-    flex: 1;
-    max-width: 200px;
-  }
-}
 /* 视图切换按钮 */
 .view-btn {
   padding: 10px 24px;
@@ -626,17 +506,6 @@
   border-color: var(--border-focus);
   background: #e9ecef;
   transform: scale(1.02);
-}
-
-/* 配置项 */
-.config-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
 }
 
 .config-item input {
