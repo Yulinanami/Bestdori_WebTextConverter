@@ -324,12 +324,6 @@
   padding: var(--spacing-md);
 }
 
-.add-new-character-section {
-  text-align: center;
-  padding: var(--spacing-lg);
-  border-top: 2px dashed var(--border-primary);
-}
-
 /* 位置配置项样式 */
 .position-config-item {
   display: flex;

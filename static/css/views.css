@@ -133,14 +133,7 @@
   background: #f5f5f5;
 }
 
-.dialogue-item {
-  margin-bottom: var(--spacing-lg);
-  display: flex;
-  align-items: flex-start;
-  animation: fadeIn var(--transition-normal);
-}
 
-/* 头像容器基础样式 */
 .dialogue-avatar {
   width: 50px;
   height: 50px;
