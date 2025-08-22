@@ -463,7 +463,3 @@ class ConfigManager:
 
     def get_available_costumes(self) -> Dict[int, List[str]]:
         return self.config.get("costume_mapping", {})
-
-    def update_character_mapping(self, new_mapping: Dict[str, List[int]]):
-        self.config["character_mapping"] = new_mapping
-        self._save_config(self.config)
