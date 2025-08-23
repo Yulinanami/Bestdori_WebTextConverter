@@ -1,14 +1,10 @@
+# 启动服务器
 import multiprocessing
 import threading
 import webbrowser
 import atexit
 from waitress import serve
 from src.app import create_app
-
-
-def open_browser():
-    webbrowser.open_new("http://127.0.0.1:5000")
-
 
 app = create_app()
 
@@ -22,6 +18,10 @@ def cleanup():
     if batch_processor and hasattr(batch_processor, "process_pool"):
         batch_processor.process_pool.shutdown(wait=True, cancel_futures=True)
     print("执行器已关闭。")
+
+
+def open_browser():
+    webbrowser.open_new("http://127.0.0.1:5000")
 
 
 atexit.register(cleanup)
