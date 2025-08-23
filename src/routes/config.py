@@ -1,3 +1,4 @@
+# 配置相关api
 import logging
 from flask import Blueprint, jsonify, current_app
 
