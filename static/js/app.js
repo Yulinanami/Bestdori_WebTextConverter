@@ -1,5 +1,5 @@
 // 主应用入口文件
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import {
   ui,
   initGlobalModalListeners,
@@ -35,6 +35,9 @@ function initializeApp() {
 
   // 初始化位置管理器
   positionManager.init();
+
+  // 初始化服装事件委托
+  costumeManager.init();
 
   // 初始化文件拖拽
   fileHandler.setupFileDragDrop();
@@ -224,7 +227,7 @@ function bindClassicViewEvents() {
   const enableLive2DCheckbox = document.getElementById("enableLive2DCheckbox");
   if (enableLive2DCheckbox) {
     enableLive2DCheckbox.addEventListener("change", (e) => {
-      state.enableLive2D = e.target.checked;
+      state.set("enableLive2D", e.target.checked);
       localStorage.setItem(
         "bestdori_enable_live2d",
         e.target.checked.toString()
@@ -348,8 +351,8 @@ function bindSplitViewEvents() {
   document
     .getElementById("autoPreviewCheckbox")
     .addEventListener("change", (e) => {
-      state.autoPreviewEnabled = e.target.checked;
-      if (state.autoPreviewEnabled) {
+      state.set("autoPreviewEnabled", e.target.checked);
+      if (state.get("autoPreviewEnabled")) {
         converter.updateSplitPreview();
       }
     });
@@ -366,16 +369,16 @@ function bindSplitViewEvents() {
     "splitEnableLive2DCheckbox"
   );
   if (splitEnableLive2DCheckbox) {
-    splitEnableLive2DCheckbox.checked = state.enableLive2D;
+    splitEnableLive2DCheckbox.checked = state.get("enableLive2D");
     splitEnableLive2DCheckbox.addEventListener("change", (e) => {
-      state.enableLive2D = e.target.checked;
+      state.set("enableLive2D", e.target.checked);
       localStorage.setItem(
         "bestdori_enable_live2d",
         e.target.checked.toString()
       );
       document.getElementById("enableLive2DCheckbox").checked =
         e.target.checked;
-      if (state.autoPreviewEnabled) {
+      if (state.get("autoPreviewEnabled")) {
         viewManager.debouncePreview();
       }
     });
@@ -400,7 +403,7 @@ function bindSplitViewEvents() {
     .getElementById("splitNarratorName")
     .addEventListener("input", (e) => {
       document.getElementById("narratorName").value = e.target.value;
-      if (state.autoPreviewEnabled) {
+      if (state.get("autoPreviewEnabled")) {
         viewManager.debouncePreview();
       }
     });

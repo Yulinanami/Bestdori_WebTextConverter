@@ -1,5 +1,5 @@
 // 服装管理相关功能
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 
@@ -15,6 +15,57 @@ export const costumeManager = {
   originalCostumes: {},
   originalAvailableCostumes: {},
 
+  init() {
+    const costumeList = document.getElementById("costumeList");
+    if (!costumeList) return;
+
+    costumeList.addEventListener("click", (e) => {
+      const target = e.target;
+
+      const toggleBtn = target.closest(".toggle-costume-details-btn");
+      if (toggleBtn) {
+        const safeDomId = toggleBtn.dataset.safeDomId;
+        this.toggleCostumeDetails(safeDomId);
+        return;
+      }
+
+      const addBtn = target.closest(".add-costume-btn");
+      if (addBtn) {
+        const { characterKey, safeDomId } = addBtn.dataset;
+        this.addNewCostume(characterKey, safeDomId);
+        return;
+      }
+
+      const dbBtn = target.closest(".open-live2d-db-btn");
+      if (dbBtn) {
+        this.openLive2DDatabase();
+        return;
+      }
+
+      const editBtn = target.closest(".edit-costume-btn");
+      if (editBtn) {
+        const { characterKey, index, costume, safeDomId } = editBtn.dataset;
+        this.editCostume(characterKey, parseInt(index), costume, safeDomId);
+        return;
+      }
+
+      const deleteBtn = target.closest(".delete-costume-btn");
+      if (deleteBtn) {
+        const { characterKey, index, safeDomId } = deleteBtn.dataset;
+        this.deleteCostume(characterKey, parseInt(index), safeDomId);
+        return;
+      }
+    });
+
+    costumeList.addEventListener("change", (e) => {
+      const select = e.target.closest(".costume-select");
+      if (select) {
+        const key = select.dataset.characterKey;
+        this.tempCostumeChanges[key] = select.value;
+      }
+    });
+  },
+
   // 生成角色的唯一标识符（使用角色名称）
   getCharacterKey(characterName) {
     return characterName;
@@ -27,7 +78,7 @@ export const costumeManager = {
   // 转换可用服装列表为基于角色名称的映射
   convertAvailableCostumesToNameBased() {
     const nameBased = {};
-    Object.entries(state.currentConfig).forEach(([name, ids]) => {
+    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
       if (ids && ids.length > 0) {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
@@ -54,7 +105,7 @@ export const costumeManager = {
   // 转换默认服装配置为基于角色名称的映射
   convertDefaultCostumesToNameBased() {
     const nameBased = {};
-    Object.entries(state.currentConfig).forEach(([name, ids]) => {
+    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
       if (ids && ids.length > 0) {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
@@ -87,9 +138,9 @@ export const costumeManager = {
       );
       const savedCostumes = this.loadLocalCostumes();
       if (savedCostumes) {
-        state.currentCostumes = savedCostumes;
+        state.set("currentCostumes", savedCostumes);
       } else {
-        state.currentCostumes = this.convertDefaultCostumesToNameBased();
+        state.set("currentCostumes", this.convertDefaultCostumesToNameBased());
       }
       const savedAvailableCostumes = this.loadLocalAvailableCostumes();
       if (savedAvailableCostumes) {
@@ -98,23 +149,23 @@ export const costumeManager = {
         this.availableCostumes = this.convertAvailableCostumesToNameBased();
       }
       const enableLive2D = localStorage.getItem("bestdori_enable_live2d");
-      state.enableLive2D = enableLive2D === "true";
+      state.set("enableLive2D", enableLive2D === "true");
       document.getElementById("enableLive2DCheckbox").checked =
-        state.enableLive2D;
+        state.get("enableLive2D");
 
       const splitCheckbox = document.getElementById(
         "splitEnableLive2DCheckbox"
       );
       if (splitCheckbox) {
-        splitCheckbox.checked = state.enableLive2D;
+        splitCheckbox.checked = state.get("enableLive2D");
       }
       const positionBtn = document.getElementById("positionConfigBtn");
       if (positionBtn) {
-        positionBtn.disabled = !state.enableLive2D;
+        positionBtn.disabled = !state.get("enableLive2D");
       }
       const costumeBtn = document.getElementById("costumeConfigBtn");
       if (costumeBtn) {
-        costumeBtn.disabled = !state.enableLive2D;
+        costumeBtn.disabled = !state.get("enableLive2D");
       }
     } catch (error) {
       console.error("加载服装配置失败:", error);
@@ -192,13 +243,13 @@ export const costumeManager = {
       async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         this.originalCostumes = JSON.parse(
-          JSON.stringify(state.currentCostumes)
+          JSON.stringify(state.get("currentCostumes"))
         );
         this.originalAvailableCostumes = JSON.parse(
           JSON.stringify(this.availableCostumes)
         );
         this.tempCostumeChanges = JSON.parse(
-          JSON.stringify(state.currentCostumes)
+          JSON.stringify(state.get("currentCostumes"))
         );
         this.tempAvailableCostumes = JSON.parse(
           JSON.stringify(this.availableCostumes)
@@ -213,8 +264,10 @@ export const costumeManager = {
   // 渲染服装列表
   renderCostumeList() {
     const costumeList = document.getElementById("costumeList");
+    const template = document.getElementById("costume-item-template");
     costumeList.innerHTML = "";
-    const characterEntries = Object.entries(state.currentConfig).sort(
+
+    const characterEntries = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
         const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
@@ -224,106 +277,50 @@ export const costumeManager = {
 
     characterEntries.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
+
+      const clone = template.content.cloneNode(true);
+      const costumeItem = clone.querySelector(".costume-config-item");
+
       const primaryId = ids[0];
       const characterKey = this.getCharacterKey(name);
       const safeDomId = this.getSafeDomId(name);
       const avatarId = configManager.getAvatarId(primaryId);
-      const availableForCharacter =
-        this.tempAvailableCostumes[characterKey] || [];
+      const availableForCharacter = this.tempAvailableCostumes[characterKey] || [];
       const currentCostume = this.tempCostumeChanges[characterKey] || "";
-      const costumeItem = document.createElement("div");
-      costumeItem.className = "costume-config-item";
-      costumeItem.innerHTML = `
-            <div class="costume-item-header">
-                <div class="costume-character-info">
-                    <div class="config-avatar" data-id="${primaryId}">
-                        ${
-                          avatarId > 0
-                            ? `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
-                                0
-                              )}'; this.parentElement.classList.add('fallback');">`
-                            : name.charAt(0)
-                        }
-                    </div>
-                    <span class="costume-character-name">
-                        ${name} (ID: ${primaryId})
-                    </span>
-                </div>
-                <div class="costume-actions">
-                    <button class="btn btn-sm btn-secondary toggle-costume-details-btn" data-safe-dom-id="${safeDomId}">
-                        <span id="toggle-${safeDomId}">▼</span> 服装管理
-                    </button>
-                </div>
-            </div>
-            
-            <div id="costume-details-${safeDomId}" class="costume-details" style="display: none;">
-                <div class="costume-current">
-                    <label>当前服装：</label>
-                    <select class="form-input costume-select" data-character-key="${characterKey}">
-                        <option value="">无服装</option>
-                        ${availableForCharacter
-                          .map(
-                            (costume) =>
-                              `<option value="${costume}" ${
-                                costume === currentCostume ? "selected" : ""
-                              }>${costume}</option>`
-                          )
-                          .join("")}
-                    </select>
-                </div>
-                
-                <div class="costume-available-list">
-                    <div class="costume-list-header">
-                        <label>可用服装列表：</label>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-sm btn-secondary add-costume-btn" data-character-key="${characterKey}" data-safe-dom-id="${safeDomId}">
-                                添加服装
-                            </button>
-                            <button class="btn btn-sm btn-primary open-live2d-db-btn" title="在新标签页查看 Bestdori Live2D 数据库">
-                                浏览数据库
-                            </button>
-                        </div>
-                    </div>
-                    <div id="costume-list-${safeDomId}" class="costume-list-items">
-                        ${this.renderCostumeListItems(
-                          characterKey,
-                          availableForCharacter,
-                          safeDomId
-                        )}
-                    </div>
-                </div>
-            </div>
-            `;
-      costumeList.appendChild(costumeItem);
 
-      costumeItem
-        .querySelector(".toggle-costume-details-btn")
-        .addEventListener("click", (e) => {
-          const safeDomId = e.currentTarget.dataset.safeDomId;
-          this.toggleCostumeDetails(safeDomId);
-        });
+      // Header
+      const avatarDiv = costumeItem.querySelector(".config-avatar");
+      avatarDiv.dataset.id = primaryId;
+      const avatarPath = avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
+      if (avatarId > 0) {
+        avatarDiv.innerHTML = `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">`;
+      } else {
+        avatarDiv.textContent = name.charAt(0);
+        avatarDiv.classList.add('fallback');
+      }
+      costumeItem.querySelector(".costume-character-name").textContent = `${name} (ID: ${primaryId})`;
+      
+      const toggleBtn = costumeItem.querySelector(".toggle-costume-details-btn");
+      toggleBtn.dataset.safeDomId = safeDomId;
+      toggleBtn.querySelector("span").id = `toggle-${safeDomId}`;
 
-      costumeItem
-        .querySelector(".add-costume-btn")
-        .addEventListener("click", (e) => {
-          const characterKey = e.currentTarget.dataset.characterKey;
-          const safeDomId = e.currentTarget.dataset.safeDomId;
-          this.addNewCostume(characterKey, safeDomId);
-        });
-
-      costumeItem
-        .querySelector(".open-live2d-db-btn")
-        .addEventListener("click", () => {
-          this.openLive2DDatabase();
-        });
+      // Details
+      const detailsDiv = costumeItem.querySelector(".costume-details");
+      detailsDiv.id = `costume-details-${safeDomId}`;
 
       const select = costumeItem.querySelector(".costume-select");
-      select.addEventListener("change", (e) => {
-        const key = e.target.dataset.characterKey;
-        this.tempCostumeChanges[key] = e.target.value;
-      });
+      select.dataset.characterKey = characterKey;
+      select.innerHTML = `<option value="">无服装</option>` + availableForCharacter.map(costume => `<option value="${costume}" ${costume === currentCostume ? "selected" : ""}>${costume}</option>`).join("");
 
-      this.updateCostumeListUI(characterKey, safeDomId);
+      const addBtn = costumeItem.querySelector(".add-costume-btn");
+      addBtn.dataset.characterKey = characterKey;
+      addBtn.dataset.safeDomId = safeDomId;
+
+      const listItems = costumeItem.querySelector(".costume-list-items");
+      listItems.id = `costume-list-${safeDomId}`;
+      listItems.innerHTML = this.renderCostumeListItems(characterKey, availableForCharacter, safeDomId);
+      
+      costumeList.appendChild(costumeItem);
     });
   },
 
@@ -426,19 +423,6 @@ export const costumeManager = {
         costumes,
         safeDomId
       );
-      listContainer.querySelectorAll(".edit-costume-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const { characterKey, index, costume, safeDomId } =
-            e.currentTarget.dataset;
-          this.editCostume(characterKey, parseInt(index), costume, safeDomId);
-        });
-      });
-      listContainer.querySelectorAll(".delete-costume-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const { characterKey, index, safeDomId } = e.currentTarget.dataset;
-          this.deleteCostume(characterKey, parseInt(index), safeDomId);
-        });
-      });
     }
     const costumeDetailsContainer = document.getElementById(
       `costume-details-${safeDomId}`
@@ -470,13 +454,13 @@ export const costumeManager = {
     await ui.withButtonLoading(
       "saveCostumesBtn",
       async () => {
-        state.currentCostumes = JSON.parse(
+        state.set("currentCostumes", JSON.parse(
           JSON.stringify(this.tempCostumeChanges)
-        );
+        ));
         this.availableCostumes = JSON.parse(
           JSON.stringify(this.tempAvailableCostumes)
         );
-        this.saveLocalCostumes(state.currentCostumes);
+        this.saveLocalCostumes(state.get("currentCostumes"));
         this.saveLocalAvailableCostumes();
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("服装配置已保存！", "success");
@@ -500,7 +484,7 @@ export const costumeManager = {
     ) {
       const customCharacterCostumes = {};
       const customCharacterAvailableCostumes = {};
-      Object.entries(state.currentConfig).forEach(([name, ids]) => {
+      Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
         if (!this.builtInCharacters.has(name)) {
           const characterKey = this.getCharacterKey(name);
           if (this.tempCostumeChanges[characterKey] !== undefined) {
@@ -534,16 +518,16 @@ export const costumeManager = {
   exportWithCostumes(config) {
     return {
       ...config,
-      costume_mapping: state.currentCostumes,
+      costume_mapping: state.get("currentCostumes"),
       available_costumes: this.availableCostumes,
-      enable_live2d: state.enableLive2D,
+      enable_live2d: state.get("enableLive2D"),
     };
   },
 
   // 导入配置时处理服装配置
   importCostumes(config) {
     if (config.costume_mapping) {
-      state.currentCostumes = config.costume_mapping;
+      state.set("currentCostumes", config.costume_mapping);
       this.saveLocalCostumes(config.costume_mapping);
     }
     if (config.built_in_characters) {
@@ -557,7 +541,7 @@ export const costumeManager = {
       this.saveLocalAvailableCostumes();
     }
     if (typeof config.enable_live2d === "boolean") {
-      state.enableLive2D = config.enable_live2d;
+      state.set("enableLive2D", config.enable_live2d);
       localStorage.setItem(
         "bestdori_enable_live2d",
         config.enable_live2d.toString()
@@ -586,7 +570,7 @@ export const costumeManager = {
   // 转换导入的基于ID的可用服装为基于名称的格式
   convertImportedAvailableCostumes(idBasedCostumes) {
     const nameBased = {};
-    Object.entries(state.currentConfig).forEach(([name, ids]) => {
+    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
       if (ids && ids.length > 0) {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);

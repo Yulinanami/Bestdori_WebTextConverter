@@ -1,5 +1,5 @@
 // 文本转换管理
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { dialoguePreview } from "./dialoguePreview.js";
@@ -20,9 +20,9 @@ export const converter = {
     const cacheConfig = {
       narratorName,
       selectedQuotePairs,
-      characterMapping: state.currentConfig,
-      enableLive2D: state.enableLive2D,
-      costumeMapping: state.currentCostumes,
+      characterMapping: state.get("currentConfig"),
+      enableLive2D: state.get("enableLive2D"),
+      costumeMapping: state.get("currentCostumes"),
       positionConfig: {
         autoPositionMode: positionManager.autoPositionMode,
         manualPositions: positionManager.manualPositions,
@@ -33,7 +33,7 @@ export const converter = {
     if (cachedResult) {
       resultCache.hits = (resultCache.hits || 0) + 1;
       console.log("使用缓存结果");
-      state.currentResult = cachedResult;
+      state.set("currentResult", cachedResult);
       document.getElementById("resultContent").textContent = cachedResult;
       Prism.highlightElement(document.getElementById("resultContent"));
       document.getElementById("resultSection").style.display = "block";
@@ -50,15 +50,15 @@ export const converter = {
         text: inputText,
         narrator_name: narratorName,
         selected_quote_pairs: selectedQuotePairs,
-        character_mapping: state.currentConfig,
-        enable_live2d: state.enableLive2D,
-        costume_mapping: state.currentCostumes,
+        character_mapping: state.get("currentConfig"),
+        enable_live2d: state.get("enableLive2D"),
+        costume_mapping: state.get("currentCostumes"),
         position_config: cacheConfig.positionConfig,
       });
       ui.showProgress(100);
       const result = response.data.result;
       resultCache.set(cacheKey, result);
-      state.currentResult = result;
+      state.set("currentResult", result);
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
       document.getElementById("resultSection").style.display = "block";
@@ -92,12 +92,12 @@ export const converter = {
     const previewConfig = {
       narratorName,
       selectedQuotePairs,
-      enableLive2D: state.enableLive2D,
+      enableLive2D: state.get("enableLive2D"),
     };
     const cacheKey = previewCache.generatePreviewKey(inputText, previewConfig);
     const cachedPreview = previewCache.get(cacheKey);
     if (cachedPreview && !isManualRefresh) {
-      state.currentResult = cachedPreview;
+      state.set("currentResult", cachedPreview);
       document.querySelector("#splitPreviewJson code").textContent =
         cachedPreview;
       Prism.highlightElement(document.querySelector("#splitPreviewJson code"));
@@ -115,9 +115,9 @@ export const converter = {
         text: inputText,
         narrator_name: narratorName,
         selected_quote_pairs: selectedQuotePairs,
-        character_mapping: state.currentConfig,
-        enable_live2d: state.enableLive2D,
-        costume_mapping: state.currentCostumes,
+        character_mapping: state.get("currentConfig"),
+        enable_live2d: state.get("enableLive2D"),
+        costume_mapping: state.get("currentCostumes"),
         position_config: {
           autoPositionMode: positionManager.autoPositionMode,
           manualPositions: positionManager.manualPositions,
@@ -125,7 +125,7 @@ export const converter = {
       });
       const jsonResult = response.data.result;
       previewCache.set(cacheKey, jsonResult);
-      state.currentResult = jsonResult;
+      state.set("currentResult", jsonResult);
       document.querySelector("#splitPreviewJson code").textContent = jsonResult;
       Prism.highlightElement(document.querySelector("#splitPreviewJson code"));
       dialoguePreview.updateDialoguePreview(jsonResult, "splitPreviewDialogue");

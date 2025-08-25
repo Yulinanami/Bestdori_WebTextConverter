@@ -1,5 +1,5 @@
 // 视图管理相关功能
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { converter } from "./converter.js";
 import { ui } from "./uiUtils.js";
 
@@ -32,7 +32,7 @@ export const viewManager = {
       this.syncTextAreas();
       this.syncConfigToSplit();
       this.syncLive2DToSplit();
-      if (state.autoPreviewEnabled) {
+      if (state.get("autoPreviewEnabled")) {
         converter.updateSplitPreview();
       }
     }
@@ -42,15 +42,15 @@ export const viewManager = {
   syncLive2DToSplit() {
     const splitCheckbox = document.getElementById("splitEnableLive2DCheckbox");
     if (splitCheckbox) {
-      splitCheckbox.checked = state.enableLive2D;
+      splitCheckbox.checked = state.get("enableLive2D");
     }
     const positionBtn = document.getElementById("positionConfigBtn");
     if (positionBtn) {
-      positionBtn.disabled = !state.enableLive2D;
+      positionBtn.disabled = !state.get("enableLiveLive2D");
     }
     const costumeBtn = document.getElementById("costumeConfigBtn");
     if (costumeBtn) {
-      costumeBtn.disabled = !state.enableLive2D;
+      costumeBtn.disabled = !state.get("enableLive2D");
     }
   },
 
@@ -153,7 +153,7 @@ export const viewManager = {
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
     ui.showStatus("文本已成功格式化！", "success");
-    if (state.autoPreviewEnabled) {
+    if (state.get("autoPreviewEnabled")) {
       converter.updateSplitPreview();
     }
   },
@@ -177,10 +177,10 @@ export const viewManager = {
 
   // 防抖预览更新
   debouncePreview() {
-    if (!state.autoPreviewEnabled) return;
-    clearTimeout(state.previewDebounceTimer);
-    state.previewDebounceTimer = setTimeout(() => {
+    if (!state.get("autoPreviewEnabled")) return;
+    clearTimeout(state.get("previewDebounceTimer"));
+    state.set("previewDebounceTimer", setTimeout(() => {
       converter.updateSplitPreview();
-    }, 500);
+    }, 500));
   },
 };

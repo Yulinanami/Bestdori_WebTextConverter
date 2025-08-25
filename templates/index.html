@@ -842,6 +842,64 @@
       </div>
     </div>
 
+    <!-- Templates for JS -->
+    <template id="config-item-template">
+      <div class="config-item">
+        <div class="config-avatar-wrapper">
+          <div class="config-avatar" data-id="">
+            <!-- Avatar content -->
+          </div>
+        </div>
+        <input type="text" placeholder="角色名称" value="" class="form-input config-name">
+        <input type="text" placeholder="ID列表(逗号分隔)" value="" class="form-input config-ids">
+        <button class="remove-btn">删除</button>
+      </div>
+    </template>
+
+    <template id="costume-item-template">
+      <div class="costume-config-item">
+        <div class="costume-item-header">
+          <div class="costume-character-info">
+            <div class="config-avatar" data-id="">
+              <!-- Avatar content -->
+            </div>
+            <span class="costume-character-name">
+              <!-- Name and ID -->
+            </span>
+          </div>
+          <div class="costume-actions">
+            <button class="btn btn-sm btn-secondary toggle-costume-details-btn" data-safe-dom-id="">
+              <span id="">▼</span> 服装管理
+            </button>
+          </div>
+        </div>
+        <div id="" class="costume-details" style="display: none;">
+          <div class="costume-current">
+            <label>当前服装：</label>
+            <select class="form-input costume-select" data-character-key="">
+              <!-- Options -->
+            </select>
+          </div>
+          <div class="costume-available-list">
+            <div class="costume-list-header">
+              <label>可用服装列表：</label>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm btn-secondary add-costume-btn" data-character-key="" data-safe-dom-id="">
+                  添加服装
+                </button>
+                <button class="btn btn-sm btn-primary open-live2d-db-btn" title="在新标签页查看 Bestdori Live2D 数据库">
+                  浏览数据库
+                </button>
+              </div>
+            </div>
+            <div id="" class="costume-list-items">
+              <!-- Costume list items -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <!-- 模块化JS文件 -->
     <script
       type="module"

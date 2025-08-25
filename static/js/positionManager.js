@@ -1,5 +1,5 @@
 // Live2D 位置管理功能
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 
@@ -92,7 +92,7 @@ export const positionManager = {
     const positionList = document.getElementById("positionList");
     if (!positionList) return;
     positionList.innerHTML = "";
-    const characters = Object.entries(state.currentConfig).sort(
+    const characters = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
         const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;

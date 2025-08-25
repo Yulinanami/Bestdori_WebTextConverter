@@ -1,5 +1,6 @@
 // 对话预览相关功能
-import { GRADIENTS, state } from "./constants.js";
+import { state } from "./stateManager.js";
+import { GRADIENTS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 
@@ -117,7 +118,7 @@ export const dialoguePreview = {
             text: inputText,
             narrator_name: narratorName,
             selected_quote_pairs: selectedQuotePairs,
-            character_mapping: state.currentConfig,
+            character_mapping: state.get("currentConfig"),
           });
           this.updateDialoguePreview(response.data.result, "dialogueContainer");
           ui.openModal("dialoguePreviewModal");

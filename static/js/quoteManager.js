@@ -1,5 +1,5 @@
 // 引号管理相关功能
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { converter } from "./converter.js";
 
@@ -9,13 +9,13 @@ export const quoteManager = {
     try {
       const saved = localStorage.getItem("bestdori_custom_quotes");
       if (saved) {
-        state.customQuotes = JSON.parse(saved);
+        state.set("customQuotes", JSON.parse(saved));
         return true;
       }
     } catch (error) {
       console.error("加载自定义引号失败:", error);
     }
-    state.customQuotes = [];
+    state.set("customQuotes", []);
     return false;
   },
 
@@ -24,7 +24,7 @@ export const quoteManager = {
     try {
       localStorage.setItem(
         "bestdori_custom_quotes",
-        JSON.stringify(state.customQuotes)
+        JSON.stringify(state.get("customQuotes"))
       );
       return true;
     } catch (error) {
@@ -38,8 +38,8 @@ export const quoteManager = {
     const container = document.getElementById("quoteOptionsContainer");
     container.innerHTML = "";
     this.loadCustomQuotes();
-    if (state.quotesConfig && state.quotesConfig.quote_categories) {
-      Object.entries(state.quotesConfig.quote_categories).forEach(
+    if (state.get("quotesConfig") && state.get("quotesConfig").quote_categories) {
+      Object.entries(state.get("quotesConfig").quote_categories).forEach(
         ([categoryName, chars]) => {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
           this.addQuoteOptionToContainer(
@@ -53,7 +53,7 @@ export const quoteManager = {
         }
       );
     }
-    state.customQuotes.forEach((quote, index) => {
+    state.get("customQuotes").forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
       this.addQuoteOptionToContainer(
         container,
@@ -119,7 +119,7 @@ export const quoteManager = {
       const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
       currentStates[key] = checkbox.checked;
     });
-    state.customQuotes = state.customQuotes.filter((q) => q.name !== quoteName);
+    state.set("customQuotes", state.get("customQuotes").filter((q) => q.name !== quoteName));
     this.saveCustomQuotes();
     this.renderQuoteOptions();
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
@@ -147,7 +147,7 @@ export const quoteManager = {
           checkbox.checked = mainCheckbox.checked;
           checkbox.addEventListener("change", () => {
             mainCheckbox.checked = checkbox.checked;
-            if (state.autoPreviewEnabled) {
+            if (state.get("autoPreviewEnabled")) {
               converter.updateSplitPreview();
             }
           });
@@ -172,7 +172,7 @@ export const quoteManager = {
       const closeChar = checkbox.dataset.close;
       if (checkbox.id.includes("custom-saved")) {
         const quoteName = `${openChar}...${closeChar}`;
-        const customQuote = state.customQuotes.find(
+        const customQuote = state.get("customQuotes").find(
           (q) => q.name === quoteName
         );
         if (customQuote) {
@@ -187,42 +187,76 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 添加自定义引号选项
-  addCustomQuoteOption() {
-    const openChar = document.getElementById("customQuoteOpen").value;
-    const closeChar = document.getElementById("customQuoteClose").value;
+  // 私有辅助函数：添加自定义引号并处理UI更新
+  _addCustomQuote(options) {
+    const { openInputId, closeInputId, stateContainerSelector, onComplete } =
+      options;
+
+    const openChar = document.getElementById(openInputId).value;
+    const closeChar = document.getElementById(closeInputId).value;
+
     if (!openChar || !closeChar) {
       ui.showStatus("起始和结束符号都不能为空！", "error");
       return;
     }
     const categoryName = `${openChar}...${closeChar}`;
-    const exists = state.customQuotes.some((q) => q.name === categoryName);
-    if (exists) {
+    if (state.get("customQuotes").some((q) => q.name === categoryName)) {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }
+
+    // 1. 保存当前复选框的状态
     const currentStates = {};
-    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
-      const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
-      currentStates[key] = checkbox.checked;
-    });
-    state.customQuotes.push({
+    document
+      .querySelector(stateContainerSelector)
+      .querySelectorAll(".quote-option-checkbox")
+      .forEach((checkbox) => {
+        const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+        currentStates[key] = checkbox.checked;
+      });
+
+    // 2. 添加新引号到数据模型
+    const quotes = state.get("customQuotes");
+    quotes.push({
       name: categoryName,
       open: openChar,
       close: closeChar,
       checked: true,
     });
+    state.set("customQuotes", quotes);
     this.saveCustomQuotes();
+
+    // 3. 重新渲染主列表
     this.renderQuoteOptions();
-    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
-      const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
-      if (key in currentStates) {
-        checkbox.checked = currentStates[key];
-      }
-    });
-    document.getElementById("customQuoteOpen").value = "";
-    document.getElementById("customQuoteClose").value = "";
+
+    // 4. 恢复主列表的复选框状态
+    document
+      .querySelectorAll("#quoteOptionsContainer .quote-option-checkbox")
+      .forEach((checkbox) => {
+        const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
+        if (key in currentStates) {
+          checkbox.checked = currentStates[key];
+        }
+      });
+
+    // 5. 清理和收尾
+    document.getElementById(openInputId).value = "";
+    document.getElementById(closeInputId).value = "";
     ui.showStatus("自定义引号已添加", "success");
+
+    // 6. 执行回调
+    if (onComplete) {
+      onComplete();
+    }
+  },
+
+  // 添加自定义引号选项
+  addCustomQuoteOption() {
+    this._addCustomQuote({
+      openInputId: "customQuoteOpen",
+      closeInputId: "customQuoteClose",
+      stateContainerSelector: "#quoteOptionsContainer",
+    });
   },
 
   // 打开分屏引号设置模态框
@@ -244,7 +278,7 @@ export const quoteManager = {
         checkbox.checked = mainCheckbox.checked;
         checkbox.addEventListener("change", () => {
           mainCheckbox.checked = checkbox.checked;
-          if (state.autoPreviewEnabled) {
+          if (state.get("autoPreviewEnabled")) {
             converter.updateSplitPreview();
           }
         });
@@ -263,51 +297,16 @@ export const quoteManager = {
 
   // 添加分屏自定义引号选项
   addSplitCustomQuoteOption() {
-    const openChar = document.getElementById("splitCustomQuoteOpen").value;
-    const closeChar = document.getElementById("splitCustomQuoteClose").value;
-    if (!openChar || !closeChar) {
-      ui.showStatus("起始和结束符号都不能为空！", "error");
-      return;
-    }
-    const categoryName = `${openChar}...${closeChar}`;
-    const exists = state.customQuotes.some((q) => q.name === categoryName);
-    if (exists) {
-      ui.showStatus("该引号对已存在！", "error");
-      return;
-    }
-    const splitContainer = document.getElementById(
-      "splitQuoteOptionsContainer"
-    );
-    const splitStates = {};
-    splitContainer
-      .querySelectorAll(".quote-option-checkbox")
-      .forEach((checkbox) => {
-        const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
-        splitStates[key] = checkbox.checked;
-      });
-    state.customQuotes.push({
-      name: categoryName,
-      open: openChar,
-      close: closeChar,
-      checked: true,
-    });
-    this.saveCustomQuotes();
-    this.renderQuoteOptions();
-    const mainContainer = document.getElementById("quoteOptionsContainer");
-    mainContainer
-      .querySelectorAll(".quote-option-checkbox")
-      .forEach((checkbox) => {
-        const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
-        if (key in splitStates) {
-          checkbox.checked = splitStates[key];
+    this._addCustomQuote({
+      openInputId: "splitCustomQuoteOpen",
+      closeInputId: "splitCustomQuoteClose",
+      stateContainerSelector: "#splitQuoteOptionsContainer",
+      onComplete: () => {
+        this.openSplitQuoteModal();
+        if (state.get("autoPreviewEnabled")) {
+          converter.updateSplitPreview();
         }
-      });
-    this.openSplitQuoteModal();
-    document.getElementById("splitCustomQuoteOpen").value = "";
-    document.getElementById("splitCustomQuoteClose").value = "";
-    ui.showStatus("自定义引号已添加", "success");
-    if (state.autoPreviewEnabled) {
-      converter.updateSplitPreview();
-    }
+      },
+    });
   },
 };

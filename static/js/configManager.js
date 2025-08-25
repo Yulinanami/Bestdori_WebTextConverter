@@ -1,5 +1,5 @@
 // 配置管理相关功能
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
@@ -12,8 +12,32 @@ export const configManager = {
     const configList = document.getElementById("configList");
     if (configList) {
       configList.addEventListener("click", (event) => {
-        if (event.target.classList.contains("remove-btn")) {
-          event.target.closest(".config-item").remove();
+        const removeButton = event.target.closest(".remove-btn");
+        if (removeButton) {
+          removeButton.closest(".config-item").remove();
+        }
+      });
+
+      configList.addEventListener("input", (event) => {
+        const configItem = event.target.closest(".config-item");
+        if (!configItem) return;
+
+        const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
+        const nameInput = configItem.querySelector(".config-name");
+        const name = nameInput.value || "?";
+
+        if (event.target.classList.contains("config-ids")) {
+          const newIds = event.target.value
+            .split(",")
+            .map((id) => parseInt(id.trim()))
+            .filter((id) => !isNaN(id));
+          const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
+          this.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
+        } else if (event.target.classList.contains("config-name")) {
+          const avatar = avatarWrapper.querySelector(".config-avatar");
+          if (avatar.classList.contains("fallback")) {
+            avatar.innerHTML = event.target.value.charAt(0) || "?";
+          }
         }
       });
     }
@@ -36,13 +60,13 @@ export const configManager = {
     try {
       const response = await axios.get("/api/config");
       this.defaultConfig = response.data.character_mapping;
-      state.quotesConfig = response.data.quotes_config;
+      state.set("quotesConfig", response.data.quotes_config);
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
-        state.currentConfig = savedConfig;
+        state.set("currentConfig", savedConfig);
         console.log("已加载本地保存的配置");
       } else {
-        state.currentConfig = { ...this.defaultConfig };
+        state.set("currentConfig", { ...this.defaultConfig });
         console.log("使用默认配置");
       }
       quoteManager.renderQuoteOptions();
@@ -104,14 +128,14 @@ export const configManager = {
       await ui.withButtonLoading(
         "resetConfigBtn",
         async () => {
-          const currentCostumes = { ...state.currentCostumes };
+          const currentCostumes = { ...state.get("currentCostumes") };
           const currentAvailableCostumes = costumeManager
             ? { ...costumeManager.availableCostumes }
             : {};
           localStorage.removeItem("bestdori_character_mapping");
-          state.currentConfig = { ...this.defaultConfig };
+          state.set("currentConfig", { ...this.defaultConfig });
           localStorage.removeItem("bestdori_custom_quotes");
-          state.customQuotes = [];
+          state.set("customQuotes", []);
           if (costumeManager) {
             await this.updateCostumesAfterConfigReset(
               currentCostumes,
@@ -151,7 +175,7 @@ export const configManager = {
       }
     });
 
-    state.currentCostumes = newCostumes;
+    state.set("currentCostumes", newCostumes);
     costumeManager.availableCostumes = newAvailableCostumes;
     costumeManager.saveLocalCostumes(newCostumes);
     costumeManager.saveLocalAvailableCostumes();
@@ -160,7 +184,7 @@ export const configManager = {
   // 渲染配置列表
   renderConfigList() {
     const configList = document.getElementById("configList");
-    const sortedConfig = Object.entries(state.currentConfig).sort(
+    const sortedConfig = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
         const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
@@ -173,45 +197,28 @@ export const configManager = {
 
   renderNormalConfigList(sortedConfig) {
     const configList = document.getElementById("configList");
-    configList.innerHTML = "";
-    configList.style.height = "auto";
+    const template = document.getElementById("config-item-template");
+    const fragment = document.createDocumentFragment();
+
     sortedConfig.forEach(([name, ids]) => {
-      const configItem = document.createElement("div");
-      configItem.className = "config-item";
+      const clone = template.content.cloneNode(true);
+      const configItem = clone.querySelector(".config-item");
       const primaryId = ids && ids.length > 0 ? ids[0] : 0;
-      const avatarId = this.getAvatarId(primaryId);
-      const avatarPath =
-        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
-      configItem.innerHTML = `
-                <div class="config-avatar-wrapper">
-                    <div class="config-avatar" data-id="${primaryId}">
-                        ${
-                          avatarId > 0
-                            ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
-                                0
-                              )}'; this.parentElement.classList.add('fallback');">`
-                            : name.charAt(0)
-                        }
-                    </div>
-                </div>
-                <input type="text" placeholder="角色名称" value="${name}" class="form-input config-name">
-                <input type="text" placeholder="ID列表(逗号分隔)" value="${
-                  Array.isArray(ids) ? ids.join(",") : ids
-                }" class="form-input config-ids">
-                <button class="remove-btn">删除</button>
-            `;
-      const idsInput = configItem.querySelector(".config-ids");
+
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
-      idsInput.addEventListener("input", (e) => {
-        const newIds = e.target.value
-          .split(",")
-          .map((id) => parseInt(id.trim()))
-          .filter((id) => !isNaN(id));
-        const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
-        this.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
-      });
-      configList.appendChild(configItem);
+      this.updateConfigAvatar(avatarWrapper, primaryId, name);
+
+      const nameInput = configItem.querySelector(".config-name");
+      nameInput.value = name;
+
+      const idsInput = configItem.querySelector(".config-ids");
+      idsInput.value = Array.isArray(ids) ? ids.join(",") : ids;
+
+      fragment.appendChild(configItem);
     });
+
+    configList.innerHTML = "";
+    configList.appendChild(fragment);
   },
 
   // 更新配置项头像
@@ -236,34 +243,15 @@ export const configManager = {
   // 添加配置项
   addConfigItem() {
     const configList = document.getElementById("configList");
-    const configItem = document.createElement("div");
-    configItem.className = "config-item";
-    configItem.innerHTML = `
-            <div class="config-avatar-wrapper">
-                <div class="config-avatar fallback" data-id="0">?</div>
-            </div>
-            <input type="text" placeholder="角色名称" class="form-input config-name">
-            <input type="text" placeholder="ID列表(逗号分隔)" class="form-input config-ids">
-            <button class="remove-btn">删除</button>
-        `;
-    const idsInput = configItem.querySelector(".config-ids");
-    const nameInput = configItem.querySelector(".config-name");
-    const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
-    idsInput.addEventListener("input", (e) => {
-      const newIds = e.target.value
-        .split(",")
-        .map((id) => parseInt(id.trim()))
-        .filter((id) => !isNaN(id));
-      const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
-      const name = nameInput.value || "?";
-      this.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
-    });
-    nameInput.addEventListener("input", (e) => {
-      const avatar = avatarWrapper.querySelector(".config-avatar");
-      if (avatar.classList.contains("fallback")) {
-        avatar.innerHTML = e.target.value.charAt(0) || "?";
-      }
-    });
+    const template = document.getElementById("config-item-template");
+    const clone = template.content.cloneNode(true);
+    const configItem = clone.querySelector(".config-item");
+
+    const avatar = configItem.querySelector(".config-avatar");
+    avatar.classList.add("fallback");
+    avatar.dataset.id = "0";
+    avatar.textContent = "?";
+    
     configList.prepend(configItem);
   },
 
@@ -289,7 +277,7 @@ export const configManager = {
         });
         await new Promise((resolve) => setTimeout(resolve, 500));
         if (this.saveLocalConfig(newConfig)) {
-          state.currentConfig = newConfig;
+          state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");
           ui.closeModal("configModal");
         } else {
@@ -306,16 +294,16 @@ export const configManager = {
       "exportConfigBtn",
       async () => {
         const fullConfig = {
-          character_mapping: state.currentConfig,
-          custom_quotes: state.customQuotes,
-          costume_mapping: state.currentCostumes,
+          character_mapping: state.get("currentConfig"),
+          custom_quotes: state.get("customQuotes"),
+          costume_mapping: state.get("currentCostumes"),
           available_costumes: costumeManager
             ? costumeManager.availableCostumes
             : {},
           built_in_characters: costumeManager
             ? Array.from(costumeManager.builtInCharacters)
             : [],
-          enable_live2d: state.enableLive2D,
+          enable_live2d: state.get("enableLive2D"),
           position_config: {
             autoPositionMode: positionManager
               ? positionManager.autoPositionMode
@@ -357,11 +345,11 @@ export const configManager = {
           throw new Error("无效的配置文件格式");
         }
         if (config.character_mapping) {
-          state.currentConfig = config.character_mapping;
+          state.set("currentConfig", config.character_mapping);
           this.saveLocalConfig(config.character_mapping);
           console.log("角色映射已导入");
           if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
-            state.customQuotes = config.custom_quotes;
+            state.set("customQuotes", config.custom_quotes);
             if (
               typeof quoteManager !== "undefined" &&
               quoteManager.saveCustomQuotes

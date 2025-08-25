@@ -1,5 +1,5 @@
 // UI相关的工具
-import { state } from "./constants.js";
+import { state } from "./stateManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 
@@ -110,8 +110,8 @@ export const ui = {
 
   // 添加跳转到 Bestdori 的方法
   async goToBestdori() {
-    if (state.currentResult) {
-      const copied = await this.copyToClipboard(state.currentResult);
+    if (state.get("currentResult")) {
+      const copied = await this.copyToClipboard(state.get("currentResult"));
       if (copied) {
         this.showStatus(
           "JSON 已复制到剪贴板，正在跳转到 Bestdori...",

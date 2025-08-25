@@ -1,16 +1,4 @@
 // 常量和共享状态管理
-export const state = {
-  currentResult: "",
-  currentConfig: {},
-  quotesConfig: {},
-  customQuotes: [],
-  batchFiles: [],
-  batchResults: [],
-  autoPreviewEnabled: true,
-  previewDebounceTimer: null,
-  enableLive2D: false,
-  currentCostumes: {},
-};
 
 export const GRADIENTS = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",

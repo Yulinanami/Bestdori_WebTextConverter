@@ -1,5 +1,6 @@
 // 批量处理相关功能
-import { state, FILE_EXTENSIONS } from "./constants.js";
+import { state } from "./stateManager.js";
+import { FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { positionManager } from "./positionManager.js";
@@ -26,8 +27,8 @@ export const batchProcessor = {
       '#batchConvertModal .btn-secondary[onclick*="batchConvertModal"]'
     );
     if (cancelBtn) cancelBtn.style.display = "inline-flex";
-    state.batchFiles = [];
-    state.batchResults = [];
+    state.set("batchFiles", []);
+    state.set("batchResults", []);
     ui.openModal("batchConvertModal");
   },
 
@@ -36,9 +37,9 @@ export const batchProcessor = {
     const fileInput = document.getElementById("batchFileInput");
     const fileList = document.getElementById("batchFileList");
     fileList.innerHTML = "";
-    state.batchFiles = Array.from(fileInput.files);
-    if (state.batchFiles.length > 0) {
-      state.batchFiles.forEach((file) => {
+    state.set("batchFiles", Array.from(fileInput.files));
+    if (state.get("batchFiles").length > 0) {
+      state.get("batchFiles").forEach((file) => {
         const li = document.createElement("li");
         const icon = file.name.endsWith(FILE_EXTENSIONS.DOCX)
           ? "📄"
@@ -58,7 +59,7 @@ export const batchProcessor = {
 
   // 开始批量转换
   async startBatchConversion() {
-    if (state.batchFiles.length === 0) {
+    if (state.get("batchFiles").length === 0) {
       ui.showStatus("请先选择文件！", "error");
       return;
     }
@@ -67,7 +68,7 @@ export const batchProcessor = {
     startBtn.innerHTML = '<div class="loading"></div> 上传并准备中...';
     try {
       const filesData = await Promise.all(
-        state.batchFiles.map((file) => {
+        state.get("batchFiles").map((file) => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
             const filename = file.name.toLowerCase();
@@ -102,9 +103,9 @@ export const batchProcessor = {
         files: filesData,
         narrator_name: narratorName,
         selected_quote_pairs: selectedQuotePairs,
-        character_mapping: state.currentConfig,
-        enable_live2d: state.enableLive2D,
-        costume_mapping: state.currentCostumes,
+        character_mapping: state.get("currentConfig"),
+        enable_live2d: state.get("enableLive2D"),
+        costume_mapping: state.get("currentCostumes"),
         position_config: {
           autoPositionMode: positionManager.autoPositionMode,
           manualPositions: positionManager.manualPositions,
@@ -145,8 +146,8 @@ export const batchProcessor = {
         logOutput.scrollTop = logOutput.scrollHeight;
         if (data.status === "completed") {
           clearInterval(intervalId);
-          state.batchResults = data.results || [];
-          if (state.batchResults.length > 0) {
+          state.set("batchResults", data.results || []);
+          if (state.get("batchResults").length > 0) {
             document.getElementById("downloadBatchResultBtn").style.display =
               "inline-flex";
           }
@@ -167,12 +168,12 @@ export const batchProcessor = {
 
   // 处理批量下载
   handleBatchDownload() {
-    if (state.batchResults.length === 0) {
+    if (state.get("batchResults").length === 0) {
       ui.showStatus("没有可下载的批量处理结果！", "error");
       return;
     }
     const zip = new JSZip();
-    state.batchResults.forEach((result) => {
+    state.get("batchResults").forEach((result) => {
       zip.file(result.name, result.content);
     });
     zip

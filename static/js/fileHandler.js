@@ -1,5 +1,6 @@
 // 文件处理相关功能
-import { state, VALID_EXTENSIONS, FILE_EXTENSIONS } from "./constants.js";
+import { state } from "./stateManager.js";
+import { VALID_EXTENSIONS, FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 
 export const fileHandler = {
@@ -88,7 +89,7 @@ export const fileHandler = {
 
   // 通用的下载逻辑
   async _download(buttonId) {
-    if (!state.currentResult) {
+    if (!state.get("currentResult")) {
       ui.showStatus("没有可下载的结果！", "error");
       return;
     }
@@ -103,7 +104,7 @@ export const fileHandler = {
           const response = await axios.post(
             "/api/download",
             {
-              content: state.currentResult,
+              content: state.get("currentResult"),
               filename: filename,
             },
             {
