@@ -38,22 +38,27 @@ export const batchProcessor = {
     const fileList = document.getElementById("batchFileList");
     fileList.innerHTML = "";
     state.set("batchFiles", Array.from(fileInput.files));
+
     if (state.get("batchFiles").length > 0) {
-      state.get("batchFiles").forEach((file) => {
-        const li = document.createElement("li");
-        const icon = file.name.endsWith(FILE_EXTENSIONS.DOCX)
-          ? "📄"
-          : file.name.endsWith(FILE_EXTENSIONS.MD)
-          ? "📝"
-          : "📃";
-        li.textContent = `${icon} ${file.name} (${(file.size / 1024).toFixed(
-          2
-        )} KB)`;
-        fileList.appendChild(li);
-      });
-      document.getElementById("startBatchBtn").disabled = false;
+        const fragment = document.createDocumentFragment();
+
+        state.get("batchFiles").forEach((file) => {
+            const li = document.createElement("li");
+            const icon = file.name.endsWith(FILE_EXTENSIONS.DOCX)
+              ? "📄"
+              : file.name.endsWith(FILE_EXTENSIONS.MD)
+              ? "📝"
+              : "📃";
+            li.textContent = `${icon} ${file.name} (${(file.size / 1024).toFixed(
+              2
+            )} KB)`;
+            fragment.appendChild(li);
+        });
+
+        fileList.appendChild(fragment);
+        document.getElementById("startBatchBtn").disabled = false;
     } else {
-      document.getElementById("startBatchBtn").disabled = true;
+        document.getElementById("startBatchBtn").disabled = true;
     }
   },
 

@@ -36,6 +36,31 @@ export const positionManager = {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => this.resetPositions());
     }
+
+    // Add event delegation for the list
+    const positionList = document.getElementById("positionList");
+    if(positionList) {
+        positionList.addEventListener("change", (e) => {
+            if(e.target.classList.contains("position-select")) {
+                const charName = e.target.dataset.character;
+                if (!this.tempManualPositions[charName]) {
+                  this.tempManualPositions[charName] = { position: "center", offset: 0 };
+                }
+                this.tempManualPositions[charName].position = e.target.value;
+            }
+        });
+
+        positionList.addEventListener("input", (e) => {
+            if(e.target.classList.contains("position-offset-input")) {
+                const charName = e.target.dataset.character;
+                const offset = parseInt(e.target.value) || 0;
+                if (!this.tempManualPositions[charName]) {
+                  this.tempManualPositions[charName] = { position: "center", offset: 0 };
+                }
+                this.tempManualPositions[charName].offset = offset;
+            }
+        });
+    }
   },
 
   // 加载配置
@@ -91,7 +116,8 @@ export const positionManager = {
   renderPositionList() {
     const positionList = document.getElementById("positionList");
     if (!positionList) return;
-    positionList.innerHTML = "";
+    
+    const fragment = document.createDocumentFragment();
     const characters = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
@@ -99,6 +125,7 @@ export const positionManager = {
         return idA - idB;
       }
     );
+
     characters.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
       const primaryId = ids[0];
@@ -153,31 +180,11 @@ export const positionManager = {
                     </div>
                 </div>
             `;
-      const select = item.querySelector(".position-select");
-      select.addEventListener("change", (e) => {
-        const charName = e.target.dataset.character;
-        if (!this.tempManualPositions[charName]) {
-          this.tempManualPositions[charName] = {
-            position: "center",
-            offset: 0,
-          };
-        }
-        this.tempManualPositions[charName].position = e.target.value;
-      });
-      const offsetInput = item.querySelector(".position-offset-input");
-      offsetInput.addEventListener("input", (e) => {
-        const charName = e.target.dataset.character;
-        const offset = parseInt(e.target.value) || 0;
-        if (!this.tempManualPositions[charName]) {
-          this.tempManualPositions[charName] = {
-            position: "center",
-            offset: 0,
-          };
-        }
-        this.tempManualPositions[charName].offset = offset;
-      });
-      positionList.appendChild(item);
+      fragment.appendChild(item);
     });
+
+    positionList.innerHTML = "";
+    positionList.appendChild(fragment);
   },
 
   // 保存位置配置

@@ -19,7 +19,6 @@ export const state = {
   set(key, value) {
     // console.log(`[State Change] ${key}:`, value); // 方便调试
     _state[key] = value;
-    // 在这里可以触发一些全局的响应，如果需要的话
   },
   getAll() {
     return { ..._state };

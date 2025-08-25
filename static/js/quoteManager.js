@@ -38,37 +38,39 @@ export const quoteManager = {
     const container = document.getElementById("quoteOptionsContainer");
     container.innerHTML = "";
     this.loadCustomQuotes();
+    const fragment = document.createDocumentFragment();
+
     if (state.get("quotesConfig") && state.get("quotesConfig").quote_categories) {
       Object.entries(state.get("quotesConfig").quote_categories).forEach(
         ([categoryName, chars]) => {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
-          this.addQuoteOptionToContainer(
-            container,
+          const element = this.createQuoteOptionElement(
             checkboxId,
             categoryName,
             chars[0],
             chars[1],
             true
           );
+          fragment.appendChild(element);
         }
       );
     }
     state.get("customQuotes").forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
-      this.addQuoteOptionToContainer(
-        container,
+      const element = this.createQuoteOptionElement(
         checkboxId,
         quote.name,
         quote.open,
         quote.close,
         quote.checked
       );
+      fragment.appendChild(element);
     });
+    container.appendChild(fragment);
   },
 
-  // 辅助函数：添加引号选项到指定容器
-  addQuoteOptionToContainer(
-    container,
+  // 辅助函数：创建引号选项元素
+  createQuoteOptionElement(
     checkboxId,
     categoryName,
     openChar,
@@ -109,7 +111,7 @@ export const quoteManager = {
       wrapper.appendChild(checkbox);
       wrapper.appendChild(label);
     }
-    container.appendChild(wrapper);
+    return wrapper;
   },
 
   // 删除自定义引号

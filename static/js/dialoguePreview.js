@@ -20,16 +20,20 @@ export const dialoguePreview = {
 
   // 更新对话预览
   updateDialoguePreview(jsonStr, containerId) {
+    const container = document.getElementById(containerId);
     try {
       const data = JSON.parse(jsonStr);
-      const container = document.getElementById(containerId);
       container.innerHTML = "";
+
       if (!data.actions || data.actions.length === 0) {
         container.innerHTML =
           '<p style="text-align: center; color: #718096;">没有对话内容</p>';
         return;
       }
+
+      const fragment = document.createDocumentFragment();
       let dialogueIndex = 0;
+
       data.actions.forEach((action) => {
         if (action.type !== "talk") {
           return;
@@ -88,10 +92,13 @@ export const dialoguePreview = {
         text.textContent = action.body;
         content.appendChild(text);
         dialogueItem.appendChild(content);
-        container.appendChild(dialogueItem);
+        fragment.appendChild(dialogueItem);
         dialogueIndex++;
       });
-      if (dialogueIndex === 0) {
+
+      if (dialogueIndex > 0) {
+        container.appendChild(fragment);
+      } else {
         container.innerHTML =
           '<p style="text-align: center; color: #718096;">没有对话内容</p>';
       }

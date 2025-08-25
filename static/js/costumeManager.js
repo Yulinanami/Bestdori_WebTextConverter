@@ -265,7 +265,7 @@ export const costumeManager = {
   renderCostumeList() {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
-    costumeList.innerHTML = "";
+    const fragment = document.createDocumentFragment();
 
     const characterEntries = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
@@ -320,8 +320,11 @@ export const costumeManager = {
       listItems.id = `costume-list-${safeDomId}`;
       listItems.innerHTML = this.renderCostumeListItems(characterKey, availableForCharacter, safeDomId);
       
-      costumeList.appendChild(costumeItem);
+      fragment.appendChild(costumeItem);
     });
+
+    costumeList.innerHTML = "";
+    costumeList.appendChild(fragment);
   },
 
   // 添加打开 Live2D 数据库的方法
