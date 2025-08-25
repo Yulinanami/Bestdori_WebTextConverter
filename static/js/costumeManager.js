@@ -18,37 +18,31 @@ export const costumeManager = {
   init() {
     const costumeList = document.getElementById("costumeList");
     if (!costumeList) return;
-
     costumeList.addEventListener("click", (e) => {
       const target = e.target;
-
       const toggleBtn = target.closest(".toggle-costume-details-btn");
       if (toggleBtn) {
         const safeDomId = toggleBtn.dataset.safeDomId;
         this.toggleCostumeDetails(safeDomId);
         return;
       }
-
       const addBtn = target.closest(".add-costume-btn");
       if (addBtn) {
         const { characterKey, safeDomId } = addBtn.dataset;
         this.addNewCostume(characterKey, safeDomId);
         return;
       }
-
       const dbBtn = target.closest(".open-live2d-db-btn");
       if (dbBtn) {
         this.openLive2DDatabase();
         return;
       }
-
       const editBtn = target.closest(".edit-costume-btn");
       if (editBtn) {
         const { characterKey, index, costume, safeDomId } = editBtn.dataset;
         this.editCostume(characterKey, parseInt(index), costume, safeDomId);
         return;
       }
-
       const deleteBtn = target.closest(".delete-costume-btn");
       if (deleteBtn) {
         const { characterKey, index, safeDomId } = deleteBtn.dataset;
@@ -56,7 +50,6 @@ export const costumeManager = {
         return;
       }
     });
-
     costumeList.addEventListener("change", (e) => {
       const select = e.target.closest(".costume-select");
       if (select) {
@@ -285,22 +278,30 @@ export const costumeManager = {
       const characterKey = this.getCharacterKey(name);
       const safeDomId = this.getSafeDomId(name);
       const avatarId = configManager.getAvatarId(primaryId);
-      const availableForCharacter = this.tempAvailableCostumes[characterKey] || [];
+      const availableForCharacter =
+        this.tempAvailableCostumes[characterKey] || [];
       const currentCostume = this.tempCostumeChanges[characterKey] || "";
 
       // Header
       const avatarDiv = costumeItem.querySelector(".config-avatar");
       avatarDiv.dataset.id = primaryId;
-      const avatarPath = avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
+      const avatarPath =
+        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
       if (avatarId > 0) {
-        avatarDiv.innerHTML = `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(0)}'; this.parentElement.classList.add('fallback');">`;
+        avatarDiv.innerHTML = `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
+          0
+        )}'; this.parentElement.classList.add('fallback');">`;
       } else {
         avatarDiv.textContent = name.charAt(0);
-        avatarDiv.classList.add('fallback');
+        avatarDiv.classList.add("fallback");
       }
-      costumeItem.querySelector(".costume-character-name").textContent = `${name} (ID: ${primaryId})`;
-      
-      const toggleBtn = costumeItem.querySelector(".toggle-costume-details-btn");
+      costumeItem.querySelector(
+        ".costume-character-name"
+      ).textContent = `${name} (ID: ${primaryId})`;
+
+      const toggleBtn = costumeItem.querySelector(
+        ".toggle-costume-details-btn"
+      );
       toggleBtn.dataset.safeDomId = safeDomId;
       toggleBtn.querySelector("span").id = `toggle-${safeDomId}`;
 
@@ -310,7 +311,16 @@ export const costumeManager = {
 
       const select = costumeItem.querySelector(".costume-select");
       select.dataset.characterKey = characterKey;
-      select.innerHTML = `<option value="">无服装</option>` + availableForCharacter.map(costume => `<option value="${costume}" ${costume === currentCostume ? "selected" : ""}>${costume}</option>`).join("");
+      select.innerHTML =
+        `<option value="">无服装</option>` +
+        availableForCharacter
+          .map(
+            (costume) =>
+              `<option value="${costume}" ${
+                costume === currentCostume ? "selected" : ""
+              }>${costume}</option>`
+          )
+          .join("");
 
       const addBtn = costumeItem.querySelector(".add-costume-btn");
       addBtn.dataset.characterKey = characterKey;
@@ -318,8 +328,12 @@ export const costumeManager = {
 
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
-      listItems.innerHTML = this.renderCostumeListItems(characterKey, availableForCharacter, safeDomId);
-      
+      listItems.innerHTML = this.renderCostumeListItems(
+        characterKey,
+        availableForCharacter,
+        safeDomId
+      );
+
       fragment.appendChild(costumeItem);
     });
 
@@ -457,9 +471,10 @@ export const costumeManager = {
     await ui.withButtonLoading(
       "saveCostumesBtn",
       async () => {
-        state.set("currentCostumes", JSON.parse(
-          JSON.stringify(this.tempCostumeChanges)
-        ));
+        state.set(
+          "currentCostumes",
+          JSON.parse(JSON.stringify(this.tempCostumeChanges))
+        );
         this.availableCostumes = JSON.parse(
           JSON.stringify(this.tempAvailableCostumes)
         );

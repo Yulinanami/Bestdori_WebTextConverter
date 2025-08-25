@@ -33,3 +33,20 @@ class FileFormatConverter:
         except Exception as e:
             logger.error(f"Markdown解析失败: {e}")
             raise ValueError(f"无法解析Markdown: {str(e)}")
+
+    @staticmethod
+    def read_file_content_to_text(filename: str, content: bytes) -> str:
+        filename_lower = filename.lower()
+        try:
+            if filename_lower.endswith(".docx"):
+                return FileFormatConverter.docx_to_text(content)
+            elif filename_lower.endswith(".md"):
+                return FileFormatConverter.markdown_to_text(content.decode("utf-8"))
+            else:
+                return content.decode("utf-8")
+        except UnicodeDecodeError:
+            logger.warning(f"UTF-8 decoding failed for {filename}, trying with latin-1.")
+            return content.decode("latin-1", errors="replace")
+        except Exception as e:
+            logger.error(f"Failed to process file {filename}: {e}")
+            raise

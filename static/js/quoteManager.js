@@ -39,8 +39,10 @@ export const quoteManager = {
     container.innerHTML = "";
     this.loadCustomQuotes();
     const fragment = document.createDocumentFragment();
-
-    if (state.get("quotesConfig") && state.get("quotesConfig").quote_categories) {
+    if (
+      state.get("quotesConfig") &&
+      state.get("quotesConfig").quote_categories
+    ) {
       Object.entries(state.get("quotesConfig").quote_categories).forEach(
         ([categoryName, chars]) => {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
@@ -121,7 +123,10 @@ export const quoteManager = {
       const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
       currentStates[key] = checkbox.checked;
     });
-    state.set("customQuotes", state.get("customQuotes").filter((q) => q.name !== quoteName));
+    state.set(
+      "customQuotes",
+      state.get("customQuotes").filter((q) => q.name !== quoteName)
+    );
     this.saveCustomQuotes();
     this.renderQuoteOptions();
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
@@ -174,9 +179,9 @@ export const quoteManager = {
       const closeChar = checkbox.dataset.close;
       if (checkbox.id.includes("custom-saved")) {
         const quoteName = `${openChar}...${closeChar}`;
-        const customQuote = state.get("customQuotes").find(
-          (q) => q.name === quoteName
-        );
+        const customQuote = state
+          .get("customQuotes")
+          .find((q) => q.name === quoteName);
         if (customQuote) {
           customQuote.checked = checkbox.checked;
         }
@@ -189,14 +194,12 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 私有辅助函数：添加自定义引号并处理UI更新
+  // 添加自定义引号并处理UI更新
   _addCustomQuote(options) {
     const { openInputId, closeInputId, stateContainerSelector, onComplete } =
       options;
-
     const openChar = document.getElementById(openInputId).value;
     const closeChar = document.getElementById(closeInputId).value;
-
     if (!openChar || !closeChar) {
       ui.showStatus("起始和结束符号都不能为空！", "error");
       return;
@@ -206,8 +209,6 @@ export const quoteManager = {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }
-
-    // 1. 保存当前复选框的状态
     const currentStates = {};
     document
       .querySelector(stateContainerSelector)
@@ -216,8 +217,6 @@ export const quoteManager = {
         const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
         currentStates[key] = checkbox.checked;
       });
-
-    // 2. 添加新引号到数据模型
     const quotes = state.get("customQuotes");
     quotes.push({
       name: categoryName,
@@ -227,11 +226,7 @@ export const quoteManager = {
     });
     state.set("customQuotes", quotes);
     this.saveCustomQuotes();
-
-    // 3. 重新渲染主列表
     this.renderQuoteOptions();
-
-    // 4. 恢复主列表的复选框状态
     document
       .querySelectorAll("#quoteOptionsContainer .quote-option-checkbox")
       .forEach((checkbox) => {
@@ -240,13 +235,9 @@ export const quoteManager = {
           checkbox.checked = currentStates[key];
         }
       });
-
-    // 5. 清理和收尾
     document.getElementById(openInputId).value = "";
     document.getElementById(closeInputId).value = "";
     ui.showStatus("自定义引号已添加", "success");
-
-    // 6. 执行回调
     if (onComplete) {
       onComplete();
     }

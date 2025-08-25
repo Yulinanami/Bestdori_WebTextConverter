@@ -59,22 +59,18 @@ def upload_file():
         file = request.files["file"]
         if file.filename == "":
             return jsonify({"error": "没有选择文件"}), 400
-        filename = file.filename.lower()
+        
+        filename = file.filename
         file_content = file.read()
-        if filename.endswith(".txt"):
-            content = file_content.decode("utf-8")
-        elif filename.endswith(".docx"):
-            content = file_converter.docx_to_text(file_content)
-        elif filename.endswith(".md"):
-            content = file_converter.markdown_to_text(file_content.decode("utf-8"))
-        else:
-            return (
-                jsonify({"error": "不支持的文件格式，请上传 .txt, .docx 或 .md 文件"}),
-                400,
-            )
+        
+        content = file_converter.read_file_content_to_text(filename, file_content)
+        
         return jsonify({"content": content})
+    except ValueError as e:
+        logger.error(f"文件处理失败: {e}")
+        return jsonify({"error": f"文件处理失败: {str(e)}"}), 400
     except Exception as e:
-        logger.error(f"文件上传失败: {e}")
+        logger.error(f"文件上传失败: {e}", exc_info=True)
         return jsonify({"error": f"文件上传失败: {str(e)}"}), 500
 
 

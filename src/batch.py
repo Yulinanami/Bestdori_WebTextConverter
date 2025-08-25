@@ -19,20 +19,21 @@ def batch_worker(args: Tuple[Dict[str, Any], Dict[str, Any]]) -> Dict[str, Any]:
     if converter_config.get("character_mapping"):
         converter.character_mapping = converter_config["character_mapping"]
     filename = file_data.get("name", "unknown.txt")
-    raw_content = file_data.get("content", "")
+    raw_content_str = file_data.get("content", "")
     encoding = file_data.get("encoding", "text")
+
     try:
-        if encoding == "base64" and filename.lower().endswith(".docx"):
-            content_parts = raw_content.split(",")
+        if encoding == "base64":
+            content_parts = raw_content_str.split(",")
             if len(content_parts) > 1:
-                decoded_bytes = base64.b64decode(content_parts[1])
-                text_content = FileFormatConverter.docx_to_text(decoded_bytes)
+                file_bytes = base64.b64decode(content_parts[1])
             else:
-                raise ValueError("无效的 Base64 数据")
-        elif filename.lower().endswith(".md"):
-            text_content = FileFormatConverter.markdown_to_text(raw_content)
+                file_bytes = base64.b64decode(raw_content_str)
         else:
-            text_content = raw_content
+            file_bytes = raw_content_str.encode("utf-8")
+        text_content = FileFormatConverter.read_file_content_to_text(
+            filename, file_bytes
+        )
         json_output = converter.convert_text_to_json_format(
             text_content,
             converter_config.get("narrator_name", " "),

@@ -1,4 +1,4 @@
-// 常量和共享状态管理
+// 常量管理
 
 export const GRADIENTS = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",

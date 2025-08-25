@@ -24,16 +24,13 @@ export const dialoguePreview = {
     try {
       const data = JSON.parse(jsonStr);
       container.innerHTML = "";
-
       if (!data.actions || data.actions.length === 0) {
         container.innerHTML =
           '<p style="text-align: center; color: #718096;">没有对话内容</p>';
         return;
       }
-
       const fragment = document.createDocumentFragment();
       let dialogueIndex = 0;
-
       data.actions.forEach((action) => {
         if (action.type !== "talk") {
           return;

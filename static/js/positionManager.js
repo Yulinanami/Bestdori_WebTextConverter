@@ -36,30 +36,33 @@ export const positionManager = {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => this.resetPositions());
     }
-
-    // Add event delegation for the list
     const positionList = document.getElementById("positionList");
-    if(positionList) {
-        positionList.addEventListener("change", (e) => {
-            if(e.target.classList.contains("position-select")) {
-                const charName = e.target.dataset.character;
-                if (!this.tempManualPositions[charName]) {
-                  this.tempManualPositions[charName] = { position: "center", offset: 0 };
-                }
-                this.tempManualPositions[charName].position = e.target.value;
-            }
-        });
-
-        positionList.addEventListener("input", (e) => {
-            if(e.target.classList.contains("position-offset-input")) {
-                const charName = e.target.dataset.character;
-                const offset = parseInt(e.target.value) || 0;
-                if (!this.tempManualPositions[charName]) {
-                  this.tempManualPositions[charName] = { position: "center", offset: 0 };
-                }
-                this.tempManualPositions[charName].offset = offset;
-            }
-        });
+    if (positionList) {
+      positionList.addEventListener("change", (e) => {
+        if (e.target.classList.contains("position-select")) {
+          const charName = e.target.dataset.character;
+          if (!this.tempManualPositions[charName]) {
+            this.tempManualPositions[charName] = {
+              position: "center",
+              offset: 0,
+            };
+          }
+          this.tempManualPositions[charName].position = e.target.value;
+        }
+      });
+      positionList.addEventListener("input", (e) => {
+        if (e.target.classList.contains("position-offset-input")) {
+          const charName = e.target.dataset.character;
+          const offset = parseInt(e.target.value) || 0;
+          if (!this.tempManualPositions[charName]) {
+            this.tempManualPositions[charName] = {
+              position: "center",
+              offset: 0,
+            };
+          }
+          this.tempManualPositions[charName].offset = offset;
+        }
+      });
     }
   },
 
@@ -116,7 +119,6 @@ export const positionManager = {
   renderPositionList() {
     const positionList = document.getElementById("positionList");
     if (!positionList) return;
-    
     const fragment = document.createDocumentFragment();
     const characters = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
@@ -125,7 +127,6 @@ export const positionManager = {
         return idA - idB;
       }
     );
-
     characters.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
       const primaryId = ids[0];
@@ -182,7 +183,6 @@ export const positionManager = {
             `;
       fragment.appendChild(item);
     });
-
     positionList.innerHTML = "";
     positionList.appendChild(fragment);
   },

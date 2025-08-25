@@ -415,9 +415,22 @@ class ConfigManager:
         if not self.config_path.exists():
             self._save_config(default_config)
             return default_config
+
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
-                loaded_config = yaml.safe_load(f) or default_config
+                if self.config_path.stat().st_size == 0:
+                    logger.warning(
+                        f"配置文件 {self.config_path} 为空，将使用默认配置并重新写入。"
+                    )
+                    self._save_config(default_config)
+                    return default_config
+                loaded_config = yaml.safe_load(f)
+                if not loaded_config:
+                    logger.warning(
+                        f"配置文件 {self.config_path} 内容无效，将使用默认配置并重新写入。"
+                    )
+                    self._save_config(default_config)
+                    return default_config
                 quotes_section = loaded_config.get("quotes", {})
                 if (
                     "quote_categories" not in quotes_section
@@ -435,8 +448,13 @@ class ConfigManager:
                         "default_costumes"
                     ]
                 return loaded_config
+        except yaml.YAMLError as e:
+            logger.error(f"配置文件 {self.config_path} 格式错误: {e}。将使用默认配置。")
+            return default_config
         except Exception as e:
-            logger.warning(f"配置文件加载失败: {e}")
+            logger.error(
+                f"加载配置文件时发生未知错误: {e}。将使用默认配置。", exc_info=True
+            )
             return default_config
 
     def _save_config(self, config: Dict[str, Any]):

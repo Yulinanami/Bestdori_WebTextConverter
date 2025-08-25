@@ -44,14 +44,6 @@ export const viewManager = {
     if (splitCheckbox) {
       splitCheckbox.checked = state.get("enableLive2D");
     }
-    const positionBtn = document.getElementById("positionConfigBtn");
-    if (positionBtn) {
-      positionBtn.disabled = !state.get("enableLiveLive2D");
-    }
-    const costumeBtn = document.getElementById("costumeConfigBtn");
-    if (costumeBtn) {
-      costumeBtn.disabled = !state.get("enableLive2D");
-    }
   },
 
   // 预览模式切换

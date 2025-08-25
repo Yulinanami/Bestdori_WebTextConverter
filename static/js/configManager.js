@@ -21,11 +21,11 @@ export const configManager = {
       configList.addEventListener("input", (event) => {
         const configItem = event.target.closest(".config-item");
         if (!configItem) return;
-
-        const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
+        const avatarWrapper = configItem.querySelector(
+          ".config-avatar-wrapper"
+        );
         const nameInput = configItem.querySelector(".config-name");
         const name = nameInput.value || "?";
-
         if (event.target.classList.contains("config-ids")) {
           const newIds = event.target.value
             .split(",")
@@ -158,11 +158,9 @@ export const configManager = {
   ) {
     const newCostumes = {};
     const newAvailableCostumes = {};
-
     Object.entries(this.defaultConfig).forEach(([name, ids]) => {
       const characterKey = costumeManager.getCharacterKey(name);
       const primaryId = ids[0];
-
       if (previousCostumes.hasOwnProperty(characterKey)) {
         newCostumes[characterKey] = previousCostumes[characterKey];
         newAvailableCostumes[characterKey] =
@@ -174,7 +172,6 @@ export const configManager = {
           costumeManager.defaultAvailableCostumes[primaryId] || [];
       }
     });
-
     state.set("currentCostumes", newCostumes);
     costumeManager.availableCostumes = newAvailableCostumes;
     costumeManager.saveLocalCostumes(newCostumes);
@@ -191,7 +188,6 @@ export const configManager = {
         return idA - idB;
       }
     );
-
     this.renderNormalConfigList(sortedConfig);
   },
 
@@ -199,24 +195,18 @@ export const configManager = {
     const configList = document.getElementById("configList");
     const template = document.getElementById("config-item-template");
     const fragment = document.createDocumentFragment();
-
     sortedConfig.forEach(([name, ids]) => {
       const clone = template.content.cloneNode(true);
       const configItem = clone.querySelector(".config-item");
       const primaryId = ids && ids.length > 0 ? ids[0] : 0;
-
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
       this.updateConfigAvatar(avatarWrapper, primaryId, name);
-
       const nameInput = configItem.querySelector(".config-name");
       nameInput.value = name;
-
       const idsInput = configItem.querySelector(".config-ids");
       idsInput.value = Array.isArray(ids) ? ids.join(",") : ids;
-
       fragment.appendChild(configItem);
     });
-
     configList.innerHTML = "";
     configList.appendChild(fragment);
   },
@@ -246,12 +236,10 @@ export const configManager = {
     const template = document.getElementById("config-item-template");
     const clone = template.content.cloneNode(true);
     const configItem = clone.querySelector(".config-item");
-
     const avatar = configItem.querySelector(".config-avatar");
     avatar.classList.add("fallback");
     avatar.dataset.id = "0";
     avatar.textContent = "?";
-    
     configList.prepend(configItem);
   },
 
