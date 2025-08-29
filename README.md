@@ -150,7 +150,7 @@
 2.  **克隆仓库**
     ```bash
     # 克隆仓库
-    git clone https://github.com/jueze233/Bestdori_WebTextConverter.git
+    git clone https://github.com/Yulinanami/Bestdori_WebTextConverter
 
     # 进入项目目录
     cd Bestdori_WebTextConverter
