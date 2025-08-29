@@ -392,7 +392,7 @@ class ConfigManager:
                 341: "341_casual-2023",
             },
             "parsing": {"max_speaker_name_length": 50, "default_narrator_name": " "},
-            "patterns": {"speaker_pattern": r"^([\w\s]+)\s*[：:]\s*(.*)$"},
+            "patterns": {"speaker_pattern": r"^(.*?)\s*[：:]\s*(.*)$"},
             "quotes": {
                 "quote_pairs": {
                     '"': '"',
