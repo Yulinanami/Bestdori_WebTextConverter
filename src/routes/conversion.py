@@ -9,17 +9,25 @@ logger = logging.getLogger(__name__)
 conversion_bp = Blueprint("conversion", __name__, url_prefix="/api")
 
 @conversion_bp.route("/convert", methods=["POST"])
-def convert_project(): # 函数名可以改得更贴切
+def convert_project():
     try:
         data = request.get_json()
         project_file = data.get("projectFile")
+        quote_config = data.get("quoteConfig") 
+
+        # --- 诊断步骤: 在这里添加日志 ---
+        logger.info(f"收到的引号配置 (quote_config): {quote_config}")
+        # --- 诊断结束 ---
 
         if not project_file or not isinstance(project_file, dict):
+            # 如果是从旧的 updateSplitPreview 收到请求，project_file 会是 None
+            # 我们在这里做一个兼容处理
+            if data.get("text") is not None:
+                 return jsonify({"error": "API不匹配，请刷新页面或清除缓存。"}), 400
             return jsonify({"error": "无效的项目文件"}), 400
         
-        # 使用新的转换器
         converter = ProjectConverter()
-        result = converter.convert(project_file)
+        result = converter.convert(project_file, quote_config)
 
         return jsonify({"result": result})
     except Exception as e:
