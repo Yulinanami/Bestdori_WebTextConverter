@@ -7,7 +7,7 @@ import {
 } from "./uiUtils.js";
 import { viewManager } from "./viewManager.js";
 import { fileHandler } from "./fileHandler.js";
-import { converter, resultCache } from "./converter.js";
+import { converter } from "./converter.js"; 
 import { configManager } from "./configManager.js";
 import { quoteManager } from "./quoteManager.js";
 import { dialoguePreview } from "./dialoguePreview.js";
@@ -70,10 +70,10 @@ function initializePerformanceOptimizations() {
     converter.convertText.bind(converter),
     "convertText"
   );
-  converter.updateSplitPreview = perfMonitor.measureTime(
-    converter.updateSplitPreview.bind(converter),
-    "updateSplitPreview"
-  );
+  // converter.updateSplitPreview = perfMonitor.measureTime(
+  //   converter.updateSplitPreview.bind(converter),
+  //   "updateSplitPreview"
+  // );
   axios.interceptors.request.use((config) => {
     config.metadata = { startTime: performance.now() };
     return config;
@@ -118,7 +118,7 @@ function addPerformancePanel() {
   document.body.appendChild(panel);
   setInterval(() => {
     const report = perfMonitor.getReport();
-    const cacheStats = resultCache.getStats();
+    // const cacheStats = resultCache.getStats();
     window.perfMonitor = perfMonitor;
     panel.innerHTML = `
             <h4 style="margin: 0 0 10px 0;">Performance Monitor</h4>

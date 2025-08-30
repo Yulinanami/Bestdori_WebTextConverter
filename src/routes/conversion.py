@@ -1,52 +1,29 @@
 # 文本转换api
 import tempfile
 import logging
-from ..converter import TextConverter
+from ..converter import ProjectConverter 
 from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
 conversion_bp = Blueprint("conversion", __name__, url_prefix="/api")
 
-
 @conversion_bp.route("/convert", methods=["POST"])
-def convert_text():
-    config_manager = current_app.config["CONFIG_MANAGER"]
+def convert_project(): # 函数名可以改得更贴切
     try:
         data = request.get_json()
-        input_text = data.get("text", "")
-        narrator_name = data.get("narrator_name", " ")
-        selected_pairs = data.get("selected_quote_pairs", [])
-        custom_character_mapping = data.get("character_mapping", None)
-        enable_live2d = data.get("enable_live2d", False)
-        custom_costume_mapping = data.get("costume_mapping", None)
-        position_config = data.get("position_config", None)
-        if custom_costume_mapping:
-            fixed_costume_mapping = {}
-            for str_key, value in custom_costume_mapping.items():
-                try:
-                    int_key = int(str_key)
-                    fixed_costume_mapping[int_key] = value
-                except ValueError:
-                    fixed_costume_mapping[str_key] = value
-            custom_costume_mapping = fixed_costume_mapping
-            logger.info(f"修复后的服装映射: {custom_costume_mapping}")
-        if not input_text.strip():
-            return jsonify({"error": "输入文本不能为空"}), 400
-        request_converter = TextConverter(config_manager)
-        if custom_character_mapping:
-            request_converter.character_mapping = custom_character_mapping
-        result = request_converter.convert_text_to_json_format(
-            input_text,
-            narrator_name,
-            selected_pairs,
-            enable_live2d,
-            custom_costume_mapping,
-            position_config,
-        )
+        project_file = data.get("projectFile")
+
+        if not project_file or not isinstance(project_file, dict):
+            return jsonify({"error": "无效的项目文件"}), 400
+        
+        # 使用新的转换器
+        converter = ProjectConverter()
+        result = converter.convert(project_file)
+
         return jsonify({"result": result})
     except Exception as e:
-        logger.error(f"转换失败: {e}", exc_info=True)
+        logger.error(f"项目文件转换失败: {e}", exc_info=True)
         return jsonify({"error": f"转换失败: {str(e)}"}), 500
 
 

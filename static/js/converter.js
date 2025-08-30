@@ -1,102 +1,90 @@
 // 文本转换管理
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
-import { quoteManager } from "./quoteManager.js";
-import { dialoguePreview } from "./dialoguePreview.js";
-import { ResultCache, PreviewCache } from "./cache.js";
-import { positionManager } from "./positionManager.js";
 
-const resultCache = new ResultCache();
-const previewCache = new PreviewCache();
+// 这是一个临时的辅助函数，用于旧流程的兼容
+function createProjectFileFromText(text) {
+    const segments = text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    const characterMap = new Map(Object.entries(state.get("currentConfig")).map(([name, ids]) => [name, { characterId: ids[0], name: name }]));
+
+    return {
+      version: "1.0",
+      actions: segments.map((segmentText, index) => {
+        let speakers = [];
+        let cleanText = segmentText;
+        const match = segmentText.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+        if (match) {
+            const potentialSpeakerName = match[1].trim();
+            if (characterMap.has(potentialSpeakerName)) {
+                speakers.push(characterMap.get(potentialSpeakerName));
+                cleanText = match[2].trim();
+            }
+        }
+        return {
+          id: `action-id-${Date.now()}-${index}`,
+          type: "talk",
+          text: cleanText,
+          speakers: speakers,
+          characterStates: {}
+        };
+      })
+    };
+}
+
 export const converter = {
   async convertText() {
+    let projectFileToConvert;
+
     if (state.get('projectFile')) {
-        // 如果存在已编辑的项目文件，直接使用它进行转换
-        this.convertFromProjectFile(state.get('projectFile'));
-        return;
+        // 优先使用编辑器保存的项目文件
+        projectFileToConvert = state.get('projectFile');
+    } else {
+        // 如果没有，则基于当前文本框内容动态创建一个
+        const inputText = document.getElementById("inputText").value.trim();
+        if (!inputText) {
+            ui.showStatus("请输入要转换的文本！", "error");
+            return;
+        }
+        projectFileToConvert = createProjectFileFromText(inputText);
     }
-    const inputText = document.getElementById("inputText").value.trim();
-    const narratorName = document.getElementById("narratorName").value || " ";
-    if (!inputText) {
-      ui.showStatus("请输入要转换的文本！", "error");
-      return;
-    }
-    const selectedQuotePairs = quoteManager.getSelectedQuotes();
-    const cacheConfig = {
-      narratorName,
-      selectedQuotePairs,
-      characterMapping: state.get("currentConfig"),
-      enableLive2D: state.get("enableLive2D"),
-      costumeMapping: state.get("currentCostumes"),
-      positionConfig: {
-        autoPositionMode: positionManager.autoPositionMode,
-        manualPositions: positionManager.manualPositions,
-      },
-    };
-    const cacheKey = resultCache.generateKey(inputText, cacheConfig);
-    const cachedResult = resultCache.get(cacheKey);
-    if (cachedResult) {
-      resultCache.hits = (resultCache.hits || 0) + 1;
-      console.log("使用缓存结果");
-      state.set("currentResult", cachedResult);
-      document.getElementById("resultContent").textContent = cachedResult;
-      Prism.highlightElement(document.getElementById("resultContent"));
-      document.getElementById("resultSection").style.display = "block";
-      ui.showStatus("转换完成！(使用缓存)", "success");
-      ui.scrollToElement("resultSection");
-      return;
-    }
-    resultCache.requests = (resultCache.requests || 0) + 1;
+    
+    // 统一调用基于项目文件的转换流程
+    this.convertFromProjectFile(projectFileToConvert);
+  },
+
+  /**
+   * 基于项目文件对象发送转换请求到后端。
+   * @param {object} projectFile - 我们的统一工作配置对象。
+   */
+  async convertFromProjectFile(projectFile) {
     try {
       ui.setButtonLoading("convertBtn", true, "转换中...");
       ui.showProgress(10);
-      ui.showStatus("正在处理文本...", "info");
+      ui.showStatus("正在发送项目数据...", "info");
+
       const response = await axios.post("/api/convert", {
-        text: inputText,
-        narrator_name: narratorName,
-        selected_quote_pairs: selectedQuotePairs,
-        character_mapping: state.get("currentConfig"),
-        enable_live2d: state.get("enableLive2D"),
-        costume_mapping: state.get("currentCostumes"),
-        position_config: cacheConfig.positionConfig,
+        projectFile: projectFile
       });
+
       ui.showProgress(100);
       const result = response.data.result;
-      resultCache.set(cacheKey, result);
+      
+      // 更新全局结果状态，以便下载等功能使用
       state.set("currentResult", result);
+      
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
       document.getElementById("resultSection").style.display = "block";
       ui.showStatus("转换完成！", "success");
       ui.scrollToElement("resultSection");
       setTimeout(() => ui.hideProgress(), 1000);
+
     } catch (error) {
-      ui.showStatus(
-        `转换失败: ${error.response?.data?.error || error.message}`,
-        "error"
-      );
+      ui.showStatus(`转换失败: ${error.response?.data?.error || error.message}`, "error");
       ui.hideProgress();
     } finally {
       ui.setButtonLoading("convertBtn", false);
     }
-  },
-
-  /**
-   * 基于项目文件对象发送转换请求到后端。
-   * @param {object} projectFile - 统一工作配置对象。
-   */
-  async convertFromProjectFile(projectFile) {
-      // TODO: 后端需要一个新API来接收项目文件
-      // 暂时我们先模拟一个，或者改造现有API
-      // 这里的逻辑将在下一步，即改造后端时实现
-      ui.showStatus("正在使用项目文件进行转换...", "info");
-      console.log("将使用此项目文件发送到后端:", projectFile);
-      
-      // 模拟显示结果
-      document.getElementById("resultSection").style.display = "block";
-      document.getElementById("resultContent").textContent = JSON.stringify(projectFile, null, 2);
-      Prism.highlightElement(document.getElementById("resultContent"));
-      ui.scrollToElement("resultSection");
   },
 
   // 更新分屏预览
@@ -170,4 +158,3 @@ export const converter = {
   },
 };
 
-export { resultCache };
