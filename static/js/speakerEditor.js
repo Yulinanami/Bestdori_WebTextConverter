@@ -218,24 +218,33 @@ export const speakerEditor = {
 
     new Sortable(canvas, {
       group: 'shared-speakers',
-      sort: false,
+      // --- 核心修正 1: 启用排序功能 ---
+      sort: true,
       animation: 150,
+      
+      // --- 核心修正 2: 添加 onEnd 事件处理器来同步数据 ---
+      onEnd: (evt) => {
+        // evt.oldIndex 是拖动前的位置, evt.newIndex 是拖动后的位置
+        if (evt.oldIndex === evt.newIndex) return; // 位置没变，则不处理
+
+        // 重新排序我们的核心数据数组
+        const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
+        this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
+
+        // 可选：为了确保数据与视图绝对同步，可以重新渲染
+        // 但由于我们没有复杂的依赖，通常SortableJS的DOM移动就够了
+        // this.renderCanvas(); 
+        console.log("Action order updated.");
+      },
+
       onAdd: (evt) => {
-        const characterItem = evt.item; // 被拖拽的角色元素
-
-        // --- BUG FIX V2 (ROBUST VERSION) START ---
-        // 1. 临时隐藏被拖拽的元素，这样它就不会干扰我们寻找它下方的元素
+        const characterItem = evt.item;
         characterItem.style.display = 'none';
-        
-        // 2. 使用鼠标坐标精确获取指针下方的元素
         const dropTargetElement = document.elementFromPoint(evt.originalEvent.clientX, evt.originalEvent.clientY);
-
-        // 3. 现在可以安全地找到目标卡片了
         const targetCard = dropTargetElement ? dropTargetElement.closest('.dialogue-item') : null;
-        // --- BUG FIX V2 END ---
-
+        
         if (!targetCard) {
-            characterItem.remove(); // 清理
+            characterItem.remove();
             return;
         }
 
