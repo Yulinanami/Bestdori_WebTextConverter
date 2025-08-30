@@ -29,6 +29,24 @@ class ProjectConverter:
     """
     def __init__(self):
         self.quote_handler = QuoteHandler()
+        # --- 步骤 1: 重新添加ID映射关系 ---
+        self.special_id_mapping = {
+            229: 6,  # 纯田真奈
+            337: 1,  # 三角初华
+            338: 2,  # 若叶睦
+            339: 3,  # 八幡海铃
+            340: 4,  # 祐天寺若麦
+            341: 5,  # 丰川祥子
+        }
+
+    # --- 步骤 2: 重新添加ID映射的辅助方法 ---
+    def _get_output_id(self, char_id: int) -> int:
+        """转换单个ID"""
+        return self.special_id_mapping.get(char_id, char_id)
+
+    def _get_output_ids(self, char_ids: List[int]) -> List[int]:
+        """转换ID列表"""
+        return [self._get_output_id(cid) for cid in char_ids]
 
     # --- 2. 修改 convert 方法签名 ---
     def convert(self, project_file: Dict[str, Any], quote_config: List[List[str]] = None) -> str:
@@ -63,27 +81,27 @@ class ProjectConverter:
 
     def _translate_talk_action(self, talk_action: Dict[str, Any], active_quote_pairs: Dict[str, str]) -> Dict[str, Any]:
         speakers = talk_action.get("speakers", [])
-        character_ids = [s.get("characterId") for s in speakers if s.get("characterId") is not None]
+        # --- 核心修正 1: 确保 characterId 是整数 ---
+        character_ids = [int(s.get("characterId")) for s in speakers if s.get("characterId") is not None]
         names = [s.get("name", "") for s in speakers]
         
         original_text = talk_action.get("text", "")
-        # --- 5. 在这里执行引号处理 ---
         processed_body = self.quote_handler.remove_quotes(original_text, active_quote_pairs)
 
         motions = []
         character_states = talk_action.get("characterStates", {})
         for char_id_str, state in character_states.items():
             motions.append({
-                "character": int(char_id_str),
+                "character": self._get_output_id(int(char_id_str)),
                 "motion": state.get("motion", ""),
                 "expression": state.get("expression", ""),
                 "delay": state.get("delay", 0)
             })
 
         bestdori_action = ActionItem(
-            characters=character_ids,
+            characters=self._get_output_ids(character_ids),
             name=" & ".join(names),
-            body=processed_body, # 使用处理过的文本
+            body=processed_body,
             motions=motions
         )
         return asdict(bestdori_action)
@@ -92,9 +110,12 @@ class ProjectConverter:
         position = layout_action.get("position", {})
         initial_state = layout_action.get("initialState", {})
 
+        # --- 核心修正 2: 确保 characterId 是整数 ---
+        char_id = int(layout_action.get("characterId", 0))
+
         bestdori_action = LayoutActionItem(
             layoutType=layout_action.get("layoutType", "appear"),
-            character=layout_action.get("characterId", 0),
+            character=self._get_output_id(char_id),
             costume=layout_action.get("costume", ""),
             motion=initial_state.get("motion", ""),
             expression=initial_state.get("expression", ""),
