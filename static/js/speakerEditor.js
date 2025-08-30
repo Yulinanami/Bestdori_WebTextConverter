@@ -3,17 +3,34 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 
 export const speakerEditor = {
-  // 用于存储当前模态框内的项目文件状态
-  projectFileState: null,
+  projectFileState: null, // 模态框内的临时状态
   
-  /**
-   * 初始化模块，绑定打开按钮的事件监听器。
-   */
   init() {
     const openBtn = document.getElementById("openSpeakerEditorBtn");
     if (openBtn) {
       openBtn.addEventListener("click", () => this.open());
     }
+
+    // --- 新增：为功能按钮绑定事件 ---
+    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
+    document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
+    document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
+    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
+
+    // “取消”按钮的关闭事件已由 uiUtils.js 全局处理，但我们需要添加确认逻辑
+    const cancelBtn = document.querySelector('#speakerEditorModal .btn-modal-close');
+    const closeBtn = document.querySelector('#speakerEditorModal .modal-close');
+    
+    const cancelHandler = (e) => {
+        // 简单的检查是否有修改，可以做得更精确
+        if (JSON.stringify(this.projectFileState) !== JSON.stringify(state.get('projectFile'))) {
+             if (!confirm("您有未保存的更改，确定要关闭吗？")) {
+                e.stopPropagation(); // 阻止 uiUtils 的关闭事件
+             }
+        }
+    };
+    cancelBtn?.addEventListener('click', cancelHandler, true); // 使用捕获阶段提前拦截
+    closeBtn?.addEventListener('click', cancelHandler, true);
   },
 
   /**
@@ -33,15 +50,19 @@ export const speakerEditor = {
       const response = await axios.post("/api/segment-text", { text: rawText });
       const segments = response.data.segments;
 
-      // 2. 根据分段创建并预处理项目文件状态
-      this.projectFileState = this.createProjectFileFromSegments(segments);
+      // --- 核心修改：加载逻辑 ---
+        if (state.get('projectFile')) {
+            // 如果全局状态中已有项目文件，直接加载它
+            this.projectFileState = JSON.parse(JSON.stringify(state.get('projectFile'))); // 深拷贝以隔离编辑状态
+            ui.showStatus("已加载现有项目进度。", "info");
+        } else {
+            // 否则，基于当前文本创建新项目
+            this.projectFileState = this.createProjectFileFromSegments(segments);
+        }
       
-      // 3. 渲染静态UI
-      this.renderCanvas();
-      this.renderCharacterList();
-
-      // 4. 初始化拖拽功能
-      this.initDragAndDrop();
+        this.renderCanvas();
+        this.renderCharacterList();
+        this.initDragAndDrop();
 
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -235,7 +256,89 @@ export const speakerEditor = {
     });
   },
 
-  // ... (其余所有函数，如 updateSpeakerAssignment, removeSpeakerFromAction 等，保持不变)
+  /**
+   * 保存当前编辑器的状态到全局 state.projectFile。
+   */
+  save() {
+    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState))); // 深拷贝保存
+    ui.showStatus("工作进度已保存！", "success");
+    ui.closeModal("speakerEditorModal");
+  },
+
+  /**
+   * 将当前编辑器的状态导出为 JSON 文件。
+   */
+  exportProject() {
+      if (!this.projectFileState) return;
+
+      const dataStr = JSON.stringify(this.projectFileState, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement("a");
+      a.href = url;
+      // 假设 projectFileState 有一个 name 属性，否则使用默认名
+      const filename = this.projectFileState.projectName || `bestdori_project_${Date.now()}.json`;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+  },
+
+  /**
+   * 触发文件选择框，导入并加载一个项目文件。
+   */
+  importProject() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              try {
+                  const importedProject = JSON.parse(event.target.result);
+                  // TODO: 这里可以添加更严格的格式校验
+                  if (importedProject && importedProject.actions) {
+                      this.projectFileState = importedProject;
+                      this.renderCanvas(); // 使用导入的数据重新渲染
+                      ui.showStatus("项目导入成功！", "success");
+                  } else {
+                      throw new Error("无效的项目文件格式。");
+                  }
+              } catch (err) {
+                  ui.showStatus(`导入失败: ${err.message}`, "error");
+              }
+          };
+          reader.readAsText(file);
+      };
+      
+      input.click();
+  },
+
+  /**
+   * 恢复默认状态，即基于当前主界面的文本重新初始化。
+   */
+  async reset() {
+      if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
+          return;
+      }
+      try {
+          const rawText = document.getElementById("inputText").value;
+          const response = await axios.post("/api/segment-text", { text: rawText });
+          const segments = response.data.segments;
+          this.projectFileState = this.createProjectFileFromSegments(segments);
+          this.renderCanvas();
+          ui.showStatus("已恢复为默认状态。", "info");
+      } catch(error) {
+          ui.showStatus("恢复默认失败。", "error");
+      }
+  },
+
   updateSpeakerAssignment(actionId, newSpeaker) {
     const actionToUpdate = this.projectFileState.actions.find(a => a.id === actionId);
     if (!actionToUpdate) return;

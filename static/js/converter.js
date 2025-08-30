@@ -10,6 +10,11 @@ const resultCache = new ResultCache();
 const previewCache = new PreviewCache();
 export const converter = {
   async convertText() {
+    if (state.get('projectFile')) {
+        // 如果存在已编辑的项目文件，直接使用它进行转换
+        this.convertFromProjectFile(state.get('projectFile'));
+        return;
+    }
     const inputText = document.getElementById("inputText").value.trim();
     const narratorName = document.getElementById("narratorName").value || " ";
     if (!inputText) {
@@ -74,6 +79,24 @@ export const converter = {
     } finally {
       ui.setButtonLoading("convertBtn", false);
     }
+  },
+
+  /**
+   * 基于项目文件对象发送转换请求到后端。
+   * @param {object} projectFile - 统一工作配置对象。
+   */
+  async convertFromProjectFile(projectFile) {
+      // TODO: 后端需要一个新API来接收项目文件
+      // 暂时我们先模拟一个，或者改造现有API
+      // 这里的逻辑将在下一步，即改造后端时实现
+      ui.showStatus("正在使用项目文件进行转换...", "info");
+      console.log("将使用此项目文件发送到后端:", projectFile);
+      
+      // 模拟显示结果
+      document.getElementById("resultSection").style.display = "block";
+      document.getElementById("resultContent").textContent = JSON.stringify(projectFile, null, 2);
+      Prism.highlightElement(document.getElementById("resultContent"));
+      ui.scrollToElement("resultSection");
   },
 
   // 更新分屏预览

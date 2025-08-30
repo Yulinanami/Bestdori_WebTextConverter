@@ -10,6 +10,7 @@ const _state = {
   previewDebounceTimer: null,
   enableLive2D: false,
   currentCostumes: {},
+  projectFile: null, 
 };
 
 export const state = {
