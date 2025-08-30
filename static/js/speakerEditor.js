@@ -4,6 +4,7 @@ import { configManager } from "./configManager.js";
 
 export const speakerEditor = {
   projectFileState: null, // 模态框内的临时状态
+  originalStateOnOpen: null, // 新增：保存打开时的原始状态，用于比较
   
   init() {
     const openBtn = document.getElementById("openSpeakerEditorBtn");
@@ -11,58 +12,53 @@ export const speakerEditor = {
       openBtn.addEventListener("click", () => this.open());
     }
 
-    // --- 新增：为功能按钮绑定事件 ---
     document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
     document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
     document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
     document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
 
-    // “取消”按钮的关闭事件已由 uiUtils.js 全局处理，但我们需要添加确认逻辑
-    const cancelBtn = document.querySelector('#speakerEditorModal .btn-modal-close');
-    const closeBtn = document.querySelector('#speakerEditorModal .modal-close');
-    
     const cancelHandler = (e) => {
-        // 简单的检查是否有修改，可以做得更精确
-        if (JSON.stringify(this.projectFileState) !== JSON.stringify(state.get('projectFile'))) {
+        if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-                e.stopPropagation(); // 阻止 uiUtils 的关闭事件
+                e.stopPropagation();
+                e.preventDefault(); // 额外阻止默认行为
              }
         }
     };
-    cancelBtn?.addEventListener('click', cancelHandler, true); // 使用捕获阶段提前拦截
-    closeBtn?.addEventListener('click', cancelHandler, true);
+    
+    // 绑定到关闭按钮上
+    const modal = document.getElementById('speakerEditorModal');
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', cancelHandler, true);
+    modal?.querySelector('.modal-close')?.addEventListener('click', cancelHandler, true);
   },
 
-  /**
-   * 打开编辑器模态框，加载并初始化所有数据和交互。
-   */
   async open() {
     const rawText = document.getElementById("inputText").value;
-    if (!rawText.trim()) {
-      ui.showStatus("请输入文本后再打开编辑器。", "error");
+    if (!rawText.trim() && !state.get('projectFile')) { // 仅在两者都为空时报错
+      ui.showStatus("请输入文本或导入项目后再打开编辑器。", "error");
       return;
     }
 
     ui.openModal("speakerEditorModal");
 
     try {
-      // 1. 从后端获取分段文本
-      const response = await axios.post("/api/segment-text", { text: rawText });
-      const segments = response.data.segments;
-
-      // --- 核心修改：加载逻辑 ---
-        if (state.get('projectFile')) {
-            // 如果全局状态中已有项目文件，直接加载它
-            this.projectFileState = JSON.parse(JSON.stringify(state.get('projectFile'))); // 深拷贝以隔离编辑状态
-            ui.showStatus("已加载现有项目进度。", "info");
-        } else {
-            // 否则，基于当前文本创建新项目
-            this.projectFileState = this.createProjectFileFromSegments(segments);
-        }
+      let initialState;
+      if (state.get('projectFile')) {
+        initialState = state.get('projectFile');
+        ui.showStatus("已加载现有项目进度。", "info");
+      } else {
+        const response = await axios.post("/api/segment-text", { text: rawText });
+        const segments = response.data.segments;
+        initialState = this.createProjectFileFromSegments(segments);
+      }
       
-        this.renderCanvas();
-        this.renderCharacterList();
-        this.initDragAndDrop();
+      // 深拷贝初始状态，用于后续比较
+      this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.originalStateOnOpen = JSON.stringify(initialState);
+      
+      this.renderCanvas();
+      this.renderCharacterList();
+      this.initDragAndDrop();
 
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -260,7 +256,9 @@ export const speakerEditor = {
    * 保存当前编辑器的状态到全局 state.projectFile。
    */
   save() {
-    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState))); // 深拷贝保存
+    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
+    // 更新原始状态，这样保存后再退出就不会提示
+    this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
     ui.showStatus("工作进度已保存！", "success");
     ui.closeModal("speakerEditorModal");
   },
@@ -302,10 +300,13 @@ export const speakerEditor = {
           reader.onload = (event) => {
               try {
                   const importedProject = JSON.parse(event.target.result);
-                  // TODO: 这里可以添加更严格的格式校验
                   if (importedProject && importedProject.actions) {
+                      // --- BUG FIX: 导入后立即更新所有相关状态 ---
                       this.projectFileState = importedProject;
-                      this.renderCanvas(); // 使用导入的数据重新渲染
+                      this.originalStateOnOpen = JSON.stringify(importedProject); // 更新原始状态
+                      state.set('projectFile', JSON.parse(JSON.stringify(importedProject))); // 同步到全局状态
+
+                      this.renderCanvas();
                       ui.showStatus("项目导入成功！", "success");
                   } else {
                       throw new Error("无效的项目文件格式。");
