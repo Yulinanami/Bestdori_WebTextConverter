@@ -144,6 +144,10 @@ export const viewManager = {
       .filter((line) => line.length > 0);
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
+    if (state.get('projectFile')) {
+        console.log("Formatted text (split view), resetting project file state.");
+        state.set('projectFile', null);
+    }
     ui.showStatus("文本已成功格式化！", "success");
     if (state.get("autoPreviewEnabled")) {
       converter.updateSplitPreview();
@@ -164,6 +168,11 @@ export const viewManager = {
       .filter((line) => line.length > 0);
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
+    if (state.get('projectFile')) {
+        console.log("Formatted text (classic view), resetting project file state.");
+        state.set('projectFile', null);
+    }
+
     ui.showStatus("文本已成功格式化！", "success");
   },
 

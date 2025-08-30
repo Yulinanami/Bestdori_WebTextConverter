@@ -330,6 +330,17 @@ function bindClassicViewEvents() {
     .getElementById("inputText")
     .addEventListener("input", viewManager.syncTextAreas.bind(viewManager));
 
+  // --- 新增：监听文本变化以重置项目状态 ---
+  document.getElementById("inputText").addEventListener("input", (e) => {
+    // 只要主文本框内容发生变化，就重置已保存的项目文件状态。
+    // 这可以确保下次打开编辑器时，会基于新的文本内容创建项目，
+    // 而不是加载旧的、已过时的项目数据。
+    if (state.get('projectFile')) {
+      console.log("Input text changed, resetting project file state.");
+      state.set('projectFile', null);
+    }
+  });
+  
   // 旁白名称同步
   document.getElementById("narratorName").addEventListener("input", (e) => {
     document.getElementById("splitNarratorName").value = e.target.value;

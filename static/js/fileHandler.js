@@ -73,6 +73,11 @@ export const fileHandler = {
       ui.showProgress(100);
       document.getElementById("inputText").value = response.data.content;
       document.getElementById("splitInputText").value = response.data.content;
+      if (state.get('projectFile')) {
+        console.log("File uploaded, resetting project file state.");
+        state.set('projectFile', null);
+      }
+
       ui.showStatus("文件上传成功！", "success");
       setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
