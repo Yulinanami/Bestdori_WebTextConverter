@@ -577,6 +577,30 @@
   border-width: 3px;
 }
 
+/* 这个是关键，确保被拖动的克隆元素有足够的宽度，防止内部flex布局换行 */
+.sortable-drag .character-item {
+    min-width: 150px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* 提高被拖动卡片的可见性 */
+.dialogue-item.sortable-drag {
+    opacity: 0.8;
+    transform: rotate(2deg);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* 当角色被拖到左侧画布上方时的视觉提示 */
+#speakerEditorCanvas.sortable-ghost-receiving {
+    background-color: #f0f8ff;
+}
+
+/* 当卡片被拖到右侧列表上方时的视觉提示 */
+#speakerEditorCharacterList.sortable-ghost-receiving {
+    background-color: #fff0f0;
+}
+
 /* 帮助按钮 */
 #helpBtn {
   position: absolute;
