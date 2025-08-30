@@ -15,6 +15,7 @@ import { batchProcessor } from "./batchProcessor.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { perfMonitor } from "./performance.js";
+import { speakerEditor } from "./speakerEditor.js";
 
 // 初始化应用
 function initializeApp() {
@@ -32,6 +33,9 @@ function initializeApp() {
 
   // 初始化性能监控
   initializePerformanceOptimizations();
+
+  // 初始化说话人编辑器
+  speakerEditor.init(); 
 
   // 初始化位置管理器
   positionManager.init();

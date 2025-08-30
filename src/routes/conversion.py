@@ -94,3 +94,34 @@ def download_result():
     except Exception as e:
         logger.error(f"文件下载失败: {e}")
         return jsonify({"error": f"文件下载失败: {str(e)}"}), 500
+    
+@conversion_bp.route("/segment-text", methods=["POST"])
+def segment_text():
+    """
+    接收原始文本，按空行分割成段落数组。
+    """
+    try:
+        data = request.get_json()
+        raw_text = data.get("text", "")
+        
+        # 使用 splitlines() 和 filter() 来处理各种换行符并移除空行
+        lines = raw_text.splitlines()
+        segments = []
+        current_segment = []
+
+        for line in lines:
+            stripped_line = line.strip()
+            if stripped_line:
+                current_segment.append(stripped_line)
+            else:
+                if current_segment:
+                    segments.append("\n".join(current_segment))
+                    current_segment = []
+        
+        if current_segment: # 添加最后一个片段
+            segments.append("\n".join(current_segment))
+
+        return jsonify({"segments": segments})
+    except Exception as e:
+        logger.error(f"文本分段失败: {e}", exc_info=True)
+        return jsonify({"error": f"文本分段失败: {str(e)}"}), 500
