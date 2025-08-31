@@ -3,9 +3,14 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 
 export const speakerEditor = {
-  projectFileState: null, // 模态框内的临时状态
-  originalStateOnOpen: null, // 新增：保存打开时的原始状态，用于比较
+  // 用于存储当前模态框内的项目文件状态
+  projectFileState: null,
+  // 保存打开时的原始状态，用于比较是否有未保存的修改
+  originalStateOnOpen: null,
   
+  /**
+   * 初始化模块，绑定所有必要的事件监听器。
+   */
   init() {
     const openBtn = document.getElementById("openSpeakerEditorBtn");
     if (openBtn) {
@@ -21,17 +26,19 @@ export const speakerEditor = {
         if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
                 e.stopPropagation();
-                e.preventDefault(); // 额外阻止默认行为
+                e.preventDefault();
              }
         }
     };
     
-    // 绑定到关闭按钮上
     const modal = document.getElementById('speakerEditorModal');
     modal?.querySelector('.btn-modal-close')?.addEventListener('click', cancelHandler, true);
     modal?.querySelector('.modal-close')?.addEventListener('click', cancelHandler, true);
   },
 
+  /**
+   * 打开编辑器模态框，加载并初始化所有数据和交互。
+   */
   async open() {
     const rawText = document.getElementById("inputText").value;
     if (!rawText.trim() && !state.get('projectFile')) {
@@ -55,33 +62,9 @@ export const speakerEditor = {
       this.projectFileState = JSON.parse(JSON.stringify(initialState));
       this.originalStateOnOpen = JSON.stringify(initialState);
       
-      this.renderCanvas();
+      const usedCharacterIds = this.renderCanvas();
+      this.renderCharacterList(usedCharacterIds);
       
-      // --- 核心修改：将 renderCharacterList 的逻辑内联到这里，并确保只执行一次 ---
-      const listContainer = document.getElementById("speakerEditorCharacterList");
-      const template = document.getElementById("draggable-character-template");
-      listContainer.innerHTML = ""; // 清空一次
-
-      const fragment = document.createDocumentFragment();
-      const characters = Object.entries(state.get("currentConfig")).sort(
-        ([, idsA], [, idsB]) => idsA[0] - idsB[0]
-      );
-
-      characters.forEach(([name, ids]) => {
-        const item = template.content.cloneNode(true);
-        const characterItem = item.querySelector(".character-item");
-        characterItem.dataset.characterId = ids[0];
-        characterItem.dataset.characterName = name;
-        
-        const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-        configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
-
-        item.querySelector(".character-name").textContent = name;
-        fragment.appendChild(item);
-      });
-      listContainer.appendChild(fragment);
-      // --- 修改结束 ---
-
       this.initDragAndDrop();
 
     } catch (error) {
@@ -91,9 +74,8 @@ export const speakerEditor = {
   },
 
   /**
-   * 根据分段文本数组创建初始的项目文件对象。
-   * 此函数会进行一次智能预处理，自动识别并清理符合 "角色名：" 格式的文本。
-   * @param {string[]} segments - 从后端获取的文本片段数组。
+   * 根据分段文本数组创建初始的项目文件对象，并进行自动识别。
+   * @param {string[]} segments - 文本片段数组。
    * @returns {object} - 初始化后的项目文件状态对象。
    */
   createProjectFileFromSegments(segments) {
@@ -104,7 +86,6 @@ export const speakerEditor = {
       actions: segments.map((text, index) => {
         let speakers = [];
         let cleanText = text;
-
         const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
         if (match) {
             const potentialSpeakerName = match[1].trim();
@@ -113,7 +94,6 @@ export const speakerEditor = {
                 cleanText = match[2].trim();
             }
         }
-        
         return {
           id: `action-id-${Date.now()}-${index}`,
           type: "talk",
@@ -127,19 +107,23 @@ export const speakerEditor = {
   },
 
   /**
-   * 渲染左侧的文本片段卡片画布。
-   * UI会根据每个action的speakers数组动态变化。
+   * 渲染左侧的文本片段卡片画布，并返回已使用的角色ID集合。
+   * @returns {Set<number>} 一个包含所有已使用角色ID的Set集合。
    */
   renderCanvas() {
     const canvas = document.getElementById("speakerEditorCanvas");
     const template = document.getElementById("text-snippet-card-template");
-    const scrollState = canvas.scrollTop; // 保存滚动位置
+    const scrollState = canvas.scrollTop;
     canvas.innerHTML = "";
+    
+    const usedIds = new Set();
     
     requestAnimationFrame(() => {
         const fragment = document.createDocumentFragment();
         this.projectFileState.actions.forEach(action => {
             if (action.type !== 'talk') return;
+
+            action.speakers?.forEach(speaker => usedIds.add(speaker.characterId));
 
             const card = template.content.cloneNode(true);
             const dialogueItem = card.querySelector(".dialogue-item");
@@ -158,7 +142,9 @@ export const speakerEditor = {
                 dialogueItem.classList.remove('narrator');
                 
                 configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, firstSpeaker.characterId, firstSpeaker.name);
-                speakerNameDiv.textContent = action.speakers.map(s => s.name).join(' & ');
+                
+                const allNames = action.speakers.map(s => s.name).join(' & ');
+                speakerNameDiv.textContent = allNames;
 
                 if (action.speakers.length > 1) {
                     multiSpeakerBadge.style.display = "flex";
@@ -183,15 +169,17 @@ export const speakerEditor = {
             fragment.appendChild(card);
         });
         canvas.appendChild(fragment);
-        canvas.scrollTop = scrollState; // 恢复滚动位置
+        canvas.scrollTop = scrollState;
     });
+
+    return usedIds;
   },
 
   /**
-   * 渲染右侧的可拖拽角色列表。
+   * 渲染右侧的可拖拽角色列表，并高亮已使用的角色。
+   * @param {Set<number>} usedCharacterIds - 包含所有已使用角色ID的Set集合。
    */
-  renderCharacterList() {
-    // ... (此函数无需修改，保持原样)
+  renderCharacterList(usedCharacterIds) {
     const listContainer = document.getElementById("speakerEditorCharacterList");
     const template = document.getElementById("draggable-character-template");
     listContainer.innerHTML = "";
@@ -204,11 +192,16 @@ export const speakerEditor = {
     characters.forEach(([name, ids]) => {
       const item = template.content.cloneNode(true);
       const characterItem = item.querySelector(".character-item");
-      characterItem.dataset.characterId = ids[0];
+      const characterId = ids[0];
+      characterItem.dataset.characterId = characterId;
       characterItem.dataset.characterName = name;
       
+      if (usedCharacterIds.has(characterId)) {
+        characterItem.classList.add('is-used');
+      }
+
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
+      configManager.updateConfigAvatar(avatarWrapper, characterId, name);
 
       item.querySelector(".character-name").textContent = name;
       fragment.appendChild(item);
@@ -217,7 +210,7 @@ export const speakerEditor = {
   },
 
   /**
-   * 初始化SortableJS，实现双向拖拽功能。
+   * 初始化SortableJS，实现双向拖拽和排序功能。
    */
   initDragAndDrop() {
     const characterList = document.getElementById('speakerEditorCharacterList');
@@ -231,46 +224,33 @@ export const speakerEditor = {
       },
       sort: false,
       onAdd: (evt) => {
-        // --- 核心修正：实现拖拽删除后卡片归位 ---
-        const cardItem = evt.item; // 被拖动的对话卡片
-        const sourceList = evt.from; // 来源列表 (左侧画布)
-        const originalIndex = evt.oldDraggableIndex; // 卡片在来源列表的原始位置
-        
-        const actionId = cardItem.dataset.id;
-        if (actionId) {
-          // 1. 执行删除说话人的数据操作
-          this.removeAllSpeakersFromAction(actionId);
-        }
+          const cardItem = evt.item;
+          const sourceList = evt.from;
+          const originalIndex = evt.oldDraggableIndex;
+          
+          const actionId = cardItem.dataset.id;
+          if (actionId) {
+            this.removeAllSpeakersFromAction(actionId);
+          }
 
-        // 2. 立即将DOM元素插回原处
-        //    如果后面有兄弟节点，则插入到它前面；否则，追加到末尾
-        if (sourceList.children[originalIndex]) {
-            sourceList.insertBefore(cardItem, sourceList.children[originalIndex]);
-        } else {
-            sourceList.appendChild(cardItem);
-        }
-        // --- 修正结束 ---
+          if (sourceList.children[originalIndex]) {
+              sourceList.insertBefore(cardItem, sourceList.children[originalIndex]);
+          } else {
+              sourceList.appendChild(cardItem);
+          }
       }
     });
 
     new Sortable(canvas, {
       group: 'shared-speakers',
-      // --- 核心修正 1: 启用排序功能 ---
       sort: true,
       animation: 150,
-      
-      // --- 核心修正 2: 添加 onEnd 事件处理器来同步数据 ---
-      // --- 核心修正：增加条件判断 ---
       onEnd: (evt) => {
-        // 只有当元素在同一个列表内移动时，才执行排序逻辑。
-        // 如果元素被拖到了另一个列表 (evt.to !== evt.from)，
-        // 这个 onEnd 事件依然会触发，但我们在这里阻止它更新数据。
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
             const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
             this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
         }
       },
-
       onAdd: (evt) => {
         const characterItem = evt.item;
         characterItem.style.display = 'none';
@@ -294,95 +274,12 @@ export const speakerEditor = {
       }
     });
   },
-
+  
   /**
-   * 保存当前编辑器的状态到全局 state.projectFile。
+   * 更新指定action的说话人（追加）。
+   * @param {string} actionId - 要更新的action的ID。
+   * @param {object} newSpeaker - 新的说话人对象 { characterId, name }。
    */
-  save() {
-    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
-    // 更新原始状态，这样保存后再退出就不会提示
-    this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
-    ui.showStatus("工作进度已保存！", "success");
-    ui.closeModal("speakerEditorModal");
-  },
-
-  /**
-   * 将当前编辑器的状态导出为 JSON 文件。
-   */
-  exportProject() {
-      if (!this.projectFileState) return;
-
-      const dataStr = JSON.stringify(this.projectFileState, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement("a");
-      a.href = url;
-      // 假设 projectFileState 有一个 name 属性，否则使用默认名
-      const filename = this.projectFileState.projectName || `bestdori_project_${Date.now()}.json`;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-  },
-
-  /**
-   * 触发文件选择框，导入并加载一个项目文件。
-   */
-  importProject() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      
-      input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-
-          const reader = new FileReader();
-          reader.onload = (event) => {
-              try {
-                  const importedProject = JSON.parse(event.target.result);
-                  if (importedProject && importedProject.actions) {
-                      // --- BUG FIX: 导入后立即更新所有相关状态 ---
-                      this.projectFileState = importedProject;
-                      this.originalStateOnOpen = JSON.stringify(importedProject); // 更新原始状态
-                      state.set('projectFile', JSON.parse(JSON.stringify(importedProject))); // 同步到全局状态
-
-                      this.renderCanvas();
-                      ui.showStatus("项目导入成功！", "success");
-                  } else {
-                      throw new Error("无效的项目文件格式。");
-                  }
-              } catch (err) {
-                  ui.showStatus(`导入失败: ${err.message}`, "error");
-              }
-          };
-          reader.readAsText(file);
-      };
-      
-      input.click();
-  },
-
-  /**
-   * 恢复默认状态，即基于当前主界面的文本重新初始化。
-   */
-  async reset() {
-      if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
-          return;
-      }
-      try {
-          const rawText = document.getElementById("inputText").value;
-          const response = await axios.post("/api/segment-text", { text: rawText });
-          const segments = response.data.segments;
-          this.projectFileState = this.createProjectFileFromSegments(segments);
-          this.renderCanvas();
-          ui.showStatus("已恢复为默认状态。", "info");
-      } catch(error) {
-          ui.showStatus("恢复默认失败。", "error");
-      }
-  },
-
   updateSpeakerAssignment(actionId, newSpeaker) {
     const actionToUpdate = this.projectFileState.actions.find(a => a.id === actionId);
     if (!actionToUpdate) return;
@@ -390,45 +287,46 @@ export const speakerEditor = {
     const speakerExists = actionToUpdate.speakers.some(s => s.characterId === newSpeaker.characterId);
     if (!speakerExists) {
         actionToUpdate.speakers.push(newSpeaker);
-        this.renderCanvas();
+        const usedIds = this.renderCanvas();
+        this.renderCharacterList(usedIds);
     } else {
         ui.showStatus("该角色已经是说话人。", "info");
     }
   },
 
+  /**
+   * 从指定action中移除一个说话人。
+   * @param {string} actionId - action的ID。
+   * @param {number} characterIdToRemove - 要移除的角色的ID。
+   */
   removeSpeakerFromAction(actionId, characterIdToRemove) {
       const action = this.projectFileState.actions.find(a => a.id === actionId);
       if (action) {
           action.speakers = action.speakers.filter(s => s.characterId !== characterIdToRemove);
-          this.renderCanvas();
+          const usedIds = this.renderCanvas();
+          this.renderCharacterList(usedIds);
       }
   },
 
+  /**
+   * 移除指定action的所有说话人。
+   * @param {string} actionId - action的ID。
+   */
   removeAllSpeakersFromAction(actionId) {
       const action = this.projectFileState.actions.find(a => a.id === actionId);
       if (action) {
           action.speakers = [];
-          const cardElement = document.querySelector(`.dialogue-item[data-id="${actionId}"]`);
-          if(cardElement) {
-            this.updateSingleCardUI(cardElement, action);
-          }
+          const usedIds = this.renderCanvas();
+          this.renderCharacterList(usedIds);
       }
   },
 
-  // 新增一个辅助方法，只更新单个卡片的UI
-  updateSingleCardUI(cardElement, action) {
-    const avatarContainer = cardElement.querySelector(".speaker-avatar-container");
-    const speakerNameDiv = cardElement.querySelector(".speaker-name");
-    const multiSpeakerBadge = cardElement.querySelector(".multi-speaker-badge");
-
-    avatarContainer.style.display = "none";
-    speakerNameDiv.style.display = "none";
-    multiSpeakerBadge.style.display = "none";
-    cardElement.classList.add('narrator');
-  },  
-
+  /**
+   * 显示用于管理多人对话的浮动窗口。
+   * @param {string} actionId - action的ID。
+   * @param {HTMLElement} targetElement - 点击的元素，用于定位浮窗。
+   */
   showMultiSpeakerPopover(actionId, targetElement) {
-    // ... (此函数无需修改，保持原样)
     const existingPopover = document.getElementById('speaker-popover');
     if (existingPopover) existingPopover.remove();
 
@@ -491,5 +389,93 @@ export const speakerEditor = {
             }
         }, { once: true });
     }, 0);
+  },
+
+  /**
+   * 保存当前编辑器的状态到全局 state.projectFile。
+   */
+  save() {
+    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
+    this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
+    ui.showStatus("工作进度已保存！", "success");
+    ui.closeModal("speakerEditorModal");
+  },
+
+  /**
+   * 将当前编辑器的状态导出为 JSON 文件。
+   */
+  exportProject() {
+      if (!this.projectFileState) return;
+      const dataStr = JSON.stringify(this.projectFileState, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const filename = this.projectFileState.projectName || `bestdori_project_${Date.now()}.json`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+  },
+
+  /**
+   * 触发文件选择框，导入并加载一个项目文件。
+   */
+  importProject() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              try {
+                  const importedProject = JSON.parse(event.target.result);
+                  if (importedProject && importedProject.actions) {
+                      this.projectFileState = importedProject;
+                      this.originalStateOnOpen = JSON.stringify(importedProject);
+                      state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
+
+                      const usedIds = this.renderCanvas();
+                      this.renderCharacterList(usedIds);
+                      ui.showStatus("项目导入成功！", "success");
+                  } else {
+                      throw new Error("无效的项目文件格式。");
+                  }
+              } catch (err) {
+                  ui.showStatus(`导入失败: ${err.message}`, "error");
+              }
+          };
+          reader.readAsText(file);
+      };
+      
+      input.click();
+  },
+
+  /**
+   * 恢复默认状态，即基于当前主界面的文本重新初始化。
+   */
+  async reset() {
+      if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
+          return;
+      }
+      try {
+          const rawText = document.getElementById("inputText").value;
+          const response = await axios.post("/api/segment-text", { text: rawText });
+          const segments = response.data.segments;
+          const newProjectFile = this.createProjectFileFromSegments(segments);
+          this.projectFileState = newProjectFile;
+          this.originalStateOnOpen = JSON.stringify(newProjectFile);
+          
+          const usedIds = this.renderCanvas();
+          this.renderCharacterList(usedIds);
+          ui.showStatus("已恢复为默认状态。", "info");
+      } catch(error) {
+          ui.showStatus("恢复默认失败。", "error");
+      }
   }
 };

@@ -591,6 +591,37 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
+.character-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: grab;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+    border: 2px solid transparent; /* 添加透明边框占位 */
+}
+
+.character-item:hover {
+    background-color: var(--bg-secondary);
+}
+
+
+/* --- 新增：为已使用的角色添加高亮样式 --- */
+.character-item.is-used {
+    border-color: #48bb78; /* 绿色边框 */
+    background-color: #f0fff4; /* 淡绿色背景 */
+}
+
+/* 确保角色名字不会换行 */
+.character-item .character-name {
+    margin-left: 10px;
+    font-weight: 500;
+    white-space: nowrap; /* 禁止名字换行 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 如果名字太长，用...显示 */
+}
+
 /* 当角色被拖到左侧画布上方时的视觉提示 */
 #speakerEditorCanvas.sortable-ghost-receiving {
     background-color: #f0f8ff;
