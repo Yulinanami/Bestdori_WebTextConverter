@@ -207,12 +207,25 @@ export const speakerEditor = {
       },
       sort: false,
       onAdd: (evt) => {
-          const cardItem = evt.item;
-          const actionId = cardItem.dataset.id;
-          if (actionId) {
-            this.removeAllSpeakersFromAction(actionId);
-          }
-          cardItem.remove();
+        // --- 核心修正：实现拖拽删除后卡片归位 ---
+        const cardItem = evt.item; // 被拖动的对话卡片
+        const sourceList = evt.from; // 来源列表 (左侧画布)
+        const originalIndex = evt.oldDraggableIndex; // 卡片在来源列表的原始位置
+        
+        const actionId = cardItem.dataset.id;
+        if (actionId) {
+          // 1. 执行删除说话人的数据操作
+          this.removeAllSpeakersFromAction(actionId);
+        }
+
+        // 2. 立即将DOM元素插回原处
+        //    如果后面有兄弟节点，则插入到它前面；否则，追加到末尾
+        if (sourceList.children[originalIndex]) {
+            sourceList.insertBefore(cardItem, sourceList.children[originalIndex]);
+        } else {
+            sourceList.appendChild(cardItem);
+        }
+        // --- 修正结束 ---
       }
     });
 
@@ -374,9 +387,27 @@ export const speakerEditor = {
       const action = this.projectFileState.actions.find(a => a.id === actionId);
       if (action) {
           action.speakers = [];
-          this.renderCanvas();
+          // 注意：这里不再调用 renderCanvas()
+          // 因为我们是手动操作DOM来归位，而不是完全重绘
+          // 我们需要手动更新这个卡片的UI
+          const cardElement = document.querySelector(`.dialogue-item[data-id="${actionId}"]`);
+          if(cardElement) {
+            this.updateSingleCardUI(cardElement, action);
+          }
       }
   },
+
+  // 新增一个辅助方法，只更新单个卡片的UI
+  updateSingleCardUI(cardElement, action) {
+    const avatarContainer = cardElement.querySelector(".speaker-avatar-container");
+    const speakerNameDiv = cardElement.querySelector(".speaker-name");
+    const multiSpeakerBadge = cardElement.querySelector(".multi-speaker-badge");
+
+    avatarContainer.style.display = "none";
+    speakerNameDiv.style.display = "none";
+    multiSpeakerBadge.style.display = "none";
+    cardElement.classList.add('narrator');
+  },  
 
   showMultiSpeakerPopover(actionId, targetElement) {
     // ... (此函数无需修改，保持原样)
