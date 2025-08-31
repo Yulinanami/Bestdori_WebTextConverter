@@ -236,18 +236,15 @@ export const speakerEditor = {
       animation: 150,
       
       // --- 核心修正 2: 添加 onEnd 事件处理器来同步数据 ---
+      // --- 核心修正：增加条件判断 ---
       onEnd: (evt) => {
-        // evt.oldIndex 是拖动前的位置, evt.newIndex 是拖动后的位置
-        if (evt.oldIndex === evt.newIndex) return; // 位置没变，则不处理
-
-        // 重新排序我们的核心数据数组
-        const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
-        this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
-
-        // 可选：为了确保数据与视图绝对同步，可以重新渲染
-        // 但由于我们没有复杂的依赖，通常SortableJS的DOM移动就够了
-        // this.renderCanvas(); 
-        console.log("Action order updated.");
+        // 只有当元素在同一个列表内移动时，才执行排序逻辑。
+        // 如果元素被拖到了另一个列表 (evt.to !== evt.from)，
+        // 这个 onEnd 事件依然会触发，但我们在这里阻止它更新数据。
+        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
+            const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
+            this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
+        }
       },
 
       onAdd: (evt) => {
@@ -387,9 +384,6 @@ export const speakerEditor = {
       const action = this.projectFileState.actions.find(a => a.id === actionId);
       if (action) {
           action.speakers = [];
-          // 注意：这里不再调用 renderCanvas()
-          // 因为我们是手动操作DOM来归位，而不是完全重绘
-          // 我们需要手动更新这个卡片的UI
           const cardElement = document.querySelector(`.dialogue-item[data-id="${actionId}"]`);
           if(cardElement) {
             this.updateSingleCardUI(cardElement, action);
