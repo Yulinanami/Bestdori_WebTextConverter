@@ -224,20 +224,18 @@ export const speakerEditor = {
       },
       sort: false,
       onAdd: (evt) => {
-          const cardItem = evt.item;
-          const sourceList = evt.from;
-          const originalIndex = evt.oldDraggableIndex;
-          
-          const actionId = cardItem.dataset.id;
-          if (actionId) {
-            this.removeAllSpeakersFromAction(actionId);
-          }
+        // --- 核心修正：移除所有手动DOM操作 ---
+        const cardItem = evt.item;
+        
+        const actionId = cardItem.dataset.id;
+        if (actionId) {
+          // 只更新数据，让渲染函数来处理UI
+          this.removeAllSpeakersFromAction(actionId);
+        }
 
-          if (sourceList.children[originalIndex]) {
-              sourceList.insertBefore(cardItem, sourceList.children[originalIndex]);
-          } else {
-              sourceList.appendChild(cardItem);
-          }
+        // SortableJS 会自动处理临时DOM，我们不再需要下面的代码
+        // if (sourceList.children[originalIndex]) { ... }
+        // --- 修正结束 ---
       }
     });
 
