@@ -34,7 +34,7 @@ export const speakerEditor = {
 
   async open() {
     const rawText = document.getElementById("inputText").value;
-    if (!rawText.trim() && !state.get('projectFile')) { // 仅在两者都为空时报错
+    if (!rawText.trim() && !state.get('projectFile')) {
       ui.showStatus("请输入文本或导入项目后再打开编辑器。", "error");
       return;
     }
@@ -52,12 +52,36 @@ export const speakerEditor = {
         initialState = this.createProjectFileFromSegments(segments);
       }
       
-      // 深拷贝初始状态，用于后续比较
       this.projectFileState = JSON.parse(JSON.stringify(initialState));
       this.originalStateOnOpen = JSON.stringify(initialState);
       
       this.renderCanvas();
-      this.renderCharacterList();
+      
+      // --- 核心修改：将 renderCharacterList 的逻辑内联到这里，并确保只执行一次 ---
+      const listContainer = document.getElementById("speakerEditorCharacterList");
+      const template = document.getElementById("draggable-character-template");
+      listContainer.innerHTML = ""; // 清空一次
+
+      const fragment = document.createDocumentFragment();
+      const characters = Object.entries(state.get("currentConfig")).sort(
+        ([, idsA], [, idsB]) => idsA[0] - idsB[0]
+      );
+
+      characters.forEach(([name, ids]) => {
+        const item = template.content.cloneNode(true);
+        const characterItem = item.querySelector(".character-item");
+        characterItem.dataset.characterId = ids[0];
+        characterItem.dataset.characterName = name;
+        
+        const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
+        configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
+
+        item.querySelector(".character-name").textContent = name;
+        fragment.appendChild(item);
+      });
+      listContainer.appendChild(fragment);
+      // --- 修改结束 ---
+
       this.initDragAndDrop();
 
     } catch (error) {
