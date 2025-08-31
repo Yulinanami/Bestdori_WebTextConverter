@@ -7,6 +7,8 @@ export const speakerEditor = {
   projectFileState: null,
   // 保存打开时的原始状态，用于比较是否有未保存的修改
   originalStateOnOpen: null,
+  scrollInterval: null,
+  scrollSpeed: 0,  
   
   /**
    * 初始化模块，绑定所有必要的事件监听器。
@@ -223,6 +225,17 @@ export const speakerEditor = {
         put: true
       },
       sort: false,
+      // --- 步骤 3: 添加 onStart 和 onEnd 事件钩子 ---
+      onStart: () => {
+        // 当拖拽开始时，在 window 上监听鼠标移动事件
+        document.addEventListener('dragover', this.handleDragScrolling);
+      },
+      onEnd: () => {
+        // 当拖拽结束时，清理所有监听和定时器
+        document.removeEventListener('dragover', this.handleDragScrolling);
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
+      },
       onAdd: (evt) => {
         // --- 核心修正：移除所有手动DOM操作 ---
         const cardItem = evt.item;
@@ -243,7 +256,15 @@ export const speakerEditor = {
       group: 'shared-speakers',
       sort: true,
       animation: 150,
+
+      onStart: () => {
+        document.addEventListener('dragover', this.handleDragScrolling);
+      },
       onEnd: (evt) => {
+        document.removeEventListener('dragover', this.handleDragScrolling);
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
+
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
             const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
             this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
@@ -271,6 +292,52 @@ export const speakerEditor = {
         characterItem.remove();
       }
     });
+  },
+
+   /**
+   * --- 步骤 2: 创建新的核心滚动处理方法 ---
+   * 在拖拽过程中处理画布的自动滚动。
+   * @param {DragEvent} e - dragover 事件对象。
+   */
+  handleDragScrolling: (e) => {
+    const canvas = document.getElementById('speakerEditorCanvas');
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const mouseY = e.clientY;
+    
+    // 定义热区大小，例如上下各 50px
+    const hotZone = 50;
+
+    if (mouseY < rect.top + hotZone) {
+      // 鼠标在顶部热区，向上滚动
+      speakerEditor.scrollSpeed = -10; // 滚动速度和方向
+      if (!speakerEditor.scrollInterval) {
+        speakerEditor.startScrolling();
+      }
+    } else if (mouseY > rect.bottom - hotZone) {
+      // 鼠标在底部热区，向下滚动
+      speakerEditor.scrollSpeed = 10;
+      if (!speakerEditor.scrollInterval) {
+        speakerEditor.startScrolling();
+      }
+    } else {
+      // 鼠标在中间区域，停止滚动
+      clearInterval(speakerEditor.scrollInterval);
+      speakerEditor.scrollInterval = null;
+    }
+  },
+
+  /**
+   * 启动一个定时器来持续滚动画布。
+   */
+  startScrolling() {
+    const canvas = document.getElementById('speakerEditorCanvas');
+    if (!canvas) return;
+
+    this.scrollInterval = setInterval(() => {
+        canvas.scrollTop += this.scrollSpeed;
+    }, 20); // 每 20 毫秒滚动一次
   },
   
   /**
