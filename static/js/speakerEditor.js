@@ -382,50 +382,68 @@ export const speakerEditor = {
     });
   },
 
-   /**
-   * --- 步骤 2: 创建新的核心滚动处理方法 ---
-   * 在拖拽过程中处理画布的自动滚动。
+  /**
+   * --- 核心修正：重构滚动处理逻辑 ---
+   * 在拖拽过程中处理画布或角色列表的自动滚动。
    * @param {DragEvent} e - dragover 事件对象。
    */
   handleDragScrolling: (e) => {
     const canvas = document.getElementById('speakerEditorCanvas');
-    if (!canvas) return;
+    const characterList = document.getElementById('speakerEditorCharacterList');
+    if (!canvas || !characterList) return;
+    
+    // 1. 判断鼠标当前在哪一个滚动容器内
+    let scrollTarget = null;
+    if (e.target.closest('#speakerEditorCanvas')) {
+        scrollTarget = canvas;
+    } else if (e.target.closest('#speakerEditorCharacterList')) {
+        scrollTarget = characterList;
+    } else {
+        // 如果鼠标不在任何一个可滚动区域，则停止滚动并返回
+        clearInterval(speakerEditor.scrollInterval);
+        speakerEditor.scrollInterval = null;
+        return;
+    }
 
-    const rect = canvas.getBoundingClientRect();
+    const rect = scrollTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     
-    // 定义热区大小，例如上下各 50px
-    const hotZone = 50;
+    // 定义热区大小
+    const hotZone = 75;
+    let newScrollSpeed = 0;
 
     if (mouseY < rect.top + hotZone) {
-      // 鼠标在顶部热区，向上滚动
-      speakerEditor.scrollSpeed = -10; // 滚动速度和方向
-      if (!speakerEditor.scrollInterval) {
-        speakerEditor.startScrolling();
-      }
+      newScrollSpeed = -10; // 向上滚动
     } else if (mouseY > rect.bottom - hotZone) {
-      // 鼠标在底部热区，向下滚动
-      speakerEditor.scrollSpeed = 10;
-      if (!speakerEditor.scrollInterval) {
-        speakerEditor.startScrolling();
-      }
+      newScrollSpeed = 10; // 向下滚动
+    }
+    
+    // 2. 只有在需要滚动或需要停止时才操作定时器
+    if (newScrollSpeed !== 0) {
+        // 如果滚动速度或目标改变，或者定时器未启动，则重新启动
+        if (newScrollSpeed !== speakerEditor.scrollSpeed || !speakerEditor.scrollInterval) {
+            speakerEditor.scrollSpeed = newScrollSpeed;
+            speakerEditor.startScrolling(scrollTarget);
+        }
     } else {
-      // 鼠标在中间区域，停止滚动
-      clearInterval(speakerEditor.scrollInterval);
-      speakerEditor.scrollInterval = null;
+        clearInterval(speakerEditor.scrollInterval);
+        speakerEditor.scrollInterval = null;
     }
   },
 
   /**
-   * 启动一个定时器来持续滚动画布。
+   * 启动一个定时器来持续滚动指定的元素。
+   * @param {HTMLElement} elementToScroll - 需要被滚动的DOM元素。
    */
-  startScrolling() {
-    const canvas = document.getElementById('speakerEditorCanvas');
-    if (!canvas) return;
-
+  startScrolling(elementToScroll) {
+    // 先清除可能存在的旧定时器
+    clearInterval(this.scrollInterval);
+    
     this.scrollInterval = setInterval(() => {
-        canvas.scrollTop += this.scrollSpeed;
-    }, 20); // 每 20 毫秒滚动一次
+        if (elementToScroll) {
+            elementToScroll.scrollTop += this.scrollSpeed;
+        }
+    }, 20);
   },
   
 /**
