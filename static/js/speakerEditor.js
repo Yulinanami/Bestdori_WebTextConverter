@@ -27,6 +27,9 @@ export const speakerEditor = {
 
     // 3. 统一处理关闭事件（取消和X按钮）
     const modal = document.getElementById('speakerEditorModal');
+    if (modal) {
+        modal.focus();
+    }
     const handleCloseAttempt = (e) => {
         if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
