@@ -16,6 +16,7 @@ import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { perfMonitor } from "./performance.js";
 import { speakerEditor } from "./speakerEditor.js";
+import { live2dEditor } from "./live2dEditor.js";
 
 // 初始化应用
 function initializeApp() {
@@ -36,6 +37,9 @@ function initializeApp() {
 
   // 初始化说话人编辑器
   speakerEditor.init(); 
+
+  // 初始化 Live2D 编辑器
+  live2dEditor.init(); 
 
   // 初始化位置管理器
   positionManager.init();

@@ -425,4 +425,13 @@ export const configManager = {
       "清除中..."
     );
   },
+  
+getCharacterNameById(id) {
+      for (const [name, ids] of Object.entries(state.get("currentConfig"))) {
+          if (ids.includes(id)) {
+              return name;
+          }
+      }
+      return null;
+  }
 };

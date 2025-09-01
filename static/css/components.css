@@ -635,6 +635,101 @@
     border: 2px solid #3182ce;
 }
 
+.timeline-item {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid;
+    position: relative;
+}
+
+/* 只读对话卡片样式 */
+.talk-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-secondary);
+    opacity: 0.8;
+}
+
+.talk-item .dialogue-avatar.small-avatar {
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+}
+
+.talk-item .timeline-content .speaker-name {
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.talk-item .dialogue-preview-text {
+    font-style: italic;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+/* 布局卡片样式 */
+.layout-item {
+    background-color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.layout-item[data-layout-type="appear"],
+.layout-item[data-layout-type="move"] {
+    border-color: #48bb78; /* 绿色 */
+}
+
+.layout-item[data-layout-type="hide"] {
+    border-color: #e53e3e; /* 红色 */
+}
+
+.layout-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.layout-character-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.layout-character-info .dialogue-avatar.small-avatar {
+    width: 30px;
+    height: 30px;
+}
+
+.layout-remove-btn {
+    padding: 2px 6px;
+    font-size: 1.2em;
+}
+
+.layout-card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 15px;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group-inline label {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
 /* 当角色被拖到左侧画布上方时的视觉提示 */
 #speakerEditorCanvas.sortable-ghost-receiving {
     background-color: #f0f8ff;

@@ -192,46 +192,24 @@
 
             <!-- Live2D 布局设置 -->
             <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
-                Live2D 布局
-              </p>
-              <p style="color: #718096; margin-bottom: 15px">
-                自动为首次出现的角色添加 Live2D 布局
-              </p>
-
-              <div
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 20px;
-                  margin-bottom: 15px;
-                "
-              >
-                <label class="auto-preview-label">
-                  <input type="checkbox" id="enableLive2DCheckbox" />
-                  <span style="font-weight: 500">启用自动 Live2D 布局</span>
-                </label>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="costumeConfigBtn"
-                  disabled
-                >
-                  服装配置
-                </button>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="positionConfigBtn"
-                  disabled
-                >
-                  位置配置
-                </button>
-              </div>
+                <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px">
+                    Live2D 布局模式
+                </p>
+                <p style="color: #718096; margin-bottom: 15px">
+                    在可视化时间线中，精确地为角色添加入场、退场和移动动画。
+                </p>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <button class="btn btn-primary" id="openLive2dEditorBtn">
+                        打开 Live2D 布局编辑器
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="costumeConfigBtn">
+                        服装配置
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="positionConfigBtn">
+                        位置配置
+                    </button>
+                </div>
             </div>
-          </div>
-
           <!-- 位置配置模态框 -->
           <div class="modal" id="positionModal">
             <div class="modal-content" style="max-width: 800px">
@@ -902,6 +880,91 @@
           <div class="dialogue-content">
               <div class="speaker-name" style="display: none;"></div>
               <div class="dialogue-text"></div>
+          </div>
+      </div>
+  </template>
+
+    <div class="modal" id="live2dEditorModal" tabindex="-1">
+      <div class="modal-content" style="max-width: 1200px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+          <div class="modal-header">
+              <div class="modal-title">Live2D 布局模式</div>
+              <button class="modal-close" data-modal-id="live2dEditorModal">×</button>
+          </div>
+          <div class="modal-body" style="display: flex; flex: 1; overflow: hidden; gap: 20px;">
+              <!-- 左栏：时间线 -->
+              <div id="live2dEditorTimeline" style="flex: 3; overflow-y: auto; padding-right: 15px;">
+                  <!-- JS 将在此处渲染混合卡片 -->
+              </div>
+              <!-- 右栏：角色列表 -->
+              <div id="live2dEditorCharacterList" style="flex: 1; overflow-y: auto; border-left: 1px solid #e2e8f0; padding-left: 15px;">
+                  <!-- JS 将在此处渲染角色列表 -->
+              </div>
+          </div>
+          <div class="modal-footer" style="padding: 15px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-secondary" id="live2dUndoBtn" disabled>撤销</button>
+                  <button class="btn btn-secondary" id="live2dRedoBtn" disabled>重做</button>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-secondary" id="autoLayoutBtn">一键智能布局</button>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-danger" id="resetLayoutsBtn">清空布局</button>
+                  <button class="btn btn-secondary btn-modal-close" data-modal-id="live2dEditorModal">取消</button>
+                  <button class="btn btn-primary" id="saveLayoutsBtn">保存</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- 模板：用于时间线中的只读对话卡片 -->
+  <template id="timeline-talk-card-template">
+      <div class="timeline-item talk-item" data-id="">
+          <div class="timeline-avatar-container">
+              <div class="dialogue-avatar small-avatar"></div>
+          </div>
+          <div class="timeline-content">
+              <div class="speaker-name"></div>
+              <p class="dialogue-preview-text"></p>
+          </div>
+      </div>
+  </template>
+
+  <!-- 模板：用于可编辑的布局卡片 -->
+  <template id="timeline-layout-card-template">
+      <div class="timeline-item layout-item" data-id="">
+          <div class="layout-card-header">
+              <div class="layout-character-info">
+                  <div class="dialogue-avatar small-avatar"></div>
+                  <span class="speaker-name"></span>
+              </div>
+              <button class="remove-btn layout-remove-btn" title="删除此布局动作">&times;</button>
+          </div>
+          <div class="layout-card-body">
+              <div class="form-group-inline">
+                  <label>类型:</label>
+                  <select class="form-input input-sm layout-type-select">
+                      <option value="appear">登场</option>
+                      <option value="hide">退场</option>
+                      <option value="move">移动</option>
+                  </select>
+              </div>
+              <div class="form-group-inline">
+                  <label>服装:</label>
+                  <select class="form-input input-sm layout-costume-select">
+                      <!-- JS动态填充 -->
+                  </select>
+              </div>
+              <div class="form-group-inline">
+                  <label>位置:</label>
+                  <select class="form-input input-sm layout-position-select">
+                      <!-- JS动态填充 -->
+                  </select>
+              </div>
+              <div class="form-group-inline">
+                  <label>偏移:</label>
+                  <input type="number" class="form-input input-sm layout-offset-input" value="0" step="10">
+              </div>
           </div>
       </div>
   </template>
