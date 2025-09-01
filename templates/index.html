@@ -942,31 +942,41 @@
           </div>
           <div class="layout-card-body">
               <div class="form-group-inline">
-                  <label>类型:</label>
-                  <select class="form-input input-sm layout-type-select">
-                      <option value="appear">登场</option>
-                      <option value="hide">退场</option>
-                      <option value="move">移动</option>
-                  </select>
-              </div>
-              <div class="form-group-inline">
-                  <label>服装:</label>
-                  <select class="form-input input-sm layout-costume-select">
-                      <!-- JS动态填充 -->
-                  </select>
-              </div>
-              <div class="form-group-inline">
-                  <label>位置:</label>
-                  <select class="form-input input-sm layout-position-select">
-                      <!-- JS动态填充 -->
-                  </select>
-              </div>
-              <div class="form-group-inline">
-                  <label>偏移:</label>
-                  <input type="number" class="form-input input-sm layout-offset-input" value="0" step="10">
-              </div>
-          </div>
-      </div>
+                <label>类型:</label>
+                <select class="form-input input-sm layout-type-select">
+                    <option value="appear">登场</option>
+                    <option value="hide">退场</option>
+                    <option value="move">移动</option>
+                </select>
+            </div>
+            <div class="form-group-inline">
+                <label>服装:</label>
+                <select class="form-input input-sm layout-costume-select"></select>
+            </div>
+            
+            <!-- 第二行：起点位置 (From) -->
+            <div class="form-group-inline">
+                <label>位置:</label>
+                <select class="form-input input-sm layout-position-select"></select>
+            </div>
+            <div class="form-group-inline">
+                <label>偏移:</label>
+                <input type="number" class="form-input input-sm layout-offset-input" value="0" step="10">
+            </div>
+
+            <!-- 第三行：终点位置 (To)，默认隐藏 -->
+            <div class="to-position-container" style="display: none; grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 10px 15px; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #e2e8f0;">
+                <div class="form-group-inline">
+                    <label>移动到:</label>
+                    <select class="form-input input-sm layout-position-select-to"></select>
+                </div>
+                <div class="form-group-inline">
+                    <label>新偏移:</label>
+                    <input type="number" class="form-input input-sm layout-offset-input-to" value="0" step="10">
+                </div>
+            </div>
+        </div>
+    </div>
   </template>
 
   <template id="draggable-character-template">

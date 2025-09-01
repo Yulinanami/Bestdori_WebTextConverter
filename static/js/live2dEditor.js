@@ -4,17 +4,42 @@ import { configManager } from "./configManager.js";
 import { positionManager } from "./positionManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { historyManager } from "./historyManager.js";
+import { projectManager } from "./projectManager.js"; // 导入项目管理器
 
 export const live2dEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
   
   init() {
+    // 1. 绑定功能按钮
     document.getElementById("openLive2dEditorBtn")?.addEventListener("click", () => this.open());
-    
+    document.getElementById("autoLayoutBtn")?.addEventListener("click", () => this._applyAutoLayout());
+    document.getElementById("resetLayoutsBtn")?.addEventListener("click", () => this._clearAllLayouts());
     document.getElementById("live2dUndoBtn")?.addEventListener("click", () => historyManager.undo());
     document.getElementById("live2dRedoBtn")?.addEventListener("click", () => historyManager.redo());
+    
+    // --- 核心修正 1: 绑定项目管理按钮 ---
+    document.getElementById("saveLayoutsBtn")?.addEventListener("click", () => this.save());
+    // (导入/导出功能可以后续添加，暂时注释)
+    document.getElementById("importLayoutsBtn")?.addEventListener("click", () => this.importProject());
+    document.getElementById("exportLayoutsBtn")?.addEventListener("click", () => this.exportProject());
 
+    // 2. 统一处理关闭事件
+    const modal = document.getElementById('live2dEditorModal');
+    const handleCloseAttempt = (e) => {
+        if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
+             if (!confirm("您有未保存的更改，确定要关闭吗？")) {
+                e.stopPropagation();
+                e.preventDefault();
+                return;
+             }
+        }
+        this._closeEditor();
+    };
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', handleCloseAttempt, true);
+    modal?.querySelector('.modal-close')?.addEventListener('click', handleCloseAttempt, true);
+
+    // 3. 监听历史变化
     document.addEventListener('historychange', (e) => {
         if (document.getElementById('live2dEditorModal').style.display === 'flex') {
             document.getElementById('live2dUndoBtn').disabled = !e.detail.canUndo;
@@ -22,24 +47,14 @@ export const live2dEditor = {
         }
     });
 
-    // --- 核心修正 1: 为模态框添加键盘快捷键监听 ---
-    const modal = document.getElementById('live2dEditorModal');
+    // 4. 添加键盘快捷键
     modal?.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-
         if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'z') {
-                e.preventDefault();
-                historyManager.undo();
-            } else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
-                e.preventDefault();
-                historyManager.redo();
-            }
+            if (e.key === 'z') { e.preventDefault(); historyManager.undo(); }
+            else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); historyManager.redo(); }
         }
     });
-    // --- 修正结束 ---
-
-    // TODO: 添加保存、取消等按钮的事件绑定
   },
 
   open() {
@@ -78,6 +93,94 @@ export const live2dEditor = {
     });
   },
 
+  save() {
+    projectManager.save(this.projectFileState, (savedState) => {
+        this.originalStateOnOpen = JSON.stringify(savedState);
+        this._closeEditor();
+    });
+  },
+
+  exportProject() {
+      projectManager.export(this.projectFileState);
+  },
+  async importProject() {
+      const importedProject = await projectManager.import();
+      if (importedProject) {
+          this.projectFileState = importedProject;
+          this.originalStateOnOpen = JSON.stringify(importedProject);
+          state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
+          historyManager.clear();
+          this.renderTimeline();
+      }
+  },
+
+  _closeEditor() {
+    // TODO: 如果未来Live2D编辑器也需要多选，在这里detach
+    ui.closeModal("live2dEditorModal");
+  },
+
+_applyAutoLayout() {
+      if (!confirm("这将清空所有现有的Live2D布局，并根据角色的首次发言自动生成新的登场布局。确定要继续吗？")) {
+          return;
+      }
+
+      this._executeCommand((currentState) => {
+          // a. 首先，移除所有现有的 layout 动作
+          currentState.actions = currentState.actions.filter(a => a.type !== 'layout');
+
+          const appearedCharacters = new Set();
+          const newActions = [];
+
+          // b. 遍历所有动作，寻找角色首次发言并插入登场布局
+          currentState.actions.forEach(action => {
+              if (action.type === 'talk' && action.speakers.length > 0) {
+                  action.speakers.forEach(speaker => {
+                      if (!appearedCharacters.has(speaker.characterId)) {
+                          appearedCharacters.add(speaker.characterId);
+                          
+                          // 插入一个新的登场布局动作
+                          const defaultCostume = this._getDefaultCostume(speaker.characterId);
+                          // 使用 positionManager 来获取自动位置
+                          const positionConfig = positionManager.getCharacterPositionConfig(speaker.name, appearedCharacters.size - 1);
+
+                          const newLayoutAction = {
+                            id: `layout-action-${Date.now()}-${speaker.characterId}`,
+                            type: "layout",
+                            characterId: speaker.characterId,
+                            layoutType: "appear",
+                            costume: defaultCostume,
+                            position: {
+                              from: { side: positionConfig.position, offsetX: positionConfig.offset },
+                              to: { side: positionConfig.position, offsetX: positionConfig.offset }
+                            },
+                            initialState: {}
+                          };
+                          newActions.push(newLayoutAction);
+                      }
+                  });
+              }
+              newActions.push(action);
+          });
+          
+          currentState.actions = newActions;
+      });
+      ui.showStatus("已应用智能布局！", "success");
+  },
+
+  _clearAllLayouts() {
+      // "清空布局" 实际上就是一种特殊的 "恢复默认"
+      projectManager.reset(() => {
+          // 定义获取默认状态的函数：即过滤掉所有layout action
+          const newState = JSON.parse(JSON.stringify(this.projectFileState));
+          newState.actions = newState.actions.filter(a => a.type !== 'layout');
+          return newState;
+      }, (newState) => {
+          this.projectFileState = newState;
+          this.originalStateOnOpen = JSON.stringify(newState);
+          historyManager.clear();
+          this.renderTimeline();
+      });
+  },
   /**
    * --- 4. 新增：事件委托处理器 ---
    * 处理时间线内所有子元素的事件。
@@ -96,21 +199,27 @@ export const live2dEditor = {
   },
 
    _updateLayoutActionProperty(actionId, controlClassName, value) {
-    this._executeCommand((currentState) => {
+      this._executeCommand((currentState) => {
         const action = currentState.actions.find(a => a.id === actionId);
         if (!action) return;
-
-        // 直接修改传入的状态
-        if (controlClassName.includes('layout-type-select')) action.layoutType = value;
+        
+        // --- 4. 增强：处理 move 类型的双位置 ---
+        if (controlClassName.includes('layout-position-select-to')) {
+            action.position.to.side = value;
+        } else if (controlClassName.includes('layout-offset-input-to')) {
+            action.position.to.offsetX = parseInt(value) || 0;
+        } 
+        // 旧的逻辑保持不变
+        else if (controlClassName.includes('layout-type-select')) action.layoutType = value;
         else if (controlClassName.includes('layout-costume-select')) action.costume = value;
         else if (controlClassName.includes('layout-position-select')) {
             action.position.from.side = value;
-            action.position.to.side = value;
+            if (action.layoutType !== 'move') action.position.to.side = value; // 非move时保持同步
         } else if (controlClassName.includes('layout-offset-input')) {
-            action.position.from.offsetX = value;
-            action.position.to.offsetX = value;
+            action.position.from.offsetX = parseInt(value) || 0;
+            if (action.layoutType !== 'move') action.position.to.offsetX = parseInt(value) || 0; // 非move时保持同步
         }
-    });
+      });
   },
 
   /**
@@ -363,6 +472,7 @@ export const live2dEditor = {
         
         const positionSelect = card.querySelector('.layout-position-select');
         const offsetInput = card.querySelector('.layout-offset-input');
+        const toPositionSelect = card.querySelector('.layout-position-select-to'); // 获取终点位置select
         
         // 简化处理：暂时只显示和编辑 "from" 的位置
         // 在下一步实现 move 类型时再扩展
@@ -389,15 +499,29 @@ export const live2dEditor = {
 
         // 3. 动态填充位置 (Position) 下拉菜单
         positionSelect.innerHTML = ''; // 清空
+        toPositionSelect.innerHTML = '';
         Object.entries(positionManager.positionNames).forEach(([value, name]) => {
-            const option = new Option(name, value);
-            positionSelect.add(option);
+            // 为两个下拉菜单同时创建和添加选项
+            const optionFrom = new Option(name, value);
+            const optionTo = new Option(name, value);
+            positionSelect.add(optionFrom);
+            toPositionSelect.add(optionTo);
         });
         positionSelect.value = currentPosition;
         offsetInput.value = currentOffset;
 
-        // --- 修正结束 ---
-        
+        // --- 5. 增强：根据 layoutType 动态显示/隐藏UI ---
+        const toPositionContainer = card.querySelector('.to-position-container');
+        if (action.layoutType === 'move') {
+            toPositionContainer.style.display = 'grid'; // 或 'flex'
+            
+            // 填充 "to" 的值
+            card.querySelector('.layout-position-select-to').value = action.position?.to?.side || 'center';
+            card.querySelector('.layout-offset-input-to').value = action.position?.to?.offsetX || 0;
+        } else {
+            toPositionContainer.style.display = 'none';
+        }
+
         fragment.appendChild(card);
       }
     });
