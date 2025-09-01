@@ -853,34 +853,41 @@
     </div>
 
     <div class="modal" id="speakerEditorModal">
-      <div class="modal-content" style="max-width: 1200px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
-          <div class="modal-header">
-              <div class="modal-title">说话人编辑模式</div>
-              <button class="modal-close" data-modal-id="speakerEditorModal">×</button>
-          </div>
-          <div class="modal-body" style="display: flex; flex: 1; overflow: hidden; gap: 20px;">
-              <!-- 左栏：文本片段 -->
-              <div id="speakerEditorCanvas" style="flex: 3; overflow-y: auto; padding-right: 15px;">
-                  <!-- JS 将在此处渲染文本片段卡片 -->
-              </div>
-              <!-- 右栏：角色列表 -->
-              <div id="speakerEditorCharacterList" style="flex: 1; overflow-y: auto; border-left: 1px solid #e2e8f0; padding-left: 15px;">
-                  <!-- JS 将在此处渲染角色列表 -->
-              </div>
-          </div>
-          <div class="modal-footer" style="padding: 15px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between;">
-              <div>
-                  <button class="btn btn-secondary" id="importProjectBtn">导入工作进度</button>
-                  <button class="btn btn-secondary" id="exportProjectBtn">导出工作进度</button>
-              </div>
-              <div>
-                  <button class="btn btn-danger" id="resetSpeakersBtn">恢复默认</button>
-                  <button class="btn btn-secondary btn-modal-close" data-modal-id="speakerEditorModal" style="margin-left: 10px;">取消</button>
-                  <button class="btn btn-primary" id="saveSpeakersBtn" style="margin-left: 10px;">保存</button>
-              </div>
-          </div>
-      </div>
-  </div>
+        <div class="modal-content" style="max-width: 1200px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="modal-title">说话人编辑模式</div>
+                <button class="modal-close" data-modal-id="speakerEditorModal">×</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex: 1; overflow: hidden; gap: 20px;">
+                <!-- 左栏：文本片段 -->
+                <div id="speakerEditorCanvas" style="flex: 3; overflow-y: auto; padding-right: 15px;">
+                    <!-- JS 将在此处渲染文本片段卡片 -->
+                </div>
+                <!-- 右栏：角色列表 -->
+                <div id="speakerEditorCharacterList" style="flex: 1; overflow-y: auto; border-left: 1px solid #e2e8f0; padding-left: 15px;">
+                    <!-- JS 将在此处渲染角色列表 -->
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <!-- 左侧按钮组 -->
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" id="undoBtn" disabled title="撤销 (Ctrl+Z)">撤销 (Ctrl+Z)</button>
+                    <button class="btn btn-secondary" id="redoBtn" disabled title="重做 (Ctrl+Y)">重做 (Ctrl+Y)</button>
+                </div>
+                <!-- 中间按钮组 -->
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" id="importProjectBtn">导入进度</button>
+                    <button class="btn btn-secondary" id="exportProjectBtn">导出进度</button>
+                </div>
+                <!-- 右侧按钮组 -->
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-danger" id="resetSpeakersBtn">恢复默认</button>
+                    <button class="btn btn-secondary btn-modal-close" data-modal-id="speakerEditorModal">取消</button>
+                    <button class="btn btn-primary" id="saveSpeakersBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
   <!-- 添加新的模板 -->
   <template id="text-snippet-card-template">

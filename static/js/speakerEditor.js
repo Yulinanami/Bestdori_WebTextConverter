@@ -2,6 +2,7 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { selectionManager } from "./selectionManager.js";
+import { historyManager } from "./historyManager.js";
 
 export const speakerEditor = {
   projectFileState: null,
@@ -9,49 +10,81 @@ export const speakerEditor = {
   scrollInterval: null,
   scrollSpeed: 0,  
   
+/**
+   * 初始化模块，绑定所有必要的事件监听器。
+   */
   init() {
-    const openBtn = document.getElementById("openSpeakerEditorBtn");
-    if (openBtn) {
-      openBtn.addEventListener("click", () => this.open());
-    }
+    // 1. 绑定打开编辑器的按钮
+    document.getElementById("openSpeakerEditorBtn")?.addEventListener("click", () => this.open());
 
+    // 2. 绑定模态框内的功能按钮
+    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
+    document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
+    document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
+    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
+    document.getElementById("undoBtn")?.addEventListener("click", () => historyManager.undo());
+    document.getElementById("redoBtn")?.addEventListener("click", () => historyManager.redo());
+
+    // 3. 统一处理关闭事件（取消和X按钮）
     const modal = document.getElementById('speakerEditorModal');
-
-    // 统一的关闭前处理逻辑
     const handleCloseAttempt = (e) => {
         if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
                 e.stopPropagation();
                 e.preventDefault();
-                return false; // 指示不应关闭
+                return; // 阻止关闭
              }
         }
-        // 清理事件监听器
+        // 清理并关闭
         const canvas = document.getElementById('speakerEditorCanvas');
         selectionManager.detach(canvas);
-        return true; // 指示可以关闭
+        ui.closeModal('speakerEditorModal');
     };
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', handleCloseAttempt, true);
+    modal?.querySelector('.modal-close')?.addEventListener('click', handleCloseAttempt, true);
 
-    modal?.querySelector('.btn-modal-close')?.addEventListener('click', (e) => {
-        if (handleCloseAttempt(e)) {
-            ui.closeModal('speakerEditorModal');
+    // 4. 监听历史变化以更新按钮状态
+    document.addEventListener('historychange', (e) => {
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        if (undoBtn) undoBtn.disabled = !e.detail.canUndo;
+        if (redoBtn) redoBtn.disabled = !e.detail.canRedo;
+    });
+
+    // 5. 添加键盘快捷键
+    modal?.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z') { e.preventDefault(); historyManager.undo(); }
+            else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); historyManager.redo(); }
         }
-    }, true);
-    modal?.querySelector('.modal-close')?.addEventListener('click', (e) => {
-        if (handleCloseAttempt(e)) {
-            ui.closeModal('speakerEditorModal');
-        }
-    }, true);
-    
-    // 功能按钮只负责调用它们自己的核心逻辑
-    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
-    document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
-    document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
-    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
+    });
   },
 
   /**
-   * 打开编辑器模态框，加载并初始化所有数据和交互。
+   * 统一的关闭编辑器前的清理和检查逻辑。
+   */
+  _closeEditor() {
+    const canvas = document.getElementById('speakerEditorCanvas');
+    selectionManager.detach(canvas);
+    ui.closeModal("speakerEditorModal");
+  },
+
+  /**
+   * 由关闭按钮触发，检查是否有未保存的更改。
+   */
+  initiateClose() {
+    if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
+         if (confirm("您有未保存的更改，确定要关闭吗？")) {
+            this._closeEditor();
+         }
+    } else {
+        this._closeEditor();
+    }
+  },
+
+  /**
+   * 打开编辑器模态框。
    */
   async open() {
     const rawText = document.getElementById("inputText").value;
@@ -76,6 +109,8 @@ export const speakerEditor = {
       this.projectFileState = JSON.parse(JSON.stringify(initialState));
       this.originalStateOnOpen = JSON.stringify(initialState);
       
+      historyManager.clear();
+      
       const usedCharacterIds = this.renderCanvas();
       this.renderCharacterList(usedCharacterIds);
       this.initDragAndDrop();
@@ -88,18 +123,41 @@ export const speakerEditor = {
           const selectedIds = new Set(e.detail.selectedIds);
           const allCards = canvas.querySelectorAll('.dialogue-item');
           allCards.forEach(card => {
-              if (selectedIds.has(card.dataset.id)) {
-                  card.classList.add('is-selected');
-              } else {
-                  card.classList.remove('is-selected');
-              }
+              if (selectedIds.has(card.dataset.id)) { card.classList.add('is-selected'); }
+              else { card.classList.remove('is-selected'); }
           });
       });      
-
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
-      ui.closeModal("speakerEditorModal");
+      this._closeEditor(); // 出错时也要确保清理
     }
+  },
+
+  /**
+   * --- 核心修正 1: 修改 _executeCommand ---
+   * 创建一个命令对象，并捕获执行该命令所需的上下文。
+   * @param {function} executeFn - 一个执行修改的函数，它接收 (currentState, context) 作为参数。
+   * @param {object} context - 执行该命令所需的任何上下文数据。
+   */
+  _executeCommand(executeFn, context = {}) {
+      const oldState = JSON.stringify(this.projectFileState);
+
+      const command = {
+          execute: () => {
+              this.projectFileState = JSON.parse(JSON.stringify(this.projectFileState));
+              // 将捕获的上下文传递给执行函数
+              executeFn(this.projectFileState, context);
+              const usedIds = this.renderCanvas();
+              this.renderCharacterList(usedIds);
+          },
+          undo: () => {
+              this.projectFileState = JSON.parse(oldState);
+              const usedIds = this.renderCanvas();
+              this.renderCharacterList(usedIds);
+          }
+      };
+      
+      historyManager.do(command);
   },
 
   /**
@@ -288,15 +346,15 @@ export const speakerEditor = {
         document.addEventListener('dragover', this.handleDragScrolling);
       },
       onEnd: (evt) => {
-        document.removeEventListener('dragover', this.handleDragScrolling);
-        clearInterval(this.scrollInterval);
-        this.scrollInterval = null;
-
-        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-            const [movedItem] = this.projectFileState.actions.splice(evt.oldIndex, 1);
-            this.projectFileState.actions.splice(evt.newIndex, 0, movedItem);
-        }
-      },
+            if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
+                const { oldIndex, newIndex } = evt;
+                // 将上下文（索引）捕获
+                this._executeCommand((currentState, ctx) => {
+                    const [movedItem] = currentState.actions.splice(ctx.oldIndex, 1);
+                    currentState.actions.splice(ctx.newIndex, 0, movedItem);
+                }, { oldIndex, newIndex });
+            }
+        },
       onAdd: (evt) => {
         const characterItem = evt.item;
         characterItem.style.display = 'none';
@@ -367,83 +425,56 @@ export const speakerEditor = {
     }, 20); // 每 20 毫秒滚动一次
   },
   
-  /**
-   * --- 核心修正：统一更新逻辑为“追加” ---
-   * 更新说话人指派。
-   * 无论单选还是多选，行为都是将新说话人“追加”到目标卡片的说话人列表中（如果尚不存在）。
-   * @param {string} actionId - 当前拖拽操作的目标action ID。
-   * @param {object} newSpeaker - 新的说话人对象 { characterId, name }。
+/**
+   * 更新说话人指派。此操作会被记录到历史中。
    */
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = selectionManager.getSelectedIds();
-    // 如果有选中项，则目标是所有选中项；否则，目标就是当前拖拽到的那一项。
-    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
+    // 捕获当前的上下文
+    const context = {
+        targetIds: selectedIds.length > 0 ? selectedIds : [actionId],
+        newSpeaker: newSpeaker
+    };
 
-    let changesMade = false;
-    let alreadyExistsCount = 0;
-
-    targetIds.forEach(id => {
-      const actionToUpdate = this.projectFileState.actions.find(a => a.id === id);
-      if (actionToUpdate) {
-        const speakerExists = actionToUpdate.speakers.some(s => s.characterId === newSpeaker.characterId);
-        
-        if (!speakerExists) {
-          actionToUpdate.speakers.push(newSpeaker); // 统一使用追加逻辑
-          changesMade = true;
-        } else {
-          alreadyExistsCount++;
-        }
-      }
-    });
-
-    if (changesMade) {
-      const usedIds = this.renderCanvas();
-      this.renderCharacterList(usedIds);
-      // 提供清晰的反馈
-      if (targetIds.length > 1) {
-        ui.showStatus(`已为 ${targetIds.length - alreadyExistsCount} 个项目追加说话人。`, "success");
-      }
-    } else {
-      // 只有在所有目标项中都已存在该角色时才提示
-      if (alreadyExistsCount === targetIds.length) {
-        ui.showStatus("该角色已经是所有选中项的说话人。", "info");
-      }
-    }
-
-    // 操作完成后清空选项
-    if (selectedIds.length > 0) {
-        selectionManager.clear();
-        document.getElementById('speakerEditorCanvas').dispatchEvent(new CustomEvent('selectionchange', {
-            detail: { selectedIds: [] }
-        }));
-    }
+    this._executeCommand((currentState, ctx) => {
+        ctx.targetIds.forEach(id => {
+            const actionToUpdate = currentState.actions.find(a => a.id === id);
+            if (actionToUpdate) {
+                const speakerExists = actionToUpdate.speakers.some(s => s.characterId === ctx.newSpeaker.characterId);
+                if (!speakerExists) {
+                    actionToUpdate.speakers.push(ctx.newSpeaker);
+                }
+            }
+        });
+    }, context); // 将上下文传入
+    
+    // UI清理逻辑保持不变
+    selectionManager.clear();
+    document.getElementById('speakerEditorCanvas').dispatchEvent(new CustomEvent('selectionchange', { detail: { selectedIds: [] } }));
   },
 
-  /**
-   * 从指定action中移除一个说话人。
-   * @param {string} actionId - action的ID。
-   * @param {number} characterIdToRemove - 要移除的角色的ID。
+/**
+   * 从指定action中移除一个说话人。此操作会被记录到历史中。
    */
   removeSpeakerFromAction(actionId, characterIdToRemove) {
-      const action = this.projectFileState.actions.find(a => a.id === actionId);
-      if (action) {
-          action.speakers = action.speakers.filter(s => s.characterId !== characterIdToRemove);
-          const usedIds = this.renderCanvas();
-          this.renderCharacterList(usedIds);
-      }
+      this._executeCommand((currentState, ctx) => {
+          const action = currentState.actions.find(a => a.id === ctx.actionId);
+          if (action) {
+              action.speakers = action.speakers.filter(s => s.characterId !== ctx.characterIdToRemove);
+          }
+      }, { actionId, characterIdToRemove }); // 捕获上下文
   },
 
-  /**
-   * 移除指定action的所有说话人。
-   * @param {string} actionId - action的ID。
+/**
+   * 移除指定action的所有说话人。此操作会被记录到历史中。
    */
   removeAllSpeakersFromAction(actionId) {
-      const action = this.projectFileState.actions.find(a => a.id === actionId);
-      if (action) {
-          action.speakers = [];
-          const usedIds = this.renderCanvas();
-          this.renderCharacterList(usedIds);
-      }
+      this._executeCommand((currentState, ctx) => {
+          const action = currentState.actions.find(a => a.id === ctx.actionId);
+          if (action) {
+              action.speakers = [];
+          }
+      }, { actionId }); // 捕获上下文
   },
 
   /**
@@ -516,18 +547,14 @@ export const speakerEditor = {
     }, 0);
   },
 
-  /**
+ /**
    * 保存并关闭编辑器。
    */
   save() {
     state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
     this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
     ui.showStatus("工作进度已保存！", "success");
-    
-    // 在关闭前手动清理
-    const canvas = document.getElementById('speakerEditorCanvas');
-    selectionManager.detach(canvas);
-    ui.closeModal("speakerEditorModal");
+    this._closeEditor();
   },
 
   /**
@@ -548,8 +575,8 @@ a.click();
       URL.revokeObjectURL(url);
   },
 
-  /**
-   * 触发文件选择框，导入并加载一个项目文件。
+/**
+   * 导入项目文件，并清空历史记录。
    */
   importProject() {
       const input = document.createElement('input');
@@ -569,6 +596,9 @@ a.click();
                       this.originalStateOnOpen = JSON.stringify(importedProject);
                       state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
 
+                      // --- 导入后清空历史 ---
+                      historyManager.clear();
+
                       const usedIds = this.renderCanvas();
                       this.renderCharacterList(usedIds);
                       ui.showStatus("项目导入成功！", "success");
@@ -585,8 +615,8 @@ a.click();
       input.click();
   },
 
-  /**
-   * 恢复默认状态，并重新初始化监听器。
+/**
+   * 恢复默认状态，并清空历史记录。
    */
   async reset() {
       if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
@@ -600,11 +630,13 @@ a.click();
           this.projectFileState = newProjectFile;
           this.originalStateOnOpen = JSON.stringify(newProjectFile);
           
+          // --- 重置后清空历史 ---
+          historyManager.clear();
+          
           const usedIds = this.renderCanvas();
           this.renderCharacterList(usedIds);
           ui.showStatus("已恢复为默认状态。", "info");
-
-          // 重置后，需要清理旧的监听器并为新渲染的DOM重新附加
+          
           const canvas = document.getElementById('speakerEditorCanvas');
           selectionManager.detach(canvas);
           selectionManager.attach(canvas, '.dialogue-item');          
