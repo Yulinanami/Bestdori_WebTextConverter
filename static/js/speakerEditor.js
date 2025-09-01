@@ -4,62 +4,50 @@ import { configManager } from "./configManager.js";
 import { selectionManager } from "./selectionManager.js";
 
 export const speakerEditor = {
-  // 用于存储当前模态框内的项目文件状态
   projectFileState: null,
-  // 保存打开时的原始状态，用于比较是否有未保存的修改
   originalStateOnOpen: null,
   scrollInterval: null,
   scrollSpeed: 0,  
   
-  /**
-   * 初始化模块，绑定所有必要的事件监听器。
-   */
   init() {
     const openBtn = document.getElementById("openSpeakerEditorBtn");
     if (openBtn) {
       openBtn.addEventListener("click", () => this.open());
     }
 
-    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
-    document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
-    document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
-    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
+    const modal = document.getElementById('speakerEditorModal');
 
-    const cancelHandler = (e) => {
+    // 统一的关闭前处理逻辑
+    const handleCloseAttempt = (e) => {
         if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
                 e.stopPropagation();
                 e.preventDefault();
+                return false; // 指示不应关闭
              }
         }
-    };
-    
-    const modal = document.getElementById('speakerEditorModal');
-
-    const closeHandler = (e, isSaving = false) => {
-        // --- 核心修正 2: 统一的关闭前清理逻辑 ---
-        if (!isSaving && JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
-             if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-                e.stopPropagation();
-                e.preventDefault();
-                return; // 阻止关闭
-             }
-        }
-        // 解绑事件监听器
+        // 清理事件监听器
         const canvas = document.getElementById('speakerEditorCanvas');
         selectionManager.detach(canvas);
+        return true; // 指示可以关闭
     };
 
-    modal?.querySelector('.btn-modal-close')?.addEventListener('click', (e) => closeHandler(e), true);
-    modal?.querySelector('.modal-close')?.addEventListener('click', (e) => closeHandler(e), true);
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', (e) => {
+        if (handleCloseAttempt(e)) {
+            ui.closeModal('speakerEditorModal');
+        }
+    }, true);
+    modal?.querySelector('.modal-close')?.addEventListener('click', (e) => {
+        if (handleCloseAttempt(e)) {
+            ui.closeModal('speakerEditorModal');
+        }
+    }, true);
     
-    // 保存按钮也需要清理
-    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save(closeHandler), true);
-    // 重置按钮也需要清理
-    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset(closeHandler), true);
-    
+    // 功能按钮只负责调用它们自己的核心逻辑
+    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save());
     document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
     document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
+    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset());
   },
 
   /**
@@ -90,26 +78,23 @@ export const speakerEditor = {
       
       const usedCharacterIds = this.renderCanvas();
       this.renderCharacterList(usedCharacterIds);
-      
       this.initDragAndDrop();
+      
+      const canvas = document.getElementById('speakerEditorCanvas');
+      selectionManager.clear();
+      selectionManager.attach(canvas, '.dialogue-item');
 
-        // --- 2. 初始化多选管理器 ---
-        const canvas = document.getElementById('speakerEditorCanvas');
-        selectionManager.clear(); // 每次打开都清空选项
-        selectionManager.attach(canvas, '.dialogue-item');
-
-        // --- 3. 监听选项变化事件以更新UI ---
-        canvas.addEventListener('selectionchange', (e) => {
-            const selectedIds = new Set(e.detail.selectedIds);
-            const allCards = canvas.querySelectorAll('.dialogue-item');
-            allCards.forEach(card => {
-                if (selectedIds.has(card.dataset.id)) {
-                    card.classList.add('is-selected');
-                } else {
-                    card.classList.remove('is-selected');
-                }
-            });
-        });      
+      canvas.addEventListener('selectionchange', (e) => {
+          const selectedIds = new Set(e.detail.selectedIds);
+          const allCards = canvas.querySelectorAll('.dialogue-item');
+          allCards.forEach(card => {
+              if (selectedIds.has(card.dataset.id)) {
+                  card.classList.add('is-selected');
+              } else {
+                  card.classList.remove('is-selected');
+              }
+          });
+      });      
 
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -532,14 +517,16 @@ export const speakerEditor = {
   },
 
   /**
-   * 保存当前编辑器的状态到全局 state.projectFile。
+   * 保存并关闭编辑器。
    */
-  save(closeCallback) {
+  save() {
     state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
     this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
     ui.showStatus("工作进度已保存！", "success");
     
-    if(closeCallback) closeCallback(null, true); // 触发清理，并标记为正在保存
+    // 在关闭前手动清理
+    const canvas = document.getElementById('speakerEditorCanvas');
+    selectionManager.detach(canvas);
     ui.closeModal("speakerEditorModal");
   },
 
@@ -599,7 +586,7 @@ a.click();
   },
 
   /**
-   * 恢复默认状态，即基于当前主界面的文本重新初始化。
+   * 恢复默认状态，并重新初始化监听器。
    */
   async reset() {
       if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
@@ -617,12 +604,12 @@ a.click();
           this.renderCharacterList(usedIds);
           ui.showStatus("已恢复为默认状态。", "info");
 
-          if(closeCallback) closeCallback(null, true); // 在这里我们也需要清理，但重置不关闭模态框
+          // 重置后，需要清理旧的监听器并为新渲染的DOM重新附加
           const canvas = document.getElementById('speakerEditorCanvas');
-          selectionManager.detach(canvas); // 手动清理并重新附加
+          selectionManager.detach(canvas);
           selectionManager.attach(canvas, '.dialogue-item');          
       } catch(error) {
           ui.showStatus("恢复默认失败。", "error");
       }
-  }
+  },
 };
