@@ -80,50 +80,21 @@ export const live2dEditor = {
   },
 
    _updateLayoutActionProperty(actionId, controlClassName, value) {
-    // --- 核心修正 2: 在创建命令前进行“脏检查” ---
-    const action = this.projectFileState.actions.find(a => a.id === actionId);
-    if (!action) return;
+    this._executeCommand((currentState) => {
+        const action = currentState.actions.find(a => a.id === actionId);
+        if (!action) return;
 
-    // 检查值是否真的改变了
-    let isChanged = false;
-    if (controlClassName.includes('layout-type-select') && action.layoutType !== value) isChanged = true;
-    else if (controlClassName.includes('layout-costume-select') && action.costume !== value) isChanged = true;
-    else if (controlClassName.includes('layout-position-select') && action.position.from.side !== value) isChanged = true;
-    else if (controlClassName.includes('layout-offset-input') && action.position.from.offsetX !== value) isChanged = true;
-
-    if (!isChanged) {
-        return; // 如果值没有变，则不创建任何命令
-    }
-    
-    const oldState = JSON.stringify(this.projectFileState);
-
-    const command = {
-        execute: () => {
-            const currentAction = this.projectFileState.actions.find(a => a.id === actionId);
-            if (!currentAction) return;
-
-            if (controlClassName.includes('layout-type-select')) {
-                currentAction.layoutType = value;
-            } else if (controlClassName.includes('layout-costume-select')) {
-                currentAction.costume = value;
-            } else if (controlClassName.includes('layout-position-select')) {
-                currentAction.position.from.side = value;
-                currentAction.position.to.side = value;
-            } else if (controlClassName.includes('layout-offset-input')) {
-                currentAction.position.from.offsetX = value;
-                currentAction.position.to.offsetX = value;
-            }
-            // 只有在类型改变时才需要重绘
-            if (controlClassName.includes('layout-type-select')) {
-                setTimeout(() => this.renderTimeline(), 10);
-            }
-        },
-        undo: () => {
-            this.projectFileState = JSON.parse(oldState);
-            this.renderTimeline();
+        // 直接修改传入的状态
+        if (controlClassName.includes('layout-type-select')) action.layoutType = value;
+        else if (controlClassName.includes('layout-costume-select')) action.costume = value;
+        else if (controlClassName.includes('layout-position-select')) {
+            action.position.from.side = value;
+            action.position.to.side = value;
+        } else if (controlClassName.includes('layout-offset-input')) {
+            action.position.from.offsetX = value;
+            action.position.to.offsetX = value;
         }
-    };
-    historyManager.do(command);
+    });
   },
 
   /**
@@ -162,20 +133,10 @@ export const live2dEditor = {
   /**
    * --- 6. 新增：删除 layout action 的逻辑（包装成命令） ---
    */
-  _deleteLayoutAction(actionId) {
-      // 删除操作会改变DOM结构，所以它保持原样是正确的
-      const oldState = JSON.stringify(this.projectFileState);
-      const command = {
-          execute: () => {
-              this.projectFileState.actions = this.projectFileState.actions.filter(a => a.id !== actionId);
-              this.renderTimeline();
-          },
-          undo: () => {
-              this.projectFileState = JSON.parse(oldState);
-              this.renderTimeline();
-          }
-      };
-      historyManager.do(command);
+   _deleteLayoutAction(actionId) {
+      this._executeCommand((currentState) => {
+          currentState.actions = currentState.actions.filter(a => a.id !== actionId);
+      });
   },
 
   initDragAndDrop() {
@@ -211,22 +172,12 @@ export const live2dEditor = {
       // --- 核心修正 3: 为排序实现撤销/重做 ---
       onEnd: (evt) => {
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-            const { oldIndex, newIndex } = evt;
-            
-            const oldState = JSON.stringify(this.projectFileState);
-            const command = {
-                execute: () => {
-                    const [movedItem] = this.projectFileState.actions.splice(oldIndex, 1);
-                    this.projectFileState.actions.splice(newIndex, 0, movedItem);
-                    // 排序是结构性变化，不需要重绘，SortableJS已处理DOM
-                },
-                undo: () => {
-                    this.projectFileState = JSON.parse(oldState);
-                    this.renderTimeline(); // 撤销排序需要重绘
-                }
-            };
-            historyManager.do(command);
-        }
+                const { oldIndex, newIndex } = evt;
+                this._executeCommand((currentState) => {
+                    const [movedItem] = currentState.actions.splice(oldIndex, 1);
+                    currentState.actions.splice(newIndex, 0, movedItem);
+                });
+            }
       },
 
       onAdd: (evt) => {
@@ -282,6 +233,42 @@ export const live2dEditor = {
     
     // d. 重新渲染整个时间线以反映变化
     this.renderTimeline();
+  },
+
+  /**
+   * --- 核心修正：重构命令创建逻辑以支持完整的重做功能 ---
+   * 创建一个命令对象，捕获操作前后的完整状态。
+   * @param {function} executeFn - 一个执行修改的函数，它接收 currentState 并返回 newState。
+   */
+  _executeCommand(changeFn) {
+      const beforeState = JSON.stringify(this.projectFileState);
+
+      // 执行操作来计算出操作后的状态
+      // 我们在一个临时的深拷贝上执行，以避免直接修改当前状态
+      const tempState = JSON.parse(beforeState);
+      changeFn(tempState);
+      const afterState = JSON.stringify(tempState);
+
+      // 如果操作没有导致任何变化，则不记录历史
+      if (beforeState === afterState) {
+          return;
+      }
+      
+      const command = {
+          execute: () => {
+              // 重做就是恢复到操作后的状态
+              this.projectFileState = JSON.parse(afterState);
+              this.renderTimeline();
+          },
+          undo: () => {
+              // 撤销就是恢复到操作前的状态
+              this.projectFileState = JSON.parse(beforeState);
+              this.renderTimeline();
+          }
+      };
+      
+      // 使用 historyManager.do 来执行第一次操作并记录
+      historyManager.do(command);
   },
 
   _getDefaultCostume(characterId) {
