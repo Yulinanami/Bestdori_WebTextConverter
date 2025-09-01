@@ -141,25 +141,6 @@ export const costumeManager = {
       } else {
         this.availableCostumes = this.convertAvailableCostumesToNameBased();
       }
-      const enableLive2D = localStorage.getItem("bestdori_enable_live2d");
-      state.set("enableLive2D", enableLive2D === "true");
-      document.getElementById("enableLive2DCheckbox").checked =
-        state.get("enableLive2D");
-
-      const splitCheckbox = document.getElementById(
-        "splitEnableLive2DCheckbox"
-      );
-      if (splitCheckbox) {
-        splitCheckbox.checked = state.get("enableLive2D");
-      }
-      const positionBtn = document.getElementById("positionConfigBtn");
-      if (positionBtn) {
-        positionBtn.disabled = !state.get("enableLive2D");
-      }
-      const costumeBtn = document.getElementById("costumeConfigBtn");
-      if (costumeBtn) {
-        costumeBtn.disabled = !state.get("enableLive2D");
-      }
     } catch (error) {
       console.error("加载服装配置失败:", error);
       ui.showStatus("无法加载服装配置", "error");
@@ -599,4 +580,8 @@ export const costumeManager = {
     });
     return nameBased;
   },
+  getCostumeForCharacter(characterId) {
+    const characterName = configManager.getCharacterNameById(characterId);
+    return state.get('currentCostumes')[characterName] || "";
+  }
 };
