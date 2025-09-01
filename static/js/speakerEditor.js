@@ -1,6 +1,7 @@
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
+import { selectionManager } from "./selectionManager.js";
 
 export const speakerEditor = {
   // 用于存储当前模态框内的项目文件状态
@@ -68,6 +69,24 @@ export const speakerEditor = {
       this.renderCharacterList(usedCharacterIds);
       
       this.initDragAndDrop();
+
+        // --- 2. 初始化多选管理器 ---
+        const canvas = document.getElementById('speakerEditorCanvas');
+        selectionManager.clear(); // 每次打开都清空选项
+        selectionManager.init(canvas, '.dialogue-item');
+
+        // --- 3. 监听选项变化事件以更新UI ---
+        canvas.addEventListener('selectionchange', (e) => {
+            const selectedIds = new Set(e.detail.selectedIds);
+            const allCards = canvas.querySelectorAll('.dialogue-item');
+            allCards.forEach(card => {
+                if (selectedIds.has(card.dataset.id)) {
+                    card.classList.add('is-selected');
+                } else {
+                    card.classList.remove('is-selected');
+                }
+            });
+        });      
 
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -341,22 +360,61 @@ export const speakerEditor = {
   },
   
   /**
-   * 更新指定action的说话人（追加）。
-   * @param {string} actionId - 要更新的action的ID。
+   * 更新说话人指派。
+   * - 如果有多个项目被选中，则对所有选中项执行“替换”操作。
+   * - 如果只有一个项目（当前拖拽的目标），则执行“追加”操作。
+   * @param {string} actionId - 当前拖拽操作的目标action ID。
    * @param {object} newSpeaker - 新的说话人对象 { characterId, name }。
    */
   updateSpeakerAssignment(actionId, newSpeaker) {
-    const actionToUpdate = this.projectFileState.actions.find(a => a.id === actionId);
-    if (!actionToUpdate) return;
-    
-    const speakerExists = actionToUpdate.speakers.some(s => s.characterId === newSpeaker.characterId);
-    if (!speakerExists) {
-        actionToUpdate.speakers.push(newSpeaker);
+    const selectedIds = selectionManager.getSelectedIds();
+    let changesMade = false;
+
+    // --- 核心修正：区分批量和单次操作 ---
+    if (selectedIds.length > 1) {
+      // 场景1: 批量操作 (有多个选中项) -> 执行替换
+      ui.showStatus(`正在为 ${selectedIds.length} 个项目指派说话人...`, "info");
+      
+      selectedIds.forEach(id => {
+        const actionToUpdate = this.projectFileState.actions.find(a => a.id === id);
+        if (actionToUpdate) {
+            // 批量操作总是替换
+            actionToUpdate.speakers = [newSpeaker];
+            changesMade = true;
+        }
+      });
+
+    } else {
+      // 场景2: 单次操作 (没有或只有一个选中项) -> 执行追加
+      const actionToUpdate = this.projectFileState.actions.find(a => a.id === actionId);
+      if (actionToUpdate) {
+        const speakerExists = actionToUpdate.speakers.some(s => s.characterId === newSpeaker.characterId);
+        
+        if (!speakerExists) {
+          actionToUpdate.speakers.push(newSpeaker); // 追加逻辑
+          changesMade = true;
+        } else {
+          ui.showStatus("该角色已经是说话人。", "info");
+        }
+      }
+    }
+    // --- 修正结束 ---
+
+    if (changesMade) {
         const usedIds = this.renderCanvas();
         this.renderCharacterList(usedIds);
     } else {
-        ui.showStatus("该角色已经是说话人。", "info");
+        if (selectedIds.length <= 1) { // 仅在单选时提示已存在
+            ui.showStatus("该角色已经是说话人。", "info");
+        }
     }
+
+    // 操作完成后清空选项，准备下一次操作
+    selectionManager.clear();
+    // 手动触发一次事件以移除UI高亮
+    document.getElementById('speakerEditorCanvas').dispatchEvent(new CustomEvent('selectionchange', {
+        detail: { selectedIds: [] }
+    }));
   },
 
   /**

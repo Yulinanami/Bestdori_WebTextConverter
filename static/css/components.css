@@ -622,6 +622,19 @@
     text-overflow: ellipsis; /* 如果名字太长，用...显示 */
 }
 
+/* 对话项选中状态 */
+.dialogue-item.is-selected .dialogue-text {
+    background-color: #ebf8ff; /* 淡蓝色背景 */
+    border: 2px solid #3182ce; /* 蓝色边框 */
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+/* 旁白选中状态 */
+.dialogue-item.narrator.is-selected .dialogue-text {
+    background-color: #ebf8ff;
+    border: 2px solid #3182ce;
+}
+
 /* 当角色被拖到左侧画布上方时的视觉提示 */
 #speakerEditorCanvas.sortable-ghost-receiving {
     background-color: #f0f8ff;
