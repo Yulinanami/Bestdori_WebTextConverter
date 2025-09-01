@@ -3,6 +3,7 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { selectionManager } from "./selectionManager.js";
 import { historyManager } from "./historyManager.js";
+import { projectManager } from "./projectManager.js";
 
 export const speakerEditor = {
   projectFileState: null,
@@ -572,97 +573,59 @@ export const speakerEditor = {
    * 保存并关闭编辑器。
    */
   save() {
-    state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
-    this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
-    ui.showStatus("工作进度已保存！", "success");
-    this._closeEditor();
+    projectManager.save(this.projectFileState, (savedState) => {
+        // 'save' 成功后的回调
+        this.originalStateOnOpen = JSON.stringify(savedState);
+        this._closeEditor();
+    });
   },
-
   /**
    * 将当前编辑器的状态导出为 JSON 文件。
    */
   exportProject() {
-      if (!this.projectFileState) return;
-      const dataStr = JSON.stringify(this.projectFileState, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const filename = this.projectFileState.projectName || `bestdori_project_${Date.now()}.json`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      projectManager.export(this.projectFileState);
   },
 
 /**
    * 导入项目文件，并清空历史记录。
    */
-  importProject() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      
-      input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+  async importProject() {
+      const importedProject = await projectManager.import();
+      if (importedProject) {
+          // 导入成功后的处理逻辑
+          this.projectFileState = importedProject;
+          this.originalStateOnOpen = JSON.stringify(importedProject);
+          state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
 
-          const reader = new FileReader();
-          reader.onload = (event) => {
-              try {
-                  const importedProject = JSON.parse(event.target.result);
-                  if (importedProject && importedProject.actions) {
-                      this.projectFileState = importedProject;
-                      this.originalStateOnOpen = JSON.stringify(importedProject);
-                      state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
-
-                      // --- 导入后清空历史 ---
-                      historyManager.clear();
-
-                      const usedIds = this.renderCanvas();
-                      this.renderCharacterList(usedIds);
-                      ui.showStatus("项目导入成功！", "success");
-                  } else {
-                      throw new Error("无效的项目文件格式。");
-                  }
-              } catch (err) {
-                  ui.showStatus(`导入失败: ${err.message}`, "error");
-              }
-          };
-          reader.readAsText(file);
-      };
-      
-      input.click();
+          historyManager.clear();
+          const usedIds = this.renderCanvas();
+          this.renderCharacterList(usedIds);
+      }
   },
 
 /**
    * 恢复默认状态，并清空历史记录。
    */
   async reset() {
-      if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
-          return;
-      }
-      try {
+      // 定义一个函数，告诉 projectManager 如何获取这个编辑器的“默认状态”
+      const getDefaultStateFn = async () => {
           const rawText = document.getElementById("inputText").value;
           const response = await axios.post("/api/segment-text", { text: rawText });
-          const segments = response.data.segments;
-          const newProjectFile = this.createProjectFileFromSegments(segments);
-          this.projectFileState = newProjectFile;
-          this.originalStateOnOpen = JSON.stringify(newProjectFile);
+          return this.createProjectFileFromSegments(response.data.segments);
+      };
+
+      projectManager.reset(getDefaultStateFn, (newState) => {
+          // 恢复成功后的处理逻辑
+          this.projectFileState = newState;
+          this.originalStateOnOpen = JSON.stringify(newState);
           
-          // --- 重置后清空历史 ---
           historyManager.clear();
-          
           const usedIds = this.renderCanvas();
           this.renderCharacterList(usedIds);
-          ui.showStatus("已恢复为默认状态。", "info");
           
           const canvas = document.getElementById('speakerEditorCanvas');
           selectionManager.detach(canvas);
           selectionManager.attach(canvas, '.dialogue-item');          
-      } catch(error) {
-          ui.showStatus("恢复默认失败。", "error");
-      }
+      });
   },
 };
