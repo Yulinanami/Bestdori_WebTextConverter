@@ -3,12 +3,28 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { positionManager } from "./positionManager.js";
 import { costumeManager } from "./costumeManager.js";
+import { historyManager } from "./historyManager.js";
 
 export const live2dEditor = {
   projectFileState: null,
+  originalStateOnOpen: null,
   
   init() {
     document.getElementById("openLive2dEditorBtn")?.addEventListener("click", () => this.open());
+    
+    // --- 2. 绑定撤销/重做按钮和历史更新事件 ---
+    document.getElementById("live2dUndoBtn")?.addEventListener("click", () => historyManager.undo());
+    document.getElementById("live2dRedoBtn")?.addEventListener("click", () => historyManager.redo());
+
+    document.addEventListener('historychange', (e) => {
+        // 确保只在live2d编辑器打开时更新其按钮
+        if (document.getElementById('live2dEditorModal').style.display === 'flex') {
+            document.getElementById('live2dUndoBtn').disabled = !e.detail.canUndo;
+            document.getElementById('live2dRedoBtn').disabled = !e.detail.canRedo;
+        }
+    });
+
+    // TODO: 添加保存、取消等按钮的事件绑定
   },
 
   open() {
@@ -18,14 +34,138 @@ export const live2dEditor = {
     }
     
     this.projectFileState = JSON.parse(JSON.stringify(state.get('projectFile')));
+    this.originalStateOnOpen = JSON.stringify(this.projectFileState);
+
+    historyManager.clear(); // 每次打开都清空历史
 
     ui.openModal("live2dEditorModal");
     
     this.renderTimeline();
     this.renderCharacterList();
-    
-    // --- 1. 在 open 的最后调用 initDragAndDrop ---
     this.initDragAndDrop();
+
+    // --- 3. 添加事件委托 ---
+    const timeline = document.getElementById('live2dEditorTimeline');
+    timeline.addEventListener('change', this._handleTimelineEvent.bind(this));
+    timeline.addEventListener('input', this._handleTimelineEvent.bind(this));
+    timeline.addEventListener('click', this._handleTimelineEvent.bind(this));
+  },
+
+  /**
+   * --- 4. 新增：事件委托处理器 ---
+   * 处理时间线内所有子元素的事件。
+   */
+  _handleTimelineEvent(e) {
+    const target = e.target;
+    const card = target.closest('.layout-item');
+    if (!card) return;
+
+    const actionId = card.dataset.id;
+    const property = target.dataset.property; // 我们需要在模板中为控件添加 data-property
+
+    if (target.matches('.layout-remove-btn')) {
+        this._deleteLayoutAction(actionId);
+    } else if (target.matches('.layout-type-select, .layout-costume-select, .layout-position-select, .layout-offset-input')) {
+        const value = target.type === 'number' ? parseInt(target.value) || 0 : target.value;
+        this._updateLayoutActionProperty(actionId, target.className, value);
+    }
+  },
+
+   _updateLayoutActionProperty(actionId, controlClassName, value) {
+    // --- 1. 捕获操作前的状态，以供撤销 ---
+    const oldState = JSON.stringify(this.projectFileState);
+    
+    let needsFullRender = false; // 标记是否需要完全重绘
+
+    // --- 2. 创建命令对象 ---
+    const command = {
+        execute: () => {
+            const action = this.projectFileState.actions.find(a => a.id === actionId);
+            if (!action) return;
+
+            // --- 3. 分情况处理数据更新和UI重绘 ---
+            if (controlClassName.includes('layout-type-select')) {
+                // 如果改变了类型，需要重绘UI以显示/隐藏相关控件
+                if (action.layoutType !== value) { // 仅当值真正改变时才视为变更
+                    action.layoutType = value;
+                    needsFullRender = true; // 标记需要重绘
+                }
+            } else if (controlClassName.includes('layout-costume-select')) {
+                action.costume = value;
+                // 仅更新数据，不重绘（或局部更新）
+            } else if (controlClassName.includes('layout-position-select')) {
+                action.position.from.side = value;
+                action.position.to.side = value;
+            } else if (controlClassName.includes('layout-offset-input')) {
+                action.position.from.offsetX = parseInt(value) || 0;
+                action.position.to.offsetX = parseInt(value) || 0;
+            }
+            
+            // --- 4. 根据是否需要重绘来执行操作 ---
+            if (needsFullRender) {
+                this.renderTimeline(); // 只在类型改变时完全重绘
+            }
+        },
+        undo: () => {
+            // 撤销时，总是需要完全重绘以确保状态一致
+            this.projectFileState = JSON.parse(oldState);
+            this.renderTimeline();
+        }
+    };
+    
+    historyManager.do(command);
+  },
+
+  /**
+   * --- 5. 新增：更新 layout action 的逻辑（包装成命令） ---
+   */
+  _updateLayoutAction(actionId, controlClassName, value) {
+    const oldState = JSON.stringify(this.projectFileState);
+
+    const command = {
+        execute: () => {
+            const action = this.projectFileState.actions.find(a => a.id === actionId);
+            if (!action) return;
+
+            // 根据控件的类名来决定更新哪个属性
+            if (controlClassName.includes('layout-type-select')) {
+                action.layoutType = value;
+            } else if (controlClassName.includes('layout-costume-select')) {
+                action.costume = value;
+            } else if (controlClassName.includes('layout-position-select')) {
+                action.position.from.side = value;
+                action.position.to.side = value; // 简化：暂时保持同步
+            } else if (controlClassName.includes('layout-offset-input')) {
+                action.position.from.offsetX = value;
+                action.position.to.offsetX = value; // 简化：暂时保持同步
+            }
+            this.renderTimeline();
+        },
+        undo: () => {
+            this.projectFileState = JSON.parse(oldState);
+            this.renderTimeline();
+        }
+    };
+    historyManager.do(command);
+  },
+  
+  /**
+   * --- 6. 新增：删除 layout action 的逻辑（包装成命令） ---
+   */
+  _deleteLayoutAction(actionId) {
+      // 删除操作会改变DOM结构，所以它保持原样是正确的
+      const oldState = JSON.stringify(this.projectFileState);
+      const command = {
+          execute: () => {
+              this.projectFileState.actions = this.projectFileState.actions.filter(a => a.id !== actionId);
+              this.renderTimeline();
+          },
+          undo: () => {
+              this.projectFileState = JSON.parse(oldState);
+              this.renderTimeline();
+          }
+      };
+      historyManager.do(command);
   },
 
   initDragAndDrop() {
