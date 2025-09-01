@@ -91,20 +91,17 @@ export const speakerEditor = {
    * 打开编辑器模态框。
    */
   async open() {
-    const rawText = document.getElementById("inputText").value;
-    if (!rawText.trim() && !state.get('projectFile')) {
-      ui.showStatus("请输入文本或导入项目后再打开编辑器。", "error");
-      return;
-    }
-
     ui.openModal("speakerEditorModal");
 
     try {
       let initialState;
+      const rawText = document.getElementById("inputText").value; // 将获取文本移到这里
+
       if (state.get('projectFile')) {
         initialState = state.get('projectFile');
         ui.showStatus("已加载现有项目进度。", "info");
       } else {
+        // 即使 rawText 为空，这个流程也能正常工作
         const response = await axios.post("/api/segment-text", { text: rawText });
         const segments = response.data.segments;
         initialState = this.createProjectFileFromSegments(segments);
@@ -127,13 +124,17 @@ export const speakerEditor = {
           const selectedIds = new Set(e.detail.selectedIds);
           const allCards = canvas.querySelectorAll('.dialogue-item');
           allCards.forEach(card => {
-              if (selectedIds.has(card.dataset.id)) { card.classList.add('is-selected'); }
-              else { card.classList.remove('is-selected'); }
+              if (selectedIds.has(card.dataset.id)) {
+                  card.classList.add('is-selected');
+              } else {
+                  card.classList.remove('is-selected');
+              }
           });
       });      
+
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
-      this._closeEditor(); // 出错时也要确保清理
+      this._closeEditor();
     }
   },
 
