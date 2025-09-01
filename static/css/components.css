@@ -664,13 +664,26 @@
     color: var(--text-secondary);
 }
 
+.talk-item .timeline-content {
+    /* 确保内容区域可以收缩和伸展 */
+    flex: 1;
+    min-width: 0;
+}
+
 .talk-item .dialogue-preview-text {
-    font-style: italic;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-style: normal; /* 不再强制斜体，保持原文样式 */
+    color: var(--text-primary); /* 使用更清晰的文本颜色 */
+    
+    /* --- 关键修正：启用换行 --- */
+    white-space: normal; /* 允许正常换行 */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* 移除不必要的溢出隐藏 */
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+    
     margin: 0;
+    line-height: 1.5; /* 增加行高以提高可读性 */
 }
 
 /* 布局卡片样式 */
