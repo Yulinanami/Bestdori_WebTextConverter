@@ -360,61 +360,55 @@ export const speakerEditor = {
   },
   
   /**
+   * --- 核心修正：统一更新逻辑为“追加” ---
    * 更新说话人指派。
-   * - 如果有多个项目被选中，则对所有选中项执行“替换”操作。
-   * - 如果只有一个项目（当前拖拽的目标），则执行“追加”操作。
+   * 无论单选还是多选，行为都是将新说话人“追加”到目标卡片的说话人列表中（如果尚不存在）。
    * @param {string} actionId - 当前拖拽操作的目标action ID。
    * @param {object} newSpeaker - 新的说话人对象 { characterId, name }。
    */
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = selectionManager.getSelectedIds();
+    // 如果有选中项，则目标是所有选中项；否则，目标就是当前拖拽到的那一项。
+    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
+
     let changesMade = false;
+    let alreadyExistsCount = 0;
 
-    // --- 核心修正：区分批量和单次操作 ---
-    if (selectedIds.length > 1) {
-      // 场景1: 批量操作 (有多个选中项) -> 执行替换
-      ui.showStatus(`正在为 ${selectedIds.length} 个项目指派说话人...`, "info");
-      
-      selectedIds.forEach(id => {
-        const actionToUpdate = this.projectFileState.actions.find(a => a.id === id);
-        if (actionToUpdate) {
-            // 批量操作总是替换
-            actionToUpdate.speakers = [newSpeaker];
-            changesMade = true;
-        }
-      });
-
-    } else {
-      // 场景2: 单次操作 (没有或只有一个选中项) -> 执行追加
-      const actionToUpdate = this.projectFileState.actions.find(a => a.id === actionId);
+    targetIds.forEach(id => {
+      const actionToUpdate = this.projectFileState.actions.find(a => a.id === id);
       if (actionToUpdate) {
         const speakerExists = actionToUpdate.speakers.some(s => s.characterId === newSpeaker.characterId);
         
         if (!speakerExists) {
-          actionToUpdate.speakers.push(newSpeaker); // 追加逻辑
+          actionToUpdate.speakers.push(newSpeaker); // 统一使用追加逻辑
           changesMade = true;
         } else {
-          ui.showStatus("该角色已经是说话人。", "info");
+          alreadyExistsCount++;
         }
       }
-    }
-    // --- 修正结束 ---
+    });
 
     if (changesMade) {
-        const usedIds = this.renderCanvas();
-        this.renderCharacterList(usedIds);
+      const usedIds = this.renderCanvas();
+      this.renderCharacterList(usedIds);
+      // 提供清晰的反馈
+      if (targetIds.length > 1) {
+        ui.showStatus(`已为 ${targetIds.length - alreadyExistsCount} 个项目追加说话人。`, "success");
+      }
     } else {
-        if (selectedIds.length <= 1) { // 仅在单选时提示已存在
-            ui.showStatus("该角色已经是说话人。", "info");
-        }
+      // 只有在所有目标项中都已存在该角色时才提示
+      if (alreadyExistsCount === targetIds.length) {
+        ui.showStatus("该角色已经是所有选中项的说话人。", "info");
+      }
     }
 
-    // 操作完成后清空选项，准备下一次操作
-    selectionManager.clear();
-    // 手动触发一次事件以移除UI高亮
-    document.getElementById('speakerEditorCanvas').dispatchEvent(new CustomEvent('selectionchange', {
-        detail: { selectedIds: [] }
-    }));
+    // 操作完成后清空选项
+    if (selectedIds.length > 0) {
+        selectionManager.clear();
+        document.getElementById('speakerEditorCanvas').dispatchEvent(new CustomEvent('selectionchange', {
+            detail: { selectedIds: [] }
+        }));
+    }
   },
 
   /**
