@@ -35,8 +35,31 @@ export const speakerEditor = {
     };
     
     const modal = document.getElementById('speakerEditorModal');
-    modal?.querySelector('.btn-modal-close')?.addEventListener('click', cancelHandler, true);
-    modal?.querySelector('.modal-close')?.addEventListener('click', cancelHandler, true);
+
+    const closeHandler = (e, isSaving = false) => {
+        // --- 核心修正 2: 统一的关闭前清理逻辑 ---
+        if (!isSaving && JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
+             if (!confirm("您有未保存的更改，确定要关闭吗？")) {
+                e.stopPropagation();
+                e.preventDefault();
+                return; // 阻止关闭
+             }
+        }
+        // 解绑事件监听器
+        const canvas = document.getElementById('speakerEditorCanvas');
+        selectionManager.detach(canvas);
+    };
+
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', (e) => closeHandler(e), true);
+    modal?.querySelector('.modal-close')?.addEventListener('click', (e) => closeHandler(e), true);
+    
+    // 保存按钮也需要清理
+    document.getElementById("saveSpeakersBtn")?.addEventListener("click", () => this.save(closeHandler), true);
+    // 重置按钮也需要清理
+    document.getElementById("resetSpeakersBtn")?.addEventListener("click", () => this.reset(closeHandler), true);
+    
+    document.getElementById("exportProjectBtn")?.addEventListener("click", () => this.exportProject());
+    document.getElementById("importProjectBtn")?.addEventListener("click", () => this.importProject());
   },
 
   /**
@@ -73,7 +96,7 @@ export const speakerEditor = {
         // --- 2. 初始化多选管理器 ---
         const canvas = document.getElementById('speakerEditorCanvas');
         selectionManager.clear(); // 每次打开都清空选项
-        selectionManager.init(canvas, '.dialogue-item');
+        selectionManager.attach(canvas, '.dialogue-item');
 
         // --- 3. 监听选项变化事件以更新UI ---
         canvas.addEventListener('selectionchange', (e) => {
@@ -511,10 +534,12 @@ export const speakerEditor = {
   /**
    * 保存当前编辑器的状态到全局 state.projectFile。
    */
-  save() {
+  save(closeCallback) {
     state.set('projectFile', JSON.parse(JSON.stringify(this.projectFileState)));
     this.originalStateOnOpen = JSON.stringify(this.projectFileState); 
     ui.showStatus("工作进度已保存！", "success");
+    
+    if(closeCallback) closeCallback(null, true); // 触发清理，并标记为正在保存
     ui.closeModal("speakerEditorModal");
   },
 
@@ -591,6 +616,11 @@ a.click();
           const usedIds = this.renderCanvas();
           this.renderCharacterList(usedIds);
           ui.showStatus("已恢复为默认状态。", "info");
+
+          if(closeCallback) closeCallback(null, true); // 在这里我们也需要清理，但重置不关闭模态框
+          const canvas = document.getElementById('speakerEditorCanvas');
+          selectionManager.detach(canvas); // 手动清理并重新附加
+          selectionManager.attach(canvas, '.dialogue-item');          
       } catch(error) {
           ui.showStatus("恢复默认失败。", "error");
       }

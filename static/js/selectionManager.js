@@ -1,12 +1,64 @@
 // static/js/selectionManager.js (新建文件)
 
 export const selectionManager = {
-  
-  // 使用 Set 来存储选中的ID，高效且能自动去重
   selectedIds: new Set(),
-  
-  // 用于 Shift+点击 的最后一个被点击的项的ID
   lastSelectedId: null,
+
+  // --- 核心修正 1: 保存对事件处理器的引用，以便后续移除 ---
+  _boundClickHandler: null,
+  
+  /**
+   * 绑定事件监听器到容器。
+   * @param {HTMLElement} container - 列表项所在的父容器元素。
+   * @param {string} itemSelector - 用于识别可选项目的CSS选择器。
+   */
+  attach(container, itemSelector) {
+    // 如果已经绑定，则先解绑，防止重复
+    if (this._boundClickHandler) {
+      this.detach(container);
+    }
+    
+    // --- 核心修正 2: 创建一个绑定的函数引用 ---
+    this._boundClickHandler = this._handleClick.bind(this, container, itemSelector);
+    
+    container.addEventListener('click', this._boundClickHandler);
+  },
+
+  /**
+   * 从容器解绑事件监听器。
+   * @param {HTMLElement} container - 列表项所在的父容器元素。
+   */
+  detach(container) {
+    if (this._boundClickHandler) {
+      container.removeEventListener('click', this._boundClickHandler);
+      this._boundClickHandler = null;
+    }
+  },
+
+  /**
+   * --- 核心修正 3: 将点击逻辑提取到一个私有方法中 ---
+   * 统一的点击事件处理器。
+   */
+  _handleClick(container, itemSelector, e) {
+    const item = e.target.closest(itemSelector);
+    if (!item || !item.dataset.id) return;
+
+    const id = item.dataset.id;
+    
+    if (e.ctrlKey || e.metaKey) {
+      this.toggle(id);
+    } else if (e.shiftKey) {
+      this.selectRange(id, container, itemSelector);
+    } else {
+      this.selectSingle(id);
+    }
+    
+    this.lastSelectedId = id;
+    
+    container.dispatchEvent(new CustomEvent('selectionchange', {
+      detail: { selectedIds: this.getSelectedIds() }
+    }));
+  },  
 
   /**
    * 初始化管理器，为列表容器添加事件委托。
@@ -36,6 +88,8 @@ export const selectionManager = {
       }));
     });
   },
+
+
 
   /**
    * 切换单个项目的选中状态。
