@@ -172,33 +172,46 @@ export const live2dEditor = {
     const characterList = document.getElementById('live2dEditorCharacterList');
     const timeline = document.getElementById('live2dEditorTimeline');
 
-    // 初始化右侧角色列表 (源)
+    // --- 核心修正 1: 修改右侧角色列表的 Sortable 配置 ---
     new Sortable(characterList, {
       group: {
-        name: 'live2d-characters',
+        name: 'live2d-shared', // 统一组名
         pull: 'clone',
-        put: false
+        put: true // 允许从左侧拖入
       },
       sort: false,
+      // 新增 onAdd 事件处理器来处理删除逻辑
+      onAdd: (evt) => {
+        const item = evt.item; // 被拖入的元素
+        // 检查它是否是一个布局卡片 (通过 class 或 data-id)
+        if (item.classList.contains('layout-item') && item.dataset.id) {
+            this._deleteLayoutAction(item.dataset.id);
+        }
+        // 无论如何，都移除这个临时DOM元素
+        item.remove();
+      }
     });
 
-    // 初始化左侧时间线 (目标)
+    // --- 核心修正 2: 修改左侧时间线的 Sortable 配置 ---
     new Sortable(timeline, {
-      group: 'live2d-characters',
+      group: 'live2d-shared', // 统一组名
       animation: 150,
+      sort: true, // 允许排序
       
-      // 核心事件：当角色被拖入时
-      onAdd: (evt) => {
-        const characterItem = evt.item; // 被拖动的角色元素
-        const insertAtIndex = evt.newDraggableIndex; // 角色被放置的索引位置
-        
-        const characterId = parseInt(characterItem.dataset.characterId);
-        
-        // 调用我们的核心插入函数
-        this.insertLayoutAction(characterId, insertAtIndex);
+      onEnd: (evt) => {
+          // TODO: 在这里添加排序的撤销/重做逻辑 (与 speakerEditor 类似)
+      },
 
-        // SortableJS 会留下一个克隆的DOM，必须移除它
-        characterItem.remove();
+      onAdd: (evt) => {
+        const characterItem = evt.item;
+        const insertAtIndex = evt.newDraggableIndex;
+        
+        // 检查是否是从角色列表拖来的
+        if (characterItem.classList.contains('character-item')) {
+            const characterId = parseInt(characterItem.dataset.characterId);
+            this.insertLayoutAction(characterId, insertAtIndex);
+            characterItem.remove();
+        }
       }
     });
   },
