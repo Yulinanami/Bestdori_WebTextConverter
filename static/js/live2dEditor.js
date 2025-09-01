@@ -44,11 +44,22 @@ export const live2dEditor = {
     this.renderCharacterList();
     this.initDragAndDrop();
 
-    // --- 3. 添加事件委托 ---
+    // --- 核心修正 1: 只监听 change 事件 ---
     const timeline = document.getElementById('live2dEditorTimeline');
+    // 移除 input 和 click 的监听，只保留 change
+    timeline.removeEventListener('input', this._handleTimelineEvent.bind(this));
+    timeline.removeEventListener('click', this._handleTimelineEvent.bind(this));
     timeline.addEventListener('change', this._handleTimelineEvent.bind(this));
-    timeline.addEventListener('input', this._handleTimelineEvent.bind(this));
-    timeline.addEventListener('click', this._handleTimelineEvent.bind(this));
+
+    // 为删除按钮单独添加 click 监听
+    timeline.addEventListener('click', (e) => {
+        if (e.target.matches('.layout-remove-btn')) {
+            const card = e.target.closest('.layout-item');
+            if (card && card.dataset.id) {
+                this._deleteLayoutAction(card.dataset.id);
+            }
+        }
+    });
   },
 
   /**
@@ -58,61 +69,60 @@ export const live2dEditor = {
   _handleTimelineEvent(e) {
     const target = e.target;
     const card = target.closest('.layout-item');
-    if (!card) return;
-
-    const actionId = card.dataset.id;
-    const property = target.dataset.property; // 我们需要在模板中为控件添加 data-property
-
-    if (target.matches('.layout-remove-btn')) {
-        this._deleteLayoutAction(actionId);
-    } else if (target.matches('.layout-type-select, .layout-costume-select, .layout-position-select, .layout-offset-input')) {
+    if (!card || !card.dataset.id) return;
+    
+    // 现在只处理表单控件的 change 事件
+    if (target.matches('select, input')) {
+        const actionId = card.dataset.id;
         const value = target.type === 'number' ? parseInt(target.value) || 0 : target.value;
         this._updateLayoutActionProperty(actionId, target.className, value);
     }
   },
 
    _updateLayoutActionProperty(actionId, controlClassName, value) {
-    // --- 1. 捕获操作前的状态，以供撤销 ---
-    const oldState = JSON.stringify(this.projectFileState);
-    
-    let needsFullRender = false; // 标记是否需要完全重绘
+    // --- 核心修正 2: 在创建命令前进行“脏检查” ---
+    const action = this.projectFileState.actions.find(a => a.id === actionId);
+    if (!action) return;
 
-    // --- 2. 创建命令对象 ---
+    // 检查值是否真的改变了
+    let isChanged = false;
+    if (controlClassName.includes('layout-type-select') && action.layoutType !== value) isChanged = true;
+    else if (controlClassName.includes('layout-costume-select') && action.costume !== value) isChanged = true;
+    else if (controlClassName.includes('layout-position-select') && action.position.from.side !== value) isChanged = true;
+    else if (controlClassName.includes('layout-offset-input') && action.position.from.offsetX !== value) isChanged = true;
+
+    if (!isChanged) {
+        return; // 如果值没有变，则不创建任何命令
+    }
+    
+    const oldState = JSON.stringify(this.projectFileState);
+
     const command = {
         execute: () => {
-            const action = this.projectFileState.actions.find(a => a.id === actionId);
-            if (!action) return;
+            const currentAction = this.projectFileState.actions.find(a => a.id === actionId);
+            if (!currentAction) return;
 
-            // --- 3. 分情况处理数据更新和UI重绘 ---
             if (controlClassName.includes('layout-type-select')) {
-                // 如果改变了类型，需要重绘UI以显示/隐藏相关控件
-                if (action.layoutType !== value) { // 仅当值真正改变时才视为变更
-                    action.layoutType = value;
-                    needsFullRender = true; // 标记需要重绘
-                }
+                currentAction.layoutType = value;
             } else if (controlClassName.includes('layout-costume-select')) {
-                action.costume = value;
-                // 仅更新数据，不重绘（或局部更新）
+                currentAction.costume = value;
             } else if (controlClassName.includes('layout-position-select')) {
-                action.position.from.side = value;
-                action.position.to.side = value;
+                currentAction.position.from.side = value;
+                currentAction.position.to.side = value;
             } else if (controlClassName.includes('layout-offset-input')) {
-                action.position.from.offsetX = parseInt(value) || 0;
-                action.position.to.offsetX = parseInt(value) || 0;
+                currentAction.position.from.offsetX = value;
+                currentAction.position.to.offsetX = value;
             }
-            
-            // --- 4. 根据是否需要重绘来执行操作 ---
-            if (needsFullRender) {
-                this.renderTimeline(); // 只在类型改变时完全重绘
+            // 只有在类型改变时才需要重绘
+            if (controlClassName.includes('layout-type-select')) {
+                setTimeout(() => this.renderTimeline(), 10);
             }
         },
         undo: () => {
-            // 撤销时，总是需要完全重绘以确保状态一致
             this.projectFileState = JSON.parse(oldState);
             this.renderTimeline();
         }
     };
-    
     historyManager.do(command);
   },
 
@@ -198,8 +208,25 @@ export const live2dEditor = {
       animation: 150,
       sort: true, // 允许排序
       
+      // --- 核心修正 3: 为排序实现撤销/重做 ---
       onEnd: (evt) => {
-          // TODO: 在这里添加排序的撤销/重做逻辑 (与 speakerEditor 类似)
+        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
+            const { oldIndex, newIndex } = evt;
+            
+            const oldState = JSON.stringify(this.projectFileState);
+            const command = {
+                execute: () => {
+                    const [movedItem] = this.projectFileState.actions.splice(oldIndex, 1);
+                    this.projectFileState.actions.splice(newIndex, 0, movedItem);
+                    // 排序是结构性变化，不需要重绘，SortableJS已处理DOM
+                },
+                undo: () => {
+                    this.projectFileState = JSON.parse(oldState);
+                    this.renderTimeline(); // 撤销排序需要重绘
+                }
+            };
+            historyManager.do(command);
+        }
       },
 
       onAdd: (evt) => {
