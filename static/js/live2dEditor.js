@@ -12,17 +12,32 @@ export const live2dEditor = {
   init() {
     document.getElementById("openLive2dEditorBtn")?.addEventListener("click", () => this.open());
     
-    // --- 2. 绑定撤销/重做按钮和历史更新事件 ---
     document.getElementById("live2dUndoBtn")?.addEventListener("click", () => historyManager.undo());
     document.getElementById("live2dRedoBtn")?.addEventListener("click", () => historyManager.redo());
 
     document.addEventListener('historychange', (e) => {
-        // 确保只在live2d编辑器打开时更新其按钮
         if (document.getElementById('live2dEditorModal').style.display === 'flex') {
             document.getElementById('live2dUndoBtn').disabled = !e.detail.canUndo;
             document.getElementById('live2dRedoBtn').disabled = !e.detail.canRedo;
         }
     });
+
+    // --- 核心修正 1: 为模态框添加键盘快捷键监听 ---
+    const modal = document.getElementById('live2dEditorModal');
+    modal?.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z') {
+                e.preventDefault();
+                historyManager.undo();
+            } else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
+                e.preventDefault();
+                historyManager.redo();
+            }
+        }
+    });
+    // --- 修正结束 ---
 
     // TODO: 添加保存、取消等按钮的事件绑定
   },
@@ -36,22 +51,23 @@ export const live2dEditor = {
     this.projectFileState = JSON.parse(JSON.stringify(state.get('projectFile')));
     this.originalStateOnOpen = JSON.stringify(this.projectFileState);
 
-    historyManager.clear(); // 每次打开都清空历史
+    historyManager.clear();
 
     ui.openModal("live2dEditorModal");
     
+    // --- 核心修正 2: 打开后立即设置焦点 ---
+    const modal = document.getElementById('live2dEditorModal');
+    if (modal) {
+        modal.focus();
+    }
+    // --- 修正结束 ---
+
     this.renderTimeline();
     this.renderCharacterList();
     this.initDragAndDrop();
 
-    // --- 核心修正 1: 只监听 change 事件 ---
     const timeline = document.getElementById('live2dEditorTimeline');
-    // 移除 input 和 click 的监听，只保留 change
-    timeline.removeEventListener('input', this._handleTimelineEvent.bind(this));
-    timeline.removeEventListener('click', this._handleTimelineEvent.bind(this));
     timeline.addEventListener('change', this._handleTimelineEvent.bind(this));
-
-    // 为删除按钮单独添加 click 监听
     timeline.addEventListener('click', (e) => {
         if (e.target.matches('.layout-remove-btn')) {
             const card = e.target.closest('.layout-item');
