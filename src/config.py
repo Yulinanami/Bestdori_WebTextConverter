@@ -411,8 +411,23 @@ class ConfigManager:
                     "英文单引号 '...'": ["'", "'"],
                 },
             },
-            "motions": [],
-            "expressions": []
+            "motions": [
+                "angry01", "angry02", "angry03", "angry04", "angry05", "angry06", "angry07",
+                "bye01", "bye02", "cry01", "cry02", "cry03", "cry04", "cry05",
+                "idle01", "kime01", "nf01", "nf02", "nf03", "nf04", "nf05",
+                "nf_left01", "nf_right01", "nnf01", "nnf02", "nnf03", "nnf04", "nnf05",
+                "nnf_left01", "nnf_right01", "nod01", "odoodo01", "sad01", "sad02",
+                "serious01", "serious02", "shame01", "shame02", "sigh01", "sigh02",
+                "smile01", "smile02", "smile03", "smile04", "smile05", "smile06",
+                "surprised01", "surprised02", "thinking01", "thinking02"
+            ],
+            "expressions": [
+                "angry01", "angry02", "angry07", "cry01", "cry02", "cry03", "cry04",
+                "default", "idle01", "kime01", "odoodo01", "sad01", "sad02",
+                "serious01", "serious02", "shame01", "shame02", "sigh01", "sigh02",
+                "smile01", "smile02", "smile03", "smile04", "smile05", "smile06",
+                "surprised01", "surprised02", "thinking01", "thinking02"
+            ]
         }
         if not self.config_path.exists():
             self._save_config(default_config)
