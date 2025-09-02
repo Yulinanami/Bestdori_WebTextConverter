@@ -57,40 +57,80 @@ export const live2dEditor = {
     });
   },
 
-  open() {
-    if (!state.get('projectFile')) {
-      ui.showStatus("请先在说话人编辑模式中处理文本。", "error");
-      return;
-    }
-    
-    this.projectFileState = JSON.parse(JSON.stringify(state.get('projectFile')));
-    this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-
-    historyManager.clear();
-
+  async open() {
     ui.openModal("live2dEditorModal");
-    
-    // --- 核心修正 2: 打开后立即设置焦点 ---
-    const modal = document.getElementById('live2dEditorModal');
-    if (modal) {
-        modal.focus();
+
+    try {
+      let initialState;
+      const rawText = document.getElementById("inputText").value;
+
+      if (state.get('projectFile')) {
+        // 1. 优先使用全局状态中已存在的项目文件
+        initialState = state.get('projectFile');
+        ui.showStatus("已加载现有项目进度。", "info");
+      } else {
+        // 2. 如果全局状态为空，则根据当前文本框内容创建新项目
+        //    (这与 speakerEditor.open 的逻辑完全相同)
+        const response = await axios.post("/api/segment-text", { text: rawText });
+        const segments = response.data.segments;
+        initialState = this.createProjectFileFromSegments(segments);
+        if (rawText.trim()) {
+            ui.showStatus("已根据当前文本创建新项目。", "info");
+        }
+      }
+      
+      this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.originalStateOnOpen = JSON.stringify(initialState);
+      
+      historyManager.clear();
+      
+      this.renderTimeline();
+      this.renderCharacterList();
+      this.initDragAndDrop();
+      
+      const modal = document.getElementById('live2dEditorModal');
+      if (modal) {
+          modal.focus();
+      }
+      
+      // Live2D 编辑器不需要多选功能，所以不需要 selectionManager
+
+    } catch (error) {
+      ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
+      this._closeEditor();
     }
-    // --- 修正结束 ---
+  },
 
-    this.renderTimeline();
-    this.renderCharacterList();
-    this.initDragAndDrop();
-
-    const timeline = document.getElementById('live2dEditorTimeline');
-    timeline.addEventListener('change', this._handleTimelineEvent.bind(this));
-    timeline.addEventListener('click', (e) => {
-        if (e.target.matches('.layout-remove-btn')) {
-            const card = e.target.closest('.layout-item');
-            if (card && card.dataset.id) {
-                this._deleteLayoutAction(card.dataset.id);
+  /**
+   * 这是一个辅助函数，用于从纯文本创建项目。
+   * 我们需要将它从 speakerEditor 复制过来，或者放到一个通用模块中。
+   * 为了简单起见，我们先在这里复制一份。
+   */
+  createProjectFileFromSegments(segments) {
+    const characterMap = new Map(Object.entries(state.get("currentConfig")).map(([name, ids]) => [name, { characterId: ids[0], name: name }]));
+    const newProjectFile = {
+      version: "1.0",
+      actions: segments.map((text, index) => {
+        let speakers = [];
+        let cleanText = text;
+        const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+        if (match) {
+            const potentialSpeakerName = match[1].trim();
+            if (characterMap.has(potentialSpeakerName)) {
+                speakers.push(characterMap.get(potentialSpeakerName));
+                cleanText = match[2].trim();
             }
         }
-    });
+        return {
+          id: `action-id-${Date.now()}-${index}`,
+          type: "talk",
+          text: cleanText,
+          speakers: speakers,
+          characterStates: {}
+        };
+      })
+    };
+    return newProjectFile;
   },
 
   save() {
