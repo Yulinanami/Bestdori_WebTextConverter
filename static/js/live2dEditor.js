@@ -128,20 +128,20 @@ _applyAutoLayout() {
           // a. 首先，移除所有现有的 layout 动作
           currentState.actions = currentState.actions.filter(a => a.type !== 'layout');
 
-          const appearedCharacters = new Set();
+          const appearedCharacterNames = new Set();
           const newActions = [];
 
           // b. 遍历所有动作，寻找角色首次发言并插入登场布局
           currentState.actions.forEach(action => {
               if (action.type === 'talk' && action.speakers.length > 0) {
                   action.speakers.forEach(speaker => {
-                      if (!appearedCharacters.has(speaker.characterId)) {
-                          appearedCharacters.add(speaker.characterId);
+                      if (!appearedCharacterNames.has(speaker.name)) {
+                          appearedCharacterNames.add(speaker.name);
                           
                           // 插入一个新的登场布局动作
-                          const defaultCostume = this._getDefaultCostume(speaker.characterId);
+                          const defaultCostume = this._getDefaultCostume(speaker.name);
                           // 使用 positionManager 来获取自动位置
-                          const positionConfig = positionManager.getCharacterPositionConfig(speaker.name, appearedCharacters.size - 1);
+                          const positionConfig = positionManager.getCharacterPositionConfig(speaker.name, appearedCharacterNames.size - 1);
 
                           const newLayoutAction = {
                             id: `layout-action-${Date.now()}-${speaker.characterId}`,
