@@ -411,6 +411,8 @@ class ConfigManager:
                     "英文单引号 '...'": ["'", "'"],
                 },
             },
+            "motions": [],
+            "expressions": []
         }
         if not self.config_path.exists():
             self._save_config(default_config)
@@ -481,3 +483,9 @@ class ConfigManager:
 
     def get_available_costumes(self) -> Dict[int, List[str]]:
         return self.config.get("costume_mapping", {})
+    
+    def get_motions_config(self) -> List[str]:
+        return self.config.get("motions", [])
+
+    def get_expressions_config(self) -> List[str]:
+        return self.config.get("expressions", [])
