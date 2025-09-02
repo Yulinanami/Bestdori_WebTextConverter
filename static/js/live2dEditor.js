@@ -20,7 +20,7 @@ export const live2dEditor = {
     
     // --- 核心修正 1: 绑定项目管理按钮 ---
     document.getElementById("saveLayoutsBtn")?.addEventListener("click", () => this.save());
-    // (导入/导出功能可以后续添加，暂时注释)
+
     document.getElementById("importLayoutsBtn")?.addEventListener("click", () => this.importProject());
     document.getElementById("exportLayoutsBtn")?.addEventListener("click", () => this.exportProject());
 
@@ -106,9 +106,12 @@ export const live2dEditor = {
   async importProject() {
       const importedProject = await projectManager.import();
       if (importedProject) {
+          // 导入成功后的处理逻辑
           this.projectFileState = importedProject;
           this.originalStateOnOpen = JSON.stringify(importedProject);
+          // 导入也应该同步到全局状态
           state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
+
           historyManager.clear();
           this.renderTimeline();
       }
