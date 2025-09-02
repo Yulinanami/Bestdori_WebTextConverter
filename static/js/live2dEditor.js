@@ -65,12 +65,9 @@ export const live2dEditor = {
       const rawText = document.getElementById("inputText").value;
 
       if (state.get('projectFile')) {
-        // 1. 优先使用全局状态中已存在的项目文件
         initialState = state.get('projectFile');
         ui.showStatus("已加载现有项目进度。", "info");
       } else {
-        // 2. 如果全局状态为空，则根据当前文本框内容创建新项目
-        //    (这与 speakerEditor.open 的逻辑完全相同)
         const response = await axios.post("/api/segment-text", { text: rawText });
         const segments = response.data.segments;
         initialState = this.createProjectFileFromSegments(segments);
@@ -89,11 +86,23 @@ export const live2dEditor = {
       this.initDragAndDrop();
       
       const modal = document.getElementById('live2dEditorModal');
-      if (modal) {
-          modal.focus();
-      }
-      
-      // Live2D 编辑器不需要多选功能，所以不需要 selectionManager
+      if (modal) modal.focus();
+
+      // --- 绑定事件监听器 ---
+      const timeline = document.getElementById('live2dEditorTimeline');
+      // 使用 .onclick 和 .onchange 覆盖旧监听器，防止重复绑定
+      timeline.onclick = (e) => {
+        const card = e.target.closest('.layout-item');
+        if (!card) return;
+        if (e.target.matches('.layout-remove-btn')) {
+          this._deleteLayoutAction(card.dataset.id);
+        }
+      };
+      timeline.onchange = (e) => {
+        const card = e.target.closest('.layout-item');
+        if (!card || !e.target.matches('select, input')) return;
+        this._updateLayoutActionProperty(card.dataset.id, e.target);
+      };
 
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -158,7 +167,6 @@ export const live2dEditor = {
   },
 
   _closeEditor() {
-    // TODO: 如果未来Live2D编辑器也需要多选，在这里detach
     ui.closeModal("live2dEditorModal");
   },
 
@@ -225,45 +233,36 @@ _applyAutoLayout() {
           this.renderTimeline();
       });
   },
-  /**
-   * --- 4. 新增：事件委托处理器 ---
-   * 处理时间线内所有子元素的事件。
-   */
   _handleTimelineEvent(e) {
     const target = e.target;
     const card = target.closest('.layout-item');
     if (!card || !card.dataset.id) return;
     
-    // 现在只处理表单控件的 change 事件
     if (target.matches('select, input')) {
         const actionId = card.dataset.id;
         const value = target.type === 'number' ? parseInt(target.value) || 0 : target.value;
-        this._updateLayoutActionProperty(actionId, target.className, value);
+        this._updateLayoutActionProperty(actionId, target, value); // 传递 target 元素
     }
   },
 
-   _updateLayoutActionProperty(actionId, controlClassName, value) {
-      this._executeCommand((currentState) => {
-        const action = currentState.actions.find(a => a.id === actionId);
-        if (!action) return;
-        
-        // --- 4. 增强：处理 move 类型的双位置 ---
-        if (controlClassName.includes('layout-position-select-to')) {
-            action.position.to.side = value;
-        } else if (controlClassName.includes('layout-offset-input-to')) {
-            action.position.to.offsetX = parseInt(value) || 0;
-        } 
-        // 旧的逻辑保持不变
-        else if (controlClassName.includes('layout-type-select')) action.layoutType = value;
-        else if (controlClassName.includes('layout-costume-select')) action.costume = value;
-        else if (controlClassName.includes('layout-position-select')) {
-            action.position.from.side = value;
-            if (action.layoutType !== 'move') action.position.to.side = value; // 非move时保持同步
-        } else if (controlClassName.includes('layout-offset-input')) {
-            action.position.from.offsetX = parseInt(value) || 0;
-            if (action.layoutType !== 'move') action.position.to.offsetX = parseInt(value) || 0; // 非move时保持同步
-        }
-      });
+   _updateLayoutActionProperty(actionId, targetElement) {
+    const value = targetElement.type === 'number' ? parseInt(targetElement.value) || 0 : targetElement.value;
+    const controlClassName = targetElement.className;
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find(a => a.id === actionId);
+      if (!action) return;
+      if (controlClassName.includes('layout-type-select')) action.layoutType = value;
+      else if (controlClassName.includes('layout-costume-select')) action.costume = value;
+      else if (controlClassName.includes('layout-position-select-to')) action.position.to.side = value;
+      else if (controlClassName.includes('layout-offset-input-to')) action.position.to.offsetX = value; 
+      else if (controlClassName.includes('layout-position-select')) {
+          action.position.from.side = value;
+          if (action.layoutType !== 'move') action.position.to.side = value;
+      } else if (controlClassName.includes('layout-offset-input')) {
+          action.position.from.offsetX = value;
+          if (action.layoutType !== 'move') action.position.to.offsetX = value;
+      }
+    });
   },
 
   /**
@@ -299,10 +298,7 @@ _applyAutoLayout() {
     historyManager.do(command);
   },
   
-  /**
-   * --- 6. 新增：删除 layout action 的逻辑（包装成命令） ---
-   */
-   _deleteLayoutAction(actionId) {
+  _deleteLayoutAction(actionId) {
       this._executeCommand((currentState) => {
           currentState.actions = currentState.actions.filter(a => a.id !== actionId);
       });
@@ -352,94 +348,44 @@ _applyAutoLayout() {
       onAdd: (evt) => {
         const characterItem = evt.item;
         const insertAtIndex = evt.newDraggableIndex;
-        
-        // 检查是否是从角色列表拖来的
         if (characterItem.classList.contains('character-item')) {
-                const characterId = parseInt(characterItem.dataset.characterId);
-                // --- 5. 拖拽时同时获取 characterName ---
-                const characterName = characterItem.dataset.characterName;
-                this.insertLayoutAction(characterId, characterName, insertAtIndex);
-                characterItem.remove();
-            }
+            const characterId = parseInt(characterItem.dataset.characterId);
+            const characterName = characterItem.dataset.characterName;
+            // --- 核心修正 2: 让添加操作也接入历史记录 ---
+            this.insertLayoutAction(characterId, characterName, insertAtIndex);
+            characterItem.remove();
+        }
       }
     });
   },
 
-  /**
-   * --- 3. 新增：核心插入逻辑 ---
-   * 在指定索引处插入一个新的 layout 动作。
-   * @param {number} characterId - 要添加的角色的ID。
-   * @param {number} index - 要插入到 actions 数组中的索引。
-   */
   insertLayoutAction(characterId, characterName, index) {
-    // a. 获取默认配置
-    const defaultCostume = this._getDefaultCostume(characterName); // 使用 name
-    const defaultPosition = this._getDefaultPosition(characterName); // 使用 name
-
-    // b. 创建新的 layout action 对象
-    const newLayoutAction = {
-      id: `layout-action-${Date.now()}`,
-      type: "layout",
-      characterId: characterId,
-      characterName: characterName,
-      layoutType: "appear", // 默认是登场
-      costume: defaultCostume,
-      position: {
-        from: {
-          side: defaultPosition.position,
-          offsetX: defaultPosition.offset
-        },
-        to: { // 对于 appear，from 和 to 相同
-          side: defaultPosition.position,
-          offsetX: defaultPosition.offset
-        }
-      },
-      initialState: {
-        motion: "",
-        expression: ""
-      }
-    };
-    
-    // c. 将新对象插入到 projectFileState 的 actions 数组中
-    this.projectFileState.actions.splice(index, 0, newLayoutAction);
-    
-    // d. 重新渲染整个时间线以反映变化
-    this.renderTimeline();
+      this._executeCommand((currentState) => {
+          const defaultCostume = this._getDefaultCostume(characterName);
+          const defaultPosition = this._getDefaultPosition(characterName);
+          const newLayoutAction = {
+            id: `layout-action-${Date.now()}`, type: "layout",
+            characterId, characterName, layoutType: "appear", costume: defaultCostume,
+            position: {
+              from: { side: defaultPosition.position, offsetX: defaultPosition.offset },
+              to: { side: defaultPosition.position, offsetX: defaultPosition.offset }
+            },
+            initialState: {}
+          };
+          currentState.actions.splice(index, 0, newLayoutAction);
+      });
   },
 
-  /**
-   * --- 核心修正：重构命令创建逻辑以支持完整的重做功能 ---
-   * 创建一个命令对象，捕获操作前后的完整状态。
-   * @param {function} executeFn - 一个执行修改的函数，它接收 currentState 并返回 newState。
-   */
   _executeCommand(changeFn) {
       const beforeState = JSON.stringify(this.projectFileState);
-
-      // 执行操作来计算出操作后的状态
-      // 我们在一个临时的深拷贝上执行，以避免直接修改当前状态
       const tempState = JSON.parse(beforeState);
       changeFn(tempState);
       const afterState = JSON.stringify(tempState);
-
-      // 如果操作没有导致任何变化，则不记录历史
-      if (beforeState === afterState) {
-          return;
-      }
-      
+      if (beforeState === afterState) return;
       const command = {
-          execute: () => {
-              // 重做就是恢复到操作后的状态
-              this.projectFileState = JSON.parse(afterState);
-              this.renderTimeline();
-          },
-          undo: () => {
-              // 撤销就是恢复到操作前的状态
-              this.projectFileState = JSON.parse(beforeState);
-              this.renderTimeline();
-          }
+          execute: () => { this.projectFileState = JSON.parse(afterState); this.renderTimeline(); },
+          undo: () => { this.projectFileState = JSON.parse(beforeState); this.renderTimeline(); }
       };
-      
-      // 使用 historyManager.do 来执行第一次操作并记录
       historyManager.do(command);
   },
 
