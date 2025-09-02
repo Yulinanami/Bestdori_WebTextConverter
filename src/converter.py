@@ -109,9 +109,11 @@ class ProjectConverter:
     def _translate_layout_action(self, layout_action: Dict[str, Any]) -> Dict[str, Any]:
         position = layout_action.get("position", {})
         initial_state = layout_action.get("initialState", {})
-
-        # --- 核心修正 2: 确保 characterId 是整数 ---
         char_id = int(layout_action.get("characterId", 0))
+
+        # --- 核心修正：从 position 对象中正确提取值 ---
+        from_pos = position.get("from", {})
+        to_pos = position.get("to", {})
 
         bestdori_action = LayoutActionItem(
             layoutType=layout_action.get("layoutType", "appear"),
@@ -119,9 +121,15 @@ class ProjectConverter:
             costume=layout_action.get("costume", ""),
             motion=initial_state.get("motion", ""),
             expression=initial_state.get("expression", ""),
-            sideFrom=position.get("from", "center"),
-            sideTo=position.get("to", "center"),
-            sideFromOffsetX=position.get("offsetX", 0),
-            sideToOffsetX=position.get("offsetX", 0)
+            
+            # 从 from_pos 字典中获取 side 和 offsetX
+            sideFrom=from_pos.get("side", "center"),
+            sideFromOffsetX=from_pos.get("offsetX", 0),
+            
+            # 从 to_pos 字典中获取 side 和 offsetX
+            sideTo=to_pos.get("side", "center"),
+            sideToOffsetX=to_pos.get("offsetX", 0)
         )
+        # --- 修正结束 ---
+        
         return asdict(bestdori_action)
