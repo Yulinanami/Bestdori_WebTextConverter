@@ -147,6 +147,7 @@ _applyAutoLayout() {
                             id: `layout-action-${Date.now()}-${speaker.characterId}`,
                             type: "layout",
                             characterId: speaker.characterId,
+                            characterName: speaker.name,
                             layoutType: "appear",
                             costume: defaultCostume,
                             position: {
@@ -311,10 +312,12 @@ _applyAutoLayout() {
         
         // 检查是否是从角色列表拖来的
         if (characterItem.classList.contains('character-item')) {
-            const characterId = parseInt(characterItem.dataset.characterId);
-            this.insertLayoutAction(characterId, insertAtIndex);
-            characterItem.remove();
-        }
+                const characterId = parseInt(characterItem.dataset.characterId);
+                // --- 5. 拖拽时同时获取 characterName ---
+                const characterName = characterItem.dataset.characterName;
+                this.insertLayoutAction(characterId, characterName, insertAtIndex);
+                characterItem.remove();
+            }
       }
     });
   },
@@ -325,16 +328,17 @@ _applyAutoLayout() {
    * @param {number} characterId - 要添加的角色的ID。
    * @param {number} index - 要插入到 actions 数组中的索引。
    */
-  insertLayoutAction(characterId, index) {
+  insertLayoutAction(characterId, characterName, index) {
     // a. 获取默认配置
-    const defaultCostume = this._getDefaultCostume(characterId);
-    const defaultPosition = this._getDefaultPosition(characterId);
+    const defaultCostume = this._getDefaultCostume(characterName); // 使用 name
+    const defaultPosition = this._getDefaultPosition(characterName); // 使用 name
 
     // b. 创建新的 layout action 对象
     const newLayoutAction = {
       id: `layout-action-${Date.now()}`,
       type: "layout",
       characterId: characterId,
+      characterName: characterName,
       layoutType: "appear", // 默认是登场
       costume: defaultCostume,
       position: {
@@ -396,26 +400,17 @@ _applyAutoLayout() {
       historyManager.do(command);
   },
 
-  _getDefaultCostume(characterId) {
-    const characterName = configManager.getCharacterNameById(characterId);
-    // 从 costumeManager 维护的状态中获取
+  _getDefaultCostume(characterName) { // --- 3. 参数改为 characterName ---
     return state.get('currentCostumes')[characterName] || "";
   },
 
-  _getDefaultPosition(characterId) {
-    const characterName = configManager.getCharacterNameById(characterId);
-    // 注意：这里的 getCharacterPositionConfig 需要角色的出场顺序才能正确计算自动位置。
-    // 在这个简化的版本中，我们暂时忽略出场顺序，直接读取手动配置，
-    // 或者总是返回一个默认值。更复杂的逻辑将在“一键布局”中实现。
-    
-    // 简化逻辑：优先读取手动配置，否则返回默认中心位置
+  _getDefaultPosition(characterName) { // --- 4. 参数改为 characterName ---
     if (!positionManager.autoPositionMode && positionManager.manualPositions[characterName]) {
       return {
         position: positionManager.manualPositions[characterName].position || 'center',
         offset: positionManager.manualPositions[characterName].offset || 0
       };
     }
-    // 默认返回中心位置
     return { position: 'center', offset: 0 };
   },
 
@@ -458,7 +453,7 @@ _applyAutoLayout() {
         item.dataset.layoutType = action.layoutType;
 
         const characterId = action.characterId;
-        const characterName = configManager.getCharacterNameById(characterId);
+        const characterName = action.characterName || configManager.getCharacterNameById(characterId);
         
         card.querySelector('.speaker-name').textContent = characterName || `未知角色 (ID: ${characterId})`;
         const avatarDiv = card.querySelector('.dialogue-avatar');
