@@ -17,6 +17,8 @@ import { positionManager } from "./positionManager.js";
 import { perfMonitor } from "./performance.js";
 import { speakerEditor } from "./speakerEditor.js";
 import { live2dEditor } from "./live2dEditor.js";
+import { motionManager, expressionManager } from "./genericConfigManager.js";
+import { motionExpressionEditor } from "./motionExpressionEditor.js";
 
 // 初始化应用
 function initializeApp() {
@@ -34,6 +36,9 @@ function initializeApp() {
 
   // 初始化性能监控
   initializePerformanceOptimizations();
+
+  // 初始化状态
+  motionExpressionEditor.init();
 
   // 初始化说话人编辑器
   speakerEditor.init(); 

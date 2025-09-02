@@ -4,6 +4,7 @@ import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
+import { motionManager, expressionManager } from "./genericConfigManager.js";
 
 export const configManager = {
   defaultConfig: null,
@@ -61,6 +62,8 @@ export const configManager = {
       const response = await axios.get("/api/config");
       this.defaultConfig = response.data.character_mapping;
       state.set("quotesConfig", response.data.quotes_config);
+      state.set("motionsConfig", response.data.motions);
+      state.set("expressionsConfig", response.data.expressions);
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
@@ -70,6 +73,8 @@ export const configManager = {
         console.log("使用默认配置");
       }
       quoteManager.renderQuoteOptions();
+      motionManager.init(); // 初始化 motionManager
+      expressionManager.init(); // 初始化 expressionManager
     } catch (error) {
       console.error("加载配置失败:", error);
       ui.showStatus("无法加载应用配置", "error");

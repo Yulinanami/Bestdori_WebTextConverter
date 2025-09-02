@@ -210,6 +210,76 @@
                     </button>
                 </div>
             </div>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;" />
+              <div>
+                  <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px">
+                      动作与表情配置
+                  </p>
+                  <p style="color: #718096; margin-bottom: 15px">
+                      管理全局可用的 Live2D 动作和表情列表。
+                  </p>
+                  <button class="btn btn-secondary" id="openMotionExpressionBtn">
+                      打开动作/表情编辑器
+                  </button>
+              </div>
+
+
+              <!-- 2. 在文件底部 </body> 标签之前，添加新的模态框 -->
+              <div class="modal" id="motionExpressionModal">
+                <div class="modal-content" style="max-width: 900px; width: 95%;">
+                    <div class="modal-header">
+                        <div class="modal-title">动作/表情配置</div>
+                        <button class="modal-close" data-modal-id="motionExpressionModal">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 顶部描述和操作按钮 -->
+                        <div style="margin-bottom: 20px;">
+                            <p style="color: #718096; margin-bottom: 10px;">
+                                管理全局可用的 Live2D 动作和表情列表。自定义项将保存在您的浏览器本地。
+                            </p>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                            <button class="btn btn-secondary" id="resetMotionExpressionBtn">恢复默认</button>
+                            <button class="btn btn-primary" id="saveMotionExpressionBtn">保存配置</button>
+                        </div>
+
+                        <!-- 两栏布局 -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <!-- 左栏：动作配置 -->
+                            <div class="config-column">
+                                <h4 class="config-column-title">动作 (Motions)</h4>
+                                <div class="form-group">
+                                    <label class="form-label">添加自定义动作ID:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-input" id="customMotionInput" placeholder="例如: special_wave_01">
+                                        <button class="btn btn-secondary" id="addCustomMotionBtn">添加</button>
+                                    </div>
+                                </div>
+                                <div class="item-list-container">
+                                    <div id="motionList"></div>
+                                </div>
+                            </div>
+
+                            <!-- 右栏：表情配置 -->
+                            <div class="config-column">
+                                <h4 class="config-column-title">表情 (Expressions)</h4>
+                                <div class="form-group">
+                                    <label class="form-label">添加自定义表情ID:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-input" id="customExpressionInput" placeholder="例如: extra_blush_01">
+                                        <button class="btn btn-secondary" id="addCustomExpressionBtn">添加</button>
+                                    </div>
+                                </div>
+                                <div class="item-list-container">
+                                    <div id="expressionList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
           <!-- 位置配置模态框 -->
           <div class="modal" id="positionModal">
             <div class="modal-content" style="max-width: 800px">
