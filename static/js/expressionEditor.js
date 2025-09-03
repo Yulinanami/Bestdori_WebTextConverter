@@ -131,11 +131,98 @@ export const expressionEditor = {
       
       this.renderTimeline();
       this.renderLibraries();
+      this.initDragAndDrop();
       
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
     }
   },
+
+  initDragAndDrop() {
+    // a. 初始化右侧资源库 (源)
+    ['motion', 'expression'].forEach(type => {
+      const libraryList = document.getElementById(`${type}LibraryList`);
+      if (libraryList) {
+        new Sortable(libraryList, {
+          group: {
+            name: type, // 每个列表有自己独立的组名
+            pull: 'clone',
+            put: false
+          },
+          sort: false,
+          onStart: (evt) => {
+             // 拖拽时给 item 添加 data 属性
+             evt.item.dataset.value = evt.item.textContent;
+          }
+        });
+      }
+    });
+
+    // b. 初始化左侧时间线 (作为放置目标的容器)
+    // 我们将事件委托给整个时间线容器
+    const timeline = document.getElementById('expressionEditorTimeline');
+    if(timeline._sortableInitialized) return; // 防止重复初始化
+
+    new Sortable(timeline, {
+        group: {
+            name: 'timeline-sort', // 用于排序
+        },
+        // ... (这里的排序逻辑可以后续添加，暂时忽略)
+    });
+    
+    // c. 为所有放置区 (drop zones) 初始化 SortableJS
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+      new Sortable(zone, {
+        group: {
+          name: zone.dataset.type, // 组名必须与源匹配 ('motion' 或 'expression')
+          put: true
+        },
+        animation: 150,
+        onAdd: (evt) => {
+          const item = evt.item; // 被拖入的动作/表情元素
+          const value = item.dataset.value;
+          
+          const dropZone = evt.to;
+          const statusTag = dropZone.closest('.character-status-tag');
+          const timelineItem = dropZone.closest('.timeline-item');
+
+          if (value && statusTag && timelineItem) {
+            const characterId = parseInt(statusTag.dataset.characterId);
+            const actionId = timelineItem.dataset.id;
+            const type = dropZone.dataset.type; // 'motion' or 'expression'
+            
+            this._updateCharacterState(actionId, characterId, type, value);
+          }
+          
+          // 移除 SortableJS 留下的临时 DOM
+          item.remove();
+        }
+      });
+    });
+    timeline._sortableInitialized = true;
+  },
+
+  _updateCharacterState(actionId, characterId, type, value) {
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find(a => a.id === actionId);
+      if (!action) return;
+
+      if (action.type === 'talk') {
+        // 确保 characterStates 对象存在
+        if (!action.characterStates) action.characterStates = {};
+        if (!action.characterStates[characterId]) action.characterStates[characterId] = {};
+        
+        action.characterStates[characterId][type] = value;
+
+      } else if (action.type === 'layout' && action.characterId === characterId) {
+        // layout 卡片只能修改自己的那个角色
+        if (!action.initialState) action.initialState = {};
+        action.initialState[type] = value;
+      }
+    });
+  },
+
+
 
   /**
    * 遍历actions，找出所有执行过appear动作的角色。
@@ -307,7 +394,10 @@ export const expressionEditor = {
     const fragment = document.createDocumentFragment();
     items.forEach(item => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'config-list-item'; // 复用样式
+        // --- 核心修正：添加 draggable="true" 和样式 ---
+        itemEl.className = 'config-list-item draggable-item';
+        itemEl.draggable = true;
+        // --- 结束修正 ---
         itemEl.innerHTML = `<span class="item-name">${item}</span>`;
         fragment.appendChild(itemEl);
     });

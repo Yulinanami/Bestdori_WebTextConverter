@@ -920,3 +920,15 @@
 #expressionEditorLibrary .item-list-container {
     height: calc(80vh - 220px); /* 动态计算高度 */
 }
+
+/* 使资源库中的项看起来可拖拽 */
+.draggable-item {
+    cursor: grab;
+}
+
+/* 拖拽放置区的视觉反馈 */
+.drop-zone.sortable-ghost-receiving {
+    background-color: #ebf8ff;
+    border-style: solid;
+    border-color: #3182ce;
+}
