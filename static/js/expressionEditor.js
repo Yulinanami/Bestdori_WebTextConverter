@@ -143,15 +143,18 @@ export const expressionEditor = {
    * @returns {Array<{id: number, name: string}>} - 登场过的角色信息数组。
    */
   _calculateStagedCharacters(projectFile) {
-    const appearedCharacterIds = new Set();
+    // --- 核心修正：跟踪角色名，而不是角色ID ---
+    const appearedCharacterNames = new Set();
     const characters = [];
+    
     projectFile.actions.forEach(action => {
       if (action.type === 'layout' && action.layoutType === 'appear') {
-        if (!appearedCharacterIds.has(action.characterId)) {
-          appearedCharacterIds.add(action.characterId);
+        const charName = action.characterName || configManager.getCharacterNameById(action.characterId);
+        if (charName && !appearedCharacterNames.has(charName)) {
+          appearedCharacterNames.add(charName);
           characters.push({
             id: action.characterId,
-            name: action.characterName || configManager.getCharacterNameById(action.characterId)
+            name: charName
           });
         }
       }
