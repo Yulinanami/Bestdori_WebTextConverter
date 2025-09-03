@@ -220,7 +220,7 @@
                       管理全局可用的 Live2D 动作和表情列表。
                   </p>
                   <button class="btn btn-secondary" id="openMotionExpressionBtn">
-                      打开动作/表情编辑器
+                      打开动作/表情配置
                   </button>
               </div>
 
@@ -339,18 +339,24 @@
                           </div>
                       </div>
                       <div class="modal-footer" style="padding: 15px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                          <div style="display: flex; gap: 10px;">
-                              <button class="btn btn-secondary" id="expressionUndoBtn" disabled>撤销</button>
-                              <button class="btn btn-secondary" id="expressionRedoBtn" disabled>重做</button>
-                          </div>
-                          <div style="display: flex; gap: 10px;">
-                              <a href="https://bestdori.com/tool/live2d" target="_blank" class="btn btn-secondary">Live2D浏览器</a>
-                          </div>
-                          <div style="display: flex; gap: 10px;">
-                              <button class="btn btn-secondary btn-modal-close" data-modal-id="expressionEditorModal">取消</button>
-                              <button class="btn btn-primary" id="saveExpressionsBtn">保存</button>
-                          </div>
-                      </div>
+                        <!-- 左侧按钮组 -->
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" id="expressionUndoBtn" disabled title="撤销 (Ctrl+Z)">撤销</button>
+                            <button class="btn btn-secondary" id="expressionRedoBtn" disabled title="重做 (Ctrl+Y)">重做</button>
+                            <a href="https://bestdori.com/tool/live2d" target="_blank" class="btn btn-secondary">Live2D浏览器</a>
+                        </div>
+                        <!-- 中间按钮组 -->
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" id="importExpressionsBtn">导入进度</button>
+                            <button class="btn btn-secondary" id="exportExpressionsBtn">导出进度</button>
+                        </div>
+                        <!-- 右侧按钮组 -->
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-danger" id="resetExpressionsBtn">恢复默认</button>
+                            <button class="btn btn-secondary btn-modal-close" data-modal-id="expressionEditorModal">取消</button>
+                            <button class="btn btn-primary" id="saveExpressionsBtn">保存</button>
+                        </div>
+                    </div>
                   </div>
               </div>
 
