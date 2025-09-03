@@ -951,3 +951,33 @@
 .clear-state-btn:hover {
     color: var(--color-error);
 }
+
+/* 1. 允许 timeline-item 的内容换行 */
+#expressionEditorTimeline .timeline-item {
+    display: flex;
+    flex-wrap: wrap; /* 允许子元素换行 */
+    align-items: flex-start;
+}
+
+/* 2. 让主要内容（头像+文本）占据一行 */
+/* 这部分保持默认的 flex 行内对齐 */
+
+#expressionEditorTimeline .layout-item > .layout-card-header,
+#expressionEditorTimeline .layout-item > .layout-card-body {
+    width: 100%; /* 确保布局卡片内部元素占满宽度 */
+}
+
+
+/* 3. 这是最关键的一步：让状态栏占据完整的新一行 */
+#expressionEditorTimeline .character-status-bar {
+    flex-basis: 100%; /* 强制元素宽度为父容器的100% */
+    width: 100%;
+    margin-top: 15px; /* 与上方内容增加一些间距 */
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary); /* 添加一条清晰的分割线 */
+}
+
+/* 4. 微调：移除 talk-item 的多余内边距，让其更紧凑 */
+#expressionEditorTimeline .talk-item {
+    padding-bottom: 10px;
+}
