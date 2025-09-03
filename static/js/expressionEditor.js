@@ -117,11 +117,17 @@ export const expressionEditor = {
   },
 
   save() {
-    projectManager.save(this.projectFileState, (savedState) => {
-        this.originalStateOnOpen = JSON.stringify(savedState);
-        this._closeEditor();
-    });
-  },
+  // 调用项目管理器来保存当前状态，并提供一个回调函数
+  projectManager.save(this.projectFileState, (savedState) => {
+      // 这是保存成功后执行的回调函数
+
+      // 1. 更新 "原始状态"，以防止在关闭时意外触发 "未保存的更改" 警告
+      this.originalStateOnOpen = JSON.stringify(savedState);
+      
+      // 2. 明确地调用UI工具函数来关闭模态框
+      ui.closeModal("expressionEditorModal");
+  });
+},
 
   exportProject() {
       projectManager.export(this.projectFileState);
