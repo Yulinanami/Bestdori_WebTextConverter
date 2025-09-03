@@ -1,5 +1,3 @@
-// 文件: static/js/expressionEditor.js
-
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
@@ -180,23 +178,23 @@ export const expressionEditor = {
       
       this.renderTimeline();
       this.renderLibraries();
-      // 拖拽初始化移动到 renderTimeline 内部和按钮点击事件后
       
       document.getElementById('expressionEditorModal')?.focus();
       
       const timeline = document.getElementById('expressionEditorTimeline');
-      // 使用事件委托处理所有点击事件
+      
+      // 修改: 合并并扩展事件处理器
       timeline.onclick = (e) => {
           const card = e.target.closest('.timeline-item');
           if (!card) return;
 
-          // 处理 "设置动作/表情" 按钮的点击
+          // 处理 "设置动作/表情" 按钮
           if (e.target.matches('.setup-expressions-btn')) {
               this.showExpressionSetupUI(card);
-              return; // 结束处理
+              return;
           }
 
-          // 处理清除按钮的点击
+          // 处理 "清除" 按钮
           if (e.target.matches('.clear-state-btn')) {
               const dropZone = e.target.closest('.drop-zone');
               const statusTag = e.target.closest('.character-status-tag');
@@ -206,7 +204,22 @@ export const expressionEditor = {
                   const type = dropZone.dataset.type;
                   this._executePropertyChangeCommand(actionId, characterId, type, '--');
               }
+              return;
           }
+
+          // 新增: 处理布局卡片的 "删除" 按钮
+          if (e.target.matches('.layout-remove-btn')) {
+            this._deleteLayoutAction(card.dataset.id);
+            return;
+          }
+      };
+
+      // 新增: 添加 onchange 事件委托来处理布局卡片属性修改
+      timeline.onchange = (e) => {
+        const card = e.target.closest('.layout-item');
+        if (card && e.target.matches('select, input')) {
+            this._updateLayoutActionProperty(card.dataset.id, e.target);
+        }
       };
       
     } catch (error) {
@@ -501,5 +514,74 @@ export const expressionEditor = {
       })
     };
     return newProjectFile;
+  },
+_executeCommand(changeFn) {
+      const beforeState = JSON.stringify(this.projectFileState);
+      const tempState = JSON.parse(beforeState);
+      changeFn(tempState);
+      const afterState = JSON.stringify(tempState);
+      if (beforeState === afterState) return;
+
+      const command = {
+          execute: () => {
+              this.projectFileState = JSON.parse(afterState);
+              // 每次执行/重做后都完全重新渲染时间线
+              this.renderTimeline();
+          },
+          undo: () => {
+              this.projectFileState = JSON.parse(beforeState);
+              // 每次撤销后也完全重新渲染时间线
+              this.renderTimeline();
+          }
+      };
+      historyManager.do(command);
+  },
+
+  // 新增: 删除布局卡片的函数
+  _deleteLayoutAction(actionId) {
+      this._executeCommand((currentState) => {
+          currentState.actions = currentState.actions.filter(a => a.id !== actionId);
+      });
+  },
+
+  // 新增: 修改布局卡片属性的函数
+  _updateLayoutActionProperty(actionId, targetElement) {
+    const value = targetElement.type === 'number' ? parseInt(targetElement.value) || 0 : targetElement.value;
+    const controlClassName = targetElement.className;
+
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find(a => a.id === actionId);
+      if (!action) return;
+      
+      if (controlClassName.includes('layout-type-select')) {
+          action.layoutType = value;
+      } else if (controlClassName.includes('layout-costume-select')) {
+          action.costume = value;
+      } else if (controlClassName.includes('layout-position-select-to')) {
+          if (!action.position) action.position = {};
+          if (!action.position.to) action.position.to = {};
+          action.position.to.side = value;
+      } else if (controlClassName.includes('layout-offset-input-to')) {
+          if (!action.position) action.position = {};
+          if (!action.position.to) action.position.to = {};
+          action.position.to.offsetX = value;
+      } else if (controlClassName.includes('layout-position-select')) {
+          if (!action.position) action.position = {};
+          if (!action.position.from) action.position.from = {};
+          action.position.from.side = value;
+          if (action.layoutType !== 'move') {
+              if (!action.position.to) action.position.to = {};
+              action.position.to.side = value;
+          }
+      } else if (controlClassName.includes('layout-offset-input')) {
+          if (!action.position) action.position = {};
+          if (!action.position.from) action.position.from = {};
+          action.position.from.offsetX = value;
+          if (action.layoutType !== 'move') {
+              if (!action.position.to) action.position.to = {};
+              action.position.to.offsetX = value;
+          }
+      }
+    });
   }
 };
