@@ -4,6 +4,9 @@ import { configManager } from "./configManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { historyManager } from "./historyManager.js";
 import { projectManager } from "./projectManager.js";
+// --- 核心修正：在这里添加对 costumeManager 和 positionManager 的导入 ---
+import { costumeManager } from "./costumeManager.js";
+import { positionManager } from "./positionManager.js";
 
 export const expressionEditor = {
   projectFileState: null,
