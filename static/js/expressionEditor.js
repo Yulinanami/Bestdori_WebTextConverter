@@ -11,6 +11,8 @@ export const expressionEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
   stagedCharacters: [],
+  // 新增: 用于存储临时添加的库项目
+  tempLibraryItems: { motion: [], expression: [] },
   
   init() {
     // 1. 绑定功能按钮
@@ -57,14 +59,17 @@ export const expressionEditor = {
     });
   },
 
-  _executePropertyChangeCommand(actionId, characterId, type, newValue) {
+  _executePropertyChangeCommand(actionId, characterName, type, newValue) {
     let oldValue = '--';
     const action = this.projectFileState.actions.find(a => a.id === actionId);
     if (!action) return;
 
-    if (action.type === 'talk' && action.characterStates && action.characterStates[characterId]) {
-      oldValue = action.characterStates[characterId][type] || '--';
-    } else if (action.type === 'layout' && action.characterId === characterId) {
+    // 核心修改 2: 使用 characterName 读取旧状态
+    if (action.type === 'talk' && action.characterStates && action.characterStates[characterName]) {
+      oldValue = action.characterStates[characterName][type] || '--';
+    } 
+    // 注意：layout action 的 initialState 不受影响，因为它只关联单个角色，不存在混淆
+    else if (action.type === 'layout' && action.characterName === characterName) {
       oldValue = action.initialState ? action.initialState[type] || '--' : '--';
     }
 
@@ -72,18 +77,19 @@ export const expressionEditor = {
 
     const command = {
       execute: () => {
-        this._applyCharacterStateChange(actionId, characterId, type, newValue);
-        this._updateSingleTagUI(actionId, characterId, type, newValue);
+        // 核心修改 3: 将 characterName 传递下去
+        this._applyCharacterStateChange(actionId, characterName, type, newValue);
+        this._updateSingleTagUI(actionId, characterName, type, newValue);
       },
       undo: () => {
-        this._applyCharacterStateChange(actionId, characterId, type, oldValue);
-        this._updateSingleTagUI(actionId, characterId, type, oldValue);
+        this._applyCharacterStateChange(actionId, characterName, type, oldValue);
+        this._updateSingleTagUI(actionId, characterName, type, oldValue);
       }
     };
     historyManager.do(command);
   },
 
-  _applyCharacterStateChange(actionId, characterId, type, value) {
+  _applyCharacterStateChange(actionId, characterName, type, value) {
     const action = this.projectFileState.actions.find(a => a.id === actionId);
     if (!action) return;
 
@@ -91,18 +97,20 @@ export const expressionEditor = {
 
     if (action.type === 'talk') {
       if (!action.characterStates) action.characterStates = {};
-      if (!action.characterStates[characterId]) action.characterStates[characterId] = {};
-      action.characterStates[characterId][type] = valueToStore;
-    } else if (action.type === 'layout' && action.characterId === characterId) {
+      // 使用 characterName 作为键
+      if (!action.characterStates[characterName]) action.characterStates[characterName] = {};
+      action.characterStates[characterName][type] = valueToStore;
+    } else if (action.type === 'layout' && action.characterName === characterName) {
       if (!action.initialState) action.initialState = {};
       action.initialState[type] = valueToStore;
     }
   },
 
-  _updateSingleTagUI(actionId, characterId, type, value) {
+  _updateSingleTagUI(actionId, characterName, type, value) {
       const timelineItem = document.querySelector(`.timeline-item[data-id="${actionId}"]`);
       if (!timelineItem) return;
-      const statusTag = timelineItem.querySelector(`.character-status-tag[data-character-id="${characterId}"]`);
+      // 使用 data-character-name 进行更精确的查找
+      const statusTag = timelineItem.querySelector(`.character-status-tag[data-character-name="${characterName}"]`);
       if (!statusTag) return;
       const dropZone = statusTag.querySelector(`.${type}-drop-zone`);
       if(dropZone) {
@@ -161,6 +169,7 @@ export const expressionEditor = {
 
   async open() {
     try {
+      this.tempLibraryItems = { motion: [], expression: [] };
       let initialState;
       const rawText = document.getElementById("inputText").value;
       if (state.get('projectFile')) {
@@ -177,7 +186,6 @@ export const expressionEditor = {
       this.renderTimeline();
       this.renderLibraries();
       document.getElementById('expressionEditorModal')?.focus();
-      
       const timeline = document.getElementById('expressionEditorTimeline');
       
       timeline.onclick = (e) => {
@@ -192,9 +200,10 @@ export const expressionEditor = {
               const statusTag = e.target.closest('.character-status-tag');
               if (dropZone && statusTag) {
                   const actionId = card.dataset.id;
-                  const characterId = parseInt(statusTag.dataset.characterId);
+                  // 核心修改 6: 从 DOM 中获取 characterName
+                  const characterName = statusTag.dataset.characterName;
                   const type = dropZone.dataset.type;
-                  this._executePropertyChangeCommand(actionId, characterId, type, '--');
+                  this._executePropertyChangeCommand(actionId, characterName, type, '--');
               }
               return;
           }
@@ -211,18 +220,13 @@ export const expressionEditor = {
         }
       };
 
-      // 新增: 为时间线启用拖拽排序功能
       new Sortable(timeline, {
         animation: 150,
-        sort: true, // 启用列表内的排序
+        sort: true,
         onEnd: (evt) => {
-            // 检查拖拽是否在同一个列表内，并且位置发生了改变
             if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
                 const { oldIndex, newIndex } = evt;
-
-                // 使用我们的命令模式来更新数据，以支持撤销/重做
                 this._executeCommand((currentState) => {
-                    // 这是标准的数组元素移动操作
                     const [movedItem] = currentState.actions.splice(oldIndex, 1);
                     currentState.actions.splice(newIndex, 0, movedItem);
                 });
@@ -274,29 +278,22 @@ export const expressionEditor = {
     return false;
   },
 
-  /**
-   * 为指定的DOM元素内的所有放置区初始化SortableJS。
-   * @param {HTMLElement} parentElement - 包含.drop-zone的父元素。
-   */
   _initSortableForZones(parentElement) {
     parentElement.querySelectorAll('.drop-zone').forEach(zone => {
       new Sortable(zone, {
         group: { name: zone.dataset.type, put: true },
         animation: 150,
         onAdd: (evt) => {
-          const sourceList = evt.from;
-          const originalItem = sourceList.children[evt.oldDraggableIndex];
-          const value = originalItem ? originalItem.textContent : null;
-          
+          const value = evt.item ? evt.item.textContent : null;
           const dropZone = evt.to;
           const statusTag = dropZone.closest('.character-status-tag');
           const timelineItem = dropZone.closest('.timeline-item');
-
           if (value && statusTag && timelineItem) {
-            const characterId = parseInt(statusTag.dataset.characterId);
+            // 核心修改 7: 从 DOM 中获取 characterName
+            const characterName = statusTag.dataset.characterName;
             const actionId = timelineItem.dataset.id;
             const type = dropZone.dataset.type;
-            this._executePropertyChangeCommand(actionId, characterId, type, value);
+            this._executePropertyChangeCommand(actionId, characterName, type, value);
           }
           evt.item.remove();
         }
@@ -442,52 +439,61 @@ export const expressionEditor = {
     timeline.appendChild(fragment);
   },
 
-  /**
-   * 新的辅助函数：只负责渲染状态栏的DOM，并返回它。
-   * @param {object} action - 包含角色状态数据的action对象。
-   * @returns {HTMLElement} - 渲染好的 character-status-bar 元素。
-   */
   _renderStatusBarForAction(action) {
-    const statusTagTemplate = document.getElementById("character-status-tag-template");
-    const statusBar = document.createElement('div');
-    statusBar.className = 'character-status-bar';
+  const statusTagTemplate = document.getElementById("character-status-tag-template");
+  const statusBar = document.createElement('div');
+  statusBar.className = 'character-status-bar';
 
-    this.stagedCharacters.forEach(char => {
-      const tag = statusTagTemplate.content.cloneNode(true);
-      tag.querySelector('.character-status-tag').dataset.characterId = char.id;
-      const avatarDiv = tag.querySelector('.dialogue-avatar');
-      configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
-      tag.querySelector('.character-name').textContent = char.name;
+  // --- 核心修改: 移除之前的 if/else 逻辑，总是遍历所有在场角色 ---
+  this.stagedCharacters.forEach(char => {
+    const tag = statusTagTemplate.content.cloneNode(true);
+    const statusTagElement = tag.querySelector('.character-status-tag');
+    statusTagElement.dataset.characterId = char.id;
+    statusTagElement.dataset.characterName = char.name;
 
-      let currentMotion = '--';
-      let currentExpression = '--';
-      if (action.type === 'talk' && action.characterStates && action.characterStates[char.id]) {
-          currentMotion = action.characterStates[char.id].motion || '--';
-          currentExpression = action.characterStates[char.id].expression || '--';
-      } else if (action.type === 'layout' && action.characterId === char.id && action.initialState) {
-          currentMotion = action.initialState.motion || '--';
-          currentExpression = action.initialState.expression || '--';
-      }
+    const avatarDiv = tag.querySelector('.dialogue-avatar');
+    configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
+    tag.querySelector('.character-name').textContent = char.name;
 
-      const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
-      const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
-      motionValue.textContent = currentMotion;
-      if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
+    let currentMotion = '--';
+    let currentExpression = '--';
+    
+    // 状态读取逻辑已经足够健壮，可以正确处理 talk 和 layout 两种情况
+    if (action.type === 'talk' && action.characterStates && action.characterStates[char.name]) {
+        currentMotion = action.characterStates[char.name].motion || '--';
+        currentExpression = action.characterStates[char.name].expression || '--';
+    } 
+    // 对于布局卡片，只有当角色名字匹配时，才会读取 initialState 的数据
+    else if (action.type === 'layout' && action.characterName === char.name && action.initialState) {
+        currentMotion = action.initialState.motion || '--';
+        currentExpression = action.initialState.expression || '--';
+    }
 
-      const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
-      const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
-      expValue.textContent = currentExpression;
-      if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
+    const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
+    const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
+    motionValue.textContent = currentMotion;
+    if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
 
-      statusBar.appendChild(tag);
-    });
-    return statusBar;
-  },
+    const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
+    const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
+    expValue.textContent = currentExpression;
+    if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
+    
+    statusBar.appendChild(tag);
+  });
+
+  return statusBar;
+},
 
   renderLibraries() {
-    this._renderLibrary('motion', motionManager.getAvailableItems());
-    this._renderLibrary('expression', expressionManager.getAvailableItems());
-    // 为资源库初始化拖拽（只需一次）
+    // 合并永久列表和临时列表
+    const motionItems = [...motionManager.getAvailableItems(), ...this.tempLibraryItems.motion];
+    const expressionItems = [...expressionManager.getAvailableItems(), ...this.tempLibraryItems.expression];
+
+    // 使用 Set 去重，然后渲染
+    this._renderLibrary('motion', Array.from(new Set(motionItems)));
+    this._renderLibrary('expression', Array.from(new Set(expressionItems)));
+    
     this.initDragAndDropForLibraries();
   },
 
@@ -592,5 +598,31 @@ _executeCommand(changeFn) {
           }
       }
     });
-  }
+  },
+
+_addTempItem(type) {
+    const isMotion = type === 'motion';
+    const input = document.getElementById(isMotion ? 'tempMotionInput' : 'tempExpressionInput');
+    const manager = isMotion ? motionManager : expressionManager;
+    const tempList = this.tempLibraryItems[type];
+    
+    const trimmedId = input.value.trim();
+    if (!trimmedId) {
+      ui.showStatus(`${manager.name}ID不能为空！`, "error");
+      return;
+    }
+
+    // 检查是否在所有已知项（永久+临时）中重复
+    const allItems = new Set([...manager.getAvailableItems(), ...tempList]);
+    if (allItems.has(trimmedId)) {
+      ui.showStatus(`该${manager.name}ID已存在！`, "error");
+      return;
+    }
+
+    // 添加到临时列表并重新渲染
+    tempList.push(trimmedId);
+    input.value = "";
+    this.renderLibraries();
+    ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
+  },
 };
