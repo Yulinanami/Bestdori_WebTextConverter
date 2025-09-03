@@ -1,17 +1,111 @@
-// static/js/expressionEditor.js (新建文件)
-
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
+import { historyManager } from "./historyManager.js";
+import { projectManager } from "./projectManager.js";
 
 export const expressionEditor = {
   projectFileState: null,
   stagedCharacters: [], // 存储所有登场过的角色信息
 
   init() {
+    // 1. 绑定打开编辑器的按钮
     document.getElementById("openExpressionEditorBtn")?.addEventListener("click", () => this.open());
-    // TODO: 绑定保存、撤销、添加临时项等按钮事件
+    
+    // 2. 绑定模态框内的所有功能按钮
+    document.getElementById("saveExpressionsBtn")?.addEventListener("click", () => this.save());
+    document.getElementById("importExpressionsBtn")?.addEventListener("click", () => this.importProject());
+    document.getElementById("exportExpressionsBtn")?.addEventListener("click", () => this.exportProject());
+    document.getElementById("resetExpressionsBtn")?.addEventListener("click", () => this.reset());
+    document.getElementById("expressionUndoBtn")?.addEventListener("click", () => historyManager.undo());
+    document.getElementById("expressionRedoBtn")?.addEventListener("click", () => historyManager.redo());
+    document.getElementById("addTempMotionBtn")?.addEventListener("click", () => this._addTempItem('motion'));
+    document.getElementById("addTempExpressionBtn")?.addEventListener("click", () => this._addTempItem('expression'));
+
+    // 3. 统一处理关闭事件（取消和X按钮）
+    const modal = document.getElementById('expressionEditorModal');
+    const handleCloseAttempt = (e) => {
+        if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
+             if (!confirm("您有未保存的更改，确定要关闭吗？")) {
+                e.stopPropagation(); e.preventDefault(); return;
+             }
+        }
+        this._closeEditor();
+    };
+    modal?.querySelector('.btn-modal-close')?.addEventListener('click', handleCloseAttempt);
+    modal?.querySelector('.modal-close')?.addEventListener('click', handleCloseAttempt);
+    
+    // 4. 监听历史变化以更新撤销/重做按钮的状态
+    document.addEventListener('historychange', (e) => {
+        // 确保只在当前模态框可见时才更新按钮
+        if (document.getElementById('expressionEditorModal').style.display === 'flex') {
+            const undoBtn = document.getElementById('expressionUndoBtn');
+            const redoBtn = document.getElementById('expressionRedoBtn');
+            if (undoBtn) undoBtn.disabled = !e.detail.canUndo;
+            if (redoBtn) redoBtn.disabled = !e.detail.canRedo;
+        }
+    });
+    
+    // 5. 为模态框添加键盘快捷键支持
+    modal?.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; // 避免在输入时触发
+
+        if (e.ctrlKey || e.metaKey) { // Ctrl (Win) 或 Cmd (Mac)
+            if (e.key === 'z') { 
+                e.preventDefault(); 
+                historyManager.undo(); 
+            }
+            else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { 
+                e.preventDefault(); 
+                historyManager.redo(); 
+            }
+        }
+    });
+  },
+
+    _closeEditor() {
+        ui.closeModal("expressionEditorModal");
+    },
+
+    save() {
+    projectManager.save(this.projectFileState, (savedState) => {
+        this.originalStateOnOpen = JSON.stringify(savedState);
+        this._closeEditor();
+    });
+  },
+
+  exportProject() {
+      projectManager.export(this.projectFileState);
+  },
+
+  async importProject() {
+      const importedProject = await projectManager.import();
+      if (importedProject) {
+          this.projectFileState = importedProject;
+          this.originalStateOnOpen = JSON.stringify(importedProject);
+          state.set('projectFile', JSON.parse(JSON.stringify(importedProject)));
+          historyManager.clear();
+          this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
+          this.renderTimeline();
+      }
+  },
+  
+  async reset() {
+      projectManager.reset(() => {
+          // 恢复默认就是清空所有表情/动作
+          const newState = JSON.parse(JSON.stringify(this.projectFileState));
+          newState.actions.forEach(action => {
+              if (action.type === 'talk') action.characterStates = {};
+              else if (action.type === 'layout') action.initialState = {};
+          });
+          return newState;
+      }, (newState) => {
+          this.projectFileState = newState;
+          this.originalStateOnOpen = JSON.stringify(newState);
+          historyManager.clear();
+          this.renderTimeline();
+      });
   },
 
   async open() {
