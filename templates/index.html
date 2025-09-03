@@ -280,6 +280,100 @@
                 </div>
             </div>
 
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;" />
+              <div>
+                  <p class="form-label" style="font-size: 1.1rem; margin-bottom: 5px">
+                      动作/表情编辑模式
+                  </p>
+                  <p style="color: #718096; margin-bottom: 15px">
+                      为在场角色设置在特定对话或布局时的动作和表情。
+                  </p>
+                  <button class="btn btn-primary" id="openExpressionEditorBtn">
+                      打开动作/表情编辑器
+                  </button>
+              </div>
+
+
+              <!-- 2. 在文件底部 </body> 标签之前，添加新的模态框 -->
+              <div class="modal" id="expressionEditorModal" tabindex="-1">
+                  <div class="modal-content" style="max-width: 1400px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+                      <div class="modal-header">
+                          <div class="modal-title">动作/表情编辑模式</div>
+                          <button class="modal-close" data-modal-id="expressionEditorModal">×</button>
+                      </div>
+                      <div class="modal-body" style="display: flex; flex: 1; overflow: hidden; gap: 20px;">
+                          <!-- 左栏：时间线 -->
+                          <div id="expressionEditorTimeline" style="flex: 2; overflow-y: auto; padding-right: 15px;">
+                              <!-- JS 将在此处渲染时间线卡片 -->
+                          </div>
+                          <!-- 右栏：资源库 -->
+                          <div id="expressionEditorLibrary" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-left: 1px solid #e2e8f0; padding-left: 15px;">
+                              <!-- 动作列表 -->
+                              <div class="config-column">
+                                  <h4 class="config-column-title">动作 (Motions)</h4>
+                                  <div class="form-group">
+                                      <label class="form-label">添加临时动作ID:</label>
+                                      <div class="input-group">
+                                          <input type="text" class="form-input input-sm" id="tempMotionInput" placeholder="临时的动作ID...">
+                                          <button class="btn btn-secondary btn-sm" id="addTempMotionBtn">添加</button>
+                                      </div>
+                                  </div>
+                                  <div class="item-list-container" id="motionLibraryList">
+                                      <!-- JS 渲染动作列表 -->
+                                  </div>
+                              </div>
+                              <!-- 表情列表 -->
+                              <div class="config-column">
+                                  <h4 class="config-column-title">表情 (Expressions)</h4>
+                                  <div class="form-group">
+                                      <label class="form-label">添加临时表情ID:</label>
+                                      <div class="input-group">
+                                          <input type="text" class="form-input input-sm" id="tempExpressionInput" placeholder="临时的表情ID...">
+                                          <button class="btn btn-secondary btn-sm" id="addTempExpressionBtn">添加</button>
+                                      </div>
+                                  </div>
+                                  <div class="item-list-container" id="expressionLibraryList">
+                                      <!-- JS 渲染表情列表 -->
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="modal-footer" style="padding: 15px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                          <div style="display: flex; gap: 10px;">
+                              <button class="btn btn-secondary" id="expressionUndoBtn" disabled>撤销</button>
+                              <button class="btn btn-secondary" id="expressionRedoBtn" disabled>重做</button>
+                          </div>
+                          <div style="display: flex; gap: 10px;">
+                              <a href="https://bestdori.com/tool/live2d" target="_blank" class="btn btn-secondary">Live2D浏览器</a>
+                          </div>
+                          <div style="display: flex; gap: 10px;">
+                              <button class="btn btn-secondary btn-modal-close" data-modal-id="expressionEditorModal">取消</button>
+                              <button class="btn btn-primary" id="saveExpressionsBtn">保存</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- 3. 在文件底部 </body> 标签之前，添加新的模板 -->
+              <template id="character-status-tag-template">
+                  <div class="character-status-tag" data-character-id="">
+                      <div class="character-info">
+                          <div class="dialogue-avatar micro-avatar"></div>
+                          <span class="character-name"></span>
+                      </div>
+                      <div class="drop-zones">
+                          <div class="drop-zone motion-drop-zone" data-type="motion">
+                              <span class="drop-zone-label">动作</span>
+                              <span class="drop-zone-value">--</span>
+                          </div>
+                          <div class="drop-zone expression-drop-zone" data-type="expression">
+                              <span class="drop-zone-label">表情</span>
+                              <span class="drop-zone-value">--</span>
+                          </div>
+                      </div>
+                  </div>
+              </template>
+
           <!-- 位置配置模态框 -->
           <div class="modal" id="positionModal">
             <div class="modal-content" style="max-width: 800px">
