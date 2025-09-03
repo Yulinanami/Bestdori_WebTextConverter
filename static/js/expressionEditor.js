@@ -94,9 +94,8 @@ export const expressionEditor = {
       }
   },
   
-  async reset() {
+  reset() {
       projectManager.reset(() => {
-          // 恢复默认就是清空所有表情/动作
           const newState = JSON.parse(JSON.stringify(this.projectFileState));
           newState.actions.forEach(action => {
               if (action.type === 'talk') action.characterStates = {};
@@ -108,6 +107,8 @@ export const expressionEditor = {
           this.originalStateOnOpen = JSON.stringify(newState);
           historyManager.clear();
           this.renderTimeline();
+          // --- 核心修正 3: 重绘后重新初始化拖拽 ---
+          this.initDragAndDrop();
       });
   },
 
@@ -144,44 +145,25 @@ export const expressionEditor = {
       const libraryList = document.getElementById(`${type}LibraryList`);
       if (libraryList) {
         new Sortable(libraryList, {
-          group: {
-            name: type, // 每个列表有自己独立的组名
-            pull: 'clone',
-            put: false
-          },
+          group: { name: type, pull: 'clone', put: false },
           sort: false,
-          onStart: (evt) => {
-             // 拖拽时给 item 添加 data 属性
-             evt.item.dataset.value = evt.item.textContent;
-          }
+          // onStart 不再需要
         });
       }
     });
 
-    // b. 初始化左侧时间线 (作为放置目标的容器)
-    // 我们将事件委托给整个时间线容器
-    const timeline = document.getElementById('expressionEditorTimeline');
-    if(timeline._sortableInitialized) return; // 防止重复初始化
-
-    new Sortable(timeline, {
-        group: {
-            name: 'timeline-sort', // 用于排序
-        },
-        // ... (这里的排序逻辑可以后续添加，暂时忽略)
-    });
-    
-    // c. 为所有放置区 (drop zones) 初始化 SortableJS
+    // b. 为所有放置区 (drop zones) 初始化 SortableJS
     document.querySelectorAll('.drop-zone').forEach(zone => {
       new Sortable(zone, {
-        group: {
-          name: zone.dataset.type, // 组名必须与源匹配 ('motion' 或 'expression')
-          put: true
-        },
+        group: { name: zone.dataset.type, put: true },
         animation: 150,
         onAdd: (evt) => {
-          const item = evt.item; // 被拖入的动作/表情元素
-          const value = item.dataset.value;
-          
+          // --- 核心修正 1: 重新查找原始值 ---
+          const sourceList = evt.from;
+          const originalItem = sourceList.children[evt.oldDraggableIndex];
+          const value = originalItem ? originalItem.textContent : null;
+          // --- 修正结束 ---
+
           const dropZone = evt.to;
           const statusTag = dropZone.closest('.character-status-tag');
           const timelineItem = dropZone.closest('.timeline-item');
@@ -189,17 +171,15 @@ export const expressionEditor = {
           if (value && statusTag && timelineItem) {
             const characterId = parseInt(statusTag.dataset.characterId);
             const actionId = timelineItem.dataset.id;
-            const type = dropZone.dataset.type; // 'motion' or 'expression'
+            const type = dropZone.dataset.type;
             
             this._updateCharacterState(actionId, characterId, type, value);
           }
           
-          // 移除 SortableJS 留下的临时 DOM
-          item.remove();
+          evt.item.remove();
         }
       });
     });
-    timeline._sortableInitialized = true;
   },
 
   _updateCharacterState(actionId, characterId, type, value) {
@@ -222,7 +202,28 @@ export const expressionEditor = {
     });
   },
 
-
+  _executeCommand(changeFn) {
+      const beforeState = JSON.stringify(this.projectFileState);
+      const tempState = JSON.parse(beforeState);
+      changeFn(tempState);
+      const afterState = JSON.stringify(tempState);
+      if (beforeState === afterState) return;
+      const command = {
+          execute: () => {
+              this.projectFileState = JSON.parse(afterState);
+              this.renderTimeline();
+              // --- 核心修正 3: 重绘后重新初始化拖拽 ---
+              this.initDragAndDrop();
+          },
+          undo: () => {
+              this.projectFileState = JSON.parse(beforeState);
+              this.renderTimeline();
+              // --- 核心修正 3: 重绘后重新初始化拖拽 ---
+              this.initDragAndDrop();
+          }
+      };
+      historyManager.do(command);
+  },
 
   /**
    * 遍历actions，找出所有执行过appear动作的角色。
