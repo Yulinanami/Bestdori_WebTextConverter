@@ -4,19 +4,17 @@ import { configManager } from "./configManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { historyManager } from "./historyManager.js";
 import { projectManager } from "./projectManager.js";
-// --- 核心修正：在这里添加对 costumeManager 和 positionManager 的导入 ---
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 
 export const expressionEditor = {
   projectFileState: null,
-  stagedCharacters: [], // 存储所有登场过的角色信息
-
+  originalStateOnOpen: null,
+  stagedCharacters: [],
+  
   init() {
-    // 1. 绑定打开编辑器的按钮
+    // 1. 绑定功能按钮
     document.getElementById("openExpressionEditorBtn")?.addEventListener("click", () => this.open());
-    
-    // 2. 绑定模态框内的所有功能按钮
     document.getElementById("saveExpressionsBtn")?.addEventListener("click", () => this.save());
     document.getElementById("importExpressionsBtn")?.addEventListener("click", () => this.importProject());
     document.getElementById("exportExpressionsBtn")?.addEventListener("click", () => this.exportProject());
@@ -26,7 +24,7 @@ export const expressionEditor = {
     document.getElementById("addTempMotionBtn")?.addEventListener("click", () => this._addTempItem('motion'));
     document.getElementById("addTempExpressionBtn")?.addEventListener("click", () => this._addTempItem('expression'));
 
-    // 3. 统一处理关闭事件（取消和X按钮）
+    // 2. 统一处理关闭事件
     const modal = document.getElementById('expressionEditorModal');
     const handleCloseAttempt = (e) => {
         if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
@@ -38,10 +36,9 @@ export const expressionEditor = {
     };
     modal?.querySelector('.btn-modal-close')?.addEventListener('click', handleCloseAttempt);
     modal?.querySelector('.modal-close')?.addEventListener('click', handleCloseAttempt);
-    
-    // 4. 监听历史变化以更新撤销/重做按钮的状态
+
+    // 3. 监听历史变化
     document.addEventListener('historychange', (e) => {
-        // 确保只在当前模态框可见时才更新按钮
         if (document.getElementById('expressionEditorModal').style.display === 'flex') {
             const undoBtn = document.getElementById('expressionUndoBtn');
             const redoBtn = document.getElementById('expressionRedoBtn');
@@ -49,29 +46,75 @@ export const expressionEditor = {
             if (redoBtn) redoBtn.disabled = !e.detail.canRedo;
         }
     });
-    
-    // 5. 为模态框添加键盘快捷键支持
-    modal?.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; // 避免在输入时触发
 
-        if (e.ctrlKey || e.metaKey) { // Ctrl (Win) 或 Cmd (Mac)
-            if (e.key === 'z') { 
-                e.preventDefault(); 
-                historyManager.undo(); 
-            }
-            else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { 
-                e.preventDefault(); 
-                historyManager.redo(); 
-            }
+    // 4. 添加键盘快捷键
+    modal?.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z') { e.preventDefault(); historyManager.undo(); }
+            else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); historyManager.redo(); }
         }
     });
   },
 
-    _closeEditor() {
-        ui.closeModal("expressionEditorModal");
-    },
+  _executePropertyChangeCommand(actionId, characterId, type, newValue) {
+    let oldValue = '--';
+    const action = this.projectFileState.actions.find(a => a.id === actionId);
+    if (!action) return;
 
-    save() {
+    if (action.type === 'talk' && action.characterStates && action.characterStates[characterId]) {
+      oldValue = action.characterStates[characterId][type] || '--';
+    } else if (action.type === 'layout' && action.characterId === characterId) {
+      oldValue = action.initialState ? action.initialState[type] || '--' : '--';
+    }
+
+    if (oldValue === newValue) return;
+
+    const command = {
+      execute: () => {
+        this._applyCharacterStateChange(actionId, characterId, type, newValue);
+        this._updateSingleTagUI(actionId, characterId, type, newValue);
+      },
+      undo: () => {
+        this._applyCharacterStateChange(actionId, characterId, type, oldValue);
+        this._updateSingleTagUI(actionId, characterId, type, oldValue);
+      }
+    };
+    historyManager.do(command);
+  },
+
+  _applyCharacterStateChange(actionId, characterId, type, value) {
+    const action = this.projectFileState.actions.find(a => a.id === actionId);
+    if (!action) return;
+
+    const valueToStore = value === '--' ? '' : value;
+
+    if (action.type === 'talk') {
+      if (!action.characterStates) action.characterStates = {};
+      if (!action.characterStates[characterId]) action.characterStates[characterId] = {};
+      action.characterStates[characterId][type] = valueToStore;
+    } else if (action.type === 'layout' && action.characterId === characterId) {
+      if (!action.initialState) action.initialState = {};
+      action.initialState[type] = valueToStore;
+    }
+  },
+
+  _updateSingleTagUI(actionId, characterId, type, value) {
+      const timelineItem = document.querySelector(`.timeline-item[data-id="${actionId}"]`);
+      if (!timelineItem) return;
+      const statusTag = timelineItem.querySelector(`.character-status-tag[data-character-id="${characterId}"]`);
+      if (!statusTag) return;
+      const dropZone = statusTag.querySelector(`.${type}-drop-zone`);
+      if(dropZone) {
+          dropZone.querySelector('.drop-zone-value').textContent = value;
+          const clearBtn = dropZone.querySelector('.clear-state-btn');
+          if (clearBtn) {
+              clearBtn.style.display = (value && value !== '--') ? 'block' : 'none';
+          }
+      }
+  },
+
+  save() {
     projectManager.save(this.projectFileState, (savedState) => {
         this.originalStateOnOpen = JSON.stringify(savedState);
         this._closeEditor();
@@ -113,7 +156,6 @@ export const expressionEditor = {
   },
 
   async open() {
-    // 复用 live2dEditor 的独立打开逻辑
     try {
       let initialState;
       const rawText = document.getElementById("inputText").value;
@@ -124,15 +166,36 @@ export const expressionEditor = {
         initialState = this._createProjectFileFromSegments(response.data.segments);
       }
       this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.originalStateOnOpen = JSON.stringify(this.projectFileState);
 
-      // 1. 计算所有登场过的角色 (一次性)
       this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
-
+      historyManager.clear();
       ui.openModal("expressionEditorModal");
       
       this.renderTimeline();
       this.renderLibraries();
       this.initDragAndDrop();
+      
+      document.getElementById('expressionEditorModal')?.focus();
+      
+      const timeline = document.getElementById('expressionEditorTimeline');
+      // 使用 .onclick 和 .onchange 覆盖旧监听器，防止重复绑定
+      timeline.onclick = (e) => {
+          const card = e.target.closest('.timeline-item');
+          if (!card) return;
+
+          // 处理清除按钮的点击
+          if (e.target.matches('.clear-state-btn')) {
+              const dropZone = e.target.closest('.drop-zone');
+              const statusTag = e.target.closest('.character-status-tag');
+              if (dropZone && statusTag) {
+                  const actionId = card.dataset.id;
+                  const characterId = parseInt(statusTag.dataset.characterId);
+                  const type = dropZone.dataset.type;
+                  this._executePropertyChangeCommand(actionId, characterId, type, '--');
+              }
+          }
+      };
       
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
@@ -140,30 +203,25 @@ export const expressionEditor = {
   },
 
   initDragAndDrop() {
-    // a. 初始化右侧资源库 (源)
     ['motion', 'expression'].forEach(type => {
       const libraryList = document.getElementById(`${type}LibraryList`);
       if (libraryList) {
         new Sortable(libraryList, {
           group: { name: type, pull: 'clone', put: false },
           sort: false,
-          // onStart 不再需要
         });
       }
     });
 
-    // b. 为所有放置区 (drop zones) 初始化 SortableJS
     document.querySelectorAll('.drop-zone').forEach(zone => {
       new Sortable(zone, {
         group: { name: zone.dataset.type, put: true },
         animation: 150,
         onAdd: (evt) => {
-          // --- 核心修正 1: 重新查找原始值 ---
           const sourceList = evt.from;
           const originalItem = sourceList.children[evt.oldDraggableIndex];
           const value = originalItem ? originalItem.textContent : null;
-          // --- 修正结束 ---
-
+          
           const dropZone = evt.to;
           const statusTag = dropZone.closest('.character-status-tag');
           const timelineItem = dropZone.closest('.timeline-item');
@@ -172,10 +230,8 @@ export const expressionEditor = {
             const characterId = parseInt(statusTag.dataset.characterId);
             const actionId = timelineItem.dataset.id;
             const type = dropZone.dataset.type;
-            
-            this._updateCharacterState(actionId, characterId, type, value);
+            this._executePropertyChangeCommand(actionId, characterId, type, value);
           }
-          
           evt.item.remove();
         }
       });
@@ -264,16 +320,12 @@ export const expressionEditor = {
 
     this.projectFileState.actions.forEach(action => {
       let card;
-      
-      // --- START: 无省略的 if/else 语句 ---
       if (action.type === 'talk') {
         card = talkTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
         item.dataset.id = action.id;
-        
         const nameDiv = card.querySelector('.speaker-name');
         const avatarDiv = card.querySelector('.dialogue-avatar');
-        
         if (action.speakers && action.speakers.length > 0) {
           const firstSpeaker = action.speakers[0];
           nameDiv.textContent = action.speakers.map(s => s.name).join(' & ');
@@ -283,9 +335,7 @@ export const expressionEditor = {
           avatarDiv.classList.add('fallback');
           avatarDiv.textContent = 'N';
         }
-        
         card.querySelector('.dialogue-preview-text').textContent = action.text;
-
       } else if (action.type === 'layout') {
         card = layoutTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
@@ -344,18 +394,15 @@ export const expressionEditor = {
         }
 
       } else {
-        return; // 跳过非 talk/layout 动作
+        return;
       }
-      // --- END: 无省略的 if/else 语句 ---
       
-      // 为每张卡片添加“在场角色状态栏”
       const statusBar = document.createElement('div');
       statusBar.className = 'character-status-bar';
       
       this.stagedCharacters.forEach(char => {
         const tag = statusTagTemplate.content.cloneNode(true);
         tag.querySelector('.character-status-tag').dataset.characterId = char.id;
-        
         const avatarDiv = tag.querySelector('.dialogue-avatar');
         configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
         tag.querySelector('.character-name').textContent = char.name;
@@ -369,8 +416,16 @@ export const expressionEditor = {
             currentMotion = action.initialState?.motion || '--';
             currentExpression = action.initialState?.expression || '--';
         }
-        tag.querySelector('.motion-drop-zone .drop-zone-value').textContent = currentMotion;
-        tag.querySelector('.expression-drop-zone .drop-zone-value').textContent = currentExpression;
+
+        const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
+        const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
+        motionValue.textContent = currentMotion;
+        if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
+
+        const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
+        const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
+        expValue.textContent = currentExpression;
+        if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
 
         statusBar.appendChild(tag);
       });
