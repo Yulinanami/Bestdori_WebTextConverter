@@ -171,30 +171,22 @@ export const expressionEditor = {
       }
       this.projectFileState = JSON.parse(JSON.stringify(initialState));
       this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-
       this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
       historyManager.clear();
       ui.openModal("expressionEditorModal");
-      
       this.renderTimeline();
       this.renderLibraries();
-      
       document.getElementById('expressionEditorModal')?.focus();
       
       const timeline = document.getElementById('expressionEditorTimeline');
       
-      // 修改: 合并并扩展事件处理器
       timeline.onclick = (e) => {
           const card = e.target.closest('.timeline-item');
           if (!card) return;
-
-          // 处理 "设置动作/表情" 按钮
           if (e.target.matches('.setup-expressions-btn')) {
               this.showExpressionSetupUI(card);
               return;
           }
-
-          // 处理 "清除" 按钮
           if (e.target.matches('.clear-state-btn')) {
               const dropZone = e.target.closest('.drop-zone');
               const statusTag = e.target.closest('.character-status-tag');
@@ -206,26 +198,43 @@ export const expressionEditor = {
               }
               return;
           }
-
-          // 新增: 处理布局卡片的 "删除" 按钮
           if (e.target.matches('.layout-remove-btn')) {
             this._deleteLayoutAction(card.dataset.id);
             return;
           }
       };
 
-      // 新增: 添加 onchange 事件委托来处理布局卡片属性修改
       timeline.onchange = (e) => {
         const card = e.target.closest('.layout-item');
         if (card && e.target.matches('select, input')) {
             this._updateLayoutActionProperty(card.dataset.id, e.target);
         }
       };
+
+      // 新增: 为时间线启用拖拽排序功能
+      new Sortable(timeline, {
+        animation: 150,
+        sort: true, // 启用列表内的排序
+        onEnd: (evt) => {
+            // 检查拖拽是否在同一个列表内，并且位置发生了改变
+            if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
+                const { oldIndex, newIndex } = evt;
+
+                // 使用我们的命令模式来更新数据，以支持撤销/重做
+                this._executeCommand((currentState) => {
+                    // 这是标准的数组元素移动操作
+                    const [movedItem] = currentState.actions.splice(oldIndex, 1);
+                    currentState.actions.splice(newIndex, 0, movedItem);
+                });
+            }
+        }
+      });
       
     } catch (error) {
       ui.showStatus(`加载编辑器失败: ${error.response?.data?.error || error.message}`, "error");
     }
   },
+
 
   /**
    * 按需显示指定卡片的动作/表情设置UI。
