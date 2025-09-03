@@ -1,3 +1,5 @@
+// 文件: static/js/expressionEditor.js
+
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
@@ -150,8 +152,6 @@ export const expressionEditor = {
           this.originalStateOnOpen = JSON.stringify(newState);
           historyManager.clear();
           this.renderTimeline();
-          // --- 核心修正 3: 重绘后重新初始化拖拽 ---
-          this.initDragAndDrop();
       });
   },
 
@@ -174,15 +174,21 @@ export const expressionEditor = {
       
       this.renderTimeline();
       this.renderLibraries();
-      this.initDragAndDrop();
+      // 拖拽初始化移动到 renderTimeline 内部和按钮点击事件后
       
       document.getElementById('expressionEditorModal')?.focus();
       
       const timeline = document.getElementById('expressionEditorTimeline');
-      // 使用 .onclick 和 .onchange 覆盖旧监听器，防止重复绑定
+      // 使用事件委托处理所有点击事件
       timeline.onclick = (e) => {
           const card = e.target.closest('.timeline-item');
           if (!card) return;
+
+          // 处理 "设置动作/表情" 按钮的点击
+          if (e.target.matches('.setup-expressions-btn')) {
+              this.showExpressionSetupUI(card);
+              return; // 结束处理
+          }
 
           // 处理清除按钮的点击
           if (e.target.matches('.clear-state-btn')) {
@@ -202,18 +208,50 @@ export const expressionEditor = {
     }
   },
 
-  initDragAndDrop() {
-    ['motion', 'expression'].forEach(type => {
-      const libraryList = document.getElementById(`${type}LibraryList`);
-      if (libraryList) {
-        new Sortable(libraryList, {
-          group: { name: type, pull: 'clone', put: false },
-          sort: false,
-        });
-      }
-    });
+  /**
+   * 按需显示指定卡片的动作/表情设置UI。
+   * @param {HTMLElement} cardElement - 被点击卡片的DOM元素。
+   */
+  showExpressionSetupUI(cardElement) {
+    const actionId = cardElement.dataset.id;
+    const action = this.projectFileState.actions.find(a => a.id === actionId);
+    if (!action) return;
 
-    document.querySelectorAll('.drop-zone').forEach(zone => {
+    const footer = cardElement.querySelector('.timeline-item-footer');
+    if (!footer) return;
+
+    // 渲染状态栏UI
+    const statusBar = this._renderStatusBarForAction(action);
+    
+    // 清空footer（移除按钮）并添加状态栏
+    footer.innerHTML = '';
+    footer.appendChild(statusBar);
+
+    // 关键：为新生成的放置区初始化拖拽功能
+    this._initSortableForZones(statusBar);
+  },
+
+  /**
+   * 检查一个action是否已经包含了动作/表情数据。
+   * @param {object} action - 项目文件中的action对象。
+   * @returns {boolean} - 如果有数据则返回true。
+   */
+  _actionHasExpressionData(action) {
+    if (action.type === 'talk') {
+        return action.characterStates && Object.keys(action.characterStates).length > 0;
+    }
+    if (action.type === 'layout') {
+        return action.initialState && Object.keys(action.initialState).length > 0;
+    }
+    return false;
+  },
+
+  /**
+   * 为指定的DOM元素内的所有放置区初始化SortableJS。
+   * @param {HTMLElement} parentElement - 包含.drop-zone的父元素。
+   */
+  _initSortableForZones(parentElement) {
+    parentElement.querySelectorAll('.drop-zone').forEach(zone => {
       new Sortable(zone, {
         group: { name: zone.dataset.type, put: true },
         animation: 150,
@@ -238,56 +276,19 @@ export const expressionEditor = {
     });
   },
 
-  _updateCharacterState(actionId, characterId, type, value) {
-    this._executeCommand((currentState) => {
-      const action = currentState.actions.find(a => a.id === actionId);
-      if (!action) return;
-
-      if (action.type === 'talk') {
-        // 确保 characterStates 对象存在
-        if (!action.characterStates) action.characterStates = {};
-        if (!action.characterStates[characterId]) action.characterStates[characterId] = {};
-        
-        action.characterStates[characterId][type] = value;
-
-      } else if (action.type === 'layout' && action.characterId === characterId) {
-        // layout 卡片只能修改自己的那个角色
-        if (!action.initialState) action.initialState = {};
-        action.initialState[type] = value;
+  initDragAndDropForLibraries() {
+    ['motion', 'expression'].forEach(type => {
+      const libraryList = document.getElementById(`${type}LibraryList`);
+      if (libraryList) {
+        new Sortable(libraryList, {
+          group: { name: type, pull: 'clone', put: false },
+          sort: false,
+        });
       }
     });
   },
 
-  _executeCommand(changeFn) {
-      const beforeState = JSON.stringify(this.projectFileState);
-      const tempState = JSON.parse(beforeState);
-      changeFn(tempState);
-      const afterState = JSON.stringify(tempState);
-      if (beforeState === afterState) return;
-      const command = {
-          execute: () => {
-              this.projectFileState = JSON.parse(afterState);
-              this.renderTimeline();
-              // --- 核心修正 3: 重绘后重新初始化拖拽 ---
-              this.initDragAndDrop();
-          },
-          undo: () => {
-              this.projectFileState = JSON.parse(beforeState);
-              this.renderTimeline();
-              // --- 核心修正 3: 重绘后重新初始化拖拽 ---
-              this.initDragAndDrop();
-          }
-      };
-      historyManager.do(command);
-  },
-
-  /**
-   * 遍历actions，找出所有执行过appear动作的角色。
-   * @param {object} projectFile - 项目文件对象。
-   * @returns {Array<{id: number, name: string}>} - 登场过的角色信息数组。
-   */
   _calculateStagedCharacters(projectFile) {
-    // --- 核心修正：跟踪角色名，而不是角色ID ---
     const appearedCharacterNames = new Set();
     const characters = [];
     
@@ -307,20 +308,22 @@ export const expressionEditor = {
   },
 
   /**
-   * 渲染左侧的时间线。
+   * 渲染左侧的时间线（重构后）。
    */
   renderTimeline() {
     const timeline = document.getElementById("expressionEditorTimeline");
     const talkTemplate = document.getElementById("timeline-talk-card-template");
     const layoutTemplate = document.getElementById("timeline-layout-card-template");
-    const statusTagTemplate = document.getElementById("character-status-tag-template");
+    
     timeline.innerHTML = "";
     
     const fragment = document.createDocumentFragment();
 
     this.projectFileState.actions.forEach(action => {
       let card;
+      // Step 1: 渲染卡片基础内容 (与之前相同)
       if (action.type === 'talk') {
+        // ... (talk卡片渲染逻辑保持不变)
         card = talkTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
         item.dataset.id = action.id;
@@ -336,32 +339,27 @@ export const expressionEditor = {
           avatarDiv.textContent = 'N';
         }
         card.querySelector('.dialogue-preview-text').textContent = action.text;
+
       } else if (action.type === 'layout') {
+        // ... (layout卡片渲染逻辑保持不变)
         card = layoutTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
         item.dataset.id = action.id;
         item.dataset.layoutType = action.layoutType;
-
         const characterId = action.characterId;
         const characterName = action.characterName || configManager.getCharacterNameById(characterId);
-        
         card.querySelector('.speaker-name').textContent = characterName || `未知角色 (ID: ${characterId})`;
         const avatarDiv = card.querySelector('.dialogue-avatar');
         configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, characterId, characterName);
-        
         const typeSelect = card.querySelector('.layout-type-select');
         typeSelect.value = action.layoutType;
-        
         const positionSelect = card.querySelector('.layout-position-select');
         const offsetInput = card.querySelector('.layout-offset-input');
         const toPositionSelect = card.querySelector('.layout-position-select-to');
-        
         const currentPosition = action.position?.from?.side || 'center';
         const currentOffset = action.position?.from?.offsetX || 0;
-
         const costumeSelect = card.querySelector('.layout-costume-select');
         costumeSelect.innerHTML = '';
-        
         const availableCostumes = costumeManager.availableCostumes[characterName] || [];
         availableCostumes.forEach(costumeId => {
             const option = new Option(costumeId, costumeId);
@@ -372,7 +370,6 @@ export const expressionEditor = {
             costumeSelect.add(option, 0);
         }
         costumeSelect.value = action.costume;
-
         positionSelect.innerHTML = '';
         toPositionSelect.innerHTML = '';
         Object.entries(positionManager.positionNames).forEach(([value, name]) => {
@@ -383,7 +380,6 @@ export const expressionEditor = {
         });
         positionSelect.value = currentPosition;
         offsetInput.value = currentOffset;
-
         const toPositionContainer = card.querySelector('.to-position-container');
         if (action.layoutType === 'move') {
             toPositionContainer.style.display = 'grid';
@@ -397,51 +393,74 @@ export const expressionEditor = {
         return;
       }
       
-      const statusBar = document.createElement('div');
-      statusBar.className = 'character-status-bar';
-      
-      this.stagedCharacters.forEach(char => {
-        const tag = statusTagTemplate.content.cloneNode(true);
-        tag.querySelector('.character-status-tag').dataset.characterId = char.id;
-        const avatarDiv = tag.querySelector('.dialogue-avatar');
-        configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
-        tag.querySelector('.character-name').textContent = char.name;
+      // Step 2: 动态决定是显示按钮还是状态栏
+      const footer = card.querySelector('.timeline-item-footer');
+      if (this._actionHasExpressionData(action)) {
+          // 如果已有数据，直接渲染状态栏
+          const statusBar = this._renderStatusBarForAction(action);
+          footer.appendChild(statusBar);
+          // 为这些已存在状态栏的放置区初始化拖拽
+          this._initSortableForZones(statusBar);
+      } else {
+          // 否则，渲染按钮
+          const setupButton = document.createElement('button');
+          setupButton.className = 'btn btn-secondary btn-sm setup-expressions-btn';
+          setupButton.textContent = '设置动作/表情';
+          footer.appendChild(setupButton);
+      }
 
-        let currentMotion = '--';
-        let currentExpression = '--';
-        if (action.type === 'talk' && action.characterStates && action.characterStates[char.id]) {
-            currentMotion = action.characterStates[char.id].motion || '--';
-            currentExpression = action.characterStates[char.id].expression || '--';
-        } else if (action.type === 'layout' && action.characterId === char.id) {
-            currentMotion = action.initialState?.motion || '--';
-            currentExpression = action.initialState?.expression || '--';
-        }
-
-        const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
-        const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
-        motionValue.textContent = currentMotion;
-        if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
-
-        const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
-        const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
-        expValue.textContent = currentExpression;
-        if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
-
-        statusBar.appendChild(tag);
-      });
-      
-      card.querySelector('.timeline-item').appendChild(statusBar);
       fragment.appendChild(card);
     });
     timeline.appendChild(fragment);
   },
 
   /**
-   * 渲染右侧的动作/表情资源库。
+   * 新的辅助函数：只负责渲染状态栏的DOM，并返回它。
+   * @param {object} action - 包含角色状态数据的action对象。
+   * @returns {HTMLElement} - 渲染好的 character-status-bar 元素。
    */
+  _renderStatusBarForAction(action) {
+    const statusTagTemplate = document.getElementById("character-status-tag-template");
+    const statusBar = document.createElement('div');
+    statusBar.className = 'character-status-bar';
+
+    this.stagedCharacters.forEach(char => {
+      const tag = statusTagTemplate.content.cloneNode(true);
+      tag.querySelector('.character-status-tag').dataset.characterId = char.id;
+      const avatarDiv = tag.querySelector('.dialogue-avatar');
+      configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
+      tag.querySelector('.character-name').textContent = char.name;
+
+      let currentMotion = '--';
+      let currentExpression = '--';
+      if (action.type === 'talk' && action.characterStates && action.characterStates[char.id]) {
+          currentMotion = action.characterStates[char.id].motion || '--';
+          currentExpression = action.characterStates[char.id].expression || '--';
+      } else if (action.type === 'layout' && action.characterId === char.id && action.initialState) {
+          currentMotion = action.initialState.motion || '--';
+          currentExpression = action.initialState.expression || '--';
+      }
+
+      const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
+      const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
+      motionValue.textContent = currentMotion;
+      if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
+
+      const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
+      const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
+      expValue.textContent = currentExpression;
+      if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
+
+      statusBar.appendChild(tag);
+    });
+    return statusBar;
+  },
+
   renderLibraries() {
     this._renderLibrary('motion', motionManager.getAvailableItems());
     this._renderLibrary('expression', expressionManager.getAvailableItems());
+    // 为资源库初始化拖拽（只需一次）
+    this.initDragAndDropForLibraries();
   },
 
   _renderLibrary(type, items) {
@@ -450,17 +469,14 @@ export const expressionEditor = {
     const fragment = document.createDocumentFragment();
     items.forEach(item => {
         const itemEl = document.createElement('div');
-        // --- 核心修正：添加 draggable="true" 和样式 ---
         itemEl.className = 'config-list-item draggable-item';
         itemEl.draggable = true;
-        // --- 结束修正 ---
         itemEl.innerHTML = `<span class="item-name">${item}</span>`;
         fragment.appendChild(itemEl);
     });
     container.appendChild(fragment);
   },
   
-  // 这是一个辅助函数，复制自 live2dEditor.js
   _createProjectFileFromSegments(segments) {
     const characterMap = new Map(Object.entries(state.get("currentConfig")).map(([name, ids]) => [name, { characterId: ids[0], name: name }]));
     const newProjectFile = {

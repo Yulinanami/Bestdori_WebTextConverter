@@ -981,3 +981,40 @@
 #expressionEditorTimeline .talk-item {
     padding-bottom: 10px;
 }
+
+.timeline-item-footer {
+    /* 强制占满一整行 */
+    flex-basis: 100%; 
+    width: 100%;
+    
+    /* 与上方内容增加一些间距 */
+    margin-top: 15px; 
+    padding-top: 10px;
+    
+    /* 可以添加一条可选的分割线 */
+    border-top: 1px dashed var(--border-secondary); 
+    
+    /* 确保内部内容正确对齐 */
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* 确保状态栏在新容器中正确显示 */
+.timeline-item-footer .character-status-bar {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+#live2dEditorModal .timeline-item-footer {
+  display: none;
+}
+
+#live2dEditorModal .timeline-item {
+    flex-wrap: nowrap; /* 禁止换行 */
+}
+
+#live2dEditorModal .talk-item .timeline-content {
+    /* 确保文本内容区可以被压缩，防止溢出 */
+    min-width: 0;
+}
