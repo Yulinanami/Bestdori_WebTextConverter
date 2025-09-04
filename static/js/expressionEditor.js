@@ -233,6 +233,9 @@ export const expressionEditor = {
       };
 
       new Sortable(timeline, {
+        // --- 新增的核心配置 ---
+        group: 'timeline-cards', // 为时间线卡片设置一个独立的组
+        // --- 配置结束 ---
         animation: 150,
         sort: true,
         onEnd: (evt) => {
@@ -293,7 +296,14 @@ export const expressionEditor = {
   _initSortableForZones(parentElement) {
     parentElement.querySelectorAll('.drop-zone').forEach(zone => {
       new Sortable(zone, {
-        group: { name: zone.dataset.type, put: true },
+        group: { 
+            name: zone.dataset.type, 
+            // --- 核心修改：用函数替换布尔值 ---
+            put: function (to, from, dragEl) {
+              // 只允许带有 'draggable-item' 类的元素放入
+              return dragEl.classList.contains('draggable-item');
+            }
+        },
         animation: 150,
         onAdd: (evt) => {
           const value = evt.item ? evt.item.textContent : null;
@@ -301,7 +311,6 @@ export const expressionEditor = {
           const statusTag = dropZone.closest('.character-status-tag');
           const timelineItem = dropZone.closest('.timeline-item');
           if (value && statusTag && timelineItem) {
-            // 核心修改 7: 从 DOM 中获取 characterName
             const characterName = statusTag.dataset.characterName;
             const actionId = timelineItem.dataset.id;
             const type = dropZone.dataset.type;
@@ -545,6 +554,7 @@ export const expressionEditor = {
     const fragment = document.createDocumentFragment();
     items.forEach(item => {
         const itemEl = document.createElement('div');
+        // --- 下面这行是原始代码 ---
         itemEl.className = 'config-list-item draggable-item';
         itemEl.draggable = true;
         itemEl.innerHTML = `<span class="item-name">${item}</span>`;
