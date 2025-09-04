@@ -440,50 +440,80 @@ export const expressionEditor = {
   },
 
   _renderStatusBarForAction(action) {
-  const statusTagTemplate = document.getElementById("character-status-tag-template");
-  const statusBar = document.createElement('div');
-  statusBar.className = 'character-status-bar';
+    const statusTagTemplate = document.getElementById("character-status-tag-template");
+    const statusBar = document.createElement('div');
+    statusBar.className = 'character-status-bar';
 
-  // --- 核心修改: 移除之前的 if/else 逻辑，总是遍历所有在场角色 ---
-  this.stagedCharacters.forEach(char => {
-    const tag = statusTagTemplate.content.cloneNode(true);
-    const statusTagElement = tag.querySelector('.character-status-tag');
-    statusTagElement.dataset.characterId = char.id;
-    statusTagElement.dataset.characterName = char.name;
+    // --- 核心修改：根据 action 类型决定渲染范围 ---
 
-    const avatarDiv = tag.querySelector('.dialogue-avatar');
-    configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
-    tag.querySelector('.character-name').textContent = char.name;
+    if (action.type === 'talk') {
+      // 对于【对话卡片】，保持原有逻辑：为所有在场角色渲染状态标签
+      this.stagedCharacters.forEach(char => {
+        const tag = statusTagTemplate.content.cloneNode(true);
+        const statusTagElement = tag.querySelector('.character-status-tag');
+        statusTagElement.dataset.characterId = char.id;
+        statusTagElement.dataset.characterName = char.name;
 
-    let currentMotion = '--';
-    let currentExpression = '--';
-    
-    // 状态读取逻辑已经足够健壮，可以正确处理 talk 和 layout 两种情况
-    if (action.type === 'talk' && action.characterStates && action.characterStates[char.name]) {
-        currentMotion = action.characterStates[char.name].motion || '--';
-        currentExpression = action.characterStates[char.name].expression || '--';
-    } 
-    // 对于布局卡片，只有当角色名字匹配时，才会读取 initialState 的数据
-    else if (action.type === 'layout' && action.characterName === char.name && action.initialState) {
-        currentMotion = action.initialState.motion || '--';
-        currentExpression = action.initialState.expression || '--';
+        const avatarDiv = tag.querySelector('.dialogue-avatar');
+        configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
+        tag.querySelector('.character-name').textContent = char.name;
+
+        // 从 talk action 的 characterStates 中读取状态
+        const currentState = action.characterStates?.[char.name] || {};
+        const currentMotion = currentState.motion || '--';
+        const currentExpression = currentState.expression || '--';
+        
+        const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
+        const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
+        motionValue.textContent = currentMotion;
+        if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
+
+        const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
+        const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
+        expValue.textContent = currentExpression;
+        if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
+
+        statusBar.appendChild(tag);
+      });
+
+    } else if (action.type === 'layout') {
+      // 对于【布局卡片】，新逻辑：只为当前布局的角色渲染状态标签
+      const char = {
+          id: action.characterId,
+          name: action.characterName || configManager.getCharacterNameById(action.characterId)
+      };
+
+      if (!char.name) return statusBar; // 安全检查，如果找不到角色名则不渲染
+
+      const tag = statusTagTemplate.content.cloneNode(true);
+      const statusTagElement = tag.querySelector('.character-status-tag');
+      statusTagElement.dataset.characterId = char.id;
+      statusTagElement.dataset.characterName = char.name;
+
+      const avatarDiv = tag.querySelector('.dialogue-avatar');
+      configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
+      tag.querySelector('.character-name').textContent = char.name;
+
+      // 从 layout action 的 initialState 中读取状态
+      const currentState = action.initialState || {};
+      const currentMotion = currentState.motion || '--';
+      const currentExpression = currentState.expression || '--';
+
+      const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
+      const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
+      motionValue.textContent = currentMotion;
+      if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
+
+      const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
+      const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
+      expValue.textContent = currentExpression;
+      if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
+      
+      statusBar.appendChild(tag);
     }
 
-    const motionValue = tag.querySelector('.motion-drop-zone .drop-zone-value');
-    const motionClearBtn = tag.querySelector('.motion-drop-zone .clear-state-btn');
-    motionValue.textContent = currentMotion;
-    if (motionClearBtn) motionClearBtn.style.display = (currentMotion !== '--') ? 'block' : 'none';
-
-    const expValue = tag.querySelector('.expression-drop-zone .drop-zone-value');
-    const expClearBtn = tag.querySelector('.expression-drop-zone .clear-state-btn');
-    expValue.textContent = currentExpression;
-    if (expClearBtn) expClearBtn.style.display = (currentExpression !== '--') ? 'block' : 'none';
-    
-    statusBar.appendChild(tag);
-  });
-
-  return statusBar;
-},
+    return statusBar;
+  },
 
   renderLibraries() {
     // 合并永久列表和临时列表
