@@ -236,22 +236,30 @@
                 margin: 25px 0;
               "
             />
+
             <div>
               <p
                 class="form-label"
                 style="font-size: 1.1rem; margin-bottom: 5px"
               >
-                动作与表情配置
+                动作与表情
               </p>
               <p style="color: #718096; margin-bottom: 15px">
-                管理全局可用的 Live2D 动作和表情列表。
+                管理全局可用的动作表情列表，并为在场角色设置对话时的具体状态。
               </p>
-              <button class="btn btn-secondary" id="openMotionExpressionBtn">
-                动作/表情配置
-              </button>
+              <div style="display: flex; gap: 20px; align-items: center">
+                <button class="btn btn-primary" id="openExpressionEditorBtn">
+                  打开动作/表情编辑器
+                </button>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="openMotionExpressionBtn"
+                >
+                  动作/表情配置
+                </button>
+              </div>
             </div>
 
-            <!-- 2. 在文件底部 </body> 标签之前，添加新的模态框 -->
             <div class="modal" id="motionExpressionModal">
               <div class="modal-content" style="max-width: 900px; width: 95%">
                 <div class="modal-header">
@@ -355,28 +363,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
-            <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
-                动作/表情编辑模式
-              </p>
-              <p style="color: #718096; margin-bottom: 15px">
-                为在场角色设置在特定对话或布局时的动作和表情。
-              </p>
-              <button class="btn btn-primary" id="openExpressionEditorBtn">
-                打开动作/表情编辑器
-              </button>
             </div>
 
             <!-- 2. 在文件底部 </body> 标签之前，添加新的模态框 -->
