@@ -630,43 +630,6 @@
               </div>
             </div>
 
-            <!-- 4. 操作按钮 -->
-            <div class="section">
-              <div class="section-title">操作</div>
-              <div class="btn-group">
-                <button class="btn btn-primary" id="convertBtn">
-                  <span id="convertText">开始转换</span>
-                </button>
-                <button class="btn btn-secondary" id="previewModeBtn">
-                  对话预览
-                </button>
-                <button class="btn btn-secondary" id="configBtn">
-                  配置管理
-                </button>
-                <button class="btn btn-secondary" id="batchProcessBtn">
-                  批量处理
-                </button>
-              </div>
-
-              <!-- 进度条容器 -->
-              <div
-                class="progress-container"
-                id="progressContainer"
-                style="display: none"
-              >
-                <div class="progress-bar">
-                  <div class="progress-fill" id="progressFill"></div>
-                </div>
-              </div>
-
-              <!-- 状态消息容器 -->
-              <div
-                id="statusMessage"
-                class="status-message status-info"
-                style="display: none"
-              ></div>
-            </div>
-
             <!-- 经典视图的结果显示区域 -->
             <div class="section" id="resultSection" style="display: none">
               <div class="result-header">
@@ -688,6 +651,41 @@
                 <pre><code class="language-json" id="resultContent"></code></pre>
               </div>
             </div>
+          </div>
+
+          <!-- 4. 操作按钮 -->
+          <div class="section">
+            <div class="section-title">操作</div>
+            <div class="btn-group">
+              <button class="btn btn-primary" id="convertBtn">
+                <span id="convertText">开始转换</span>
+              </button>
+              <button class="btn btn-secondary" id="previewModeBtn">
+                对话预览
+              </button>
+              <button class="btn btn-secondary" id="configBtn">配置管理</button>
+              <button class="btn btn-secondary" id="batchProcessBtn">
+                批量处理
+              </button>
+            </div>
+
+            <!-- 进度条容器 -->
+            <div
+              class="progress-container"
+              id="progressContainer"
+              style="display: none"
+            >
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+
+            <!-- 状态消息容器 -->
+            <div
+              id="statusMessage"
+              class="status-message status-info"
+              style="display: none"
+            ></div>
           </div>
         </div>
 
