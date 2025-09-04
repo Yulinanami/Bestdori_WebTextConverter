@@ -97,9 +97,21 @@ export const expressionEditor = {
 
     if (action.type === 'talk') {
       if (!action.characterStates) action.characterStates = {};
-      // 使用 characterName 作为键
-      if (!action.characterStates[characterName]) action.characterStates[characterName] = {};
-      action.characterStates[characterName][type] = valueToStore;
+
+      // --- 新增的修复逻辑 ---
+      // 通过角色名找到在场角色对象，以获取其ID
+      const character = this.stagedCharacters.find(c => c.name === characterName);
+      if (!character) {
+          console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
+          return; // 如果找不到角色，则不进行任何操作
+      }
+      const characterId = character.id; // 获取正确的ID
+      // --- 修复逻辑结束 ---
+
+      // 使用 characterId 作为键
+      if (!action.characterStates[characterId]) action.characterStates[characterId] = {};
+      action.characterStates[characterId][type] = valueToStore;
+
     } else if (action.type === 'layout' && action.characterName === characterName) {
       if (!action.initialState) action.initialState = {};
       action.initialState[type] = valueToStore;
