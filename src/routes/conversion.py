@@ -14,11 +14,6 @@ def convert_project():
         data = request.get_json()
         project_file = data.get("projectFile")
         quote_config = data.get("quoteConfig") 
-
-        # --- 诊断步骤: 在这里添加日志 ---
-        logger.info(f"收到的引号配置 (quote_config): {quote_config}")
-        # --- 诊断结束 ---
-
         if not project_file or not isinstance(project_file, dict):
             # 如果是从旧的 updateSplitPreview 收到请求，project_file 会是 None
             # 我们在这里做一个兼容处理
