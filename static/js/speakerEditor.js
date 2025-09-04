@@ -315,7 +315,6 @@ export const speakerEditor = {
         put: true
       },
       sort: false,
-      // --- 步骤 3: 添加 onStart 和 onEnd 事件钩子 ---
       onStart: () => {
         // 当拖拽开始时，在 window 上监听鼠标移动事件
         document.addEventListener('dragover', this.handleDragScrolling);
@@ -327,18 +326,11 @@ export const speakerEditor = {
         this.scrollInterval = null;
       },
       onAdd: (evt) => {
-        // --- 核心修正：移除所有手动DOM操作 ---
         const cardItem = evt.item;
-        
         const actionId = cardItem.dataset.id;
         if (actionId) {
-          // 只更新数据，让渲染函数来处理UI
           this.removeAllSpeakersFromAction(actionId);
         }
-
-        // SortableJS 会自动处理临时DOM，我们不再需要下面的代码
-        // if (sourceList.children[originalIndex]) { ... }
-        // --- 修正结束 ---
       }
     });
 
@@ -351,15 +343,21 @@ export const speakerEditor = {
         document.addEventListener('dragover', this.handleDragScrolling);
       },
       onEnd: (evt) => {
-            if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-                const { oldIndex, newIndex } = evt;
-                // 将上下文（索引）捕获
-                this._executeCommand((currentState, ctx) => {
-                    const [movedItem] = currentState.actions.splice(ctx.oldIndex, 1);
-                    currentState.actions.splice(ctx.newIndex, 0, movedItem);
-                }, { oldIndex, newIndex });
-            }
-        },
+        // ================== Bug修复：在这里添加清理代码 ==================
+        document.removeEventListener('dragover', this.handleDragScrolling);
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
+        // ========================== 清理代码结束 ==========================
+
+        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
+            const { oldIndex, newIndex } = evt;
+            // 将上下文（索引）捕获
+            this._executeCommand((currentState, ctx) => {
+                const [movedItem] = currentState.actions.splice(ctx.oldIndex, 1);
+                currentState.actions.splice(ctx.newIndex, 0, movedItem);
+            }, { oldIndex, newIndex });
+        }
+      },
       onAdd: (evt) => {
         const characterItem = evt.item;
         characterItem.style.display = 'none';
