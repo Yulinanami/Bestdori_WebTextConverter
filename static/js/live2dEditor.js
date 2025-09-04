@@ -361,11 +361,23 @@ _applyAutoLayout() {
 
   insertLayoutAction(characterId, characterName, index) {
       this._executeCommand((currentState) => {
-          const defaultCostume = this._getDefaultCostume(characterName);
+          // 步骤 1: 调用新函数查找该角色最后使用的服装
+          const lastCostume = this._findLastCostumeForCharacter(currentState.actions, characterName, index);
+          
+          // 步骤 2: 如果找到了，就用它；否则，回退到使用角色的默认服装
+          const costumeToUse = lastCostume || this._getDefaultCostume(characterName);
+
           const defaultPosition = this._getDefaultPosition(characterName);
+          
           const newLayoutAction = {
-            id: `layout-action-${Date.now()}`, type: "layout",
-            characterId, characterName, layoutType: "appear", costume: defaultCostume,
+            id: `layout-action-${Date.now()}`, 
+            type: "layout",
+            characterId, 
+            characterName, 
+            // 额外优化: 新拖入的动作默认为 "move"，因为角色很可能已经登场
+            layoutType: "move", 
+            // 使用我们智能选择的服装
+            costume: costumeToUse,
             position: {
               from: { side: defaultPosition.position, offsetX: defaultPosition.offset },
               to: { side: defaultPosition.position, offsetX: defaultPosition.offset }
@@ -374,6 +386,22 @@ _applyAutoLayout() {
           };
           currentState.actions.splice(index, 0, newLayoutAction);
       });
+  },
+
+  _findLastCostumeForCharacter(actions, characterName, startIndex) {
+    // 从新动作插入位置的前一个动作开始，向前回溯
+    for (let i = startIndex - 1; i >= 0; i--) {
+      const action = actions[i];
+      // 检查是否是同一个角色的布局动作
+      if (action.type === 'layout' && action.characterName === characterName) {
+        // 如果这个动作有服装设置，就返回它
+        if (action.costume) {
+          return action.costume;
+        }
+      }
+    }
+    // 如果回溯完整个时间线都没找到，则返回null
+    return null;
   },
 
   _executeCommand(changeFn) {
