@@ -4,7 +4,8 @@ import { configManager } from "./configManager.js";
 import { positionManager } from "./positionManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { historyManager } from "./historyManager.js";
-import { projectManager } from "./projectManager.js"; // 导入项目管理器
+import { projectManager } from "./projectManager.js";
+import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 
 export const live2dEditor = {
   projectFileState: null,
@@ -17,13 +18,30 @@ export const live2dEditor = {
     document.getElementById("resetLayoutsBtn")?.addEventListener("click", () => this._clearAllLayouts());
     document.getElementById("live2dUndoBtn")?.addEventListener("click", () => historyManager.undo());
     document.getElementById("live2dRedoBtn")?.addEventListener("click", () => historyManager.redo());
-    
-    // --- 核心修正 1: 绑定项目管理按钮 ---
     document.getElementById("saveLayoutsBtn")?.addEventListener("click", () => this.save());
-
     document.getElementById("importLayoutsBtn")?.addEventListener("click", () => this.importProject());
     document.getElementById("exportLayoutsBtn")?.addEventListener("click", () => this.exportProject());
 
+    // ================== 新增代码：事件委托 ==================
+    const characterList = document.getElementById("live2dEditorCharacterList");
+    if (characterList) {
+        characterList.addEventListener('click', (e) => {
+            const pinBtn = e.target.closest('.pin-btn');
+            if (pinBtn) {
+                e.stopPropagation();
+                e.preventDefault();
+                const characterItem = pinBtn.closest('.character-item');
+                if (characterItem && characterItem.dataset.characterName) {
+                    const characterName = characterItem.dataset.characterName;
+                    pinnedCharacterManager.toggle(characterName);
+                    // Live2D 编辑器不关心 usedCharacterIds，直接重新渲染即可
+                    this.renderCharacterList();
+                }
+            }
+        });
+    }
+    // ========================== 结束 ==========================
+    
     // 2. 统一处理关闭事件
     const modal = document.getElementById('live2dEditorModal');
     const handleCloseAttempt = (e) => {
@@ -550,9 +568,16 @@ _applyAutoLayout() {
     listContainer.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
-    const characters = Object.entries(state.get("currentConfig")).sort(
-      ([, idsA], [, idsB]) => idsA[0] - idsB[0]
-    );
+    const characters = Object.entries(state.get("currentConfig"));
+    const pinned = pinnedCharacterManager.getPinned();
+
+    characters.sort(([nameA, idsA], [nameB, idsB]) => {
+      const isAPinned = pinned.has(nameA);
+      const isBPinned = pinned.has(nameB);
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+      return idsA[0] - idsB[0];
+    });
 
     characters.forEach(([name, ids]) => {
       const item = template.content.cloneNode(true);
@@ -562,6 +587,12 @@ _applyAutoLayout() {
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
       configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
       item.querySelector(".character-name").textContent = name;
+      
+      const pinBtn = item.querySelector('.pin-btn');
+      if (pinnedCharacterManager.isPinned(name)) {
+        pinBtn.classList.add('is-pinned');
+      }
+      // 不再在这里绑定事件
       fragment.appendChild(item);
     });
     listContainer.appendChild(fragment);

@@ -20,6 +20,7 @@ import { live2dEditor } from "./live2dEditor.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { expressionEditor } from "./expressionEditor.js";
 import { motionExpressionEditor } from "./motionExpressionEditor.js";
+import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 
 // 初始化应用
 function initializeApp() {
@@ -49,6 +50,9 @@ function initializeApp() {
 
   // 初始化 Live2D 编辑器
   live2dEditor.init(); 
+
+  // 加载已置顶的角色配置
+  pinnedCharacterManager.load();
 
   // 初始化位置管理器
   positionManager.init();

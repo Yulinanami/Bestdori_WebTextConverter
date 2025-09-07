@@ -1023,3 +1023,32 @@
 #expressionEditorLibrary .form-group {
   margin-bottom: 15px;
 }
+
+/* 角色列表置顶按钮样式 */
+.pin-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: auto; /* 核心：让图钉自动靠右 */
+  font-size: 1.1rem;
+  opacity: 0.3; /* 默认状态下比较透明 */
+  transition: all 0.2s ease;
+  transform: rotate(0deg);
+}
+
+.character-item:hover .pin-btn {
+  opacity: 0.7; /* 鼠标悬停在整行上时，图钉变清晰 */
+}
+
+.pin-btn:hover {
+  opacity: 1; /* 鼠标直接悬停在图钉上时，完全不透明 */
+  transform: scale(1.2);
+}
+
+/* 已置顶状态的样式 */
+.pin-btn.is-pinned {
+  opacity: 1;
+  color: var(--color-primary);
+  transform: rotate(45deg); /* 给一个倾斜效果，表示已固定 */
+}

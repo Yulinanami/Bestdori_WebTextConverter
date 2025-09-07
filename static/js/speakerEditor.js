@@ -4,6 +4,7 @@ import { configManager } from "./configManager.js";
 import { selectionManager } from "./selectionManager.js";
 import { historyManager } from "./historyManager.js";
 import { projectManager } from "./projectManager.js";
+import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 
 export const speakerEditor = {
   projectFileState: null,
@@ -26,7 +27,28 @@ export const speakerEditor = {
     document.getElementById("undoBtn")?.addEventListener("click", () => historyManager.undo());
     document.getElementById("redoBtn")?.addEventListener("click", () => historyManager.redo());
 
-    // 3. 统一处理关闭事件（取消和X按钮）
+    // ================== 新增代码：事件委托 ==================
+    const characterList = document.getElementById("speakerEditorCharacterList");
+    if (characterList) {
+        characterList.addEventListener('click', (e) => {
+            const pinBtn = e.target.closest('.pin-btn');
+            if (pinBtn) {
+                e.stopPropagation();
+                e.preventDefault();
+                const characterItem = pinBtn.closest('.character-item');
+                if (characterItem && characterItem.dataset.characterName) {
+                    const characterName = characterItem.dataset.characterName;
+                    pinnedCharacterManager.toggle(characterName);
+                    // 注意：这里需要获取最新的 usedCharacterIds 来重新渲染
+                    const usedIds = this._getUsedCharacterIds();
+                    this.renderCharacterList(usedIds);
+                }
+            }
+        });
+    }
+    // ========================== 结束 ==========================
+
+    // 3. 统一处理关闭事件
     const modal = document.getElementById('speakerEditorModal');
     if (modal) {
         modal.focus();
@@ -36,10 +58,9 @@ export const speakerEditor = {
              if (!confirm("您有未保存的更改，确定要关闭吗？")) {
                 e.stopPropagation();
                 e.preventDefault();
-                return; // 阻止关闭
+                return;
              }
         }
-        // 清理并关闭
         const canvas = document.getElementById('speakerEditorCanvas');
         selectionManager.detach(canvas);
         ui.closeModal('speakerEditorModal');
@@ -47,7 +68,7 @@ export const speakerEditor = {
     modal?.querySelector('.btn-modal-close')?.addEventListener('click', handleCloseAttempt, true);
     modal?.querySelector('.modal-close')?.addEventListener('click', handleCloseAttempt, true);
 
-    // 4. 监听历史变化以更新按钮状态
+    // 4. 监听历史变化
     document.addEventListener('historychange', (e) => {
         const undoBtn = document.getElementById('undoBtn');
         const redoBtn = document.getElementById('redoBtn');
@@ -63,6 +84,18 @@ export const speakerEditor = {
             else if (e.key === 'y' || (e.shiftKey && (e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); historyManager.redo(); }
         }
     });
+  },
+
+  _getUsedCharacterIds() {
+    const usedIds = new Set();
+    if (this.projectFileState && this.projectFileState.actions) {
+        this.projectFileState.actions.forEach(action => {
+            if (action.type === 'talk' && action.speakers) {
+                action.speakers.forEach(speaker => usedIds.add(speaker.characterId));
+            }
+        });
+    }
+    return usedIds;
   },
 
   /**
@@ -277,9 +310,16 @@ export const speakerEditor = {
     listContainer.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
-    const characters = Object.entries(state.get("currentConfig")).sort(
-      ([, idsA], [, idsB]) => idsA[0] - idsB[0]
-    );
+    const characters = Object.entries(state.get("currentConfig"));
+    const pinned = pinnedCharacterManager.getPinned();
+
+    characters.sort(([nameA, idsA], [nameB, idsB]) => {
+      const isAPinned = pinned.has(nameA);
+      const isBPinned = pinned.has(nameB);
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+      return idsA[0] - idsB[0];
+    });
 
     characters.forEach(([name, ids]) => {
       const item = template.content.cloneNode(true);
@@ -288,7 +328,7 @@ export const speakerEditor = {
       characterItem.dataset.characterId = characterId;
       characterItem.dataset.characterName = name;
       
-      if (usedCharacterIds.has(characterId)) {
+      if (usedCharacterIds && usedCharacterIds.has(characterId)) {
         characterItem.classList.add('is-used');
       }
 
@@ -296,6 +336,12 @@ export const speakerEditor = {
       configManager.updateConfigAvatar(avatarWrapper, characterId, name);
 
       item.querySelector(".character-name").textContent = name;
+      
+      const pinBtn = item.querySelector('.pin-btn');
+      if (pinnedCharacterManager.isPinned(name)) {
+        pinBtn.classList.add('is-pinned');
+      }
+      // 不再在这里绑定事件
       fragment.appendChild(item);
     });
     listContainer.appendChild(fragment);
