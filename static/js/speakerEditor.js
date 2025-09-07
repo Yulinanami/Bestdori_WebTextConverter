@@ -312,7 +312,7 @@ export const speakerEditor = {
       group: {
         name: 'shared-speakers',
         pull: 'clone',
-        put: true
+        put: false
       },
       sort: false,
       onStart: () => {
