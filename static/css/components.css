@@ -1018,3 +1018,8 @@
     /* 确保文本内容区可以被压缩，防止溢出 */
     min-width: 0;
 }
+
+/* 优化动作/表情编辑器资源库的间距 */
+#expressionEditorLibrary .form-group {
+  margin-bottom: 15px;
+}

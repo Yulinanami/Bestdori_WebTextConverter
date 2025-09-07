@@ -26,6 +26,12 @@ export const expressionEditor = {
     document.getElementById("addTempMotionBtn")?.addEventListener("click", () => this._addTempItem('motion'));
     document.getElementById("addTempExpressionBtn")?.addEventListener("click", () => this._addTempItem('expression'));
 
+    // ================== 新增代码 开始 ==================
+    // 为搜索框添加实时输入事件监听
+    document.getElementById('motionSearchInput')?.addEventListener('input', (e) => this._filterLibraryList('motion', e));
+    document.getElementById('expressionSearchInput')?.addEventListener('input', (e) => this._filterLibraryList('expression', e));
+    // ================== 新增代码 结束 ==================
+
     // 2. 统一处理关闭事件
     const modal = document.getElementById('expressionEditorModal');
     const handleCloseAttempt = (e) => {
@@ -135,17 +141,11 @@ export const expressionEditor = {
   },
 
   save() {
-  // 调用项目管理器来保存当前状态，并提供一个回调函数
-  projectManager.save(this.projectFileState, (savedState) => {
-      // 这是保存成功后执行的回调函数
-
-      // 1. 更新 "原始状态"，以防止在关闭时意外触发 "未保存的更改" 警告
-      this.originalStateOnOpen = JSON.stringify(savedState);
-      
-      // 2. 明确地调用UI工具函数来关闭模态框
-      ui.closeModal("expressionEditorModal");
-  });
-},
+    projectManager.save(this.projectFileState, (savedState) => {
+        this.originalStateOnOpen = JSON.stringify(savedState);
+        this._closeEditor();
+    });
+  },
 
   exportProject() {
       projectManager.export(this.projectFileState);
@@ -195,6 +195,15 @@ export const expressionEditor = {
       this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
       historyManager.clear();
       ui.openModal("expressionEditorModal");
+
+      // ================== 新增代码 开始 ==================
+      // 每次打开时，清空搜索框的内容
+      const motionSearch = document.getElementById('motionSearchInput');
+      const expressionSearch = document.getElementById('expressionSearchInput');
+      if (motionSearch) motionSearch.value = '';
+      if (expressionSearch) expressionSearch.value = '';
+      // ================== 新增代码 结束 ==================
+
       this.renderTimeline();
       this.renderLibraries();
       document.getElementById('expressionEditorModal')?.focus();
@@ -212,7 +221,6 @@ export const expressionEditor = {
               const statusTag = e.target.closest('.character-status-tag');
               if (dropZone && statusTag) {
                   const actionId = card.dataset.id;
-                  // 核心修改 6: 从 DOM 中获取 characterName
                   const characterName = statusTag.dataset.characterName;
                   const type = dropZone.dataset.type;
                   this._executePropertyChangeCommand(actionId, characterName, type, '--');
@@ -233,9 +241,7 @@ export const expressionEditor = {
       };
 
       new Sortable(timeline, {
-        // --- 新增的核心配置 ---
-        group: 'timeline-cards', // 为时间线卡片设置一个独立的组
-        // --- 配置结束 ---
+        group: 'timeline-cards',
         animation: 150,
         sort: true,
         onEnd: (evt) => {
@@ -254,35 +260,46 @@ export const expressionEditor = {
     }
   },
 
-
+  // ================== 新增函数 开始 ==================
   /**
-   * 按需显示指定卡片的动作/表情设置UI。
-   * @param {HTMLElement} cardElement - 被点击卡片的DOM元素。
+   * 根据输入内容过滤资源库列表
+   * @param {'motion' | 'expression'} type - 要过滤的列表类型
+   * @param {Event} event - input事件对象
    */
+  _filterLibraryList(type, event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    const listContainerId = type === 'motion' ? 'motionLibraryList' : 'expressionLibraryList';
+    const listContainer = document.getElementById(listContainerId);
+    
+    if (!listContainer) return;
+
+    // 注意：这里的选择器修改为直接选择子元素，避免选择到深层嵌套的元素
+    const items = listContainer.querySelectorAll('.config-list-item.draggable-item');
+
+    items.forEach(item => {
+      // 从 item 的 textContent 获取名称，而不是 dataset
+      const itemName = item.textContent.toLowerCase();
+      if (itemName.includes(searchTerm)) {
+        item.style.display = ''; // 恢复默认显示 (通常是 block 或 flex)
+      } else {
+        item.style.display = 'none'; // 隐藏不匹配的项
+      }
+    });
+  },
+  // ================== 新增函数 结束 ==================
+
   showExpressionSetupUI(cardElement) {
     const actionId = cardElement.dataset.id;
     const action = this.projectFileState.actions.find(a => a.id === actionId);
     if (!action) return;
-
     const footer = cardElement.querySelector('.timeline-item-footer');
     if (!footer) return;
-
-    // 渲染状态栏UI
     const statusBar = this._renderStatusBarForAction(action);
-    
-    // 清空footer（移除按钮）并添加状态栏
     footer.innerHTML = '';
     footer.appendChild(statusBar);
-
-    // 关键：为新生成的放置区初始化拖拽功能
     this._initSortableForZones(statusBar);
   },
 
-  /**
-   * 检查一个action是否已经包含了动作/表情数据。
-   * @param {object} action - 项目文件中的action对象。
-   * @returns {boolean} - 如果有数据则返回true。
-   */
   _actionHasExpressionData(action) {
     if (action.type === 'talk') {
         return action.characterStates && Object.keys(action.characterStates).length > 0;
@@ -298,9 +315,7 @@ export const expressionEditor = {
       new Sortable(zone, {
         group: { 
             name: zone.dataset.type, 
-            // --- 核心修改：用函数替换布尔值 ---
             put: function (to, from, dragEl) {
-              // 只允许带有 'draggable-item' 类的元素放入
               return dragEl.classList.contains('draggable-item');
             }
         },
@@ -353,9 +368,6 @@ export const expressionEditor = {
     return characters;
   },
 
-  /**
-   * 渲染左侧的时间线（重构后）。
-   */
   renderTimeline() {
     const timeline = document.getElementById("expressionEditorTimeline");
     const talkTemplate = document.getElementById("timeline-talk-card-template");
@@ -367,9 +379,7 @@ export const expressionEditor = {
 
     this.projectFileState.actions.forEach(action => {
       let card;
-      // Step 1: 渲染卡片基础内容 (与之前相同)
       if (action.type === 'talk') {
-        // ... (talk卡片渲染逻辑保持不变)
         card = talkTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
         item.dataset.id = action.id;
@@ -387,7 +397,6 @@ export const expressionEditor = {
         card.querySelector('.dialogue-preview-text').textContent = action.text;
 
       } else if (action.type === 'layout') {
-        // ... (layout卡片渲染逻辑保持不变)
         card = layoutTemplate.content.cloneNode(true);
         const item = card.querySelector('.timeline-item');
         item.dataset.id = action.id;
@@ -439,16 +448,12 @@ export const expressionEditor = {
         return;
       }
       
-      // Step 2: 动态决定是显示按钮还是状态栏
       const footer = card.querySelector('.timeline-item-footer');
       if (this._actionHasExpressionData(action)) {
-          // 如果已有数据，直接渲染状态栏
           const statusBar = this._renderStatusBarForAction(action);
           footer.appendChild(statusBar);
-          // 为这些已存在状态栏的放置区初始化拖拽
           this._initSortableForZones(statusBar);
       } else {
-          // 否则，渲染按钮
           const setupButton = document.createElement('button');
           setupButton.className = 'btn btn-secondary btn-sm setup-expressions-btn';
           setupButton.textContent = '设置动作/表情';
@@ -465,10 +470,7 @@ export const expressionEditor = {
     const statusBar = document.createElement('div');
     statusBar.className = 'character-status-bar';
 
-    // --- 核心修改：根据 action 类型决定渲染范围 ---
-
     if (action.type === 'talk') {
-      // 对于【对话卡片】，保持原有逻辑：为所有在场角色渲染状态标签
       this.stagedCharacters.forEach(char => {
         const tag = statusTagTemplate.content.cloneNode(true);
         const statusTagElement = tag.querySelector('.character-status-tag');
@@ -479,7 +481,6 @@ export const expressionEditor = {
         configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
         tag.querySelector('.character-name').textContent = char.name;
 
-        // 从 talk action 的 characterStates 中读取状态
         const currentState = action.characterStates?.[char.name] || {};
         const currentMotion = currentState.motion || '--';
         const currentExpression = currentState.expression || '--';
@@ -498,13 +499,12 @@ export const expressionEditor = {
       });
 
     } else if (action.type === 'layout') {
-      // 对于【布局卡片】，新逻辑：只为当前布局的角色渲染状态标签
       const char = {
           id: action.characterId,
           name: action.characterName || configManager.getCharacterNameById(action.characterId)
       };
 
-      if (!char.name) return statusBar; // 安全检查，如果找不到角色名则不渲染
+      if (!char.name) return statusBar;
 
       const tag = statusTagTemplate.content.cloneNode(true);
       const statusTagElement = tag.querySelector('.character-status-tag');
@@ -515,7 +515,6 @@ export const expressionEditor = {
       configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
       tag.querySelector('.character-name').textContent = char.name;
 
-      // 从 layout action 的 initialState 中读取状态
       const currentState = action.initialState || {};
       const currentMotion = currentState.motion || '--';
       const currentExpression = currentState.expression || '--';
@@ -537,11 +536,9 @@ export const expressionEditor = {
   },
 
   renderLibraries() {
-    // 合并永久列表和临时列表
     const motionItems = [...motionManager.getAvailableItems(), ...this.tempLibraryItems.motion];
     const expressionItems = [...expressionManager.getAvailableItems(), ...this.tempLibraryItems.expression];
 
-    // 使用 Set 去重，然后渲染
     this._renderLibrary('motion', Array.from(new Set(motionItems)));
     this._renderLibrary('expression', Array.from(new Set(expressionItems)));
     
@@ -554,7 +551,6 @@ export const expressionEditor = {
     const fragment = document.createDocumentFragment();
     items.forEach(item => {
         const itemEl = document.createElement('div');
-        // --- 下面这行是原始代码 ---
         itemEl.className = 'config-list-item draggable-item';
         itemEl.draggable = true;
         itemEl.innerHTML = `<span class="item-name">${item}</span>`;
@@ -592,26 +588,22 @@ _executeCommand(changeFn) {
       const command = {
           execute: () => {
               this.projectFileState = JSON.parse(afterState);
-              // 每次执行/重做后都完全重新渲染时间线
               this.renderTimeline();
           },
           undo: () => {
               this.projectFileState = JSON.parse(beforeState);
-              // 每次撤销后也完全重新渲染时间线
               this.renderTimeline();
           }
       };
       historyManager.do(command);
   },
 
-  // 新增: 删除布局卡片的函数
   _deleteLayoutAction(actionId) {
       this._executeCommand((currentState) => {
           currentState.actions = currentState.actions.filter(a => a.id !== actionId);
       });
   },
 
-  // 新增: 修改布局卡片属性的函数
   _updateLayoutActionProperty(actionId, targetElement) {
     const value = targetElement.type === 'number' ? parseInt(targetElement.value) || 0 : targetElement.value;
     const controlClassName = targetElement.className;
@@ -664,17 +656,19 @@ _addTempItem(type) {
       return;
     }
 
-    // 检查是否在所有已知项（永久+临时）中重复
     const allItems = new Set([...manager.getAvailableItems(), ...tempList]);
     if (allItems.has(trimmedId)) {
       ui.showStatus(`该${manager.name}ID已存在！`, "error");
       return;
     }
 
-    // 添加到临时列表并重新渲染
     tempList.push(trimmedId);
     input.value = "";
     this.renderLibraries();
     ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
   },
+
+  _closeEditor() {
+    ui.closeModal("expressionEditorModal");
+  }
 };
