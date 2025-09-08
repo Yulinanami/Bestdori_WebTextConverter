@@ -25,7 +25,7 @@ export const expressionEditor = {
     document.getElementById("expressionRedoBtn")?.addEventListener("click", () => historyManager.redo());
     document.getElementById("addTempMotionBtn")?.addEventListener("click", () => this._addTempItem('motion'));
     document.getElementById("addTempExpressionBtn")?.addEventListener("click", () => this._addTempItem('expression'));
-
+    document.getElementById("live2dViewerBtn")?.addEventListener("click", () => this._openLive2dViewers());
     // ================== 新增代码 开始 ==================
     // 为搜索框添加实时输入事件监听
     document.getElementById('motionSearchInput')?.addEventListener('input', (e) => this._filterLibraryList('motion', e));
@@ -666,6 +666,47 @@ _addTempItem(type) {
     input.value = "";
     this.renderLibraries();
     ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
+  },
+
+  _openLive2dViewers() {
+    if (!this.projectFileState || !this.projectFileState.actions) {
+      ui.showStatus("没有可分析的剧情内容。", "error");
+      // 作为备用方案，打开默认的浏览器首页
+      window.open('https://bestdori.com/tool/live2d', '_blank');
+      return;
+    }
+
+    // 1. 使用 Set 收集所有不重复的服装ID
+    const costumeIds = new Set();
+    this.projectFileState.actions.forEach(action => {
+      // 只关心 layout 动作，并且它必须有 costume 属性
+      if (action.type === 'layout' && action.costume) {
+        costumeIds.add(action.costume);
+      }
+    });
+
+    // 2. 处理没有找到任何服装的情况
+    if (costumeIds.size === 0) {
+      ui.showStatus("当前时间线中未找到任何服装配置，将打开 Live2D 浏览器首页。", "info");
+      window.open('https://bestdori.com/tool/live2d', '_blank');
+      return;
+    }
+
+    const costumeArray = Array.from(costumeIds);
+
+    // 3. 如果要打开的窗口太多，给用户一个提示
+    if (costumeArray.length > 5) {
+      if (!confirm(`你即将为 ${costumeArray.length} 个不同的服装打开新的浏览器标签页，确定要继续吗？`)) {
+        return; // 用户取消操作
+      }
+    }
+
+    // 4. 遍历 Set 并打开所有窗口
+    ui.showStatus(`正在为 ${costumeArray.length} 个服装打开 Live2D 浏览器...`, "success");
+    costumeArray.forEach(costumeId => {
+      const url = `https://bestdori.com/tool/live2d/asset/jp/live2d/chara/${costumeId}`;
+      window.open(url, '_blank');
+    });
   },
 
   _closeEditor() {
