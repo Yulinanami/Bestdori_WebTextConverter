@@ -379,26 +379,36 @@ _applyAutoLayout() {
 
   insertLayoutAction(characterId, characterName, index) {
       this._executeCommand((currentState) => {
-          // 步骤 1: 调用新函数查找该角色最后使用的服装
+          // 查找最后使用的服装 (逻辑保持不变)
           const lastCostume = this._findLastCostumeForCharacter(currentState.actions, characterName, index);
-          
-          // 步骤 2: 如果找到了，就用它；否则，回退到使用角色的默认服装
           const costumeToUse = lastCostume || this._getDefaultCostume(characterName);
 
+          // ================== 核心修改：智能判断起始位置和类型 ==================
+          
+          // 1. 调用新函数查找上一个位置
+          const lastPosition = this._findLastPositionForCharacter(currentState.actions, characterName, index);
+          
+          // 2. 如果找到了上一个位置，就用它作为起始位置；否则，使用默认位置
           const defaultPosition = this._getDefaultPosition(characterName);
+          const fromPosition = lastPosition 
+              ? { side: lastPosition.side, offsetX: lastPosition.offsetX } 
+              : { side: defaultPosition.position, offsetX: defaultPosition.offset };
+
+          // 3. 智能判断类型：如果找到了上一个位置，说明角色已在场，默认为"移动"；否则为"登场"
+          const layoutType = lastPosition ? "move" : "appear";
+
+          // ========================== 修改结束 ==========================
           
           const newLayoutAction = {
             id: `layout-action-${Date.now()}`, 
             type: "layout",
             characterId, 
             characterName, 
-            // 额外优化: 新拖入的动作默认为 "move"，因为角色很可能已经登场
-            layoutType: "move", 
-            // 使用我们智能选择的服装
+            layoutType: layoutType, // 使用我们智能判断的类型
             costume: costumeToUse,
             position: {
-              from: { side: defaultPosition.position, offsetX: defaultPosition.offset },
-              to: { side: defaultPosition.position, offsetX: defaultPosition.offset }
+              from: fromPosition, // 使用我们智能获取的起始位置
+              to: { ...fromPosition } // 默认“移动到”的位置和起始位置相同，待用户修改
             },
             initialState: {}
           };
@@ -415,6 +425,25 @@ _applyAutoLayout() {
         // 如果这个动作有服装设置，就返回它
         if (action.costume) {
           return action.costume;
+        }
+      }
+    }
+    // 如果回溯完整个时间线都没找到，则返回null
+    return null;
+  },
+
+  _findLastPositionForCharacter(actions, characterName, startIndex) {
+    // 从新动作插入位置的前一个动作开始，向前回溯
+    for (let i = startIndex - 1; i >= 0; i--) {
+      const action = actions[i];
+      // 检查是否是同一个角色的布局动作
+      if (action.type === 'layout' && action.characterName === characterName) {
+        // 如果找到了，返回该动作的“结束位置”(position.to)
+        if (action.position && action.position.to) {
+          return { 
+            side: action.position.to.side, 
+            offsetX: action.position.to.offsetX 
+          };
         }
       }
     }
