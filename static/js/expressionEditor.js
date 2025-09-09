@@ -273,14 +273,15 @@ export const expressionEditor = {
     
     if (!listContainer) return;
 
-    // 注意：这里的选择器修改为直接选择子元素，避免选择到深层嵌套的元素
     const items = listContainer.querySelectorAll('.config-list-item.draggable-item');
 
     items.forEach(item => {
-      // 从 item 的 textContent 获取名称，而不是 dataset
       const itemName = item.textContent.toLowerCase();
-      if (itemName.includes(searchTerm)) {
-        item.style.display = ''; // 恢复默认显示 (通常是 block 或 flex)
+
+      // ================== 核心修改：从模糊包含改为前缀匹配 ==================
+      if (itemName.startsWith(searchTerm)) {
+      // =====================================================================
+        item.style.display = ''; // 恢复默认显示
       } else {
         item.style.display = 'none'; // 隐藏不匹配的项
       }
