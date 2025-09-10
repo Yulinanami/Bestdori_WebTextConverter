@@ -48,21 +48,20 @@ export const motionExpressionEditor = {
     const tempCustomItems = isMotion ? this.tempCustomMotions : this.tempCustomExpressions;
 
     listContainer.innerHTML = "";
+    const allDefaultItems = new Set(manager.getAllKnownItems());
 
-    const defaultItems = new Set(manager.defaultItems);
-    // 合并默认项和临时自定义项用于显示
-    const allItems = Array.from(new Set([...manager.defaultItems, ...tempCustomItems])).sort();
-    
+    const allItems = Array.from(new Set([...allDefaultItems, ...tempCustomItems])).sort();
     const fragment = document.createDocumentFragment();
     allItems.forEach(item => {
-      const isCustom = !defaultItems.has(item);
+      // 判断逻辑修改：检查一个项是否不在 *所有* 默认项集合中
+      const isCustom = !allDefaultItems.has(item) && tempCustomItems.includes(item);
       const itemEl = document.createElement('div');
       itemEl.className = 'config-list-item';
       if (isCustom) {
         itemEl.classList.add('is-custom');
       }
       
-      // 只有临时的自定义项才能被删除
+      // 删除逻辑修改：只有临时的自定义项才能被删除
       const isDeletable = tempCustomItems.includes(item);
       let deleteButtonHtml = '';
       if (isDeletable) {

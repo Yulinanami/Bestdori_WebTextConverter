@@ -537,11 +537,27 @@ export const expressionEditor = {
   },
 
   renderLibraries() {
-    const motionItems = [...motionManager.getAvailableItems(), ...this.tempLibraryItems.motion];
-    const expressionItems = [...expressionManager.getAvailableItems(), ...this.tempLibraryItems.expression];
+    // 1. 获取当前所有在场角色的 ID 集合
+    const stagedCharacterIds = new Set(this.stagedCharacters.map(c => c.id));
+    
+    // 2. 根据在场角色，合并他们所有的动作和表情
+    const motionItems = new Set(this.tempLibraryItems.motion);
+    const expressionItems = new Set(this.tempLibraryItems.expression);
 
-    this._renderLibrary('motion', Array.from(new Set(motionItems)));
-    this._renderLibrary('expression', Array.from(new Set(expressionItems)));
+    stagedCharacterIds.forEach(id => {
+        motionManager.getAvailableItemsForCharacter(id).forEach(item => motionItems.add(item));
+        expressionManager.getAvailableItemsForCharacter(id).forEach(item => expressionItems.add(item));
+    });
+
+    // 如果没有任何在场角色，则显示所有已知的动作/表情作为备用
+    if (stagedCharacterIds.size === 0) {
+        motionManager.getAllKnownItems().forEach(item => motionItems.add(item));
+        expressionManager.getAllKnownItems().forEach(item => expressionItems.add(item));
+    }
+
+    // 3. 渲染列表
+    this._renderLibrary('motion', Array.from(motionItems).sort());
+    this._renderLibrary('expression', Array.from(expressionItems).sort());
     
     this.initDragAndDropForLibraries();
   },

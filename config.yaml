@@ -1,321 +1,321 @@
 character_mapping:
   CHU²:
-  - 35
+    - 35
   LAYER:
-  - 31
+    - 31
   LOCK:
-  - 32
+    - 32
   MASKING:
-  - 33
+    - 33
   PAREO:
-  - 34
+    - 34
   三角初华:
-  - 337
+    - 337
   上原绯玛丽:
-  - 8
+    - 8
   丰川祥子:
-  - 341
+    - 341
   丸山彩:
-  - 16
+    - 16
   二叶筑紫:
-  - 29
+    - 29
   今井莉莎:
-  - 23
+    - 23
   仓田真白:
-  - 26
+    - 26
   八幡海铃:
-  - 339
+    - 339
   八潮瑠唯:
-  - 30
+    - 30
   冰川日菜:
-  - 17
+    - 17
   冰川纱夜:
-  - 22
+    - 22
   凑友希那:
-  - 21
+    - 21
   北泽育美:
-  - 13
+    - 13
   千早爱音:
-  - 37
+    - 37
   大和麻弥:
-  - 19
+    - 19
   奥泽美咲:
-  - 15
+    - 15
   宇田川亚子:
-  - 24
+    - 24
   宇田川巴:
-  - 9
+    - 9
   山吹沙绫:
-  - 4
+    - 4
   市谷有咲:
-  - 5
+    - 5
   广町七深:
-  - 28
+    - 28
   弦卷心:
-  - 11
+    - 11
   户山香澄:
-  - 1
+    - 1
   松原花音:
-  - 14
+    - 14
   桐谷透子:
-  - 27
+    - 27
   椎名立希:
-  - 40
+    - 40
   濑田薰:
-  - 12
+    - 12
   牛込里美:
-  - 3
+    - 3
   白金燐子:
-  - 25
+    - 25
   白鹭千圣:
-  - 18
+    - 18
   祐天寺若麦:
-  - 340
+    - 340
   纯田真奈:
-  - 229
+    - 229
   美竹兰:
-  - 6
+    - 6
   羽泽鸫:
-  - 10
+    - 10
   花园多惠:
-  - 2
+    - 2
   若叶睦:
-  - 338
+    - 338
   若宫伊芙:
-  - 20
+    - 20
   要乐奈:
-  - 38
+    - 38
   长崎素世:
-  - 39
+    - 39
   青叶摩卡:
-  - 7
+    - 7
   高松灯:
-  - 36
+    - 36
 costume_mapping:
   1:
-  - 001_school_summer-2023
-  - 001_school_winter-2023
-  - 001_casual-2023
-  - 001_live_r_2023
+    - 001_school_summer-2023
+    - 001_school_winter-2023
+    - 001_casual-2023
+    - 001_live_r_2023
   2:
-  - 002_school_summer-2023
-  - 002_school_winter-2023
-  - 002_casual-2023
-  - 002_live_r_2023
+    - 002_school_summer-2023
+    - 002_school_winter-2023
+    - 002_casual-2023
+    - 002_live_r_2023
   3:
-  - 003_school_summer-2023
-  - 003_school_winter-2023
-  - 003_casual-2023
-  - 003_live_r_2023
+    - 003_school_summer-2023
+    - 003_school_winter-2023
+    - 003_casual-2023
+    - 003_live_r_2023
   4:
-  - 004_school_summer-2023
-  - 004_school_winter-2023
-  - 004_casual-2023
-  - 004_live_r_2023
+    - 004_school_summer-2023
+    - 004_school_winter-2023
+    - 004_casual-2023
+    - 004_live_r_2023
   5:
-  - 005_school_summer-2023
-  - 005_school_winter-2023
-  - 005_casual-2023
-  - 005_live_r_2023
+    - 005_school_summer-2023
+    - 005_school_winter-2023
+    - 005_casual-2023
+    - 005_live_r_2023
   6:
-  - 006_school_summer-2023
-  - 006_school_winter-2023
-  - 006_casual-2023
-  - 006_live_r_2023
+    - 006_school_summer-2023
+    - 006_school_winter-2023
+    - 006_casual-2023
+    - 006_live_r_2023
   7:
-  - 007_school_summer-2023
-  - 007_school_winter-2023
-  - 007_casual-2023
-  - 007_live_r_2023
+    - 007_school_summer-2023
+    - 007_school_winter-2023
+    - 007_casual-2023
+    - 007_live_r_2023
   8:
-  - 008_school_summer-2023
-  - 008_school_winter-2023
-  - 008_casual-2023
-  - 008_live_r_2023
+    - 008_school_summer-2023
+    - 008_school_winter-2023
+    - 008_casual-2023
+    - 008_live_r_2023
   9:
-  - 009_school_summer-2023
-  - 009_school_winter-2023
-  - 009_casual-2023
-  - 009_live_r_2023
+    - 009_school_summer-2023
+    - 009_school_winter-2023
+    - 009_casual-2023
+    - 009_live_r_2023
   10:
-  - 010_school_summer-2023
-  - 010_school_winter-2023
-  - 010_casual-2023
-  - 010_live_r_2023
+    - 010_school_summer-2023
+    - 010_school_winter-2023
+    - 010_casual-2023
+    - 010_live_r_2023
   11:
-  - 011_school_summer-2023
-  - 011_school_winter-2023
-  - 011_casual-2023
-  - 011_live_r_2023
+    - 011_school_summer-2023
+    - 011_school_winter-2023
+    - 011_casual-2023
+    - 011_live_r_2023
   12:
-  - 012_school_summer_s2
-  - 012_school_winter_s2
-  - 012_casual-2023
-  - 012_live_r_2023
+    - 012_school_summer_s2
+    - 012_school_winter_s2
+    - 012_casual-2023
+    - 012_live_r_2023
   13:
-  - 013_school_summer-2023
-  - 013_school_winter-2023
-  - 013_casual-2023
-  - 013_live_r_2023
+    - 013_school_summer-2023
+    - 013_school_winter-2023
+    - 013_casual-2023
+    - 013_live_r_2023
   14:
-  - 014_school_summer
-  - 014_school_winter_v3
-  - 014_casual-2023
-  - 014_live_r_2023
+    - 014_school_summer
+    - 014_school_winter_v3
+    - 014_casual-2023
+    - 014_live_r_2023
   15:
-  - 015_school_summer-2023
-  - 015_school_winter-2023
-  - 015_casual-2023
-  - 015_live_r_2023
+    - 015_school_summer-2023
+    - 015_school_winter-2023
+    - 015_casual-2023
+    - 015_live_r_2023
   16:
-  - 016_school_summer
-  - 016_school_winter
-  - 016_casual-2023
-  - 016_live_r_2023
+    - 016_school_summer
+    - 016_school_winter
+    - 016_casual-2023
+    - 016_live_r_2023
   17:
-  - 017_school_summer_s2
-  - 017_school_winter_s2
-  - 017_casual-2023
-  - 017_live_r_2023
+    - 017_school_summer_s2
+    - 017_school_winter_s2
+    - 017_casual-2023
+    - 017_live_r_2023
   18:
-  - 018_school_summer
-  - 018_school_winter
-  - 018_casual-2023
-  - 018_live_r_2023
+    - 018_school_summer
+    - 018_school_winter
+    - 018_casual-2023
+    - 018_live_r_2023
   19:
-  - 019_school_summer_s2
-  - 019_school_winter_s2
-  - 019_casual-2023
-  - 019_live_r_2023
+    - 019_school_summer_s2
+    - 019_school_winter_s2
+    - 019_casual-2023
+    - 019_live_r_2023
   20:
-  - 020_school_summer-2023
-  - 020_school_winter-2023
-  - 020_casual-2023
-  - 020_live_r_2023
+    - 020_school_summer-2023
+    - 020_school_winter-2023
+    - 020_casual-2023
+    - 020_live_r_2023
   21:
-  - 021_school_summer_s2
-  - 021_school_winter_s2
-  - 021_casual-2023
-  - 021_live_r_2023
+    - 021_school_summer_s2
+    - 021_school_winter_s2
+    - 021_casual-2023
+    - 021_live_r_2023
   22:
-  - 022_school_summer
-  - 022_school_winter_v3
-  - 022_casual-2023
-  - 022_live_r_2023
+    - 022_school_summer
+    - 022_school_winter_v3
+    - 022_casual-2023
+    - 022_live_r_2023
   23:
-  - 023_school_summer_s2
-  - 023_school_winter_s2
-  - 023_casual-2023
-  - 023_live_r_2023
+    - 023_school_summer_s2
+    - 023_school_winter_s2
+    - 023_casual-2023
+    - 023_live_r_2023
   24:
-  - 024_school_summer-2023
-  - 024_school_winter-2023
-  - 024_casual-2023
-  - 024_live_r_2023
+    - 024_school_summer-2023
+    - 024_school_winter-2023
+    - 024_casual-2023
+    - 024_live_r_2023
   25:
-  - 025_school_summer
-  - 025_school_winter_v3
-  - 025_casual-2023
-  - 025_live_r_2023
+    - 025_school_summer
+    - 025_school_winter_v3
+    - 025_casual-2023
+    - 025_live_r_2023
   26:
-  - 026_school_summer-2023
-  - 026_school_winter-2023
-  - 026_casual-2023
-  - 026_live_r_2023
+    - 026_school_summer-2023
+    - 026_school_winter-2023
+    - 026_casual-2023
+    - 026_live_r_2023
   27:
-  - 027_school_summer-2023
-  - 027_school_winter-2023
-  - 027_casual-2023
-  - 027_live_r_2023
+    - 027_school_summer-2023
+    - 027_school_winter-2023
+    - 027_casual-2023
+    - 027_live_r_2023
   28:
-  - 028_school_summer-2023
-  - 028_school_winter-2023
-  - 028_casual-2023
-  - 028_live_r_2023
+    - 028_school_summer-2023
+    - 028_school_winter-2023
+    - 028_casual-2023
+    - 028_live_r_2023
   29:
-  - 029_school_summer-2023
-  - 029_school_winter-2023
-  - 029_casual-2023
-  - 029_live_r_2023
+    - 029_school_summer-2023
+    - 029_school_winter-2023
+    - 029_casual-2023
+    - 029_live_r_2023
   30:
-  - 030_school_summer-2023
-  - 030_school_winter-2023
-  - 030_casual-2023
-  - 030_live_r_2023
+    - 030_school_summer-2023
+    - 030_school_winter-2023
+    - 030_casual-2023
+    - 030_live_r_2023
   31:
-  - 031_live_r_2023
-  - 031_casual-2023
+    - 031_live_r_2023
+    - 031_casual-2023
   32:
-  - 032_school_summer-2023
-  - 032_school_winter-2023
-  - 032_live_r_2023
-  - 032_casual-2023
+    - 032_school_summer-2023
+    - 032_school_winter-2023
+    - 032_live_r_2023
+    - 032_casual-2023
   33:
-  - 033_school_winter
-  - 033_live_r_2023
-  - 033_casual-2023
+    - 033_school_winter
+    - 033_live_r_2023
+    - 033_casual-2023
   34:
-  - 034_school_winter-2023
-  - 034_live_r_2023
-  - 034_casual-2023
+    - 034_school_winter-2023
+    - 034_live_r_2023
+    - 034_casual-2023
   35:
-  - 035_school_winter-2023
-  - 035_live_r_2023
-  - 035_casual-2023
+    - 035_school_winter-2023
+    - 035_live_r_2023
+    - 035_casual-2023
   36:
-  - 036_school_summer-2023
-  - 036_school_winter-2023
-  - 036_live_default
-  - 036_casual-2023
+    - 036_school_summer-2023
+    - 036_school_winter-2023
+    - 036_live_default
+    - 036_casual-2023
   37:
-  - 037_school_summer-2023
-  - 037_school_winter-2023
-  - 037_live_default
-  - 037_casual-2023
+    - 037_school_summer-2023
+    - 037_school_winter-2023
+    - 037_live_default
+    - 037_casual-2023
   38:
-  - 038_school_summer-2023
-  - 038_school_winter-2023
-  - 038_live_default
-  - 038_casual-2023
-  - 343_event_286_story_01
+    - 038_school_summer-2023
+    - 038_school_winter-2023
+    - 038_live_default
+    - 038_casual-2023
+    - 343_event_286_story_01
   39:
-  - 039_school_summer-2023
-  - 039_school_winter-2023
-  - 039_live_default
-  - 039_casual-2023
+    - 039_school_summer-2023
+    - 039_school_winter-2023
+    - 039_live_default
+    - 039_casual-2023
   40:
-  - 040_school_summer-2023
-  - 040_school_winter-2023
-  - 040_live_default
-  - 040_casual-2023
+    - 040_school_summer-2023
+    - 040_school_winter-2023
+    - 040_live_default
+    - 040_casual-2023
   229:
-  - 229_sumimi
+    - 229_sumimi
   337:
-  - 337_sumimi
-  - 337_school_summer-2023
-  - 337_school_winter-2023
-  - 337_casual-2023
-  - 337_casual-2023_nocap
-  - 337_event_297_story_01
+    - 337_sumimi
+    - 337_school_summer-2023
+    - 337_school_winter-2023
+    - 337_casual-2023
+    - 337_casual-2023_nocap
+    - 337_event_297_story_01
   338:
-  - 338_school_summer-2023
-  - 338_school_winter-2023
-  - 338_casual-2023
-  - 338_event_297_story_01
+    - 338_school_summer-2023
+    - 338_school_winter-2023
+    - 338_casual-2023
+    - 338_event_297_story_01
   339:
-  - 339_school_summer-2023
-  - 339_school_winter-2023
-  - 339_casual-2023
-  - 339_event_297_story_01
+    - 339_school_summer-2023
+    - 339_school_winter-2023
+    - 339_casual-2023
+    - 339_event_297_story_01
   340:
-  - 340_casual-2023
-  - 340_event_297_story_01
+    - 340_casual-2023
+    - 340_event_297_story_01
   341:
-  - 341_jh_school_winter-2023
-  - 341_school_summer-2023
-  - 341_school_winter-2023
-  - 341_casual-2023
-  - 341_event_297_story_01
+    - 341_jh_school_winter-2023
+    - 341_school_summer-2023
+    - 341_school_winter-2023
+    - 341_casual-2023
+    - 341_event_297_story_01
 default_costumes:
   1: 001_casual-2023
   2: 002_casual-2023
@@ -363,115 +363,2949 @@ default_costumes:
   339: 339_casual-2023
   340: 340_casual-2023
   341: 341_casual-2023
-expressions:
-- angry01
-- angry02
-- angry07
-- cry01
-- cry02
-- cry03
-- cry04
-- default
-- idle01
-- kime01
-- odoodo01
-- sad01
-- sad02
-- serious01
-- serious02
-- shame01
-- shame02
-- sigh01
-- sigh02
-- smile01
-- smile02
-- smile03
-- smile04
-- smile05
-- smile06
-- surprised01
-- surprised02
-- thinking01
-- thinking02
-motions:
-- angry01
-- angry02
-- angry03
-- angry04
-- angry05
-- angry06
-- angry07
-- bye01
-- bye02
-- cry01
-- cry02
-- cry03
-- cry04
-- cry05
-- idle01
-- kime01
-- nf01
-- nf02
-- nf03
-- nf04
-- nf05
-- nf_left01
-- nf_right01
-- nnf01
-- nnf02
-- nnf03
-- nnf04
-- nnf05
-- nnf_left01
-- nnf_right01
-- nod01
-- odoodo01
-- sad01
-- sad02
-- serious01
-- serious02
-- shame01
-- shame02
-- sigh01
-- sigh02
-- smile01
-- smile02
-- smile03
-- smile04
-- smile05
-- smile06
-- surprised01
-- surprised02
-- thinking01
-- thinking02
+character_motions:
+  1:
+    [
+      angry01,
+      bye01,
+      cry01,
+      cry02,
+      cry03,
+      eeto01,
+      gattsu01,
+      hukumi01,
+      idle01,
+      idle02,
+      jaan01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      niyaniya01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      nod02,
+      oowarai01,
+      sad01,
+      sad02,
+      scared01,
+      serious01,
+      serious02,
+      shame01,
+      sing01,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      sneeze01,
+      sneeze02,
+      surprised01,
+      surprised02,
+      surprised03,
+      wink01,
+    ]
+  2:
+    [
+      angry01,
+      bye01,
+      cry01,
+      cry03,
+      eeto01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      sleep01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      surprised02,
+      thinking01,
+    ]
+  3:
+    [
+      ando01,
+      angry01,
+      awate01,
+      bye01,
+      cry01,
+      cry03,
+      idle01,
+      idle02,
+      kime01,
+      modesty01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      odoodo02,
+      ranmane01,
+      ranmane02,
+      ranmane03,
+      ranmane04,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+    ]
+  4:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      cry01,
+      cry03,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      surprised02,
+      thinking01,
+      wink01,
+    ]
+  5:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      cry01,
+      cry02,
+      cry03,
+      idle01,
+      idle02,
+      kime01,
+      lonely01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      pui01,
+      sad01,
+      sad02,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      sneeze01,
+      stare01,
+      stare02,
+      surprised01,
+      thinking01,
+    ]
+  6:
+    [
+      angry01,
+      angry02,
+      bye01,
+      cry01,
+      cry02,
+      eeto01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      pui01,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      sigh01,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      smile03,
+      sneeze01,
+      surprised01,
+      surprised02,
+      thinking01,
+    ]
+  7:
+    [
+      angry01,
+      bye01,
+      cry01,
+      cry02,
+      eeto01,
+      eeto02,
+      gattsu01,
+      idle01,
+      idle02,
+      inspiration01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      niyaniya01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shake01,
+      shake02,
+      shame01,
+      sleep01,
+      smile01,
+      smile02,
+      smile03,
+      sneeze01,
+      surprised01,
+      wink01,
+    ]
+  8:
+    [
+      angry01,
+      angry02,
+      awate01,
+      bye01,
+      cry01,
+      cry02,
+      expectation01,
+      gattsu01,
+      handheld01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      sad01,
+      sad02,
+      serious01,
+      shake01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      sneeze01,
+      strange01,
+      surprised01,
+      thinking01,
+      unfight01,
+      wink01,
+    ]
+  9:
+    [
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      cry01,
+      cry02,
+      fighting01,
+      fighting02,
+      idle01,
+      idle02,
+      kime01,
+      kime02,
+      kime03,
+      kime04,
+      kobushi01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      simizimi01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      sneeze01,
+      surprised01,
+      surprised02,
+      thinking01,
+      thinking02,
+      wink01,
+    ]
+  10:
+    [
+      ando01,
+      angry01,
+      awate01,
+      bye01,
+      cry01,
+      cry02,
+      eeto01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      odoodo01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      smile03,
+      sneeze01,
+      sneeze02,
+      surprised01,
+      thinking01,
+    ]
+  11:
+    [
+      angry01,
+      bye01,
+      cry01,
+      gattsu01,
+      humming01,
+      idle01,
+      idle02,
+      jaan01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      nod02,
+      oowarai01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      shame01,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      surprised01,
+      wink01,
+      wondering01,
+    ]
+  12:
+    [
+      angry01,
+      bye01,
+      cry01,
+      idle01,
+      idle02,
+      kime01,
+      kime02,
+      kime03,
+      kime04,
+      kime05,
+      natural01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      smile01,
+      smile04,
+      surprised01,
+      surprised02,
+      wink01,
+      worry01,
+      worry02,
+    ]
+  13:
+    [
+      angry01,
+      bye01,
+      cry01,
+      eeto01,
+      gattsu01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      odoodo01,
+      pui01,
+      sad01,
+      serious01,
+      shame01,
+      sleep01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      wink01,
+    ]
+  14:
+    [
+      angry01,
+      awate01,
+      awate02,
+      bye01,
+      cry01,
+      idle01,
+      idle02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      odoodo02,
+      sad01,
+      sad02,
+      sad03,
+      sad04,
+      serious01,
+      serious02,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      smile04,
+    ]
+  15:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      angry05,
+      bye01,
+      cry01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      pui01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      shame01,
+      shame02,
+      shame03,
+      sigh01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      talk01,
+      smile06,
+    ]
+  16:
+    [
+      angry01,
+      angry02,
+      awate01,
+      bye01,
+      cry01,
+      cry02,
+      cry03,
+      eeto01,
+      gattsu01,
+      idle01,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      odoodo01_shame,
+      odoodo02,
+      odoodo02_shame,
+      sad01,
+      sad02,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      sneeze01,
+      strange01,
+      surprised01,
+      wink01,
+    ]
+  17:
+    [
+      angry01,
+      angry02,
+      bye01,
+      chuni02,
+      cry01,
+      cry03,
+      eeto01,
+      gattsu01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      niyaniya01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      oowarai01,
+      sad01,
+      sad02,
+      sayomane01,
+      sayomane02,
+      serious01,
+      serious02,
+      serious03,
+      shame01,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      wink01,
+    ]
+  18:
+    [
+      angry01,
+      angry02,
+      bye01,
+      cry01,
+      idle01,
+      idle02,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      pui01,
+      sad01,
+      serious01,
+      shame01,
+      sigh01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      sneeze01,
+      surprised01,
+      thinking01,
+    ]
+  19:
+    [
+      angry01,
+      awate01,
+      bye01,
+      cry01,
+      cry02,
+      cry03,
+      eeto01,
+      gattsu01,
+      idle01,
+      idle02,
+      kime01,
+      kime02,
+      kime03,
+      kime04,
+      nf01,
+      nf01_cry,
+      nf02,
+      nf03,
+      nf03_cry,
+      nf04,
+      nf05,
+      nf05_cry,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      odoodo01,
+      odoodo01_cry,
+      sad01,
+      serious01,
+      serious01_cry,
+      shame01,
+      shame02,
+      sleep01,
+      smile01,
+      smile02,
+      smile02_cry,
+      smile03,
+      smile03_cry,
+      smile04,
+      strange01,
+      surprised01,
+      talk01,
+      talk02,
+      thinking01,
+      wink01,
+    ]
+  20:
+    [
+      angry01,
+      bushido01,
+      bye01,
+      cry01,
+      eeto01,
+      gattsu01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      talk01,
+      wink01,
+    ]
+  21:
+    [
+      angry01,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      idle01,
+      idle02,
+      kime01,
+      nekodere01,
+      nekodere02,
+      nf01,
+      nf01_openeye,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf01_openeye,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      odoodo01,
+      pui01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      sing01,
+      sing02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      thinking01,
+      thinking02,
+      thinking03,
+    ]
+  22:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf01_openeye,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf01_openeye,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      pui01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      serious03,
+      shame01,
+      sigh01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      surprised02,
+      thinking01,
+      thinking02,
+    ]
+  23:
+    [
+      angry01,
+      bye01,
+      cry01,
+      eeto01,
+      gattsu01,
+      idle01,
+      kime01,
+      kime02,
+      nf01,
+      nf01_openeye,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf01_openeye,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      thinking01,
+      uwame01,
+      wink01,
+      sys-urafes-YK-001,
+      sys-urafes-YK-002,
+      sys-urafes-YK-003,
+      sys-urafes-YK-004,
+      sys-urafes-YK-005,
+      sys-urafes-YK-006,
+      sys-urafes-YK-007,
+      sys-urafes-YK-008,
+    ]
+  24:
+    [
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      chuni01,
+      chuni02,
+      chuni03,
+      cry01,
+      cry02,
+      cry03,
+      eeto01,
+      exciting01,
+      gattsu01,
+      gattsu02,
+      idle01,
+      idle02,
+      jaan01,
+      kime01,
+      nf01,
+      nf01_openeye,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf01_openeye,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      sad01,
+      sad02,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      surprised01,
+    ]
+  25:
+    [
+      angry01,
+      bye01,
+      chuni02,
+      chuni03,
+      cry01,
+      gattsu01,
+      idle01,
+      idle02,
+      kime01,
+      nf01,
+      nf01_openeye,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf01_openeye,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      odoodo02,
+      odoodo03,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      shame03,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      surprised01,
+      talking01,
+      thinking01,
+      sys-urafes-AK-001,
+      sys-urafes-AK-002,
+      sys-urafes-AK-003,
+      sys-urafes-AK-004,
+      sys-urafes-AK-005,
+      sys-urafes-AK-006,
+      sys-urafes-AK-007,
+      sys-urafes-AK-008,
+    ]
+  26:
+    [
+      angry01,
+      bye01,
+      cry01,
+      idle01,
+      kandou01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      thinking01,
+      uziuzi01,
+      uziuzi02,
+      uziuzi03,
+      uziuzi04,
+      sys-urafes-KM-005,
+      sys-urafes-KM-006,
+      sys-urafes-KM-007,
+      sys-urafes-KM-008,
+    ]
+  27:
+    [
+      angry01,
+      cry01,
+      idle01,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      pui01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      surprised02,
+      wink01,
+      wink02,
+    ]
+  28:
+    [
+      angry01,
+      awate01,
+      awkward01,
+      cry01,
+      eeto01,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      sad01,
+      sad02,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      surprised01,
+      thinking01,
+    ]
+  29:
+    [
+      smile05,
+      angry01,
+      angry02,
+      awate01,
+      awate02,
+      awate03,
+      cry01,
+      fight01,
+      idle01,
+      idle02,
+      kime01,
+      kime02,
+      kime03,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      surprised02,
+      sys-urafes-NA-001,
+      sys-urafes-NA-002,
+      sys-urafes-NA-003,
+      sys-urafes-NA-004,
+      sys-urafes-NA-005,
+      sys-urafes-NA-006,
+      sys-urafes-NA-007,
+      sys-urafes-NA-008,
+    ]
+  30:
+    [
+      angry01,
+      bye01,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      sigh01,
+      sigh02,
+      smile01,
+      smile03,
+      surprised01,
+      thinking01,
+    ]
+  31:
+    [
+      angry01,
+      cry01,
+      idle01,
+      kime01,
+      mitore01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      shame01,
+      sing01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      sys-urafes-TE-001,
+      sys-urafes-TE-002,
+      sys-urafes-TE-003,
+      sys-urafes-TE-004,
+      sys-urafes-TE-005,
+      sys-urafes-TE-006,
+      sys-urafes-TE-007,
+      sys-urafes-TE-008,
+    ]
+  32:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      awate01,
+      bye01,
+      cry01,
+      cry03,
+      eeto01,
+      idle01,
+      kime01,
+      kime02,
+      kime03,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      odoodo02,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      shame01,
+      sleep01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      sys-urafes-KM-001,
+      sys-urafes-KM-002,
+      sys-urafes-KM-003,
+      sys-urafes-KM-004,
+    ]
+  33:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      cry01,
+      cry02,
+      eeto01,
+      eeto02,
+      gattsu01,
+      gattsu02,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      serious03,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+      surprised02,
+      wink01,
+    ]
+  34:
+    [
+      akirame01,
+      angry01,
+      bye01,
+      cry01,
+      cry02,
+      happy01,
+      happy02,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      shame02,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+      smile03,
+    ]
+  35:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      awate01,
+      bye01,
+      cry01,
+      cry02,
+      eeto01,
+      idle01,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sleep01,
+      sleep02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      sys-urafes-PR-001,
+      sys-urafes-PR-002,
+      sys-urafes-PR-003,
+      sys-urafes-PR-004,
+      sys-urafes-PR-05,
+      sys-urafes-PR-006,
+      sys-urafes-PR-007,
+      sys-urafes-PR-008,
+    ]
+  36:
+    [
+      angry01,
+      angry02,
+      bye01,
+      cry01,
+      cry02,
+      idle01,
+      kandou01,
+      kandou02,
+      kandou03,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      sad03,
+      sad04,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sing01,
+      sing02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      thinking01,
+      thinking02,
+      cry03,
+      cry04,
+      cry05,
+    ]
+  37:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      cry01,
+      cry02,
+      idle01,
+      kandou01,
+      kandou02,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      thinking01,
+      thinking02,
+      thinking03,
+      wink01,
+    ]
+  38:
+    [
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      cry01,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      niya01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      sigh01,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+      thinking01,
+    ]
+  39:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      idle01,
+      kandou01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      serious03,
+      serious04,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      thinking01,
+      thinking02,
+      wink01,
+      angry04,
+      smile06,
+      scared01,
+      angry05,
+      angry06,
+    ]
+  40:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      idle01,
+      kandou01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      pui01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sigh01,
+      sigh02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      surprised02,
+      thinking01,
+    ]
+  229:
+    [
+      angry01,
+      bye01,
+      cry01,
+      eeto01,
+      gattsu01,
+      idle01,
+      jaan01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  337:
+    [
+      angry01,
+      cry01,
+      idle01,
+      kime01,
+      mitore01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  338:
+    [
+      angry01,
+      bow,
+      bye01,
+      idle01,
+      kime01,
+      mts_angry01,
+      mts_angry02,
+      mts_angry03,
+      mts_angry04,
+      mts_cry01,
+      mts_idle01,
+      mts_nf01,
+      mts_nf02,
+      mts_nf03,
+      mts_nf04,
+      mts_nf05,
+      mts_nf_left01,
+      mts_nf_right01,
+      mts_nnf01,
+      mts_nnf02,
+      mts_nnf03,
+      mts_nnf04,
+      mts_nnf05,
+      mts_nnf_left01,
+      mts_nnf_right01,
+      mts_sad01,
+      mts_sad02,
+      mts_sad03,
+      mts_smile01,
+      mts_smile02,
+      mts_smile03,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      odoodo01,
+      sad01,
+      sad02,
+      sad03,
+      sad04,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+      surprised02,
+      thinking01,
+    ]
+  339:
+    [
+      angry01,
+      angry02,
+      bye01,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      sigh01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      thinking01,
+    ]
+  340:
+    [
+      angry01,
+      bored,
+      bye01,
+      cry01,
+      idle01,
+      kime01,
+      kime02,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      niyake,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      surprised02,
+    ]
+  341:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      angry05,
+      angry06,
+      angry07,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      cry03,
+      cry04,
+      cry05,
+      cry06,
+      idle01,
+      kime01,
+      nf01,
+      nf02,
+      nf03,
+      nf04,
+      nf05,
+      nf_left01,
+      nf_right01,
+      nnf01,
+      nnf02,
+      nnf03,
+      nnf04,
+      nnf05,
+      nnf_left01,
+      nnf_right01,
+      nod01,
+      odoodo01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sigh01,
+      sigh02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      smile07,
+      surprised01,
+      surprised02,
+      thinking01,
+      thinking02,
+    ]
+character_expressions:
+  1:
+    [
+      angry01,
+      cry01,
+      cry03,
+      default,
+      f01,
+      f02,
+      f03,
+      f04,
+      f05,
+      f06,
+      f07,
+      f08,
+      f09,
+      f10,
+      f11,
+      f12,
+      f13,
+      f14,
+      f15,
+      f16,
+      f17,
+      f18,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  2:
+    [
+      angry01,
+      cry01,
+      cry03,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      tae_default,
+      tae_sad,
+      tae_shame,
+      tae_smile01,
+      tae_smile02,
+      tae_special01,
+      tae_strain,
+      tae_surprised,
+    ]
+  3:
+    [
+      ando01,
+      angry01,
+      cry01,
+      cry03,
+      default,
+      f01,
+      f02,
+      f03,
+      f04,
+      f05,
+      f06,
+      f07,
+      f08,
+      f09,
+      idle01,
+      kime01,
+      odoodo02,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  4:
+    [
+      angry01,
+      cry01,
+      cry03,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      saya_cry,
+      saya_default,
+      saya_smile02,
+      saya_surprised,
+      saya_wonder,
+      saya_worry,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprise01,
+      surprised01,
+    ]
+  5:
+    [
+      angry01,
+      angry02,
+      arisa_cry,
+      arisa_default,
+      arisa_panic,
+      arisa_serious,
+      arisa_smile02,
+      arisa_smile03,
+      cry01,
+      cry03,
+      default,
+      idle01,
+      kime01,
+      odoodo01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  6:
+    [
+      angry01,
+      cry01,
+      cry02,
+      cry03,
+      default,
+      idle01,
+      kime01,
+      pui01,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  7:
+    [
+      angry01,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  8:
+    [
+      angry01,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  9:
+    [
+      angry01,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kime01,
+      kime02,
+      sad01,
+      serious01,
+      simizimi01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  10:
+    [
+      angry01,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  11:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      kokoro_default,
+      kokoro_sad,
+      kokoro_serious,
+      kokoro_smile01,
+      kokoro_smile02,
+      kokoro_special,
+      kokoro_suprised,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      suprised01,
+    ]
+  12:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kaoru_default,
+      kaoru_sad,
+      kaoru_smile01,
+      kaoru_special,
+      kaoru_special02,
+      kaoru_surprised,
+      kime01,
+      kime02,
+      kime04,
+      sad01,
+      serious01,
+      smile01,
+      surprised01,
+      worry01,
+    ]
+  13:
+    [
+      angry01,
+      cry01,
+      default,
+      hagumi_default,
+      hagumi_serious,
+      hagumi_smile01,
+      hagumi_smile02,
+      hagumi_special,
+      hagumi_surprised,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+    ]
+  14:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kanon_default,
+      kanon_sad,
+      kanon_serious,
+      kanon_smile01,
+      kanon_special,
+      kanon_surprised,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  15:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      misaki_default,
+      misaki_sad,
+      misaki_smile01,
+      misaki_special01,
+      misaki_special02,
+      misaki_special03,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+      smile06,
+      smile04,
+    ]
+  16:
+    [
+      angry01,
+      aya_cry,
+      aya_default,
+      aya_smile02,
+      aya_special01,
+      aya_special02,
+      aya_surprised,
+      cry01,
+      cry03,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  17:
+    [
+      angry01,
+      cry01,
+      default,
+      hina_default,
+      hina_smile02,
+      hina_special01,
+      hina_special02,
+      hina_special03,
+      hina_special04,
+      hina_special05,
+      hina_surprised,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  18:
+    [
+      angry02,
+      chisato_default,
+      chisato_smile01,
+      chisato_smile02,
+      chisato_special01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  19:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      maya_default,
+      maya_serious,
+      maya_smile02,
+      maya_special01,
+      maya_special02,
+      maya_special03,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+    ]
+  20:
+    [
+      angry01,
+      cry01,
+      default,
+      eve_default,
+      eve_serious,
+      eve_smile02,
+      eve_special01,
+      eve_special02,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  21:
+    [
+      angry01,
+      cry02,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile03,
+      surprised01,
+      yukina_default,
+      yukina_serious,
+      yukina_special,
+      yukina_strain,
+      yukina_surprised,
+      yukina_worry,
+    ]
+  22:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      sayo_default,
+      sayo_sad,
+      sayo_serious01,
+      sayo_serious02,
+      sayo_surprised,
+      sayo_worry,
+      sayo_worry2,
+      serious01,
+      smile01,
+      smile03,
+      surprised01,
+    ]
+  23:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      lisa_default,
+      lisa_serious,
+      lisa_smile01,
+      lisa_smile02,
+      lisa_special01,
+      lisa_special02,
+      lisa_surprised,
+      lisa_worry,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  24:
+    [
+      ako_default,
+      ako_sad,
+      ako_serious,
+      ako_smile02,
+      ako_special01,
+      ako_special02,
+      ako_surprised,
+      ako_worry,
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  25:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      rinko_default,
+      rinko_sad,
+      rinko_shame,
+      rinko_smile01,
+      rinko_surprised,
+      rinko_worry,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  26:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  27:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      pui01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  28:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  29:
+    [
+      angry01,
+      angry02,
+      awate01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  30:
+    [
+      angry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile03,
+      surprised01,
+    ]
+  31:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  32:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  33:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      surprised01,
+    ]
+  34:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      kime02,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      surprised01,
+      smile03,
+    ]
+  35:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      surprised01,
+    ]
+  36:
+    [
+      angry01,
+      angry02,
+      bye01,
+      cry01,
+      cry02,
+      default,
+      idle,
+      kandou01,
+      kandou02,
+      kandou03,
+      kime01,
+      kime02,
+      sad01,
+      sad02,
+      sad03,
+      sad04,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sing01,
+      sing02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      thinking01,
+      thinking02,
+      cry04,
+    ]
+  37:
+    [
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kandou01,
+      kandou02,
+      kime01,
+      kime02,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      thinking01,
+      thinking02,
+      thinking03,
+      wink01,
+    ]
+  38:
+    [
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      niya01,
+      sad01,
+      serious01,
+      serious02,
+      shame01,
+      sigh01,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+      thinking01,
+    ]
+  39:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kandou01,
+      kime01,
+      odoodo01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      serious03,
+      serious04,
+      shame01,
+      shame02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+      thinking01,
+      thinking02,
+      wink01,
+      angry04,
+      smile06,
+    ]
+  40:
+    [
+      ando01,
+      angry01,
+      angry02,
+      angry03,
+      angry04,
+      bye01,
+      bye02,
+      cry01,
+      cry02,
+      default,
+      idle01,
+      kandou01,
+      kime01,
+      pui01,
+      sad01,
+      sad02,
+      sad03,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sigh01,
+      sigh02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      surprised01,
+      surprised02,
+      thinking01,
+    ]
+  229:
+    [
+      mana_angry01,
+      mana_cry01,
+      mana_default,
+      mana_idle01,
+      mana_sad01,
+      mana_smile01,
+      mana_smile02,
+      mana_smile03,
+      mana_surprised01,
+    ]
+  337:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      kime01,
+      sad01,
+      serious01,
+      shame01,
+      smile01,
+      smile02,
+      surprised01,
+    ]
+  338:
+    [
+      angry01,
+      default,
+      idle01,
+      mts_angry01,
+      mts_angry02,
+      mts_cry01,
+      mts_default,
+      mts_sad01,
+      mts_sad02,
+      mts_sad03,
+      mts_smile01,
+      mts_smile02,
+      sad01,
+      sad04,
+      smile01,
+      smile02,
+      smile04,
+      surprised01,
+    ]
+  339:
+    [
+      angry01,
+      default,
+      idle01,
+      sad01,
+      serious01,
+      sigh01,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      surprised01,
+    ]
+  340:
+    [
+      angry01,
+      cry01,
+      default,
+      idle01,
+      nyamu_bored,
+      nyamu_niyake,
+      sad01,
+      serious01,
+      smile01,
+      smile02,
+      smile03,
+      surprised01,
+    ]
+  341:
+    [
+      angry01,
+      angry02,
+      angry07,
+      cry01,
+      cry02,
+      cry03,
+      cry04,
+      default,
+      idle01,
+      kime01,
+      odoodo01,
+      sad01,
+      sad02,
+      serious01,
+      serious02,
+      shame01,
+      shame02,
+      sigh01,
+      sigh02,
+      smile01,
+      smile02,
+      smile03,
+      smile04,
+      smile05,
+      smile06,
+      surprised01,
+      surprised02,
+      thinking01,
+      thinking02,
+    ]
 parsing:
-  default_narrator_name: ' '
+  default_narrator_name: " "
   max_speaker_name_length: 50
 patterns:
   speaker_pattern: ^(.*?)\s*[：:]\s*(.*)$
 quotes:
   quote_categories:
     中文单引号 ‘...’:
-    - ‘
-    - ’
+      - ‘
+      - ’
     中文引号 “...”:
-    - “
-    - ”
+      - “
+      - ”
     日文书名号 『...』:
-    - 『
-    - 』
+      - 『
+      - 』
     日文引号 「...」:
-    - 「
-    - 」
+      - 「
+      - 」
     英文单引号 '...':
-    - ''''
-    - ''''
+      - "'"
+      - "'"
     英文双引号 "...":
-    - '"'
-    - '"'
+      - '"'
+      - '"'
   quote_pairs:
     '"': '"'
-    '''': ''''
+    "'": "'"
     ‘: ’
     “: ”
     「: 」

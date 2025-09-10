@@ -60,10 +60,8 @@ export const configManager = {
   async loadConfig() {
     try {
       const response = await axios.get("/api/config");
+      state.set("configData", response.data); // 存储从后端获取的所有配置数据
       this.defaultConfig = response.data.character_mapping;
-      state.set("quotesConfig", response.data.quotes_config);
-      state.set("motionsConfig", response.data.motions);
-      state.set("expressionsConfig", response.data.expressions);
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
@@ -72,6 +70,7 @@ export const configManager = {
         state.set("currentConfig", { ...this.defaultConfig });
         console.log("使用默认配置");
       }
+      
       quoteManager.renderQuoteOptions();
       motionManager.init(); // 初始化 motionManager
       expressionManager.init(); // 初始化 expressionManager

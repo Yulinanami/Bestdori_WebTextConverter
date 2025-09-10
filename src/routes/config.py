@@ -15,8 +15,8 @@ def get_config():
                 "character_mapping": config_manager.get_character_mapping(),
                 "parsing_config": config_manager.get_parsing_config(),
                 "quotes_config": config_manager.get_quotes_config(),
-                "motions": config_manager.get_motions_config(),
-                "expressions": config_manager.get_expressions_config(),
+                "character_motions": config_manager.get_character_motions(),
+                "character_expressions": config_manager.get_character_expressions(),
             }
         )
     except Exception as e:

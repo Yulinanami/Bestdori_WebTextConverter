@@ -499,8 +499,8 @@ class ConfigManager:
     def get_available_costumes(self) -> Dict[int, List[str]]:
         return self.config.get("costume_mapping", {})
     
-    def get_motions_config(self) -> List[str]:
-        return self.config.get("motions", [])
+    def get_character_motions(self) -> Dict[int, List[str]]:
+        return self.config.get("character_motions", {})
 
-    def get_expressions_config(self) -> List[str]:
-        return self.config.get("expressions", [])
+    def get_character_expressions(self) -> Dict[int, List[str]]:
+        return self.config.get("character_expressions", {})
