@@ -358,9 +358,9 @@ export const speakerEditor = {
       group: {
         name: 'shared-speakers',
         pull: 'clone',
-        put: false
+        put: true // 允许接收拖放，以便触发 onAdd 来执行删除逻辑
       },
-      sort: false,
+      sort: false, // 保持列表顺序固定
       onStart: () => {
         // 当拖拽开始时，在 window 上监听鼠标移动事件
         document.addEventListener('dragover', this.handleDragScrolling);
@@ -374,9 +374,15 @@ export const speakerEditor = {
       onAdd: (evt) => {
         const cardItem = evt.item;
         const actionId = cardItem.dataset.id;
+        
+        // 如果拖过来的是一个有 actionId 的对话卡片，就执行删除说话人的操作
         if (actionId) {
           this.removeAllSpeakersFromAction(actionId);
         }
+
+        // 关键：无论拖过来的是什么，都立即将其从右侧列表中移除
+        // 这就实现了“只触发删除，但不真正添加”的效果
+        cardItem.remove(); 
       }
     });
 
@@ -389,15 +395,12 @@ export const speakerEditor = {
         document.addEventListener('dragover', this.handleDragScrolling);
       },
       onEnd: (evt) => {
-        // ================== Bug修复：在这里添加清理代码 ==================
         document.removeEventListener('dragover', this.handleDragScrolling);
         clearInterval(this.scrollInterval);
         this.scrollInterval = null;
-        // ========================== 清理代码结束 ==========================
 
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
             const { oldIndex, newIndex } = evt;
-            // 将上下文（索引）捕获
             this._executeCommand((currentState, ctx) => {
                 const [movedItem] = currentState.actions.splice(ctx.oldIndex, 1);
                 currentState.actions.splice(ctx.newIndex, 0, movedItem);
