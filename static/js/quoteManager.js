@@ -36,15 +36,19 @@ export const quoteManager = {
   // 渲染引号选项
   renderQuoteOptions() {
     const container = document.getElementById("quoteOptionsContainer");
+    if (!container) return; // 增加安全检查
     container.innerHTML = "";
+    
     this.loadCustomQuotes();
     const fragment = document.createDocumentFragment();
-    if (
-      state.get("quotesConfig") &&
-      state.get("quotesConfig").quote_categories
-    ) {
-      Object.entries(state.get("quotesConfig").quote_categories).forEach(
+
+    // ================== 核心修改：从新的 state.configData 中读取数据 ==================
+    const quotesConfig = state.get("configData")?.quotes_config;
+
+    if (quotesConfig && quotesConfig.quote_categories) {
+      Object.entries(quotesConfig.quote_categories).forEach(
         ([categoryName, chars]) => {
+    // ================================= 修改结束 =================================
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
           const element = this.createQuoteOptionElement(
             checkboxId,
@@ -57,6 +61,7 @@ export const quoteManager = {
         }
       );
     }
+
     state.get("customQuotes").forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
       const element = this.createQuoteOptionElement(
@@ -68,6 +73,7 @@ export const quoteManager = {
       );
       fragment.appendChild(element);
     });
+    
     container.appendChild(fragment);
   },
 
