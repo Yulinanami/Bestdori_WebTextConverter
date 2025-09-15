@@ -482,7 +482,7 @@ export const expressionEditor = {
         configManager.updateConfigAvatar({ querySelector: () => avatarDiv }, char.id, char.name);
         tag.querySelector('.character-name').textContent = char.name;
 
-        const currentState = action.characterStates?.[char.name] || {};
+        const currentState = action.characterStates?.[char.id] || {};
         const currentMotion = currentState.motion || '--';
         const currentExpression = currentState.expression || '--';
         
