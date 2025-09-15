@@ -42,6 +42,14 @@ class GenericConfigManager {
     }
   }
 
+  getAllDefaultItems() {
+    const defaultItems = new Set();
+    Object.values(this.characterItems).forEach(list => {
+        list.forEach(item => defaultItems.add(item));
+    });
+    return defaultItems;
+  }
+
   /**
    * 获取指定角色可用的所有项目列表（默认 + 全局自定义）
    * @param {number | string} characterId - 角色的 ID
@@ -53,11 +61,6 @@ class GenericConfigManager {
     return Array.from(new Set([...defaultItems, ...this.customItems])).sort();
   }
 
-  /**
-   * 获取所有已知的项目（所有角色的默认项 + 全局自定义项）
-   * 主要用于编辑器资源库的初始显示
-   * @returns {string[]} - 所有已知项目的去重排序列表
-   */
   getAllKnownItems() {
     const allItems = new Set(this.customItems);
     Object.values(this.characterItems).forEach(list => {
