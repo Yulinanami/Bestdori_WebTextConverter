@@ -672,13 +672,11 @@ _addTempItem(type) {
       ui.showStatus(`${manager.name}ID不能为空！`, "error");
       return;
     }
-
-    const allItems = new Set([...manager.getAvailableItems(), ...tempList]);
+    const allItems = new Set([...manager.getAllKnownItems(), ...tempList]);
     if (allItems.has(trimmedId)) {
       ui.showStatus(`该${manager.name}ID已存在！`, "error");
       return;
     }
-
     tempList.push(trimmedId);
     input.value = "";
     this.renderLibraries();

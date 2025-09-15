@@ -78,9 +78,6 @@ export const motionExpressionEditor = {
     listContainer.appendChild(fragment);
   },
 
-  /**
-   * --- 3. 修改添加/删除逻辑，只操作临时状态 ---
-   */
   addItem(type) {
     const isMotion = type === 'motion';
     const input = document.getElementById(isMotion ? 'customMotionInput' : 'customExpressionInput');
@@ -92,7 +89,9 @@ export const motionExpressionEditor = {
       ui.showStatus(`${manager.name}ID不能为空！`, "error");
       return;
     }
-    if (manager.defaultItems.includes(trimmedId) || tempList.includes(trimmedId)) {
+
+    const allKnownItems = new Set(manager.getAllKnownItems());
+    if (allKnownItems.has(trimmedId) || tempList.includes(trimmedId)) {
       ui.showStatus(`该${manager.name}ID已存在！`, "error");
       return;
     }
