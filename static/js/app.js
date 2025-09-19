@@ -11,7 +11,6 @@ import { configManager } from "./configManager.js";
 import { converter } from "./converter.js";
 import { quoteManager } from "./quoteManager.js";
 import { dialoguePreview } from "./dialoguePreview.js";
-import { batchProcessor } from "./batchProcessor.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { speakerEditor } from "./speakerEditor.js";
@@ -227,32 +226,6 @@ function bindClassicViewEvents() {
   document
     .getElementById("helpBtn")
     .addEventListener("click", () => ui.openModal("helpModal"));
-
-  // 批量处理
-  document
-    .getElementById("batchProcessBtn")
-    .addEventListener(
-      "click",
-      batchProcessor.openBatchModal.bind(batchProcessor)
-    );
-  document
-    .getElementById("batchFileInput")
-    .addEventListener(
-      "change",
-      batchProcessor.updateBatchFileList.bind(batchProcessor)
-    );
-  document
-    .getElementById("startBatchBtn")
-    .addEventListener(
-      "click",
-      batchProcessor.startBatchConversion.bind(batchProcessor)
-    );
-  document
-    .getElementById("downloadBatchResultBtn")
-    .addEventListener(
-      "click",
-      batchProcessor.handleBatchDownload.bind(batchProcessor)
-    );
 
   document.getElementById("inputText").addEventListener("input", (e) => {
     if (state.get('projectFile')) {

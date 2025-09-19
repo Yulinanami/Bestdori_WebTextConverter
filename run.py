@@ -10,14 +10,8 @@ app = create_app()
 
 
 def cleanup():
-    print("正在关闭执行器...")
-    executor = app.config.get("EXECUTOR")
-    batch_processor = app.config.get("BATCH_PROCESSOR")
-    if executor:
-        executor.shutdown(wait=True)
-    if batch_processor and hasattr(batch_processor, "process_pool"):
-        batch_processor.process_pool.shutdown(wait=True, cancel_futures=True)
-    print("执行器已关闭。")
+    print("服务器正在关闭...")
+    print("清理完成。")
 
 
 def open_browser():

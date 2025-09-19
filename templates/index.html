@@ -651,9 +651,6 @@
                 对话预览
               </button>
               <button class="btn btn-secondary" id="configBtn">配置管理</button>
-              <button class="btn btn-secondary" id="batchProcessBtn">
-                批量处理
-              </button>
             </div>
 
             <!-- 进度条容器 -->
@@ -826,90 +823,6 @@
             </div>
 
             <div id="costumeList"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 批量处理模态框 -->
-      <div class="modal" id="batchConvertModal">
-        <div class="modal-content" style="max-width: 800px">
-          <div class="modal-header">
-            <div class="modal-title">批量处理文件</div>
-            <button class="modal-close" data-modal-id="batchConvertModal">
-              ×
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label"
-                >选择一个或多个文件进行批量转换（支持 .txt, .docx, .md）:</label
-              >
-              <input
-                type="file"
-                id="batchFileInput"
-                class="form-input"
-                multiple
-                accept=".txt,.docx,.md"
-              />
-              <ul
-                id="batchFileList"
-                style="
-                  list-style-type: none;
-                  margin-top: 10px;
-                  max-height: 150px;
-                  overflow-y: auto;
-                "
-              ></ul>
-            </div>
-
-            <div
-              class="form-group"
-              id="batchProgressSection"
-              style="display: none"
-            >
-              <label class="form-label" id="batchStatusText">正在处理...</label>
-              <div class="progress-bar" style="height: 12px">
-                <div
-                  class="progress-fill"
-                  id="batchProgressBar"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-
-            <div class="form-group" id="batchLogSection" style="display: none">
-              <label class="form-label">处理日志:</label>
-              <div
-                id="batchLogOutput"
-                class="result-content"
-                style="
-                  max-height: 200px;
-                  font-size: 0.8rem;
-                  background: #f7fafc;
-                  color: #4a5568;
-                "
-              ></div>
-            </div>
-
-            <div style="text-align: right">
-              <button
-                class="btn btn-secondary btn-modal-close"
-                data-modal-id="batchConvertModal"
-                style="margin-right: 10px"
-              >
-                取消
-              </button>
-              <button class="btn btn-primary" id="startBatchBtn">
-                开始批量转换
-              </button>
-              <button
-                class="btn btn-success"
-                id="downloadBatchResultBtn"
-                style="display: none"
-              >
-                下载全部结果(.zip)
-              </button>
-            </div>
           </div>
         </div>
       </div>
