@@ -1,10 +1,7 @@
-// static/js/converter.js
-
 // 文本转换管理
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
-import { dialoguePreview } from "./dialoguePreview.js";
 
 /**
  * 一个辅助函数，根据纯文本动态创建一个临时的项目文件对象。
@@ -12,31 +9,39 @@ import { dialoguePreview } from "./dialoguePreview.js";
  * @returns {object} - 临时的项目文件对象.
  */
 function createProjectFileFromText(text) {
-    const segments = text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
-    const characterMap = new Map(Object.entries(state.get("currentConfig")).map(([name, ids]) => [name, { characterId: ids[0], name: name }]));
+  const segments = text
+    .split(/\n\s*\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const characterMap = new Map(
+    Object.entries(state.get("currentConfig")).map(([name, ids]) => [
+      name,
+      { characterId: ids[0], name: name },
+    ])
+  );
 
-    return {
-      version: "1.0",
-      actions: segments.map((segmentText, index) => {
-        let speakers = [];
-        let cleanText = segmentText;
-        const match = segmentText.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-        if (match) {
-            const potentialSpeakerName = match[1].trim();
-            if (characterMap.has(potentialSpeakerName)) {
-                speakers.push(characterMap.get(potentialSpeakerName));
-                cleanText = match[2].trim();
-            }
+  return {
+    version: "1.0",
+    actions: segments.map((segmentText, index) => {
+      let speakers = [];
+      let cleanText = segmentText;
+      const match = segmentText.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+      if (match) {
+        const potentialSpeakerName = match[1].trim();
+        if (characterMap.has(potentialSpeakerName)) {
+          speakers.push(characterMap.get(potentialSpeakerName));
+          cleanText = match[2].trim();
         }
-        return {
-          id: `action-id-${Date.now()}-${index}`,
-          type: "talk",
-          text: cleanText,
-          speakers: speakers,
-          characterStates: {}
-        };
-      })
-    };
+      }
+      return {
+        id: `action-id-${Date.now()}-${index}`,
+        type: "talk",
+        text: cleanText,
+        speakers: speakers,
+        characterStates: {},
+      };
+    }),
+  };
 }
 
 export const converter = {
@@ -46,20 +51,24 @@ export const converter = {
   async convertText() {
     let projectFileToConvert;
 
-    if (state.get('projectFile')) {
-        projectFileToConvert = state.get('projectFile');
+    if (state.get("projectFile")) {
+      projectFileToConvert = state.get("projectFile");
     } else {
-        const inputText = document.getElementById("inputText").value.trim();
-        if (!inputText) {
-            ui.showStatus("请输入要转换的文本！", "error");
-            return;
-        }
-        projectFileToConvert = createProjectFileFromText(inputText);
+      const inputText = document.getElementById("inputText").value.trim();
+      if (!inputText) {
+        ui.showStatus("请输入要转换的文本！", "error");
+        return;
+      }
+      projectFileToConvert = createProjectFileFromText(inputText);
     }
-    
+
     const selectedQuotes = quoteManager.getSelectedQuotes();
     const narratorName = document.getElementById("narratorName").value || " ";
-    this.convertFromProjectFile(projectFileToConvert, selectedQuotes, narratorName);
+    this.convertFromProjectFile(
+      projectFileToConvert,
+      selectedQuotes,
+      narratorName
+    );
   },
 
   /**
@@ -77,11 +86,11 @@ export const converter = {
       const response = await axios.post("/api/convert", {
         projectFile: projectFile,
         quoteConfig: selectedQuotes,
-        narratorName: narratorName
+        narratorName: narratorName,
       });
 
       const result = response.data.result;
-      
+
       ui.showProgress(100);
       state.set("currentResult", result);
       document.getElementById("resultContent").textContent = result;
@@ -90,9 +99,10 @@ export const converter = {
       ui.showStatus("转换完成！", "success");
       ui.scrollToElement("resultSection");
       setTimeout(() => ui.hideProgress(), 1000);
-
     } catch (error) {
-      const errorMsg = `转换失败: ${error.response?.data?.error || error.message}`;
+      const errorMsg = `转换失败: ${
+        error.response?.data?.error || error.message
+      }`;
       ui.showStatus(errorMsg, "error");
       ui.hideProgress();
     } finally {

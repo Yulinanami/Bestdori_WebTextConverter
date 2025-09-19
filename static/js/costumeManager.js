@@ -240,7 +240,6 @@ export const costumeManager = {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
     const fragment = document.createDocumentFragment();
-
     const characterEntries = Object.entries(state.get("currentConfig")).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
@@ -251,10 +250,8 @@ export const costumeManager = {
 
     characterEntries.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
-
       const clone = template.content.cloneNode(true);
       const costumeItem = clone.querySelector(".costume-config-item");
-
       const primaryId = ids[0];
       const characterKey = this.getCharacterKey(name);
       const safeDomId = this.getSafeDomId(name);
@@ -285,11 +282,8 @@ export const costumeManager = {
       );
       toggleBtn.dataset.safeDomId = safeDomId;
       toggleBtn.querySelector("span").id = `toggle-${safeDomId}`;
-
-      // Details
       const detailsDiv = costumeItem.querySelector(".costume-details");
       detailsDiv.id = `costume-details-${safeDomId}`;
-
       const select = costumeItem.querySelector(".costume-select");
       select.dataset.characterKey = characterKey;
       select.innerHTML =
@@ -302,11 +296,9 @@ export const costumeManager = {
               }>${costume}</option>`
           )
           .join("");
-
       const addBtn = costumeItem.querySelector(".add-costume-btn");
       addBtn.dataset.characterKey = characterKey;
       addBtn.dataset.safeDomId = safeDomId;
-
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
       listItems.innerHTML = this.renderCostumeListItems(
@@ -314,10 +306,8 @@ export const costumeManager = {
         availableForCharacter,
         safeDomId
       );
-
       fragment.appendChild(costumeItem);
     });
-
     costumeList.innerHTML = "";
     costumeList.appendChild(fragment);
   },
@@ -582,6 +572,6 @@ export const costumeManager = {
   },
   getCostumeForCharacter(characterId) {
     const characterName = configManager.getCharacterNameById(characterId);
-    return state.get('currentCostumes')[characterName] || "";
-  }
+    return state.get("currentCostumes")[characterName] || "";
+  },
 };

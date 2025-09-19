@@ -1,26 +1,21 @@
-// 文件: static/js/genericConfigManager.js (完整替换)
-
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 
 class GenericConfigManager {
   constructor(name, configKey, localStorageKey) {
-    this.name = name; // e.g., "动作"
-    this.configKey = configKey; // e.g., "character_motions"
+    this.name = name; 
+    this.configKey = configKey; 
     this.localStorageKey = localStorageKey;
-    
-    // 从 ID 映射到列表
-    this.characterItems = {}; 
-    // 自定义项仍然是全局的
+    this.characterItems = {};
     this.customItems = this.loadCustomItems();
   }
 
   init() {
     const configData = state.get("configData");
     if (configData && configData[this.configKey]) {
-        this.characterItems = configData[this.configKey];
+      this.characterItems = configData[this.configKey];
     } else {
-        console.warn(`配置中未找到 ${this.configKey}。`);
+      console.warn(`配置中未找到 ${this.configKey}。`);
     }
   }
 
@@ -36,7 +31,10 @@ class GenericConfigManager {
 
   saveCustomItems() {
     try {
-      localStorage.setItem(this.localStorageKey, JSON.stringify(this.customItems));
+      localStorage.setItem(
+        this.localStorageKey,
+        JSON.stringify(this.customItems)
+      );
     } catch (e) {
       ui.showStatus(`保存自定义 ${this.name} 失败`, "error");
     }
@@ -44,8 +42,8 @@ class GenericConfigManager {
 
   getAllDefaultItems() {
     const defaultItems = new Set();
-    Object.values(this.characterItems).forEach(list => {
-        list.forEach(item => defaultItems.add(item));
+    Object.values(this.characterItems).forEach((list) => {
+      list.forEach((item) => defaultItems.add(item));
     });
     return defaultItems;
   }
@@ -63,21 +61,21 @@ class GenericConfigManager {
 
   getAllKnownItems() {
     const allItems = new Set(this.customItems);
-    Object.values(this.characterItems).forEach(list => {
-        list.forEach(item => allItems.add(item));
+    Object.values(this.characterItems).forEach((list) => {
+      list.forEach((item) => allItems.add(item));
     });
     return Array.from(allItems).sort();
   }
 }
 
 export const motionManager = new GenericConfigManager(
-    "动作", 
-    "character_motions", 
-    "bestdori_custom_motions"
+  "动作",
+  "character_motions",
+  "bestdori_custom_motions"
 );
 
 export const expressionManager = new GenericConfigManager(
-    "表情", 
-    "character_expressions", 
-    "bestdori_custom_expressions"
+  "表情",
+  "character_expressions",
+  "bestdori_custom_expressions"
 );

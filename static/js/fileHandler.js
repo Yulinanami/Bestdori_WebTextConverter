@@ -72,9 +72,9 @@ export const fileHandler = {
       });
       ui.showProgress(100);
       document.getElementById("inputText").value = response.data.content;
-      if (state.get('projectFile')) {
+      if (state.get("projectFile")) {
         console.log("File uploaded, resetting project file state.");
-        state.set('projectFile', null);
+        state.set("projectFile", null);
       }
 
       ui.showStatus("文件上传成功！", "success");

@@ -10,12 +10,10 @@ import { fileHandler } from "./fileHandler.js";
 import { configManager } from "./configManager.js";
 import { converter } from "./converter.js";
 import { quoteManager } from "./quoteManager.js";
-import { dialoguePreview } from "./dialoguePreview.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { speakerEditor } from "./speakerEditor.js";
 import { live2dEditor } from "./live2dEditor.js";
-import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { expressionEditor } from "./expressionEditor.js";
 import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
@@ -80,14 +78,6 @@ function bindClassicViewEvents() {
   document
     .getElementById("formatTextBtn")
     .addEventListener("click", viewManager.formatText.bind(viewManager));
-
-  // 预览相关
-  document
-    .getElementById("previewModeBtn")
-    .addEventListener(
-      "click",
-      dialoguePreview.showDialoguePreview.bind(dialoguePreview)
-    );
 
   // 配置相关
   document

@@ -13,8 +13,6 @@ export const positionManager = {
   autoPositionMode: true,
   manualPositions: {},
   positionCounter: 0,
-
-  // 模态框内的临时状态
   tempManualPositions: {},
   tempAutoPositionMode: true,
 

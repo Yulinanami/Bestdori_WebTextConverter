@@ -60,7 +60,7 @@ export const configManager = {
   async loadConfig() {
     try {
       const response = await axios.get("/api/config");
-      state.set("configData", response.data); // 存储从后端获取的所有配置数据
+      state.set("configData", response.data);
       this.defaultConfig = response.data.character_mapping;
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
@@ -72,8 +72,8 @@ export const configManager = {
       }
       
       quoteManager.renderQuoteOptions();
-      motionManager.init(); // 初始化 motionManager
-      expressionManager.init(); // 初始化 expressionManager
+      motionManager.init();
+      expressionManager.init(); 
     } catch (error) {
       console.error("加载配置失败:", error);
       ui.showStatus("无法加载应用配置", "error");

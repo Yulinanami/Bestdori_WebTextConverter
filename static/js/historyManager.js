@@ -1,11 +1,8 @@
-// static/js/historyManager.js (新建文件)
-
 export const historyManager = {
-  
-  undoStack: [], // 存储可撤销操作的栈
-  redoStack: [], // 存储可重做操作的栈
-  limit: 50,     // 最多记录50步历史
-  
+  undoStack: [],
+  redoStack: [],
+  limit: 50,
+
   /**
    * 记录一个新操作。
    * @param {object} command - 一个包含 execute 和 undo 方法的对象。
@@ -13,25 +10,16 @@ export const historyManager = {
    *   - command.undo(): 一个撤销操作的函数。
    */
   do(command) {
-    // 在执行新操作前，清空重做栈
     this.redoStack = [];
-    
-    // 执行操作
     command.execute();
-    
-    // 将操作推入撤销栈
     this.undoStack.push(command);
-
-    // 如果超出限制，移除最旧的操作
     if (this.undoStack.length > this.limit) {
       this.undoStack.shift();
     }
     this.triggerUpdate();
   },
 
-  /**
-   * 撤销上一步操作。
-   */
+  // 撤销上一步操作。
   undo() {
     if (!this.canUndo()) return;
 
@@ -41,9 +29,7 @@ export const historyManager = {
     this.triggerUpdate();
   },
 
-  /**
-   * 重做上一步被撤销的操作。
-   */
+  // 重做上一步被撤销的操作。
   redo() {
     if (!this.canRedo()) return;
 
@@ -69,24 +55,22 @@ export const historyManager = {
     return this.redoStack.length > 0;
   },
 
-  /**
-   * 清空所有历史记录。
-   */
+  // 清空所有历史记录。
   clear() {
     this.undoStack = [];
     this.redoStack = [];
     this.triggerUpdate();
   },
-  
-  /**
-   * 触发一个自定义事件，通知UI更新撤销/重做按钮的状态。
-   */
+
+  // 触发一个自定义事件，通知UI更新撤销/重做按钮的状态。
   triggerUpdate() {
-      document.dispatchEvent(new CustomEvent('historychange', {
-          detail: {
-              canUndo: this.canUndo(),
-              canRedo: this.canRedo()
-          }
-      }));
-  }
+    document.dispatchEvent(
+      new CustomEvent("historychange", {
+        detail: {
+          canUndo: this.canUndo(),
+          canRedo: this.canRedo(),
+        },
+      })
+    );
+  },
 };
