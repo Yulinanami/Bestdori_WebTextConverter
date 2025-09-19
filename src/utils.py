@@ -45,7 +45,9 @@ class FileFormatConverter:
             else:
                 return content.decode("utf-8")
         except UnicodeDecodeError:
-            logger.warning(f"UTF-8 decoding failed for {filename}, trying with latin-1.")
+            logger.warning(
+                f"UTF-8 decoding failed for {filename}, trying with latin-1."
+            )
             return content.decode("latin-1", errors="replace")
         except Exception as e:
             logger.error(f"Failed to process file {filename}: {e}")

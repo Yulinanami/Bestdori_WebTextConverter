@@ -8,7 +8,7 @@ config_bp = Blueprint("config", __name__, url_prefix="/api")
 
 @config_bp.route("/config", methods=["GET"])
 def get_config():
-    config_manager = current_app.config['CONFIG_MANAGER']
+    config_manager = current_app.config["CONFIG_MANAGER"]
     try:
         return jsonify(
             {
@@ -26,7 +26,7 @@ def get_config():
 
 @config_bp.route("/costumes", methods=["GET"])
 def get_costumes():
-    config_manager = current_app.config['CONFIG_MANAGER']
+    config_manager = current_app.config["CONFIG_MANAGER"]
     try:
         return jsonify(
             {

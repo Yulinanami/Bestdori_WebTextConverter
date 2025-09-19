@@ -35,10 +35,10 @@ function initializeApp() {
   expressionEditor.init();
 
   // 初始化说话人编辑器
-  speakerEditor.init(); 
+  speakerEditor.init();
 
   // 初始化 Live2D 编辑器
-  live2dEditor.init(); 
+  live2dEditor.init();
 
   // 加载已置顶的角色配置
   pinnedCharacterManager.load();
@@ -228,9 +228,9 @@ function bindClassicViewEvents() {
     .addEventListener("click", () => ui.openModal("helpModal"));
 
   document.getElementById("inputText").addEventListener("input", (e) => {
-    if (state.get('projectFile')) {
+    if (state.get("projectFile")) {
       console.log("Input text changed, resetting project file state.");
-      state.set('projectFile', null);
+      state.set("projectFile", null);
     }
   });
 }

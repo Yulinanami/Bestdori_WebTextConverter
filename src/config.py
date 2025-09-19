@@ -19,27 +19,26 @@ class ConfigManager:
         logger.info(f"ConfigManager using config file: {self.config_path}")
 
     def _load_config(self) -> Dict[str, Any]:
-        """
-        直接从 config.yaml 文件加载配置。
-        如果文件不存在或为空，则返回一个空字典，并记录警告。
-        """
         if not self.config_path.exists():
             logger.error(f"配置文件不存在: {self.config_path}。将使用空配置。")
             return {}
 
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
-                # 使用 or {} 来处理空文件的情况
                 config_data = yaml.safe_load(f) or {}
                 if not isinstance(config_data, dict):
-                    logger.error(f"配置文件 {self.config_path} 顶层不是一个有效的字典。将使用空配置。")
+                    logger.error(
+                        f"配置文件 {self.config_path} 顶层不是一个有效的字典。将使用空配置。"
+                    )
                     return {}
                 return config_data
         except yaml.YAMLError as e:
             logger.error(f"配置文件 {self.config_path} 格式错误: {e}。将使用空配置。")
             return {}
         except Exception as e:
-            logger.error(f"加载配置文件时发生未知错误: {e}。将使用空配置。", exc_info=True)
+            logger.error(
+                f"加载配置文件时发生未知错误: {e}。将使用空配置。", exc_info=True
+            )
             return {}
 
     def _save_config(self, config: Dict[str, Any]):
@@ -66,7 +65,7 @@ class ConfigManager:
 
     def get_available_costumes(self) -> Dict[int, List[str]]:
         return self.config.get("costume_mapping", {})
-    
+
     def get_character_motions(self) -> Dict[int, List[str]]:
         return self.config.get("character_motions", {})
 

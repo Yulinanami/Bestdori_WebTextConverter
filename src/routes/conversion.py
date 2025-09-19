@@ -1,28 +1,27 @@
 # 文本转换api
 import tempfile
 import logging
-from ..converter import ProjectConverter 
+from ..converter import ProjectConverter
 from flask import Blueprint, request, jsonify, send_file, current_app
 from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
 conversion_bp = Blueprint("conversion", __name__, url_prefix="/api")
 
+
 @conversion_bp.route("/convert", methods=["POST"])
 def convert_project():
     try:
         data = request.get_json()
         project_file = data.get("projectFile")
-        quote_config = data.get("quoteConfig") 
-        narrator_name = data.get("narratorName", " ") 
+        quote_config = data.get("quoteConfig")
+        narrator_name = data.get("narratorName", " ")
         if not project_file or not isinstance(project_file, dict):
             if data.get("text") is not None:
-                 return jsonify({"error": "API不匹配，请刷新页面或清除缓存。"}), 400
+                return jsonify({"error": "API不匹配，请刷新页面或清除缓存。"}), 400
             return jsonify({"error": "无效的项目文件"}), 400
-        
         converter = ProjectConverter()
-        result = converter.convert(project_file, quote_config, narrator_name) 
-
+        result = converter.convert(project_file, quote_config, narrator_name)
         return jsonify({"result": result})
     except Exception as e:
         logger.error(f"项目文件转换失败: {e}", exc_info=True)
@@ -38,12 +37,9 @@ def upload_file():
         file = request.files["file"]
         if file.filename == "":
             return jsonify({"error": "没有选择文件"}), 400
-        
         filename = file.filename
         file_content = file.read()
-        
         content = file_converter.read_file_content_to_text(filename, file_content)
-        
         return jsonify({"content": content})
     except ValueError as e:
         logger.error(f"文件处理失败: {e}")
@@ -73,21 +69,16 @@ def download_result():
     except Exception as e:
         logger.error(f"文件下载失败: {e}")
         return jsonify({"error": f"文件下载失败: {str(e)}"}), 500
-    
+
+
 @conversion_bp.route("/segment-text", methods=["POST"])
 def segment_text():
-    """
-    接收原始文本，按空行分割成段落数组。
-    """
     try:
         data = request.get_json()
         raw_text = data.get("text", "")
-        
-        # 使用 splitlines() 和 filter() 来处理各种换行符并移除空行
         lines = raw_text.splitlines()
         segments = []
         current_segment = []
-
         for line in lines:
             stripped_line = line.strip()
             if stripped_line:
@@ -96,8 +87,7 @@ def segment_text():
                 if current_segment:
                     segments.append("\n".join(current_segment))
                     current_segment = []
-        
-        if current_segment: # 添加最后一个片段
+        if current_segment:
             segments.append("\n".join(current_segment))
 
         return jsonify({"segments": segments})

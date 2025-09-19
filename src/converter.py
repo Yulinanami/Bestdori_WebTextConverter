@@ -7,29 +7,23 @@ from .models import ConversionResult, ActionItem, LayoutActionItem
 
 logger = logging.getLogger(__name__)
 
+
 class QuoteHandler:
     def remove_quotes(self, text: str, active_quote_pairs: Dict[str, str]) -> str:
         stripped = text.strip()
-        # 确保文本足够长以包含一对引号
         if len(stripped) < 2 or not active_quote_pairs:
             return text
-        
         first_char = stripped[0]
         expected_closing = active_quote_pairs.get(first_char)
-        
         if expected_closing and stripped.endswith(expected_closing):
-            # 移除首尾字符并再次去除可能存在的空格
             return stripped[1:-1].strip()
-        
+
         return text
 
+
 class ProjectConverter:
-    """
-    一个专门用于将“统一项目文件”转换为Bestdori JSON的转换器。
-    """
     def __init__(self):
         self.quote_handler = QuoteHandler()
-        # --- 步骤 1: 重新添加ID映射关系 ---
         self.special_id_mapping = {
             229: 6,  # 纯田真奈
             337: 1,  # 三角初华
@@ -39,21 +33,25 @@ class ProjectConverter:
             341: 5,  # 丰川祥子
         }
 
-    # --- 步骤 2: 重新添加ID映射的辅助方法 ---
     def _get_output_id(self, char_id: int) -> int:
-        """转换单个ID"""
         return self.special_id_mapping.get(char_id, char_id)
 
     def _get_output_ids(self, char_ids: List[int]) -> List[int]:
-        """转换ID列表"""
         return [self._get_output_id(cid) for cid in char_ids]
 
-    # --- 2. 修改 convert 方法签名 ---
-    def convert(self, project_file: Dict[str, Any], quote_config: List[List[str]] = None, narrator_name: str = " ") -> str:
-        
-        # 将传入的引号列表转换为更易于使用的字典
-        active_quote_pairs = {pair[0]: pair[1] for pair in quote_config} if quote_config else {}
-        actions = self._translate_actions(project_file.get("actions", []), active_quote_pairs, narrator_name)
+    def convert(
+        self,
+        project_file: Dict[str, Any],
+        quote_config: List[List[str]] = None,
+        narrator_name: str = " ",
+    ) -> str:
+
+        active_quote_pairs = (
+            {pair[0]: pair[1] for pair in quote_config} if quote_config else {}
+        )
+        actions = self._translate_actions(
+            project_file.get("actions", []), active_quote_pairs, narrator_name
+        )
         global_settings = project_file.get("globalSettings", {})
 
         result = ConversionResult(
@@ -61,51 +59,67 @@ class ProjectConverter:
             voice=global_settings.get("voice", ""),
             background=global_settings.get("background"),
             bgm=global_settings.get("bgm"),
-            actions=actions
+            actions=actions,
         )
 
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
-    def _translate_actions(self, project_actions: List[Dict[str, Any]], active_quote_pairs: Dict[str, str], narrator_name: str) -> List[Dict[str, Any]]:
+    def _translate_actions(
+        self,
+        project_actions: List[Dict[str, Any]],
+        active_quote_pairs: Dict[str, str],
+        narrator_name: str,
+    ) -> List[Dict[str, Any]]:
         translated_actions = []
         for action in project_actions:
             action_type = action.get("type")
             if action_type == "talk":
-                # --- 4. 传递 active_quote_pairs ---
-                translated_actions.append(self._translate_talk_action(action, active_quote_pairs, narrator_name))
+                translated_actions.append(
+                    self._translate_talk_action(
+                        action, active_quote_pairs, narrator_name
+                    )
+                )
             elif action_type == "layout":
                 translated_actions.append(self._translate_layout_action(action))
         return translated_actions
 
-    def _translate_talk_action(self, talk_action: Dict[str, Any], active_quote_pairs: Dict[str, str], narrator_name: str) -> Dict[str, Any]:
+    def _translate_talk_action(
+        self,
+        talk_action: Dict[str, Any],
+        active_quote_pairs: Dict[str, str],
+        narrator_name: str,
+    ) -> Dict[str, Any]:
         speakers = talk_action.get("speakers", [])
-        # --- 核心修正 1: 确保 characterId 是整数 ---
-        character_ids = [int(s.get("characterId")) for s in speakers if s.get("characterId") is not None]
+        character_ids = [
+            int(s.get("characterId"))
+            for s in speakers
+            if s.get("characterId") is not None
+        ]
         names = [s.get("name", "") for s in speakers]
-        
         original_text = talk_action.get("text", "")
-        processed_body = self.quote_handler.remove_quotes(original_text, active_quote_pairs)
-
+        processed_body = self.quote_handler.remove_quotes(
+            original_text, active_quote_pairs
+        )
         motions = []
         character_states = talk_action.get("characterStates", {})
         for char_id_str, state in character_states.items():
-            motions.append({
-                "character": self._get_output_id(int(char_id_str)),
-                "motion": state.get("motion", ""),
-                "expression": state.get("expression", ""),
-                "delay": state.get("delay", 0)
-            })
-
+            motions.append(
+                {
+                    "character": self._get_output_id(int(char_id_str)),
+                    "motion": state.get("motion", ""),
+                    "expression": state.get("expression", ""),
+                    "delay": state.get("delay", 0),
+                }
+            )
         if speakers:
-            action_name = " & ".join([s.get("name", "") for s in speakers])
+            action_name = " & ".join(names)
         else:
             action_name = narrator_name
-
         bestdori_action = ActionItem(
             characters=self._get_output_ids(character_ids),
             name=action_name,
             body=processed_body,
-            motions=motions
+            motions=motions,
         )
         return asdict(bestdori_action)
 
@@ -113,26 +127,18 @@ class ProjectConverter:
         position = layout_action.get("position", {})
         initial_state = layout_action.get("initialState", {})
         char_id = int(layout_action.get("characterId", 0))
-
-        # --- 核心修正：从 position 对象中正确提取值 ---
         from_pos = position.get("from", {})
         to_pos = position.get("to", {})
-
         bestdori_action = LayoutActionItem(
             layoutType=layout_action.get("layoutType", "appear"),
             character=self._get_output_id(char_id),
             costume=layout_action.get("costume", ""),
             motion=initial_state.get("motion", ""),
             expression=initial_state.get("expression", ""),
-            
-            # 从 from_pos 字典中获取 side 和 offsetX
             sideFrom=from_pos.get("side", "center"),
             sideFromOffsetX=from_pos.get("offsetX", 0),
-            
-            # 从 to_pos 字典中获取 side 和 offsetX
             sideTo=to_pos.get("side", "center"),
-            sideToOffsetX=to_pos.get("offsetX", 0)
+            sideToOffsetX=to_pos.get("offsetX", 0),
         )
-        # --- 修正结束 ---
-        
+
         return asdict(bestdori_action)
