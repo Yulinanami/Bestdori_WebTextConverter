@@ -7,8 +7,8 @@ import {
 } from "./uiUtils.js";
 import { viewManager } from "./viewManager.js";
 import { fileHandler } from "./fileHandler.js";
-import { converter } from "./converter.js"; 
 import { configManager } from "./configManager.js";
+import { converter } from "./converter.js";
 import { quoteManager } from "./quoteManager.js";
 import { dialoguePreview } from "./dialoguePreview.js";
 import { batchProcessor } from "./batchProcessor.js";
@@ -26,12 +26,6 @@ import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 function initializeApp() {
   // 绑定经典视图事件
   bindClassicViewEvents();
-
-  // 绑定分屏视图事件
-  bindSplitViewEvents();
-
-  // 绑定视图切换事件
-  bindViewSwitchEvents();
 
   // 绑定模态框事件
   bindModalEvents();
@@ -72,9 +66,6 @@ function initializeApp() {
 
   // 初始化全局模态框监听器
   initGlobalModalListeners();
-
-  // 初始化分隔条拖动功能
-  viewManager.initializeSplitResizer();
 
   // 添加性能监控面板
   if (window.location.search.includes("debug=true")) {
@@ -342,121 +333,11 @@ function bindClassicViewEvents() {
       batchProcessor.handleBatchDownload.bind(batchProcessor)
     );
 
-  // 文本输入监听（同步到分屏）
-  document
-    .getElementById("inputText")
-    .addEventListener("input", viewManager.syncTextAreas.bind(viewManager));
-
-  // --- 新增：监听文本变化以重置项目状态 ---
   document.getElementById("inputText").addEventListener("input", (e) => {
-    // 只要主文本框内容发生变化，就重置已保存的项目文件状态。
-    // 这可以确保下次打开编辑器时，会基于新的文本内容创建项目，
-    // 而不是加载旧的、已过时的项目数据。
     if (state.get('projectFile')) {
       console.log("Input text changed, resetting project file state.");
       state.set('projectFile', null);
     }
-  });
-  
-  // 旁白名称同步
-  document.getElementById("narratorName").addEventListener("input", (e) => {
-    document.getElementById("splitNarratorName").value = e.target.value;
-  });
-}
-
-// 绑定分屏视图事件
-function bindSplitViewEvents() {
-  document
-    .getElementById("formatTextSplitBtn")
-    .addEventListener("click", viewManager.formatTextSplit.bind(viewManager));
-  document.getElementById("splitConvertBtn").addEventListener("click", () => {
-    converter.updateSplitPreview(true);
-  });
-  document
-    .getElementById("splitDownloadBtn")
-    .addEventListener(
-      "click",
-      fileHandler.downloadSplitResult.bind(fileHandler)
-    );
-
-  // 自动预览
-  document
-    .getElementById("autoPreviewCheckbox")
-    .addEventListener("change", (e) => {
-      state.set("autoPreviewEnabled", e.target.checked);
-      if (state.get("autoPreviewEnabled")) {
-        converter.updateSplitPreview();
-      }
-    });
-
-  // 添加分屏视图的 Bestdori 跳转按钮事件
-  document
-    .getElementById("splitGotoBestdoriBtn")
-    .addEventListener("click", () => {
-      ui.goToBestdori();
-    });
-
-  // 分屏视图的Live2D开关同步
-  const splitEnableLive2DCheckbox = document.getElementById(
-    "splitEnableLive2DCheckbox"
-  );
-  if (splitEnableLive2DCheckbox) {
-    splitEnableLive2DCheckbox.checked = state.get("enableLive2D");
-    splitEnableLive2DCheckbox.addEventListener("change", (e) => {
-      state.set("enableLive2D", e.target.checked);
-      localStorage.setItem(
-        "bestdori_enable_live2d",
-        e.target.checked.toString()
-      );
-      document.getElementById("enableLive2DCheckbox").checked =
-        e.target.checked;
-      if (state.get("autoPreviewEnabled")) {
-        viewManager.debouncePreview();
-      }
-    });
-  }
-
-  // 引号配置
-  document
-    .getElementById("splitQuoteConfigBtn")
-    .addEventListener(
-      "click",
-      quoteManager.openSplitQuoteModal.bind(quoteManager)
-    );
-  document
-    .getElementById("addSplitCustomQuoteBtn")
-    .addEventListener(
-      "click",
-      quoteManager.addSplitCustomQuoteOption.bind(quoteManager)
-    );
-
-  // 旁白名称
-  document
-    .getElementById("splitNarratorName")
-    .addEventListener("input", (e) => {
-      document.getElementById("narratorName").value = e.target.value;
-      if (state.get("autoPreviewEnabled")) {
-        viewManager.debouncePreview();
-      }
-    });
-
-  // 文本输入监听（用于实时预览）
-  document.getElementById("splitInputText").addEventListener("input", () => {
-    viewManager.syncTextAreas();
-    viewManager.debouncePreview();
-  });
-}
-
-// 绑定视图切换事件
-function bindViewSwitchEvents() {
-  document.querySelectorAll(".view-btn").forEach((btn) => {
-    btn.addEventListener("click", viewManager.switchView.bind(viewManager));
-  });
-  document.querySelectorAll(".preview-mode-btn").forEach((btn) => {
-    btn.addEventListener(
-      "click",
-      viewManager.switchPreviewMode.bind(viewManager)
-    );
   });
 }
 

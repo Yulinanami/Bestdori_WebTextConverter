@@ -2,31 +2,6 @@
 
 /* 平板设备 (1024px 以下) */
 @media (max-width: 1024px) {
-  /* 分屏布局调整 */
-  .split-container {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .split-panel {
-    min-width: auto;
-    border-right: none;
-    border-bottom: 2px solid var(--border-primary);
-    min-height: 400px;
-  }
-
-  .split-panel:last-child {
-    border-bottom: none;
-  }
-
-  .split-resizer {
-    display: none;
-  }
-
-  .split-config-bar {
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-  }
 
   .config-item-inline {
     flex: 1 1 auto;
@@ -128,11 +103,6 @@
 
   .section-title {
     font-size: var(--text-lg);
-  }
-
-  /* 分屏配置栏调整 */
-  .split-config-bar {
-    padding: var(--spacing-sm);
   }
 
   .input-sm {
@@ -245,10 +215,6 @@
 
 /* 横屏模式优化 */
 @media (orientation: landscape) and (max-height: 600px) {
-  .split-container {
-    height: calc(100vh - 300px);
-    min-height: 300px;
-  }
 
   .dialogue-container {
     min-height: 200px;

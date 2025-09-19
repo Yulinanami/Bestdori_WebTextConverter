@@ -72,7 +72,6 @@ export const fileHandler = {
       });
       ui.showProgress(100);
       document.getElementById("inputText").value = response.data.content;
-      document.getElementById("splitInputText").value = response.data.content;
       if (state.get('projectFile')) {
         console.log("File uploaded, resetting project file state.");
         state.set('projectFile', null);
@@ -139,10 +138,5 @@ export const fileHandler = {
   // 下载结果
   async downloadResult() {
     await this._download("downloadBtn");
-  },
-
-  // 下载分屏结果
-  async downloadSplitResult() {
-    await this._download("splitDownloadBtn");
   },
 };

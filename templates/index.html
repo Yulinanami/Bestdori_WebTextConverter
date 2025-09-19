@@ -34,14 +34,8 @@
         <button id="helpBtn" class="btn btn-secondary">?</button>
       </div>
 
-      <!-- 视图切换按钮 -->
-      <div class="view-toggle">
-        <button class="view-btn active" data-view="classic">经典视图</button>
-        <button class="view-btn" data-view="split">分屏编辑</button>
-      </div>
-
       <!-- 经典视图 -->
-      <div id="classicView" class="view-content active">
+      <div id="classicView">
         <div class="main-content">
           <!-- 1. 文件上传区域 -->
           <div class="section">
@@ -700,104 +694,6 @@
             <div class="result-content">
               <pre><code class="language-json" id="resultContent"></code></pre>
             </div>
-          </div>
-        </div>
-
-        <!-- 分屏视图 -->
-        <div id="splitView" class="view-content">
-          <div class="split-config-bar">
-            <div class="config-item-inline">
-              <label>旁白名称：</label>
-              <input
-                type="text"
-                class="form-input input-sm"
-                id="splitNarratorName"
-                value=" "
-                placeholder="设置旁白的名称"
-              />
-            </div>
-            <div class="config-item-inline">
-              <button class="btn btn-secondary btn-sm" id="splitQuoteConfigBtn">
-                引号设置
-              </button>
-            </div>
-            <div class="config-item-inline">
-              <label class="auto-preview-label">
-                <input type="checkbox" id="splitEnableLive2DCheckbox" />
-                <span>Live2D 布局</span>
-              </label>
-            </div>
-            <div class="config-item-inline auto-preview-wrapper">
-              <label class="auto-preview-label">
-                <input type="checkbox" id="autoPreviewCheckbox" checked />
-                自动预览
-              </label>
-            </div>
-          </div>
-
-          <!-- 分屏编辑区 -->
-          <div class="split-container">
-            <div class="split-panel left-panel">
-              <div class="panel-header">
-                <h3>编辑区</h3>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="formatTextSplitBtn"
-                >
-                  格式化
-                </button>
-              </div>
-              <div class="panel-content">
-                <textarea
-                  class="form-input textarea split-editor"
-                  id="splitInputText"
-                  placeholder="在此输入或粘贴对话文本..."
-                ></textarea>
-              </div>
-            </div>
-
-            <!-- 可调整大小的分隔条 -->
-            <div class="split-resizer" id="splitResizer"></div>
-
-            <!-- 右侧预览区 -->
-            <div class="split-panel right-panel">
-              <div class="panel-header">
-                <h3>实时预览</h3>
-                <div class="preview-mode-toggle">
-                  <button class="preview-mode-btn active" data-mode="json">
-                    JSON
-                  </button>
-                  <button class="preview-mode-btn" data-mode="dialogue">
-                    对话
-                  </button>
-                </div>
-              </div>
-              <div class="panel-content">
-                <div id="splitPreviewJson" class="preview-content">
-                  <pre><code class="language-json"></code></pre>
-                </div>
-                <div
-                  id="splitPreviewDialogue"
-                  class="preview-content dialogue-preview"
-                  style="display: none"
-                >
-                  <!-- 对话预览内容 -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 分屏视图的操作按钮 -->
-          <div class="split-actions">
-            <button class="btn btn-primary" id="splitConvertBtn">
-              手动刷新预览
-            </button>
-            <button class="btn btn-success" id="splitDownloadBtn">
-              下载结果
-            </button>
-            <button class="btn btn-primary" id="splitGotoBestdoriBtn">
-              跳转到 Bestdori
-            </button>
           </div>
         </div>
       </div>
