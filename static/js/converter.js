@@ -58,7 +58,8 @@ export const converter = {
     }
     
     const selectedQuotes = quoteManager.getSelectedQuotes();
-    this.convertFromProjectFile(projectFileToConvert, selectedQuotes);
+    const narratorName = document.getElementById("narratorName").value || " ";
+    this.convertFromProjectFile(projectFileToConvert, selectedQuotes, narratorName);
   },
 
   /**
@@ -66,7 +67,7 @@ export const converter = {
    * @param {object} projectFile - 统一工作配置对象。
    * @param {Array} [selectedQuotes=[]] - 用户选择的引号对数组。
    */
-  async convertFromProjectFile(projectFile, selectedQuotes = []) {
+  async convertFromProjectFile(projectFile, selectedQuotes = [], narratorName) {
     const buttonId = "convertBtn";
     try {
       ui.setButtonLoading(buttonId, true, "转换中...");
@@ -75,7 +76,8 @@ export const converter = {
 
       const response = await axios.post("/api/convert", {
         projectFile: projectFile,
-        quoteConfig: selectedQuotes 
+        quoteConfig: selectedQuotes,
+        narratorName: narratorName
       });
 
       const result = response.data.result;

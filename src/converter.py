@@ -49,13 +49,11 @@ class ProjectConverter:
         return [self._get_output_id(cid) for cid in char_ids]
 
     # --- 2. 修改 convert 方法签名 ---
-    def convert(self, project_file: Dict[str, Any], quote_config: List[List[str]] = None) -> str:
+    def convert(self, project_file: Dict[str, Any], quote_config: List[List[str]] = None, narrator_name: str = " ") -> str:
         
         # 将传入的引号列表转换为更易于使用的字典
         active_quote_pairs = {pair[0]: pair[1] for pair in quote_config} if quote_config else {}
-
-        # --- 3. 将 active_quote_pairs 传递下去 ---
-        actions = self._translate_actions(project_file.get("actions", []), active_quote_pairs)
+        actions = self._translate_actions(project_file.get("actions", []), active_quote_pairs, narrator_name)
         global_settings = project_file.get("globalSettings", {})
 
         result = ConversionResult(
@@ -68,18 +66,18 @@ class ProjectConverter:
 
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
-    def _translate_actions(self, project_actions: List[Dict[str, Any]], active_quote_pairs: Dict[str, str]) -> List[Dict[str, Any]]:
+    def _translate_actions(self, project_actions: List[Dict[str, Any]], active_quote_pairs: Dict[str, str], narrator_name: str) -> List[Dict[str, Any]]:
         translated_actions = []
         for action in project_actions:
             action_type = action.get("type")
             if action_type == "talk":
                 # --- 4. 传递 active_quote_pairs ---
-                translated_actions.append(self._translate_talk_action(action, active_quote_pairs))
+                translated_actions.append(self._translate_talk_action(action, active_quote_pairs, narrator_name))
             elif action_type == "layout":
                 translated_actions.append(self._translate_layout_action(action))
         return translated_actions
 
-    def _translate_talk_action(self, talk_action: Dict[str, Any], active_quote_pairs: Dict[str, str]) -> Dict[str, Any]:
+    def _translate_talk_action(self, talk_action: Dict[str, Any], active_quote_pairs: Dict[str, str], narrator_name: str) -> Dict[str, Any]:
         speakers = talk_action.get("speakers", [])
         # --- 核心修正 1: 确保 characterId 是整数 ---
         character_ids = [int(s.get("characterId")) for s in speakers if s.get("characterId") is not None]
@@ -98,9 +96,14 @@ class ProjectConverter:
                 "delay": state.get("delay", 0)
             })
 
+        if speakers:
+            action_name = " & ".join([s.get("name", "") for s in speakers])
+        else:
+            action_name = narrator_name
+
         bestdori_action = ActionItem(
             characters=self._get_output_ids(character_ids),
-            name=" & ".join(names),
+            name=action_name,
             body=processed_body,
             motions=motions
         )

@@ -14,15 +14,14 @@ def convert_project():
         data = request.get_json()
         project_file = data.get("projectFile")
         quote_config = data.get("quoteConfig") 
+        narrator_name = data.get("narratorName", " ") 
         if not project_file or not isinstance(project_file, dict):
-            # 如果是从旧的 updateSplitPreview 收到请求，project_file 会是 None
-            # 我们在这里做一个兼容处理
             if data.get("text") is not None:
                  return jsonify({"error": "API不匹配，请刷新页面或清除缓存。"}), 400
             return jsonify({"error": "无效的项目文件"}), 400
         
         converter = ProjectConverter()
-        result = converter.convert(project_file, quote_config)
+        result = converter.convert(project_file, quote_config, narrator_name) 
 
         return jsonify({"result": result})
     except Exception as e:
