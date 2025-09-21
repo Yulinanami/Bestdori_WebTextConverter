@@ -102,12 +102,13 @@ export const expressionEditor = {
     let oldValue = "--";
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
-    if (
-      action.type === "talk" &&
-      action.characterStates &&
-      action.characterStates[characterName]
-    ) {
-      oldValue = action.characterStates[characterName][type] || "--";
+    if (action.type === "talk" && action.characterStates) {
+      const character = this.stagedCharacters.find(
+        (c) => c.name === characterName
+      );
+      if (character && action.characterStates[character.id]) {
+        oldValue = action.characterStates[character.id][type] || "--";
+      }
     } else if (
       action.type === "layout" &&
       action.characterName === characterName
@@ -149,9 +150,9 @@ export const expressionEditor = {
       );
       if (!character) {
         console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
-        return; 
+        return;
       }
-      const characterId = character.id; 
+      const characterId = character.id;
       if (!action.characterStates[characterId])
         action.characterStates[characterId] = {};
       action.characterStates[characterId][type] = valueToStore;
@@ -332,7 +333,7 @@ export const expressionEditor = {
     items.forEach((item) => {
       const itemName = item.textContent.toLowerCase();
       if (itemName.startsWith(searchTerm)) {
-        item.style.display = ""; 
+        item.style.display = "";
       } else {
         item.style.display = "none";
       }
@@ -822,7 +823,7 @@ export const expressionEditor = {
           `你即将为 ${costumeArray.length} 个不同的服装打开新的浏览器标签页，确定要继续吗？`
         )
       ) {
-        return; 
+        return;
       }
     }
     ui.showStatus(
