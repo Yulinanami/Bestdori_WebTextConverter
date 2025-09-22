@@ -509,7 +509,6 @@ export const costumeManager = {
       ...config,
       costume_mapping: state.get("currentCostumes"),
       available_costumes: this.availableCostumes,
-      enable_live2d: state.get("enableLive2D"),
     };
   },
 
@@ -544,14 +543,6 @@ export const costumeManager = {
       );
       if (splitCheckbox) {
         splitCheckbox.checked = config.enable_live2d;
-      }
-      const positionBtn = document.getElementById("positionConfigBtn");
-      if (positionBtn) {
-        positionBtn.disabled = !config.enable_live2d;
-      }
-      const costumeBtn = document.getElementById("costumeConfigBtn");
-      if (costumeBtn) {
-        costumeBtn.disabled = !config.enable_live2d;
       }
     }
   },

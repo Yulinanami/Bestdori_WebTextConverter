@@ -3,11 +3,6 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 
-/**
- * 一个辅助函数，根据纯文本动态创建一个临时的项目文件对象。
- * @param {string} text - 原始文本.
- * @returns {object} - 临时的项目文件对象.
- */
 function createProjectFileFromText(text) {
   const segments = text
     .split(/\n\s*\n/)
@@ -45,9 +40,6 @@ function createProjectFileFromText(text) {
 }
 
 export const converter = {
-  /**
-   * 主转换函数，处理“开始转换”按钮的点击事件。
-   */
   async convertText() {
     let projectFileToConvert;
 
@@ -71,11 +63,6 @@ export const converter = {
     );
   },
 
-  /**
-   * 核心转换逻辑：基于项目文件对象发送转换请求到后端。
-   * @param {object} projectFile - 统一工作配置对象。
-   * @param {Array} [selectedQuotes=[]] - 用户选择的引号对数组。
-   */
   async convertFromProjectFile(projectFile, selectedQuotes = [], narratorName) {
     const buttonId = "convertBtn";
     try {
