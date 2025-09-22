@@ -11,6 +11,8 @@ import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 export const live2dEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
+  scrollInterval: null,
+  scrollSpeed: 0,
 
   init() {
     document
@@ -347,6 +349,52 @@ export const live2dEditor = {
     });
   },
 
+  handleDragScrolling: (e) => {
+    const timeline = document.getElementById("live2dEditorTimeline");
+    const characterList = document.getElementById("live2dEditorCharacterList");
+    if (!timeline || !characterList) return;
+    let scrollTarget = null;
+    if (e.target.closest("#live2dEditorTimeline")) {
+      scrollTarget = timeline;
+    } else if (e.target.closest("#live2dEditorCharacterList")) {
+      scrollTarget = characterList;
+    } else {
+      clearInterval(live2dEditor.scrollInterval);
+      live2dEditor.scrollInterval = null;
+      return;
+    }
+    const rect = scrollTarget.getBoundingClientRect();
+    const mouseY = e.clientY;
+    const hotZone = 75;
+    let newScrollSpeed = 0;
+    if (mouseY < rect.top + hotZone) {
+      newScrollSpeed = -10;
+    } else if (mouseY > rect.bottom - hotZone) {
+      newScrollSpeed = 10;
+    }
+    if (newScrollSpeed !== 0) {
+      if (
+        newScrollSpeed !== live2dEditor.scrollSpeed ||
+        !live2dEditor.scrollInterval
+      ) {
+        live2dEditor.scrollSpeed = newScrollSpeed;
+        live2dEditor.startScrolling(scrollTarget);
+      }
+    } else {
+      clearInterval(live2dEditor.scrollInterval);
+      live2dEditor.scrollInterval = null;
+    }
+  },
+
+  startScrolling(elementToScroll) {
+    clearInterval(this.scrollInterval);
+    this.scrollInterval = setInterval(() => {
+      if (elementToScroll) {
+        elementToScroll.scrollTop += this.scrollSpeed;
+      }
+    }, 20);
+  },
+
   initDragAndDrop() {
     const characterList = document.getElementById("live2dEditorCharacterList");
     const timeline = document.getElementById("live2dEditorTimeline");
@@ -360,6 +408,14 @@ export const live2dEditor = {
       onMove: function (evt) {
         return !evt.related.closest("#live2dEditorCharacterList");
       },
+      onStart: () => {
+        document.addEventListener("dragover", this.handleDragScrolling);
+      },
+      onEnd: () => {
+        document.removeEventListener("dragover", this.handleDragScrolling);
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
+      },
       onAdd: (evt) => {
         const item = evt.item;
         if (item.classList.contains("layout-item") && item.dataset.id) {
@@ -368,13 +424,17 @@ export const live2dEditor = {
         item.remove();
       },
     });
-
     new Sortable(timeline, {
       group: "live2d-shared",
       animation: 150,
       sort: true,
-
+      onStart: () => {
+        document.addEventListener("dragover", this.handleDragScrolling);
+      },
       onEnd: (evt) => {
+        document.removeEventListener("dragover", this.handleDragScrolling);
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
           const { oldIndex, newIndex } = evt;
           this._executeCommand((currentState) => {
