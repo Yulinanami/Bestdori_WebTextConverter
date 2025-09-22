@@ -279,7 +279,7 @@ export const live2dEditor = {
       const actionId = card.dataset.id;
       const value =
         target.type === "number" ? parseInt(target.value) || 0 : target.value;
-      this._updateLayoutActionProperty(actionId, target, value); 
+      this._updateLayoutActionProperty(actionId, target, value);
     }
   },
 
@@ -327,7 +327,7 @@ export const live2dEditor = {
           action.position.to.side = value;
         } else if (controlClassName.includes("layout-offset-input")) {
           action.position.from.offsetX = value;
-          action.position.to.offsetX = value; 
+          action.position.to.offsetX = value;
         }
         this.renderTimeline();
       },
@@ -354,12 +354,14 @@ export const live2dEditor = {
       group: {
         name: "live2d-shared",
         pull: "clone",
-        put: true, 
+        put: true,
       },
       sort: false,
-
+      onMove: function (evt) {
+        return !evt.related.closest("#live2dEditorCharacterList");
+      },
       onAdd: (evt) => {
-        const item = evt.item; 
+        const item = evt.item;
         if (item.classList.contains("layout-item") && item.dataset.id) {
           this._deleteLayoutAction(item.dataset.id);
         }
@@ -368,9 +370,9 @@ export const live2dEditor = {
     });
 
     new Sortable(timeline, {
-      group: "live2d-shared", 
+      group: "live2d-shared",
       animation: 150,
-      sort: true, 
+      sort: true,
 
       onEnd: (evt) => {
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
@@ -395,38 +397,31 @@ export const live2dEditor = {
     });
   },
 
-    insertLayoutAction(characterId, characterName, index) {
+  insertLayoutAction(characterId, characterName, index) {
     this._executeCommand((currentState) => {
-      // 使用新的辅助函数来获取角色在插入点之前的状态
       const previousState = this._getCharacterStateAtIndex(
         currentState.actions,
         characterName,
         index
       );
-
-      // 根据角色是否在场来决定新的布局类型
       const layoutType = previousState.onStage ? "move" : "appear";
-
-      // 决定要使用的服装：优先使用上一次的服装，否则使用默认服装
       const costumeToUse =
         previousState.lastCostume || this._getDefaultCostume(characterName);
-      
-      // 决定起始位置：如果角色在场，则从上一个位置开始；否则使用默认位置
       const defaultPosition = this._getDefaultPosition(characterName);
       const fromPosition = previousState.lastPosition
-        ? { ...previousState.lastPosition } // 继承上一个位置
-        : { side: defaultPosition.position, offsetX: defaultPosition.offset }; // 使用默认位置
+        ? { ...previousState.lastPosition }
+        : { side: defaultPosition.position, offsetX: defaultPosition.offset };
 
       const newLayoutAction = {
         id: `layout-action-${Date.now()}`,
         type: "layout",
         characterId,
         characterName,
-        layoutType: layoutType, // 应用智能判断的结果
+        layoutType: layoutType,
         costume: costumeToUse,
         position: {
           from: fromPosition,
-          to: { ...fromPosition }, // 默认移动到相同位置
+          to: { ...fromPosition },
         },
         initialState: {},
       };
@@ -523,11 +518,11 @@ export const live2dEditor = {
         const offsetInput = card.querySelector(".layout-offset-input");
         const toPositionSelect = card.querySelector(
           ".layout-position-select-to"
-        ); 
+        );
         const currentPosition = action.position?.from?.side || "center";
         const currentOffset = action.position?.from?.offsetX || 0;
         const costumeSelect = card.querySelector(".layout-costume-select");
-        costumeSelect.innerHTML = ""; 
+        costumeSelect.innerHTML = "";
         const availableCostumes =
           costumeManager.availableCostumes[characterName] || [];
         availableCostumes.forEach((costumeId) => {
@@ -539,7 +534,7 @@ export const live2dEditor = {
             `${action.costume} (自定义)`,
             action.costume
           );
-          costumeSelect.add(option, 0); 
+          costumeSelect.add(option, 0);
         }
         costumeSelect.value = action.costume;
         positionSelect.innerHTML = "";
@@ -558,7 +553,7 @@ export const live2dEditor = {
           ".to-position-container"
         );
         if (action.layoutType === "move") {
-          toPositionContainer.style.display = "grid"; 
+          toPositionContainer.style.display = "grid";
           card.querySelector(".layout-position-select-to").value =
             action.position?.to?.side || "center";
           card.querySelector(".layout-offset-input-to").value =
@@ -603,25 +598,15 @@ export const live2dEditor = {
     listContainer.appendChild(fragment);
   },
 
-    /**
-   * 获取一个角色在时间线特定索引前的最终状态（是否在场，最后的位置和服装）
-   * @param {Array} actions - 所有的动作列表
-   * @param {string} characterName - 要查询的角色名
-   * @param {number} startIndex - 插入点索引，函数将分析此索引之前的所有动作
-   * @returns {{onStage: boolean, lastPosition: object|null, lastCostume: string|null}}
-   */
   _getCharacterStateAtIndex(actions, characterName, startIndex) {
     let onStage = false;
     let lastPosition = null;
     let lastCostume = null;
-
-    // 遍历插入点之前的所有动作
     for (let i = 0; i < startIndex; i++) {
       const action = actions[i];
       if (action.type === "layout" && action.characterName === characterName) {
         if (action.layoutType === "appear" || action.layoutType === "move") {
           onStage = true;
-          // 记录角色移动或登场后的最终位置和服装
           if (action.position && action.position.to) {
             lastPosition = {
               side: action.position.to.side,
@@ -633,7 +618,6 @@ export const live2dEditor = {
           }
         } else if (action.layoutType === "hide") {
           onStage = false;
-          // 角色退场后，重置其最后位置信息
           lastPosition = null;
         }
       }

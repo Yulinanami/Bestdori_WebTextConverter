@@ -132,7 +132,7 @@ export const speakerEditor = {
 
     try {
       let initialState;
-      const rawText = document.getElementById("inputText").value; 
+      const rawText = document.getElementById("inputText").value;
       if (state.get("projectFile")) {
         initialState = state.get("projectFile");
         ui.showStatus("已加载现有项目进度。", "info");
@@ -172,11 +172,6 @@ export const speakerEditor = {
     }
   },
 
-  /**
-   * 创建一个命令对象，并捕获执行该命令所需的上下文。
-   * @param {function} executeFn - 一个执行修改的函数，它接收 (currentState, context) 作为参数。
-   * @param {object} context - 执行该命令所需的任何上下文数据。
-   */
   _executeCommand(executeFn, context = {}) {
     const oldState = JSON.stringify(this.projectFileState);
 
@@ -198,11 +193,6 @@ export const speakerEditor = {
     historyManager.do(command);
   },
 
-  /**
-   * 根据分段文本数组创建初始的项目文件对象，并进行自动识别。
-   * @param {string[]} segments - 文本片段数组。
-   * @returns {object} - 初始化后的项目文件状态对象。
-   */
   createProjectFileFromSegments(segments) {
     const characterMap = new Map(
       Object.entries(state.get("currentConfig")).map(([name, ids]) => [
@@ -343,9 +333,12 @@ export const speakerEditor = {
       group: {
         name: "shared-speakers",
         pull: "clone",
-        put: true, 
+        put: true,
       },
-      sort: false, 
+      sort: false,
+      onMove: function (evt) {
+        return !evt.related.closest("#speakerEditorCharacterList");
+      },
       onStart: () => {
         document.addEventListener("dragover", this.handleDragScrolling);
       },
@@ -413,10 +406,6 @@ export const speakerEditor = {
     });
   },
 
-  /**
-   * 在拖拽过程中处理画布或角色列表的自动滚动。
-   * @param {DragEvent} e - dragover 事件对象。
-   */
   handleDragScrolling: (e) => {
     const canvas = document.getElementById("speakerEditorCanvas");
     const characterList = document.getElementById("speakerEditorCharacterList");
@@ -438,7 +427,7 @@ export const speakerEditor = {
     if (mouseY < rect.top + hotZone) {
       newScrollSpeed = -10;
     } else if (mouseY > rect.bottom - hotZone) {
-      newScrollSpeed = 10; 
+      newScrollSpeed = 10;
     }
     if (newScrollSpeed !== 0) {
       if (
@@ -454,10 +443,6 @@ export const speakerEditor = {
     }
   },
 
-  /**
-   * 启动一个定时器来持续滚动指定的元素。
-   * @param {HTMLElement} elementToScroll - 需要被滚动的DOM元素。
-   */
   startScrolling(elementToScroll) {
     clearInterval(this.scrollInterval);
     this.scrollInterval = setInterval(() => {
@@ -505,7 +490,7 @@ export const speakerEditor = {
         }
       },
       { actionId, characterIdToRemove }
-    ); 
+    );
   },
 
   removeAllSpeakersFromAction(actionId) {
@@ -517,14 +502,9 @@ export const speakerEditor = {
         }
       },
       { actionId }
-    ); 
+    );
   },
 
-  /**
-   * 显示用于管理多人对话的浮动窗口。
-   * @param {string} actionId - action的ID。
-   * @param {HTMLElement} targetElement - 点击的元素，用于定位浮窗。
-   */
   showMultiSpeakerPopover(actionId, targetElement) {
     const existingPopover = document.getElementById("speaker-popover");
     if (existingPopover) existingPopover.remove();
