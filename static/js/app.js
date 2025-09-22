@@ -145,30 +145,6 @@ function bindClassicViewEvents() {
     );
   }
 
-  // Live2D开关
-  const enableLive2DCheckbox = document.getElementById("enableLive2DCheckbox");
-  if (enableLive2DCheckbox) {
-    enableLive2DCheckbox.addEventListener("change", (e) => {
-      state.set("enableLive2D", e.target.checked);
-      localStorage.setItem(
-        "bestdori_enable_live2d",
-        e.target.checked.toString()
-      );
-
-      // 启用/禁用位置配置按钮
-      const positionBtn = document.getElementById("positionConfigBtn");
-      if (positionBtn) {
-        positionBtn.disabled = !e.target.checked;
-      }
-
-      // 启用/禁用服装配置按钮
-      const costumeBtn = document.getElementById("costumeConfigBtn");
-      if (costumeBtn) {
-        costumeBtn.disabled = !e.target.checked;
-      }
-    });
-  }
-
   // 位置配置按钮
   const positionConfigBtn = document.getElementById("positionConfigBtn");
   if (positionConfigBtn) {

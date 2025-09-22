@@ -8,7 +8,6 @@ const _state = {
   batchResults: [],
   autoPreviewEnabled: true,
   previewDebounceTimer: null,
-  enableLive2D: false,
   currentCostumes: {},
   projectFile: null,
 };

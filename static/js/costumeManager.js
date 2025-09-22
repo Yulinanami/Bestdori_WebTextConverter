@@ -528,23 +528,6 @@ export const costumeManager = {
       this.availableCostumes = this.convertAvailableCostumesToNameBased();
       this.saveLocalAvailableCostumes();
     }
-    if (typeof config.enable_live2d === "boolean") {
-      state.set("enableLive2D", config.enable_live2d);
-      localStorage.setItem(
-        "bestdori_enable_live2d",
-        config.enable_live2d.toString()
-      );
-      const mainCheckbox = document.getElementById("enableLive2DCheckbox");
-      if (mainCheckbox) {
-        mainCheckbox.checked = config.enable_live2d;
-      }
-      const splitCheckbox = document.getElementById(
-        "splitEnableLive2DCheckbox"
-      );
-      if (splitCheckbox) {
-        splitCheckbox.checked = config.enable_live2d;
-      }
-    }
   },
 
   // 转换导入的基于ID的可用服装为基于名称的格式

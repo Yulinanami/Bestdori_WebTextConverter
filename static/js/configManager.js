@@ -295,7 +295,6 @@ export const configManager = {
           built_in_characters: costumeManager
             ? Array.from(costumeManager.builtInCharacters)
             : [],
-          enable_live2d: state.get("enableLive2D"),
           position_config: {
             autoPositionMode: positionManager
               ? positionManager.autoPositionMode
@@ -416,7 +415,6 @@ export const configManager = {
           "bestdori_costume_mapping_v2",
           "bestdori_available_costumes_v2",
           "bestdori_position_config",
-          "bestdori_enable_live2d",
         ];
         console.log("正在清除以下本地缓存:", keysToRemove);
         keysToRemove.forEach((key) => {
