@@ -395,67 +395,43 @@ export const live2dEditor = {
     });
   },
 
-  insertLayoutAction(characterId, characterName, index) {
+    insertLayoutAction(characterId, characterName, index) {
     this._executeCommand((currentState) => {
-      const lastCostume = this._findLastCostumeForCharacter(
+      // 使用新的辅助函数来获取角色在插入点之前的状态
+      const previousState = this._getCharacterStateAtIndex(
         currentState.actions,
         characterName,
         index
       );
+
+      // 根据角色是否在场来决定新的布局类型
+      const layoutType = previousState.onStage ? "move" : "appear";
+
+      // 决定要使用的服装：优先使用上一次的服装，否则使用默认服装
       const costumeToUse =
-        lastCostume || this._getDefaultCostume(characterName);
-      const lastPosition = this._findLastPositionForCharacter(
-        currentState.actions,
-        characterName,
-        index
-      );
+        previousState.lastCostume || this._getDefaultCostume(characterName);
+      
+      // 决定起始位置：如果角色在场，则从上一个位置开始；否则使用默认位置
       const defaultPosition = this._getDefaultPosition(characterName);
-      const fromPosition = lastPosition
-        ? { side: lastPosition.side, offsetX: lastPosition.offsetX }
-        : { side: defaultPosition.position, offsetX: defaultPosition.offset };
-      const layoutType = lastPosition ? "move" : "appear";
+      const fromPosition = previousState.lastPosition
+        ? { ...previousState.lastPosition } // 继承上一个位置
+        : { side: defaultPosition.position, offsetX: defaultPosition.offset }; // 使用默认位置
+
       const newLayoutAction = {
         id: `layout-action-${Date.now()}`,
         type: "layout",
         characterId,
         characterName,
-        layoutType: layoutType,
+        layoutType: layoutType, // 应用智能判断的结果
         costume: costumeToUse,
         position: {
           from: fromPosition,
-          to: { ...fromPosition }, 
+          to: { ...fromPosition }, // 默认移动到相同位置
         },
         initialState: {},
       };
       currentState.actions.splice(index, 0, newLayoutAction);
     });
-  },
-
-  _findLastCostumeForCharacter(actions, characterName, startIndex) {
-    for (let i = startIndex - 1; i >= 0; i--) {
-      const action = actions[i];
-      if (action.type === "layout" && action.characterName === characterName) {
-        if (action.costume) {
-          return action.costume;
-        }
-      }
-    }
-    return null;
-  },
-
-  _findLastPositionForCharacter(actions, characterName, startIndex) {
-    for (let i = startIndex - 1; i >= 0; i--) {
-      const action = actions[i];
-      if (action.type === "layout" && action.characterName === characterName) {
-        if (action.position && action.position.to) {
-          return {
-            side: action.position.to.side,
-            offsetX: action.position.to.offsetX,
-          };
-        }
-      }
-    }
-    return null;
   },
 
   _executeCommand(changeFn) {
@@ -625,5 +601,43 @@ export const live2dEditor = {
       fragment.appendChild(item);
     });
     listContainer.appendChild(fragment);
+  },
+
+    /**
+   * 获取一个角色在时间线特定索引前的最终状态（是否在场，最后的位置和服装）
+   * @param {Array} actions - 所有的动作列表
+   * @param {string} characterName - 要查询的角色名
+   * @param {number} startIndex - 插入点索引，函数将分析此索引之前的所有动作
+   * @returns {{onStage: boolean, lastPosition: object|null, lastCostume: string|null}}
+   */
+  _getCharacterStateAtIndex(actions, characterName, startIndex) {
+    let onStage = false;
+    let lastPosition = null;
+    let lastCostume = null;
+
+    // 遍历插入点之前的所有动作
+    for (let i = 0; i < startIndex; i++) {
+      const action = actions[i];
+      if (action.type === "layout" && action.characterName === characterName) {
+        if (action.layoutType === "appear" || action.layoutType === "move") {
+          onStage = true;
+          // 记录角色移动或登场后的最终位置和服装
+          if (action.position && action.position.to) {
+            lastPosition = {
+              side: action.position.to.side,
+              offsetX: action.position.to.offsetX,
+            };
+          }
+          if (action.costume) {
+            lastCostume = action.costume;
+          }
+        } else if (action.layoutType === "hide") {
+          onStage = false;
+          // 角色退场后，重置其最后位置信息
+          lastPosition = null;
+        }
+      }
+    }
+    return { onStage, lastPosition, lastCostume };
   },
 };
