@@ -816,101 +816,131 @@
           </div>
           <div class="modal-body" id="helpContent">
             <div class="help-section">
-              <h4>功能说明</h4>
-              <ul>
-                <li>
-                  <strong>多格式支持</strong>：现在支持上传 Word文档(.docx) 和
-                  Markdown文件(.md)
-                </li>
-                <li>
-                  <strong>分屏编辑</strong
-                  >：点击"分屏编辑"可以左侧编辑，右侧实时预览
-                </li>
-                <li><strong>对话预览</strong>：模拟 Bestdori 的对话展示效果</li>
-                <li>
-                  <strong>本地配置</strong
-                  >：角色配置保存在浏览器本地，每个用户独立
-                </li>
-                <li>
-                  <strong>配置导入导出</strong
-                  >：支持导出和导入角色映射、引号配置和服装配置文件
-                </li>
-                <li>
-                  <strong>Live2D 布局</strong>：在角色第一次出场时自动添加
-                  Live2D 布局和服装配置
-                </li>
-              </ul>
-            </div>
-
-            <div class="help-section">
-              <h4>文件上传</h4>
+              <h4>核心功能</h4>
               <p>
-                点击或将文件拖拽到此区域，支持
-                <code>.txt</code>、<code>.docx</code>、<code>.md</code>
-                格式，文件内容会自动加载到文本输入框中。
-              </p>
-            </div>
-
-            <div class="help-section">
-              <h4>文本输入</h4>
-              <p>
-                在此处直接粘贴或编辑你的对话文本。标准格式为
-                <strong>角色名:对话内容</strong> 或
-                <strong>角色名：对话内容</strong>（中英文冒号均可）。
+                这个工具可以将剧本（纯文本、Word文档等）转换为 Bestdori
+                平台兼容的 JSON
+                格式，通过一系列编辑器，让剧情制作流程变得更加方便。
               </p>
               <ul>
-                <li><strong>格式化文本</strong>: 自动整理文本间距</li>
+                <li>
+                  <strong>多格式支持</strong>：支持直接上传 <code>.txt</code>,
+                  <code>.docx</code>, <code>.md</code> 格式的剧本文件。
+                </li>
+                <li>
+                  <strong>编辑器</strong
+                  >：提供三个编辑模式——<strong>说话人编辑器</strong>、<strong
+                    >Live2D 布局编辑器</strong
+                  >和<strong>动作/表情编辑器</strong>，通过拖拽方式配置剧情。
+                </li>
+                <li>
+                  <strong>自定义</strong
+                  >：角色、服装、默认位置、引号可以根据自己的习惯自定义。
+                </li>
+                <li>
+                  <strong>数据</strong
+                  >：所有自定义配置（角色、服装、位置等）自动保存在浏览器本地，支持一键导出/导入配置文件。
+                </li>
               </ul>
             </div>
 
             <div class="help-section">
-              <h4>操作</h4>
-              <ul>
-                <li><strong>开始转换</strong>: 将文本转换为JSON格式</li>
-                <li><strong>对话预览</strong>: 以对话形式预览转换结果</li>
-                <li><strong>配置管理</strong>: 配置角色名称与ID的映射关系</li>
-                <li><strong>批量处理</strong>: 批量转换多个文件</li>
-              </ul>
+              <h4>基础工作流程</h4>
+              <ol>
+                <li>
+                  <strong>输入文本</strong
+                  >：通过拖拽文件、点击上传或直接粘贴的方式，将剧本内容放入“文本输入”区域。
+                </li>
+                <li>
+                  <strong>格式化文本</strong>：点击
+                  <strong>格式化文本</strong>
+                  按钮，可以自动使段落间距保持一致，导入文本后建议先点击按钮格式化一下避免对话的换行问题。
+                </li>
+                <li>
+                  <strong>开始转换</strong>：点击
+                  <strong>开始转换</strong>
+                  按钮，即可在下方看到生成的 JSON 代码。
+                </li>
+                <li>
+                  <strong>获取结果</strong>：可以
+                  <strong>下载JSON</strong> 文件，或者点击
+                  <strong>跳转到 Bestdori</strong>
+                  按钮（将自动复制JSON内容）直接开始在 Bestdori 平台进行编辑。
+                </li>
+              </ol>
             </div>
 
             <div class="help-section">
-              <h4>Live2D 布局功能</h4>
+              <h4>编辑器模式</h4>
+              <p>
+                用来配置剧情的细节部分（说话的角色、Live2D模型入场出场、Live2D的动作/表情）
+              </p>
               <ul>
                 <li>
-                  <strong>启用功能</strong>：勾选"启用自动 Live2D
-                  布局"后，转换时会自动为首次出现的角色布局live2d
+                  <strong>说话人编辑器</strong
+                  >：当文本的角色名和对话没有按照“角色名：内容”的格式时，使用此编辑器，从右侧角色列表将角色拖拽到对应的文本卡片上，即可快速指派说话人，支持Ctrl多选和Shift批量指派。
                 </li>
                 <li>
-                  <strong>服装配置</strong
-                  >：点击"服装配置"可以为每个角色设置默认服装
+                  <strong>Live2D 布局编辑器</strong
+                  >：管理角色Live2D模型出场入场时机，从右侧将角色拖拽到时间线即可创建
+                  <strong>登场(appear)</strong>、<strong>移动(move)</strong> 或
+                  <strong>退场(hide)</strong>
+                  的布局卡片，可以直接在卡片上配置服装、舞台位置和偏移值。
                 </li>
                 <li>
-                  <strong>自定义服装</strong
-                  >：除了预设服装，还可以输入自定义的服装ID
-                </li>
-                <li>
-                  <strong>配置导出</strong
-                  >：服装配置，自定义引号设置会与角色映射一起导出和导入
+                  <strong>动作/表情编辑器</strong
+                  >：进行Live2D模型的动作/表情配置。可以为<strong>每一句对话</strong>下的<strong>每一位在场角色</strong>单独设置动作(Motion)和表情(Expression)，从右侧资源库拖拽对应的ID到角色状态栏即可。
                 </li>
               </ul>
             </div>
 
             <div class="help-section">
               <h4>配置管理</h4>
+              <p>
+                点击主界面的 <strong>配置管理</strong>
+                按钮，可以对工具的各项数据进行自定义。
+              </p>
               <ul>
-                <li><strong>添加角色</strong>：添加新的角色映射</li>
-                <li><strong>恢复默认</strong>：恢复到系统默认配置</li>
-                <li><strong>导出配置</strong>：将当前配置导出为JSON文件</li>
-                <li><strong>导入配置</strong>：从JSON文件导入配置</li>
                 <li>
-                  <strong>清除配置</strong
-                  >：清空浏览器的本地存储空间，如果遇到一些奇怪的bug可以试着清除
+                  <strong>角色映射</strong
+                  >：添加自定义角色，或为现有角色设置别名。
+                </li>
+                <li>
+                  <strong>服装配置</strong
+                  >：为每个角色管理一个独立的服装ID列表，并设置默认出场服装。
+                </li>
+                <li>
+                  <strong>位置配置</strong
+                  >：设置角色登场时的默认位置，支持“自动循环（左/中/右）”或“手动指定”两种模式。
+                </li>
+                <li>
+                  <strong>动作/表情配置</strong
+                  >：管理全局的动作和表情ID列表，在这里添加的自定义ID会出现在“动作/表情编辑器”的列表中。
+                </li>
+                <li>
+                  <strong>导入/导出配置</strong
+                  >：将上述所有配置（角色、服装、位置、引号）导出成一个JSON文件进行备份。
+                </li>
+                <li>
+                  <strong>清除缓存</strong
+                  >：当遇到无法解释的奇怪问题时，此操作会清空所有本地数据，将应用恢复到初始状态。
                 </li>
               </ul>
-              <p style="color: #e53e3e; margin-top: 10px">
-                <strong>注意：</strong
-                >所有配置保存在浏览器本地，清除浏览器数据会丢失配置，建议定期导出备份。
-              </p>
+            </div>
+
+            <div class="help-section">
+              <h4>其它提示</h4>
+              <ul>
+                <li>
+                  <strong>撤销/重做</strong>：在编辑器中都可以使用
+                  <code>Ctrl+Z</code> (撤销) 和 <code>Ctrl+Y</code> (重做)
+                  快捷键
+                </li>
+                <li>
+                  <strong>置顶角色</strong
+                  >：在编辑器的右侧角色列表中，点击角色名字旁边的图钉图标，可以将常用角色置顶，方便快速查找。
+                </li>
+              </ul>
             </div>
           </div>
         </div>
