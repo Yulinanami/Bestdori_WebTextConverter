@@ -1,6 +1,6 @@
 // 动作表情编辑器
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui, renderGroupedView } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { historyManager } from "./historyManager.js";
@@ -11,6 +11,7 @@ import { positionManager } from "./positionManager.js";
 export const expressionEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
+  activeGroupIndex: 0,
   stagedCharacters: [],
   tempLibraryItems: { motion: [], expression: [] },
 
@@ -434,9 +435,13 @@ export const expressionEditor = {
     const layoutTemplate = document.getElementById(
       "timeline-layout-card-template"
     );
-    timeline.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-    this.projectFileState.actions.forEach((action) => {
+
+    const isGroupingEnabled =
+      document.getElementById("groupCardsCheckbox").checked;
+    const actions = this.projectFileState.actions;
+    const groupSize = 50;
+
+    const renderSingleCard = (action) => {
       let card;
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
@@ -525,7 +530,7 @@ export const expressionEditor = {
           toPositionContainer.style.display = "none";
         }
       } else {
-        return;
+        return null;
       }
       const footer = card.querySelector(".timeline-item-footer");
       if (this._actionHasExpressionData(action)) {
@@ -539,9 +544,31 @@ export const expressionEditor = {
         setupButton.textContent = "设置动作/表情";
         footer.appendChild(setupButton);
       }
-      fragment.appendChild(card);
-    });
-    timeline.appendChild(fragment);
+      return card;
+    };
+
+    if (isGroupingEnabled && actions.length > groupSize) {
+      renderGroupedView({
+        container: timeline,
+        actions: actions,
+        activeGroupIndex: this.activeGroupIndex,
+        onGroupClick: (index) => {
+          this.activeGroupIndex =
+            this.activeGroupIndex === index ? null : index;
+          this.renderTimeline();
+        },
+        renderItemFn: renderSingleCard,
+        groupSize: groupSize,
+      });
+    } else {
+      timeline.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      actions.forEach((action) => {
+        const card = renderSingleCard(action);
+        if (card) fragment.appendChild(card);
+      });
+      timeline.appendChild(fragment);
+    }
   },
 
   _renderStatusBarForAction(action) {

@@ -1,6 +1,6 @@
 // live2d布局模式
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui, renderGroupedView } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { positionManager } from "./positionManager.js";
 import { costumeManager } from "./costumeManager.js";
@@ -11,6 +11,7 @@ import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 export const live2dEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
+  activeGroupIndex: 0,
   scrollInterval: null,
   scrollSpeed: 0,
 
@@ -532,11 +533,16 @@ export const live2dEditor = {
     const layoutTemplate = document.getElementById(
       "timeline-layout-card-template"
     );
-    timeline.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-    this.projectFileState.actions.forEach((action) => {
+
+    const isGroupingEnabled =
+      document.getElementById("groupCardsCheckbox").checked;
+    const actions = this.projectFileState.actions;
+    const groupSize = 50;
+
+    const renderSingleCard = (action) => {
+      let card;
       if (action.type === "talk") {
-        const card = talkTemplate.content.cloneNode(true);
+        card = talkTemplate.content.cloneNode(true);
         card.querySelector(".timeline-item").dataset.id = action.id;
         const nameDiv = card.querySelector(".speaker-name");
         const avatarDiv = card.querySelector(".dialogue-avatar");
@@ -554,9 +560,8 @@ export const live2dEditor = {
           avatarDiv.textContent = "N";
         }
         card.querySelector(".dialogue-preview-text").textContent = action.text;
-        fragment.appendChild(card);
       } else if (action.type === "layout") {
-        const card = layoutTemplate.content.cloneNode(true);
+        card = layoutTemplate.content.cloneNode(true);
         const item = card.querySelector(".timeline-item");
         item.dataset.id = action.id;
         item.dataset.layoutType = action.layoutType;
@@ -621,10 +626,34 @@ export const live2dEditor = {
         } else {
           toPositionContainer.style.display = "none";
         }
-        fragment.appendChild(card);
+      } else {
+        return null;
       }
-    });
-    timeline.appendChild(fragment);
+      return card;
+    };
+
+    if (isGroupingEnabled && actions.length > groupSize) {
+      renderGroupedView({
+        container: timeline,
+        actions: actions,
+        activeGroupIndex: this.activeGroupIndex,
+        onGroupClick: (index) => {
+          this.activeGroupIndex =
+            this.activeGroupIndex === index ? null : index;
+          this.renderTimeline();
+        },
+        renderItemFn: renderSingleCard,
+        groupSize: groupSize,
+      });
+    } else {
+      timeline.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      actions.forEach((action) => {
+        const card = renderSingleCard(action);
+        if (card) fragment.appendChild(card);
+      });
+      timeline.appendChild(fragment);
+    }
   },
 
   renderCharacterList() {

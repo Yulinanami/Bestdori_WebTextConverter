@@ -4,6 +4,7 @@ import {
   ui,
   initGlobalModalListeners,
   initializeModalCloseButtons,
+  initPerformanceSettingsPersistence,
 } from "./uiUtils.js";
 import { viewManager } from "./viewManager.js";
 import { fileHandler } from "./fileHandler.js";
@@ -25,6 +26,9 @@ function initializeApp() {
 
   // 绑定模态框事件
   bindModalEvents();
+  
+  // 初始化性能设置的持久化功能
+  initPerformanceSettingsPersistence();
 
   // 初始化状态
   motionExpressionEditor.init();
@@ -60,7 +64,6 @@ function initializeApp() {
   // 初始化全局模态框监听器
   initGlobalModalListeners();
 }
-
 // 绑定经典视图事件
 function bindClassicViewEvents() {
   // 文件相关

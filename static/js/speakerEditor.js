@@ -1,5 +1,5 @@
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui, renderGroupedView } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { selectionManager } from "./selectionManager.js";
 import { historyManager } from "./historyManager.js";
@@ -9,6 +9,7 @@ import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 export const speakerEditor = {
   projectFileState: null,
   originalStateOnOpen: null,
+  activeGroupIndex: 0,
   scrollInterval: null,
   scrollSpeed: 0,
 
@@ -231,58 +232,89 @@ export const speakerEditor = {
    */
   renderCanvas() {
     const canvas = document.getElementById("speakerEditorCanvas");
-    const template = document.getElementById("text-snippet-card-template");
-    const scrollState = canvas.scrollTop;
-    canvas.innerHTML = "";
     const usedIds = new Set();
-    requestAnimationFrame(() => {
-      const fragment = document.createDocumentFragment();
+    if (this.projectFileState && this.projectFileState.actions) {
       this.projectFileState.actions.forEach((action) => {
-        if (action.type !== "talk") return;
-        action.speakers?.forEach((speaker) => usedIds.add(speaker.characterId));
-        const card = template.content.cloneNode(true);
-        const dialogueItem = card.querySelector(".dialogue-item");
-        dialogueItem.dataset.id = action.id;
-        const avatarContainer = card.querySelector(".speaker-avatar-container");
-        const avatarDiv = card.querySelector(".dialogue-avatar");
-        const speakerNameDiv = card.querySelector(".speaker-name");
-        const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
-        if (action.speakers && action.speakers.length > 0) {
-          const firstSpeaker = action.speakers[0];
-          avatarContainer.style.display = "flex";
-          speakerNameDiv.style.display = "block";
-          dialogueItem.classList.remove("narrator");
-          configManager.updateConfigAvatar(
-            { querySelector: () => avatarDiv },
-            firstSpeaker.characterId,
-            firstSpeaker.name
+        if (action.type === "talk" && action.speakers) {
+          action.speakers.forEach((speaker) =>
+            usedIds.add(speaker.characterId)
           );
-          const allNames = action.speakers.map((s) => s.name).join(" & ");
-          speakerNameDiv.textContent = allNames;
-          if (action.speakers.length > 1) {
-            multiSpeakerBadge.style.display = "flex";
-            multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
-            avatarContainer.style.cursor = "pointer";
-            avatarContainer.addEventListener("click", (e) => {
-              e.stopPropagation();
-              this.showMultiSpeakerPopover(action.id, avatarContainer);
-            });
-          } else {
-            multiSpeakerBadge.style.display = "none";
-            avatarContainer.style.cursor = "default";
-          }
-        } else {
-          avatarContainer.style.display = "none";
-          speakerNameDiv.style.display = "none";
-          multiSpeakerBadge.style.display = "none";
-          dialogueItem.classList.add("narrator");
         }
-        card.querySelector(".dialogue-text").textContent = action.text;
-        fragment.appendChild(card);
+      });
+    }
+
+    const isGroupingEnabled =
+      document.getElementById("groupCardsCheckbox").checked;
+    const actions = this.projectFileState.actions.filter(
+      (a) => a.type === "talk"
+    );
+    const groupSize = 50;
+
+    const renderSingleCard = (action) => {
+      const template = document.getElementById("text-snippet-card-template");
+      const card = template.content.cloneNode(true);
+      const dialogueItem = card.querySelector(".dialogue-item");
+      dialogueItem.dataset.id = action.id;
+      const avatarContainer = card.querySelector(".speaker-avatar-container");
+      const avatarDiv = card.querySelector(".dialogue-avatar");
+      const speakerNameDiv = card.querySelector(".speaker-name");
+      const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
+
+      if (action.speakers && action.speakers.length > 0) {
+        const firstSpeaker = action.speakers[0];
+        avatarContainer.style.display = "flex";
+        speakerNameDiv.style.display = "block";
+        dialogueItem.classList.remove("narrator");
+        configManager.updateConfigAvatar(
+          { querySelector: () => avatarDiv },
+          firstSpeaker.characterId,
+          firstSpeaker.name
+        );
+        const allNames = action.speakers.map((s) => s.name).join(" & ");
+        speakerNameDiv.textContent = allNames;
+        if (action.speakers.length > 1) {
+          multiSpeakerBadge.style.display = "flex";
+          multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
+          avatarContainer.style.cursor = "pointer";
+          avatarContainer.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.showMultiSpeakerPopover(action.id, avatarContainer);
+          });
+        } else {
+          multiSpeakerBadge.style.display = "none";
+          avatarContainer.style.cursor = "default";
+        }
+      } else {
+        avatarContainer.style.display = "none";
+        speakerNameDiv.style.display = "none";
+        multiSpeakerBadge.style.display = "none";
+        dialogueItem.classList.add("narrator");
+      }
+      card.querySelector(".dialogue-text").textContent = action.text;
+      return card;
+    };
+
+    if (isGroupingEnabled && actions.length > groupSize) {
+      renderGroupedView({
+        container: canvas,
+        actions: actions,
+        activeGroupIndex: this.activeGroupIndex,
+        onGroupClick: (index) => {
+          this.activeGroupIndex =
+            this.activeGroupIndex === index ? null : index;
+          this.renderCanvas();
+        },
+        renderItemFn: renderSingleCard,
+        groupSize: groupSize,
+      });
+    } else {
+      canvas.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      actions.forEach((action) => {
+        fragment.appendChild(renderSingleCard(action));
       });
       canvas.appendChild(fragment);
-      canvas.scrollTop = scrollState;
-    });
+    }
 
     return usedIds;
   },

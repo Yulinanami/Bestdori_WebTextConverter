@@ -4,6 +4,7 @@ import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 
 let statusTimer = null;
+const GROUPING_STORAGE_KEY = "bestdori_card_grouping_enabled";
 
 export const ui = {
   showProgress(percent) {
@@ -153,6 +154,80 @@ export function initGlobalModalListeners() {
       });
     }
   });
+}
+
+export function initPerformanceSettingsPersistence() {
+  const checkbox = document.getElementById("groupCardsCheckbox");
+  if (!checkbox) return;
+  try {
+    const savedState = localStorage.getItem(GROUPING_STORAGE_KEY);
+    checkbox.checked = savedState === "true";
+  } catch (error) {
+    console.error("加载卡片分组设置失败:", error);
+    checkbox.checked = false;
+  }
+  checkbox.addEventListener("change", (e) => {
+    try {
+      localStorage.setItem(GROUPING_STORAGE_KEY, e.target.checked);
+    } catch (error) {
+      console.error("保存卡片分组设置失败:", error);
+      if (ui && ui.showStatus) {
+        ui.showStatus("无法保存设置，可能是浏览器存储空间已满。", "error");
+      }
+    }
+  });
+}
+
+export function renderGroupedView({
+  container,
+  actions,
+  activeGroupIndex,
+  onGroupClick,
+  renderItemFn,
+  groupSize = 50,
+}) {
+  container.innerHTML = "";
+  const totalActions = actions.length;
+  const numGroups = Math.ceil(totalActions / groupSize);
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < numGroups; i++) {
+    const startNum = i * groupSize + 1;
+    const endNum = Math.min((i + 1) * groupSize, totalActions);
+    const groupHeader = document.createElement("div");
+    groupHeader.className = "timeline-group-header";
+    groupHeader.textContent = `▶ 对话 ${startNum} - ${endNum} (${
+      endNum - startNum + 1
+    }条)`;
+    groupHeader.dataset.groupIdx = i;
+    groupHeader.style.cursor = "pointer";
+    groupHeader.style.padding = "12px 18px";
+    groupHeader.style.background = "var(--bg-secondary)";
+    groupHeader.style.border = "1px solid var(--border-primary)";
+    groupHeader.style.borderRadius = "var(--radius-lg)";
+    groupHeader.style.marginBottom = "15px";
+    groupHeader.style.fontWeight = "600";
+    groupHeader.style.transition = "all 0.2s ease";
+    groupHeader.addEventListener("click", () => onGroupClick(i));
+    fragment.appendChild(groupHeader);
+    if (i === activeGroupIndex) {
+      groupHeader.classList.add("active");
+      groupHeader.textContent = `▼ 对话 ${startNum} - ${endNum} (${
+        endNum - startNum + 1
+      }条)`;
+      groupHeader.style.background = "#ebf8ff";
+      groupHeader.style.borderColor = "#90cdf4";
+
+      const actionsToRender = actions.slice(startNum - 1, endNum);
+      actionsToRender.forEach((action) => {
+        const cardElement = renderItemFn(action);
+        if (cardElement) {
+          fragment.appendChild(cardElement);
+        }
+      });
+    }
+  }
+
+  container.appendChild(fragment);
 }
 
 export function initializeModalCloseButtons() {
