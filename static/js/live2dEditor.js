@@ -122,7 +122,8 @@ export const live2dEditor = {
       this.originalStateOnOpen = JSON.stringify(initialState);
       historyManager.clear();
       this.renderTimeline();
-      this.renderCharacterList();
+      const usedCharacterNames = this._getUsedCharacterIds();
+      this.renderCharacterList(usedCharacterNames);
       this.initDragAndDrop();
       const modal = document.getElementById("live2dEditorModal");
       if (modal) modal.focus();
@@ -257,6 +258,18 @@ export const live2dEditor = {
       currentState.actions = newActions;
     });
     ui.showStatus("已应用智能布局！", "success");
+  },
+
+  _getUsedCharacterIds() {
+    const usedNames = new Set();
+    if (this.projectFileState && this.projectFileState.actions) {
+      this.projectFileState.actions.forEach((action) => {
+        if (action.type === "layout" && action.characterName) {
+          usedNames.add(action.characterName);
+        }
+      });
+    }
+    return usedNames;
   },
 
   _clearAllLayouts() {
@@ -419,10 +432,10 @@ export const live2dEditor = {
     new Sortable(characterList, {
       group: {
         name: "live2d-shared",
-        pull: "clone", 
-        put: false, 
+        pull: "clone",
+        put: false,
       },
-      sort: false, 
+      sort: false,
       onStart: () =>
         document.addEventListener("dragover", this.handleDragScrolling),
       onEnd: () => {
@@ -434,8 +447,8 @@ export const live2dEditor = {
     new Sortable(timeline, {
       group: "live2d-shared",
       animation: 150,
-      sort: true, 
-      filter: ".timeline-group-header", 
+      sort: true,
+      filter: ".timeline-group-header",
       onStart: () =>
         document.addEventListener("dragover", this.handleDragScrolling),
       onEnd: (evt) => {
@@ -468,7 +481,7 @@ export const live2dEditor = {
       onAdd: (evt) => {
         const characterItem = evt.item;
         if (!characterItem.classList.contains("character-item")) {
-          characterItem.remove(); 
+          characterItem.remove();
           return;
         }
         const isGroupingEnabled =
@@ -539,10 +552,14 @@ export const live2dEditor = {
       execute: () => {
         this.projectFileState = JSON.parse(afterState);
         this.renderTimeline();
+        const usedNames = this._getUsedCharacterIds();
+        this.renderCharacterList(usedNames);
       },
       undo: () => {
         this.projectFileState = JSON.parse(beforeState);
         this.renderTimeline();
+        const usedNames = this._getUsedCharacterIds();
+        this.renderCharacterList(usedNames);
       },
     };
     historyManager.do(command);
@@ -712,7 +729,7 @@ export const live2dEditor = {
     }
   },
 
-  renderCharacterList() {
+  renderCharacterList(usedCharacterNames) {
     const listContainer = document.getElementById("live2dEditorCharacterList");
     const template = document.getElementById("draggable-character-template");
     listContainer.innerHTML = "";
@@ -731,6 +748,9 @@ export const live2dEditor = {
       const characterItem = item.querySelector(".character-item");
       characterItem.dataset.characterId = ids[0];
       characterItem.dataset.characterName = name;
+      if (usedCharacterNames && usedCharacterNames.has(name)) {
+        characterItem.classList.add("is-used");
+      }
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
       configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
       item.querySelector(".character-name").textContent = name;
