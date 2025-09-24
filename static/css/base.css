@@ -16,6 +16,11 @@ body {
   color: var(--text-primary);
 }
 
+/* 用于在模态框打开时锁定body滚动 */
+body.modal-open {
+  overflow: hidden;
+}
+
 /* 标题样式 */
 h1,
 h2,

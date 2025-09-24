@@ -32,13 +32,20 @@ export const ui = {
   openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
+      document.body.classList.add("modal-open"); 
       modal.style.display = "flex";
+      const modalContent = modal.querySelector(".modal-content");
+      if (modalContent) {
+        const topPosition = window.scrollY + window.innerHeight / 2;
+        modalContent.style.top = `${topPosition}px`;
+      }
     }
   },
 
   closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
+      document.body.classList.remove("modal-open"); 
       modal.style.display = "none";
     }
   },
