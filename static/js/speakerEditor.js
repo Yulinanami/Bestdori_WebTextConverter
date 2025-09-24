@@ -300,9 +300,26 @@ export const speakerEditor = {
         actions: actions,
         activeGroupIndex: this.activeGroupIndex,
         onGroupClick: (index) => {
-          this.activeGroupIndex =
-            this.activeGroupIndex === index ? null : index;
+          const isOpening = this.activeGroupIndex !== index;
+          this.activeGroupIndex = isOpening ? index : null;
           this.renderCanvas();
+
+          if (isOpening) {
+            setTimeout(() => {
+              const scrollContainer = document.getElementById(
+                "speakerEditorCanvas"
+              );
+              const header = scrollContainer.querySelector(
+                `.timeline-group-header[data-group-idx="${index}"]`
+              );
+              if (scrollContainer && header) {
+                scrollContainer.scrollTo({
+                  top: header.offsetTop - 110,
+                  behavior: "smooth",
+                });
+              }
+            }, 0);
+          }
         },
         renderItemFn: renderSingleCard,
         groupSize: groupSize,
