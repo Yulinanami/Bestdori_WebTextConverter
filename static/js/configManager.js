@@ -1,6 +1,6 @@
 // 配置管理相关功能
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui, GROUPING_STORAGE_KEY } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
@@ -415,6 +415,7 @@ export const configManager = {
           "bestdori_costume_mapping_v2",
           "bestdori_available_costumes_v2",
           "bestdori_position_config",
+          GROUPING_STORAGE_KEY,
         ];
         console.log("正在清除以下本地缓存:", keysToRemove);
         keysToRemove.forEach((key) => {

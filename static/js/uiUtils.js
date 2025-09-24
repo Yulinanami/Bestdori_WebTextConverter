@@ -4,7 +4,7 @@ import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 
 let statusTimer = null;
-const GROUPING_STORAGE_KEY = "bestdori_card_grouping_enabled";
+export const GROUPING_STORAGE_KEY = "bestdori_card_grouping_enabled";
 
 export const ui = {
   showProgress(percent) {
