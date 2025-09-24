@@ -1,3 +1,5 @@
+// 文件: static/js/live2dEditor.js (完整替换)
+
 // live2d布局模式
 import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
@@ -396,64 +398,101 @@ export const live2dEditor = {
     }, 20);
   },
 
+  _getGlobalIndex(localIndex) {
+    const isGroupingEnabled =
+      document.getElementById("groupCardsCheckbox").checked;
+    if (
+      !isGroupingEnabled ||
+      this.activeGroupIndex === null ||
+      this.activeGroupIndex < 0
+    ) {
+      return localIndex;
+    }
+    const groupSize = 50;
+    const offset = this.activeGroupIndex * groupSize;
+    return offset + localIndex;
+  },
+
   initDragAndDrop() {
     const characterList = document.getElementById("live2dEditorCharacterList");
     const timeline = document.getElementById("live2dEditorTimeline");
     new Sortable(characterList, {
       group: {
         name: "live2d-shared",
-        pull: "clone",
-        put: true,
+        pull: "clone", 
+        put: false, 
       },
-      sort: false,
-      onMove: function (evt) {
-        return !evt.related.closest("#live2dEditorCharacterList");
-      },
-      onStart: () => {
-        document.addEventListener("dragover", this.handleDragScrolling);
-      },
+      sort: false, 
+      onStart: () =>
+        document.addEventListener("dragover", this.handleDragScrolling),
       onEnd: () => {
         document.removeEventListener("dragover", this.handleDragScrolling);
         clearInterval(this.scrollInterval);
         this.scrollInterval = null;
       },
-      onAdd: (evt) => {
-        const item = evt.item;
-        if (item.classList.contains("layout-item") && item.dataset.id) {
-          this._deleteLayoutAction(item.dataset.id);
-        }
-        item.remove();
-      },
     });
     new Sortable(timeline, {
       group: "live2d-shared",
       animation: 150,
-      sort: true,
-      onStart: () => {
-        document.addEventListener("dragover", this.handleDragScrolling);
-      },
+      sort: true, 
+      filter: ".timeline-group-header", 
+      onStart: () =>
+        document.addEventListener("dragover", this.handleDragScrolling),
       onEnd: (evt) => {
         document.removeEventListener("dragover", this.handleDragScrolling);
         clearInterval(this.scrollInterval);
         this.scrollInterval = null;
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-          const { oldIndex, newIndex } = evt;
+          const isGroupingEnabled =
+            document.getElementById("groupCardsCheckbox").checked;
+          const groupSize = 50;
+          let localOldIndex = evt.oldIndex;
+          let localNewIndex = evt.newIndex;
+          if (
+            isGroupingEnabled &&
+            this.activeGroupIndex !== null &&
+            this.activeGroupIndex >= 0
+          ) {
+            const headerOffset = this.activeGroupIndex + 1;
+            localOldIndex = Math.max(0, localOldIndex - headerOffset);
+            localNewIndex = Math.max(0, localNewIndex - headerOffset);
+          }
+          const globalOldIndex = this._getGlobalIndex(localOldIndex);
+          const globalNewIndex = this._getGlobalIndex(localNewIndex);
           this._executeCommand((currentState) => {
-            const [movedItem] = currentState.actions.splice(oldIndex, 1);
-            currentState.actions.splice(newIndex, 0, movedItem);
+            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+            currentState.actions.splice(globalNewIndex, 0, movedItem);
           });
         }
       },
-
       onAdd: (evt) => {
         const characterItem = evt.item;
-        const insertAtIndex = evt.newDraggableIndex;
-        if (characterItem.classList.contains("character-item")) {
-          const characterId = parseInt(characterItem.dataset.characterId);
-          const characterName = characterItem.dataset.characterName;
-          this.insertLayoutAction(characterId, characterName, insertAtIndex);
-          characterItem.remove();
+        if (!characterItem.classList.contains("character-item")) {
+          characterItem.remove(); 
+          return;
         }
+        const isGroupingEnabled =
+          document.getElementById("groupCardsCheckbox").checked;
+        let localInsertIndex = evt.newDraggableIndex;
+        if (
+          isGroupingEnabled &&
+          this.activeGroupIndex !== null &&
+          this.activeGroupIndex >= 0
+        ) {
+          const headerOffset = this.activeGroupIndex + 1;
+          localInsertIndex = Math.max(0, localInsertIndex - headerOffset);
+        }
+        const globalInsertIndex = this._getGlobalIndex(localInsertIndex);
+        const characterId = parseInt(characterItem.dataset.characterId);
+        const characterName = characterItem.dataset.characterName;
+        if (characterId && characterName) {
+          this.insertLayoutAction(
+            characterId,
+            characterName,
+            globalInsertIndex
+          );
+        }
+        characterItem.remove();
       },
     });
   },
