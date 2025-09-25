@@ -1062,3 +1062,25 @@
 .clear-search-btn:hover {
   color: #4a5568;
 }
+
+#expressionEditorLibrary {
+  flex: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  border-left: 1px solid var(--border-primary);
+  padding-left: 15px;
+}
+
+#expressionEditorTimeline {
+  flex: 3;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+#expressionEditorModal .modal-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 20px;
+}
