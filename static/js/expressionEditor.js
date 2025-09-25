@@ -46,31 +46,21 @@ export const expressionEditor = {
     document
       .getElementById("live2dViewerBtn")
       ?.addEventListener("click", () => this._openLive2dViewers());
-
-    // --- 新增：设置带清除按钮的搜索框 ---
     const setupSearchClear = (inputId, clearBtnId) => {
       const input = document.getElementById(inputId);
       const clearBtn = document.getElementById(clearBtnId);
-
       if (!input || !clearBtn) return;
-
-      // 监听输入事件
       input.addEventListener("input", () => {
         clearBtn.style.display = input.value ? "block" : "none";
       });
-
-      // 监听清除按钮点击事件
       clearBtn.addEventListener("click", () => {
         input.value = "";
-        // 手动触发input事件，以更新列表过滤和按钮可见性
         input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.focus(); // 将焦点重新放回输入框
+        input.focus(); 
       });
     };
-
     setupSearchClear("motionSearchInput", "clearMotionSearchBtn");
     setupSearchClear("expressionSearchInput", "clearExpressionSearchBtn");
-
     document
       .getElementById("motionSearchInput")
       ?.addEventListener("input", (e) => this._filterLibraryList("motion", e));
@@ -79,7 +69,6 @@ export const expressionEditor = {
       ?.addEventListener("input", (e) =>
         this._filterLibraryList("expression", e)
       );
-
     const modal = document.getElementById("expressionEditorModal");
     const handleCloseAttempt = (e) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
