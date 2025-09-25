@@ -1034,3 +1034,31 @@
   color: var(--color-primary);
   transform: rotate(45deg); /* 给一个倾斜效果，表示已固定 */
 }
+
+/* 用于搜索框内清除按钮的样式 */
+.search-input-container {
+  position: relative;
+}
+
+#expressionEditorLibrary .search-input-container .form-input {
+  padding-right: 30px; 
+}
+
+.clear-search-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #a0aec0; 
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: #4a5568;
+}
