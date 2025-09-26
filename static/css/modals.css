@@ -141,3 +141,12 @@
 #splitQuoteModal .modal-content {
   max-width: 500px;
 }
+
+.modal-fullscreen .modal-content {
+  max-height: 95vh;
+  height: 95vh;
+  width: 95%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+}

@@ -381,18 +381,9 @@
               </div>
             </div>
 
-            <!-- 2. 在文件底部 </body> 标签之前，添加新的模态框 -->
-            <div class="modal" id="expressionEditorModal" tabindex="-1">
-              <div
-                class="modal-content"
-                style="
-                  max-width: 1400px;
-                  width: 95%;
-                  height: 95vh;
-                  display: flex;
-                  flex-direction: column;
-                "
-              >
+            <!-- 动作/表情编辑模式模态框 -->
+            <div class="modal modal-fullscreen" id="expressionEditorModal" tabindex="-1">
+              <div class="modal-content">
                 <div class="modal-header">
                   <div class="modal-title">动作/表情编辑模式</div>
                   <button
@@ -1042,17 +1033,8 @@
         </div>
       </div>
 
-      <div class="modal" id="speakerEditorModal" tabindex="-1">
-        <div
-          class="modal-content"
-          style="
-            max-width: 1200px;
-            width: 95%;
-            height: 95vh;
-            display: flex;
-            flex-direction: column;
-          "
-        >
+      <div class="modal modal-fullscreen" id="speakerEditorModal" tabindex="-1">
+        <div class="modal-content">
           <div class="modal-header">
             <div class="modal-title">说话人编辑模式</div>
             <button class="modal-close" data-modal-id="speakerEditorModal">
@@ -1156,17 +1138,8 @@
         </div>
       </template>
 
-      <div class="modal" id="live2dEditorModal" tabindex="-1">
-        <div
-          class="modal-content"
-          style="
-            max-width: 1200px;
-            width: 95%;
-            height: 95vh;
-            display: flex;
-            flex-direction: column;
-          "
-        >
+      <div class="modal modal-fullscreen" id="live2dEditorModal" tabindex="-1">
+        <div class="modal-content">
           <div class="modal-header">
             <div class="modal-title">Live2D 布局模式</div>
             <button class="modal-close" data-modal-id="live2dEditorModal">
