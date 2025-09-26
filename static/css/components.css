@@ -87,7 +87,7 @@
   font-size: 16px;
   color: var(--text-secondary);
   background: var(--color-secondary);
-  overflow: hidden; /* 改为 hidden 以确保内容不会溢出圆形边界 */
+  overflow: hidden; 
   position: relative;
   border: 2px solid #e2e8f0;
   transition: all 0.3s ease;
@@ -380,7 +380,6 @@
   font-weight: 500;
 }
 
-/* 确保输入框在各种状态下都可见 */
 .position-offset-input:hover {
   border-color: var(--border-secondary);
 }
@@ -559,7 +558,6 @@
   border-width: 3px;
 }
 
-/* 这个是关键，确保被拖动的克隆元素有足够的宽度，防止内部flex布局换行 */
 .sortable-drag .character-item {
     min-width: 150px;
     background: rgba(255, 255, 255, 0.9);
@@ -581,33 +579,30 @@
     cursor: grab;
     margin-bottom: 10px;
     transition: all 0.2s ease;
-    border: 2px solid transparent; /* 添加透明边框占位 */
+    border: 2px solid transparent; 
 }
 
 .character-item:hover {
     background-color: var(--bg-secondary);
 }
 
-
-/* --- 新增：为已使用的角色添加高亮样式 --- */
 .character-item.is-used {
-    border-color: #48bb78; /* 绿色边框 */
-    background-color: #f0fff4; /* 淡绿色背景 */
+    border-color: #48bb78; 
+    background-color: #f0fff4; 
 }
 
-/* 确保角色名字不会换行 */
 .character-item .character-name {
     margin-left: 10px;
     font-weight: 500;
-    white-space: nowrap; /* 禁止名字换行 */
+    white-space: nowrap; 
     overflow: hidden;
-    text-overflow: ellipsis; /* 如果名字太长，用...显示 */
+    text-overflow: ellipsis; 
 }
 
 /* 对话项选中状态 */
 .dialogue-item.is-selected .dialogue-text {
-    background-color: #ebf8ff; /* 淡蓝色背景 */
-    border: 2px solid #3182ce; /* 蓝色边框 */
+    background-color: #ebf8ff; 
+    border: 2px solid #3182ce; 
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
@@ -647,25 +642,18 @@
 }
 
 .talk-item .timeline-content {
-    /* 确保内容区域可以收缩和伸展 */
     flex: 1;
     min-width: 0;
 }
 
 .talk-item .dialogue-preview-text {
-    font-style: normal; /* 不再强制斜体，保持原文样式 */
-    color: var(--text-primary); /* 使用更清晰的文本颜色 */
-    
-    /* --- 关键修正：启用换行 --- */
-    white-space: normal; /* 允许正常换行 */
+    font-style: normal; 
+    color: var(--text-primary); 
+    white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    /* 移除不必要的溢出隐藏 */
-    /* overflow: hidden; */
-    /* text-overflow: ellipsis; */
-    
     margin: 0;
-    line-height: 1.5; /* 增加行高以提高可读性 */
+    line-height: 1.5; 
 }
 
 /* 布局卡片样式 */
@@ -676,11 +664,11 @@
 
 .layout-item[data-layout-type="appear"],
 .layout-item[data-layout-type="move"] {
-    border-color: #48bb78; /* 绿色 */
+    border-color: #48bb78;
 }
 
 .layout-item[data-layout-type="hide"] {
-    border-color: #e53e3e; /* 红色 */
+    border-color: #e53e3e; 
 }
 
 .layout-card-header {
@@ -725,12 +713,10 @@
     white-space: nowrap;
 }
 
-/* 当角色被拖到左侧画布上方时的视觉提示 */
 #speakerEditorCanvas.sortable-ghost-receiving {
     background-color: #f0f8ff;
 }
 
-/* 当卡片被拖到右侧列表上方时的视觉提示 */
 #speakerEditorCharacterList.sortable-ghost-receiving {
     background-color: #fff0f0;
 }
@@ -900,7 +886,7 @@
 }
 
 #expressionEditorLibrary .item-list-container {
-    height: calc(80vh - 220px); /* 动态计算高度 */
+    height: calc(80vh - 220px); 
 }
 
 /* 使资源库中的项看起来可拖拽 */
@@ -916,7 +902,7 @@
 }
 
 .drop-zone {
-    position: relative; /* 为按钮定位 */
+    position: relative;
 }
 .clear-state-btn {
     position: absolute;
@@ -934,49 +920,35 @@
     color: var(--color-error);
 }
 
-/* 1. 允许 timeline-item 的内容换行 */
 #expressionEditorTimeline .timeline-item {
     display: flex;
-    flex-wrap: wrap; /* 允许子元素换行 */
+    flex-wrap: wrap;
     align-items: flex-start;
 }
 
-/* 2. 让主要内容（头像+文本）占据一行 */
-/* 这部分保持默认的 flex 行内对齐 */
-
 #expressionEditorTimeline .layout-item > .layout-card-header,
 #expressionEditorTimeline .layout-item > .layout-card-body {
-    width: 100%; /* 确保布局卡片内部元素占满宽度 */
-}
-
-
-/* 3. 这是最关键的一步：让状态栏占据完整的新一行 */
-#expressionEditorTimeline .character-status-bar {
-    flex-basis: 100%; /* 强制元素宽度为父容器的100% */
     width: 100%;
-    margin-top: 15px; /* 与上方内容增加一些间距 */
-    padding-top: 15px;
-    border-top: 1px solid var(--border-primary); /* 添加一条清晰的分割线 */
 }
 
-/* 4. 微调：移除 talk-item 的多余内边距，让其更紧凑 */
+#expressionEditorTimeline .character-status-bar {
+    flex-basis: 100%; 
+    width: 100%;
+    margin-top: 15px; 
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary); 
+}
+
 #expressionEditorTimeline .talk-item {
     padding-bottom: 10px;
 }
 
 .timeline-item-footer {
-    /* 强制占满一整行 */
     flex-basis: 100%; 
     width: 100%;
-    
-    /* 与上方内容增加一些间距 */
     margin-top: 15px; 
     padding-top: 10px;
-    
-    /* 可以添加一条可选的分割线 */
     border-top: 1px dashed var(--border-secondary); 
-    
-    /* 确保内部内容正确对齐 */
     display: flex;
     justify-content: flex-start;
 }
@@ -993,15 +965,13 @@
 }
 
 #live2dEditorModal .timeline-item {
-    flex-wrap: nowrap; /* 禁止换行 */
+    flex-wrap: nowrap; 
 }
 
 #live2dEditorModal .talk-item .timeline-content {
-    /* 确保文本内容区可以被压缩，防止溢出 */
     min-width: 0;
 }
 
-/* 优化动作/表情编辑器资源库的间距 */
 #expressionEditorLibrary .form-group {
   margin-bottom: 15px;
 }
@@ -1012,19 +982,19 @@
   border: none;
   cursor: pointer;
   padding: 4px 8px;
-  margin-left: auto; /* 核心：让图钉自动靠右 */
+  margin-left: auto;
   font-size: 1.1rem;
-  opacity: 0.3; /* 默认状态下比较透明 */
+  opacity: 0.3; 
   transition: all 0.2s ease;
   transform: rotate(0deg);
 }
 
 .character-item:hover .pin-btn {
-  opacity: 0.7; /* 鼠标悬停在整行上时，图钉变清晰 */
+  opacity: 0.7;
 }
 
 .pin-btn:hover {
-  opacity: 1; /* 鼠标直接悬停在图钉上时，完全不透明 */
+  opacity: 1; 
   transform: scale(1.2);
 }
 
@@ -1032,7 +1002,7 @@
 .pin-btn.is-pinned {
   opacity: 1;
   color: var(--color-primary);
-  transform: rotate(45deg); /* 给一个倾斜效果，表示已固定 */
+  transform: rotate(45deg); 
 }
 
 /* 用于搜索框内清除按钮的样式 */
@@ -1063,15 +1033,6 @@
   color: #4a5568;
 }
 
-#expressionEditorLibrary {
-  flex: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  border-left: 1px solid var(--border-primary);
-  padding-left: 15px;
-}
-
 #expressionEditorTimeline {
   flex: 3;
   overflow-y: auto;
@@ -1083,4 +1044,57 @@
   flex: 1;
   overflow: hidden;
   gap: 20px;
+  height: 100%; 
+}
+
+#expressionEditorLibrary {
+  flex: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  border-left: 1px solid var(--border-primary);
+  padding-left: 15px;
+  height: 100%;
+}
+
+#expressionEditorLibrary .config-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  min-height: 0;
+  overflow: hidden; 
+}
+
+#expressionEditorLibrary .item-list-container {
+  flex: 1; 
+  min-height: 0; 
+  max-height: none; 
+  overflow-y: auto; 
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  border: 1px solid var(--border-primary);
+  overflow-x: hidden; 
+  -webkit-overflow-scrolling: touch; 
+}
+
+#expressionEditorLibrary .form-group:last-of-type {
+  margin-bottom: 10px;
+}
+
+.modal-fullscreen .modal-content {
+  max-height: 95vh;
+  height: 95vh;
+  width: 95%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column; 
+}
+
+.modal-fullscreen .modal-body {
+  flex: 1; 
+  min-height: 0;
 }
