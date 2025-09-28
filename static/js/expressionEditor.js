@@ -316,10 +316,27 @@ export const expressionEditor = {
         sort: true,
         onEnd: (evt) => {
           if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-            const { oldIndex, newIndex } = evt;
+            const isGroupingEnabled =
+              document.getElementById("groupCardsCheckbox").checked;
+            let localOldIndex = evt.oldIndex;
+            let localNewIndex = evt.newIndex;
+            if (
+              isGroupingEnabled &&
+              this.activeGroupIndex !== null &&
+              this.activeGroupIndex >= 0
+            ) {
+              const headerOffset = this.activeGroupIndex + 1;
+              localOldIndex = Math.max(0, localOldIndex - headerOffset);
+              localNewIndex = Math.max(0, localNewIndex - headerOffset);
+            }
+            const globalOldIndex = this._getGlobalIndex(localOldIndex);
+            const globalNewIndex = this._getGlobalIndex(localNewIndex);
             this._executeCommand((currentState) => {
-              const [movedItem] = currentState.actions.splice(oldIndex, 1);
-              currentState.actions.splice(newIndex, 0, movedItem);
+              const [movedItem] = currentState.actions.splice(
+                globalOldIndex,
+                1
+              );
+              currentState.actions.splice(globalNewIndex, 0, movedItem);
             });
           }
         },
@@ -330,6 +347,21 @@ export const expressionEditor = {
         "error"
       );
     }
+  },
+
+  _getGlobalIndex(localIndex) {
+    const isGroupingEnabled =
+      document.getElementById("groupCardsCheckbox").checked;
+    if (
+      !isGroupingEnabled ||
+      this.activeGroupIndex === null ||
+      this.activeGroupIndex < 0
+    ) {
+      return localIndex;
+    }
+    const groupSize = 50;
+    const offset = this.activeGroupIndex * groupSize;
+    return offset + localIndex;
   },
 
   /**
