@@ -534,23 +534,20 @@ export const speakerEditor = {
 
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = selectionManager.getSelectedIds();
-    const context = {
-      targetIds: selectedIds.length > 0 ? selectedIds : [actionId],
-      newSpeaker: newSpeaker,
-    };
-    this._executeCommand((currentState, ctx) => {
-      ctx.targetIds.forEach((id) => {
+    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
+    this._executeCommand((currentState) => {
+      targetIds.forEach((id) => {
         const actionToUpdate = currentState.actions.find((a) => a.id === id);
         if (actionToUpdate) {
           const speakerExists = actionToUpdate.speakers.some(
-            (s) => s.characterId === ctx.newSpeaker.characterId
+            (s) => s.characterId === newSpeaker.characterId
           );
           if (!speakerExists) {
-            actionToUpdate.speakers.push(ctx.newSpeaker);
+            actionToUpdate.speakers.push(newSpeaker);
           }
         }
       });
-    }, context);
+    });
     selectionManager.clear();
     document
       .getElementById("speakerEditorCanvas")
@@ -560,29 +557,23 @@ export const speakerEditor = {
   },
 
   removeSpeakerFromAction(actionId, characterIdToRemove) {
-    this._executeCommand(
-      (currentState, ctx) => {
-        const action = currentState.actions.find((a) => a.id === ctx.actionId);
-        if (action) {
-          action.speakers = action.speakers.filter(
-            (s) => s.characterId !== ctx.characterIdToRemove
-          );
-        }
-      },
-      { actionId, characterIdToRemove }
-    );
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (action) {
+        action.speakers = action.speakers.filter(
+          (s) => s.characterId !== characterIdToRemove
+        );
+      }
+    });
   },
 
   removeAllSpeakersFromAction(actionId) {
-    this._executeCommand(
-      (currentState, ctx) => {
-        const action = currentState.actions.find((a) => a.id === ctx.actionId);
-        if (action) {
-          action.speakers = [];
-        }
-      },
-      { actionId }
-    );
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (action) {
+        action.speakers = [];
+      }
+    });
   },
 
   showMultiSpeakerPopover(actionId, targetElement) {
