@@ -121,20 +121,7 @@
   margin-bottom: var(--spacing-lg);
   display: flex;
   align-items: flex-start;
-  animation: fadeInUp var(--transition-normal);
-  animation-fill-mode: both;
   position: relative;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* 对话内容样式优化 */

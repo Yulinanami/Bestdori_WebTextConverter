@@ -805,23 +805,18 @@ export const expressionEditor = {
   },
   _executeCommand(changeFn) {
     const beforeState = JSON.stringify(this.projectFileState);
-
-    // 创建一个包含执行和撤销逻辑的命令对象
     const command = {
       execute: () => {
-        // 关键：总是在上一个状态的基础上进行修改，以确保撤销/重做的一致性
         const newState = JSON.parse(beforeState);
-        changeFn(newState); // 在这里执行实际的状态修改
+        changeFn(newState); 
         this.projectFileState = newState;
-        this.renderTimeline(); // 修改后立即重绘UI
+        this.renderTimeline();
       },
       undo: () => {
         this.projectFileState = JSON.parse(beforeState);
-        this.renderTimeline(); // 撤销后也要重绘UI
+        this.renderTimeline();
       },
     };
-
-    // historyManager.do会立即执行一次 command.execute()
     historyManager.do(command);
   },
 
