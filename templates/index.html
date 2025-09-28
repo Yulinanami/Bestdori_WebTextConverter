@@ -1123,6 +1123,7 @@
       <!-- 模板：用于说话人编辑器中的文本片段卡片 -->
       <template id="text-snippet-card-template">
         <div class="dialogue-item" data-id="">
+          <div class="card-sequence-number"></div>
           <!-- 复用 .dialogue-item 样式 -->
           <!-- 头像区域 (初始隐藏) -->
           <div class="speaker-avatar-container" style="display: none">
@@ -1220,6 +1221,7 @@
       <!-- 模板：用于时间线中的只读对话卡片 -->
       <template id="timeline-talk-card-template">
         <div class="timeline-item talk-item" data-id="">
+          <div class="card-sequence-number"></div>
           <div class="timeline-avatar-container">
             <div class="dialogue-avatar small-avatar"></div>
           </div>
@@ -1236,6 +1238,7 @@
       <!-- 模板：用于可编辑的布局卡片 -->
       <template id="timeline-layout-card-template">
         <div class="timeline-item layout-item" data-id="">
+          <div class="card-sequence-number"></div>
           <div class="layout-card-header">
             <div class="layout-character-info">
               <div class="dialogue-avatar small-avatar"></div>

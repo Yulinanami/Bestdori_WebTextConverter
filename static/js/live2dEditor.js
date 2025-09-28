@@ -589,13 +589,14 @@ export const live2dEditor = {
     const layoutTemplate = document.getElementById(
       "timeline-layout-card-template"
     );
-
     const isGroupingEnabled =
       document.getElementById("groupCardsCheckbox").checked;
     const actions = this.projectFileState.actions;
     const groupSize = 50;
-
     const renderSingleCard = (action) => {
+      const globalIndex = this.projectFileState.actions.findIndex(
+        (a) => a.id === action.id
+      );
       let card;
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
@@ -685,9 +686,12 @@ export const live2dEditor = {
       } else {
         return null;
       }
+      const numberDiv = card.querySelector(".card-sequence-number");
+      if (numberDiv && globalIndex !== -1) {
+        numberDiv.textContent = `#${globalIndex + 1}`;
+      }
       return card;
     };
-
     if (isGroupingEnabled && actions.length > groupSize) {
       renderGroupedView({
         container: timeline,

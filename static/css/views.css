@@ -123,6 +123,7 @@
   align-items: flex-start;
   animation: fadeInUp var(--transition-normal);
   animation-fill-mode: both;
+  position: relative;
 }
 
 @keyframes fadeInUp {

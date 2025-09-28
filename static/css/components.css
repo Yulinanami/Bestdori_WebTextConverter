@@ -1098,3 +1098,20 @@
   flex: 1; 
   min-height: 0;
 }
+
+/* 卡片序号样式 */
+.card-sequence-number {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #a0aec0; 
+  z-index: 5;
+}
+
+/* 为布局卡片的序号调整位置，避免与删除按钮重叠 */
+.layout-item .card-sequence-number {
+  top: 12px;
+  right: 45px;
+}

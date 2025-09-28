@@ -242,17 +242,22 @@ export const speakerEditor = {
         }
       });
     }
-
     const isGroupingEnabled =
       document.getElementById("groupCardsCheckbox").checked;
     const actions = this.projectFileState.actions.filter(
       (a) => a.type === "talk"
     );
     const groupSize = 50;
-
     const renderSingleCard = (action) => {
+      const globalIndex = this.projectFileState.actions.findIndex(
+        (a) => a.id === action.id
+      );
       const template = document.getElementById("text-snippet-card-template");
       const card = template.content.cloneNode(true);
+      const numberDiv = card.querySelector(".card-sequence-number");
+      if (numberDiv && globalIndex !== -1) {
+        numberDiv.textContent = `#${globalIndex + 1}`;
+      }
       const dialogueItem = card.querySelector(".dialogue-item");
       dialogueItem.dataset.id = action.id;
       const avatarContainer = card.querySelector(".speaker-avatar-container");
