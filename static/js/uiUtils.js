@@ -36,7 +36,7 @@ export const ui = {
       modal.style.display = "flex";
       const modalContent = modal.querySelector(".modal-content");
       if (modalContent) {
-        const topPosition = window.scrollY + window.innerHeight / 2;
+        const topPosition = window.scrollY + window.innerHeight * 0.47;
         modalContent.style.top = `${topPosition}px`;
       }
     }
