@@ -1114,3 +1114,21 @@
   top: 12px;
   right: 45px;
 }
+
+/* 登场卡片 (淡绿色) */
+.layout-type-appear {
+    background-color: #f0fff4; 
+    border-left-color: #48bb78;
+}
+
+/* 移动卡片 (淡黄色) */
+.layout-type-move {
+    background-color: #fffbeb; 
+    border-left-color: #f6e05e; 
+}
+
+/* 退场卡片 (淡红色) */
+.layout-type-hide {
+    background-color: #fff5f5; 
+    border-left-color: #f56565; 
+}

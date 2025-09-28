@@ -463,7 +463,7 @@ export const live2dEditor = {
           let localNewIndex = evt.newIndex;
           if (
             isGroupingEnabled &&
-            this.projectFileState.actions.length > groupSize && 
+            this.projectFileState.actions.length > groupSize &&
             this.activeGroupIndex !== null &&
             this.activeGroupIndex >= 0
           ) {
@@ -623,6 +623,18 @@ export const live2dEditor = {
         const item = card.querySelector(".timeline-item");
         item.dataset.id = action.id;
         item.dataset.layoutType = action.layoutType;
+        item.classList.remove(
+          "layout-type-appear",
+          "layout-type-move",
+          "layout-type-hide"
+        );
+        if (action.layoutType === "appear") {
+          item.classList.add("layout-type-appear");
+        } else if (action.layoutType === "move") {
+          item.classList.add("layout-type-move");
+        } else if (action.layoutType === "hide") {
+          item.classList.add("layout-type-hide");
+        }
         const characterId = action.characterId;
         const characterName =
           action.characterName ||
