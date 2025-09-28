@@ -318,10 +318,12 @@ export const expressionEditor = {
           if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
             const isGroupingEnabled =
               document.getElementById("groupCardsCheckbox").checked;
+            const groupSize = 50; 
             let localOldIndex = evt.oldIndex;
             let localNewIndex = evt.newIndex;
             if (
               isGroupingEnabled &&
+              this.projectFileState.actions.length > groupSize &&
               this.activeGroupIndex !== null &&
               this.activeGroupIndex >= 0
             ) {
@@ -803,20 +805,23 @@ export const expressionEditor = {
   },
   _executeCommand(changeFn) {
     const beforeState = JSON.stringify(this.projectFileState);
-    const tempState = JSON.parse(beforeState);
-    changeFn(tempState);
-    const afterState = JSON.stringify(tempState);
-    if (beforeState === afterState) return;
+
+    // 创建一个包含执行和撤销逻辑的命令对象
     const command = {
       execute: () => {
-        this.projectFileState = JSON.parse(afterState);
-        this.renderTimeline();
+        // 关键：总是在上一个状态的基础上进行修改，以确保撤销/重做的一致性
+        const newState = JSON.parse(beforeState);
+        changeFn(newState); // 在这里执行实际的状态修改
+        this.projectFileState = newState;
+        this.renderTimeline(); // 修改后立即重绘UI
       },
       undo: () => {
         this.projectFileState = JSON.parse(beforeState);
-        this.renderTimeline();
+        this.renderTimeline(); // 撤销后也要重绘UI
       },
     };
+
+    // historyManager.do会立即执行一次 command.execute()
     historyManager.do(command);
   },
 

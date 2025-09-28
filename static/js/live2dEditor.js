@@ -463,6 +463,7 @@ export const live2dEditor = {
           let localNewIndex = evt.newIndex;
           if (
             isGroupingEnabled &&
+            this.projectFileState.actions.length > groupSize && 
             this.activeGroupIndex !== null &&
             this.activeGroupIndex >= 0
           ) {

@@ -173,20 +173,18 @@ export const speakerEditor = {
     }
   },
 
-  _executeCommand(executeFn, context = {}) {
-    const oldState = JSON.stringify(this.projectFileState);
-
+  _executeCommand(changeFn) {
+    const beforeState = JSON.stringify(this.projectFileState);
     const command = {
       execute: () => {
-        this.projectFileState = JSON.parse(
-          JSON.stringify(this.projectFileState)
-        );
-        executeFn(this.projectFileState, context);
+        const newState = JSON.parse(beforeState);
+        changeFn(newState);
+        this.projectFileState = newState;
         const usedIds = this.renderCanvas();
         this.renderCharacterList(usedIds);
       },
       undo: () => {
-        this.projectFileState = JSON.parse(oldState);
+        this.projectFileState = JSON.parse(beforeState);
         const usedIds = this.renderCanvas();
         this.renderCharacterList(usedIds);
       },
@@ -424,10 +422,12 @@ export const speakerEditor = {
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
           const isGroupingEnabled =
             document.getElementById("groupCardsCheckbox").checked;
+          const groupSize = 50;
           let localOldIndex = evt.oldIndex;
           let localNewIndex = evt.newIndex;
           if (
             isGroupingEnabled &&
+            this.projectFileState.actions.length > groupSize &&
             this.activeGroupIndex !== null &&
             this.activeGroupIndex >= 0
           ) {
@@ -437,13 +437,10 @@ export const speakerEditor = {
           }
           const globalOldIndex = this._getGlobalIndex(localOldIndex);
           const globalNewIndex = this._getGlobalIndex(localNewIndex);
-          this._executeCommand(
-            (currentState, ctx) => {
-              const [movedItem] = currentState.actions.splice(ctx.oldIndex, 1);
-              currentState.actions.splice(ctx.newIndex, 0, movedItem);
-            },
-            { oldIndex: globalOldIndex, newIndex: globalNewIndex }
-          );
+          this._executeCommand((currentState) => {
+            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+            currentState.actions.splice(globalNewIndex, 0, movedItem);
+          });
         }
       },
       onAdd: (evt) => {
