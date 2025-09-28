@@ -14,6 +14,8 @@ export const expressionEditor = {
   activeGroupIndex: 0,
   stagedCharacters: [],
   tempLibraryItems: { motion: [], expression: [] },
+  scrollInterval: null,
+  scrollSpeed: 0,
 
   init() {
     document
@@ -112,6 +114,56 @@ export const expressionEditor = {
         }
       }
     });
+  },
+
+  handleDragScrolling: (e) => {
+    const timeline = document.getElementById("expressionEditorTimeline");
+    const motionList = document.getElementById("motionLibraryList");
+    const expressionList = document.getElementById("expressionLibraryList");
+    if (!timeline || !motionList || !expressionList) return;
+    let scrollTarget = null;
+    if (timeline.contains(e.target)) {
+      scrollTarget = timeline;
+    } else if (motionList.contains(e.target)) {
+      scrollTarget = motionList;
+    } else if (expressionList.contains(e.target)) {
+      scrollTarget = expressionList;
+    }
+    if (!scrollTarget) {
+      clearInterval(expressionEditor.scrollInterval);
+      expressionEditor.scrollInterval = null;
+      return;
+    }
+    const rect = scrollTarget.getBoundingClientRect();
+    const mouseY = e.clientY;
+    const hotZone = 75;
+    let newScrollSpeed = 0;
+    if (mouseY < rect.top + hotZone) {
+      newScrollSpeed = -10;
+    } else if (mouseY > rect.bottom - hotZone) {
+      newScrollSpeed = 10;
+    }
+    if (newScrollSpeed !== 0) {
+      if (
+        newScrollSpeed !== expressionEditor.scrollSpeed ||
+        !expressionEditor.scrollInterval
+      ) {
+        expressionEditor.scrollSpeed = newScrollSpeed;
+        expressionEditor.startScrolling(scrollTarget);
+      }
+    } else {
+      clearInterval(expressionEditor.scrollInterval);
+      expressionEditor.scrollInterval = null;
+    }
+  },
+
+  startScrolling(elementToScroll) {
+    clearInterval(this.scrollInterval);
+    this.scrollInterval = setInterval(() => {
+      if (elementToScroll) {
+        elementToScroll.scrollTop += this.scrollSpeed;
+      }
+    }, 20);
   },
 
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
@@ -314,11 +366,17 @@ export const expressionEditor = {
         group: "timeline-cards",
         animation: 150,
         sort: true,
+        onStart: () => {
+          document.addEventListener("dragover", this.handleDragScrolling);
+        },
         onEnd: (evt) => {
+          document.removeEventListener("dragover", this.handleDragScrolling);
+          clearInterval(this.scrollInterval);
+          this.scrollInterval = null;
           if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
             const isGroupingEnabled =
               document.getElementById("groupCardsCheckbox").checked;
-            const groupSize = 50; 
+            const groupSize = 50;
             let localOldIndex = evt.oldIndex;
             let localNewIndex = evt.newIndex;
             if (
@@ -453,6 +511,14 @@ export const expressionEditor = {
         new Sortable(libraryList, {
           group: { name: type, pull: "clone", put: false },
           sort: false,
+          onStart: () => {
+            document.addEventListener("dragover", this.handleDragScrolling);
+          },
+          onEnd: () => {
+            document.removeEventListener("dragover", this.handleDragScrolling);
+            clearInterval(this.scrollInterval);
+            this.scrollInterval = null;
+          },
         });
       }
     });
@@ -808,7 +874,7 @@ export const expressionEditor = {
     const command = {
       execute: () => {
         const newState = JSON.parse(beforeState);
-        changeFn(newState); 
+        changeFn(newState);
         this.projectFileState = newState;
         this.renderTimeline();
       },
