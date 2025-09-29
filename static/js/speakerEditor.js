@@ -12,7 +12,6 @@ export const speakerEditor = {
   activeGroupIndex: 0,
   scrollInterval: null,
   scrollSpeed: 0,
-  _currentHightlightedCard: null,
 
   init() {
     document
@@ -443,37 +442,10 @@ export const speakerEditor = {
       onStart: () => {
         document.addEventListener("dragover", this.handleDragScrolling);
       },
-      onMove: (evt) => {
-        const potentialTarget = evt.related.closest(".dialogue-item");
-
-        if (
-          this._currentHightlightedCard &&
-          this._currentHightlightedCard !== potentialTarget
-        ) {
-          this._currentHightlightedCard.classList.remove(
-            "drop-target-highlight"
-          );
-          this._currentHightlightedCard = null;
-        }
-
-        if (
-          potentialTarget &&
-          this._currentHightlightedCard !== potentialTarget
-        ) {
-          potentialTarget.classList.add("drop-target-highlight");
-          this._currentHightlightedCard = potentialTarget;
-        }
-      },
       onEnd: (evt) => {
         document.removeEventListener("dragover", this.handleDragScrolling);
         clearInterval(this.scrollInterval);
         this.scrollInterval = null;
-        if (this._currentHightlightedCard) {
-          this._currentHightlightedCard.classList.remove(
-            "drop-target-highlight"
-          );
-          this._currentHightlightedCard = null;
-        }
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
           const isGroupingEnabled =
             document.getElementById("groupCardsCheckbox").checked;
