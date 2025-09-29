@@ -12,6 +12,7 @@ export const speakerEditor = {
   activeGroupIndex: 0,
   scrollInterval: null,
   scrollSpeed: 0,
+  _currentHightlightedCard: null,
 
   init() {
     document
@@ -96,6 +97,33 @@ export const speakerEditor = {
         }
       }
     });
+  },
+
+  _findClosestCard(y) {
+    const canvas = document.getElementById("speakerEditorCanvas");
+    const cards = Array.from(canvas.querySelectorAll(".dialogue-item"));
+
+    let closestCard = null;
+    let minDistance = Infinity;
+
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect();
+      const cardCenterY = rect.top + rect.height / 2;
+      const distance = Math.abs(y - cardCenterY);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCard = card;
+      }
+    }
+    // 添加一个阈值，如果拖拽位置离任何卡片都太远，则不视为有效目标
+    const closestRect = closestCard
+      ? closestCard.getBoundingClientRect()
+      : null;
+    if (closestCard && minDistance > closestRect.height) {
+      return null;
+    }
+    return closestCard;
   },
 
   _getUsedCharacterIds() {
@@ -388,7 +416,7 @@ export const speakerEditor = {
         put: true,
       },
       sort: false,
-      onMove: function (evt) {
+      onMove: (evt) => {
         return !evt.related.closest("#speakerEditorCharacterList");
       },
       onStart: () => {
@@ -415,10 +443,37 @@ export const speakerEditor = {
       onStart: () => {
         document.addEventListener("dragover", this.handleDragScrolling);
       },
+      onMove: (evt) => {
+        const potentialTarget = evt.related.closest(".dialogue-item");
+
+        if (
+          this._currentHightlightedCard &&
+          this._currentHightlightedCard !== potentialTarget
+        ) {
+          this._currentHightlightedCard.classList.remove(
+            "drop-target-highlight"
+          );
+          this._currentHightlightedCard = null;
+        }
+
+        if (
+          potentialTarget &&
+          this._currentHightlightedCard !== potentialTarget
+        ) {
+          potentialTarget.classList.add("drop-target-highlight");
+          this._currentHightlightedCard = potentialTarget;
+        }
+      },
       onEnd: (evt) => {
         document.removeEventListener("dragover", this.handleDragScrolling);
         clearInterval(this.scrollInterval);
         this.scrollInterval = null;
+        if (this._currentHightlightedCard) {
+          this._currentHightlightedCard.classList.remove(
+            "drop-target-highlight"
+          );
+          this._currentHightlightedCard = null;
+        }
         if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
           const isGroupingEnabled =
             document.getElementById("groupCardsCheckbox").checked;
@@ -446,13 +501,9 @@ export const speakerEditor = {
       onAdd: (evt) => {
         const characterItem = evt.item;
         characterItem.style.display = "none";
-        const dropTargetElement = document.elementFromPoint(
-          evt.originalEvent.clientX,
-          evt.originalEvent.clientY
-        );
-        const targetCard = dropTargetElement
-          ? dropTargetElement.closest(".dialogue-item")
-          : null;
+        const dropY = evt.originalEvent.clientY;
+        const targetCard = this._findClosestCard(dropY);
+
         if (!targetCard) {
           characterItem.remove();
           return;
