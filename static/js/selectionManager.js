@@ -40,9 +40,15 @@ export const selectionManager = {
     } else if (e.shiftKey) {
       this.selectRange(id, container, itemSelector);
     } else {
-      this.selectSingle(id);
+      const isAlreadyOnlySelected =
+        this.selectedIds.has(id) && this.selectedIds.size === 1;
+      if (isAlreadyOnlySelected) {
+        this.clear();
+      } else {
+        this.selectSingle(id);
+      }
     }
-    this.lastSelectedId = id;
+    this.lastSelectedId = this.selectedIds.has(id) ? id : null;
     container.dispatchEvent(
       new CustomEvent("selectionchange", {
         detail: { selectedIds: this.getSelectedIds() },
