@@ -75,7 +75,6 @@ export const fileHandler = {
       document.getElementById("inputText").value = data.content;
 
       if (state.get("projectFile")) {
-        console.log("File uploaded, resetting project file state.");
         state.set("projectFile", null);
       }
 

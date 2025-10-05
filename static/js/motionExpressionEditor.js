@@ -1,5 +1,6 @@
 import { ui } from "./uiUtils.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 
 export const motionExpressionEditor = {
   tempCustomMotions: [],
@@ -55,7 +56,7 @@ export const motionExpressionEditor = {
     const tempCustomItems = isMotion
       ? this.tempCustomMotions
       : this.tempCustomExpressions;
-    listContainer.innerHTML = "";
+    DOMUtils.clearElement(listContainer);
     const allDefaultItems = manager.getAllDefaultItems();
     const allItems = Array.from(
       new Set([...allDefaultItems, ...tempCustomItems])

@@ -4,14 +4,9 @@ import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
-import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { configManager } from "./configManager.js";
-import { positionManager } from "./positionManager.js";
-import { costumeManager } from "./costumeManager.js";
 import { historyManager } from "./historyManager.js";
-import { projectManager } from "./projectManager.js";
-import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
+import { editorService } from "./services/EditorService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -93,7 +88,7 @@ export const live2dEditor = {
           const characterItem = pinBtn.closest(".character-item");
           if (characterItem && characterItem.dataset.characterName) {
             const characterName = characterItem.dataset.characterName;
-            pinnedCharacterManager.toggle(characterName);
+            editorService.togglePinCharacter(characterName);
             this.renderCharacterList();
           }
         }
@@ -143,8 +138,9 @@ export const live2dEditor = {
     try {
       let initialState;
       const rawText = document.getElementById("inputText").value;
-      if (state.get("projectFile")) {
-        initialState = state.get("projectFile");
+      const projectState = editorService.getProjectState();
+      if (projectState) {
+        initialState = projectState;
         ui.showStatus("已加载现有项目进度。", "info");
       } else {
         const response = await axios.post("/api/segment-text", {
@@ -188,7 +184,7 @@ export const live2dEditor = {
 
   createProjectFileFromSegments(segments) {
     const characterMap = new Map(
-      Object.entries(state.get("currentConfig")).map(([name, ids]) => [
+      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
         name,
         { characterId: ids[0], name: name },
       ])
@@ -223,7 +219,7 @@ export const live2dEditor = {
       editor: baseEditor,
       modalId: "live2dEditorModal",
       applyChanges: () => {
-        projectManager.save(this.projectFileState, (savedState) => {
+        editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
         });
       },
@@ -231,14 +227,14 @@ export const live2dEditor = {
   },
 
   exportProject() {
-    projectManager.export(this.projectFileState);
+    editorService.projectManager.export(this.projectFileState);
   },
   async importProject() {
-    const importedProject = await projectManager.import();
+    const importedProject = await editorService.projectManager.import();
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", DataUtils.deepClone(importedProject));
+      editorService.setProjectState(DataUtils.deepClone(importedProject));
       historyManager.clear();
       this.renderTimeline();
     }
@@ -281,7 +277,7 @@ export const live2dEditor = {
             if (!appearedCharacterNames.has(speaker.name)) {
               appearedCharacterNames.add(speaker.name);
               const defaultCostume = this._getDefaultCostume(speaker.name);
-              const positionConfig = positionManager.getCharacterPositionConfig(
+              const positionConfig = editorService.positionManager.getCharacterPositionConfig(
                 speaker.name,
                 appearedCharacterNames.size - 1
               );
@@ -328,7 +324,7 @@ export const live2dEditor = {
   },
 
   _clearAllLayouts() {
-    projectManager.reset(
+    editorService.projectManager.reset(
       () => {
         const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions = newState.actions.filter((a) => a.type !== "layout");
@@ -600,18 +596,19 @@ export const live2dEditor = {
   },
 
   _getDefaultCostume(characterName) {
-    return state.get("currentCostumes")[characterName] || "";
+    return editorService.state.get("currentCostumes")[characterName] || "";
   },
 
   _getDefaultPosition(characterName) {
+    const pm = editorService.positionManager;
     if (
-      !positionManager.autoPositionMode &&
-      positionManager.manualPositions[characterName]
+      !pm.autoPositionMode &&
+      pm.manualPositions[characterName]
     ) {
       return {
         position:
-          positionManager.manualPositions[characterName].position || "center",
-        offset: positionManager.manualPositions[characterName].offset || 0,
+          pm.manualPositions[characterName].position || "center",
+        offset: pm.manualPositions[characterName].offset || 0,
       };
     }
     return { position: "center", offset: 0 };
@@ -645,7 +642,7 @@ export const live2dEditor = {
         if (action.speakers && action.speakers.length > 0) {
           const firstSpeaker = action.speakers[0];
           nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
-          configManager.updateConfigAvatar(
+          editorService.updateCharacterAvatar(
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
             firstSpeaker.name
@@ -676,11 +673,11 @@ export const live2dEditor = {
         const characterId = action.characterId;
         const characterName =
           action.characterName ||
-          configManager.getCharacterNameById(characterId);
+          editorService.getCharacterNameById(characterId);
         card.querySelector(".speaker-name").textContent =
           characterName || `未知角色 (ID: ${characterId})`;
         const avatarDiv = card.querySelector(".dialogue-avatar");
-        configManager.updateConfigAvatar(
+        editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           characterId,
           characterName
@@ -697,7 +694,7 @@ export const live2dEditor = {
         const costumeSelect = card.querySelector(".layout-costume-select");
         DOMUtils.clearElement(costumeSelect);
         const availableCostumes =
-          costumeManager.availableCostumes[characterName] || [];
+          editorService.costumeManager.availableCostumes[characterName] || [];
         availableCostumes.forEach((costumeId) => {
           const option = new Option(costumeId, costumeId);
           costumeSelect.add(option);
@@ -712,7 +709,7 @@ export const live2dEditor = {
         costumeSelect.value = action.costume;
         DOMUtils.clearElement(positionSelect);
         DOMUtils.clearElement(toPositionSelect);
-        Object.entries(positionManager.positionNames).forEach(
+        Object.entries(editorService.positionManager.positionNames).forEach(
           ([value, name]) => {
             const optionFrom = new Option(name, value);
             const optionTo = new Option(name, value);
@@ -788,10 +785,10 @@ export const live2dEditor = {
     const template = document.getElementById("draggable-character-template");
     DOMUtils.clearElement(listContainer);
     const fragment = document.createDocumentFragment();
-    const pinned = pinnedCharacterManager.getPinned();
+    const pinned = editorService.getPinnedCharacters();
     // 使用 DataUtils.sortBy 替代手动排序，处理置顶逻辑
     const characters = DataUtils.sortBy(
-      Object.entries(state.get("currentConfig")),
+      Object.entries(editorService.getCurrentConfig()),
       ([name, ids]) => {
         const isPinned = pinned.has(name);
         // 置顶的角色返回负数（排在前面），使用 ID 作为次要排序
@@ -808,10 +805,10 @@ export const live2dEditor = {
         characterItem.classList.add("is-used");
       }
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      configManager.updateConfigAvatar(avatarWrapper, ids[0], name);
+      editorService.updateCharacterAvatar(avatarWrapper, ids[0], name);
       item.querySelector(".character-name").textContent = name;
       const pinBtn = item.querySelector(".pin-btn");
-      if (pinnedCharacterManager.isPinned(name)) {
+      if (pinned.has(name)) {
         pinBtn.classList.add("is-pinned");
       }
       fragment.appendChild(item);

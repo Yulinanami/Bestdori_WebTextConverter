@@ -4,14 +4,9 @@ import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
-import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { configManager } from "./configManager.js";
-import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { historyManager } from "./historyManager.js";
-import { projectManager } from "./projectManager.js";
-import { costumeManager } from "./costumeManager.js";
-import { positionManager } from "./positionManager.js";
+import { editorService } from "./services/EditorService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -306,7 +301,7 @@ export const expressionEditor = {
       editor: baseEditor,
       modalId: "expressionEditorModal",
       applyChanges: () => {
-        projectManager.save(this.projectFileState, (savedState) => {
+        editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
         });
       },
@@ -314,15 +309,15 @@ export const expressionEditor = {
   },
 
   exportProject() {
-    projectManager.export(this.projectFileState);
+    editorService.projectManager.export(this.projectFileState);
   },
 
   async importProject() {
-    const importedProject = await projectManager.import();
+    const importedProject = await editorService.projectManager.import();
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", DataUtils.deepClone(importedProject));
+      editorService.setProjectState(DataUtils.deepClone(importedProject));
       historyManager.clear();
       this.stagedCharacters = this._calculateStagedCharacters(
         this.projectFileState
@@ -332,7 +327,7 @@ export const expressionEditor = {
   },
 
   reset() {
-    projectManager.reset(
+    editorService.projectManager.reset(
       () => {
         const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions.forEach((action) => {
@@ -355,8 +350,9 @@ export const expressionEditor = {
       this.tempLibraryItems = { motion: [], expression: [] };
       let initialState;
       const rawText = document.getElementById("inputText").value;
-      if (state.get("projectFile")) {
-        initialState = state.get("projectFile");
+      const projectState = editorService.getProjectState();
+      if (projectState) {
+        initialState = projectState;
       } else {
         const response = await axios.post("/api/segment-text", {
           text: rawText,
@@ -498,7 +494,7 @@ export const expressionEditor = {
     const footer = cardElement.querySelector(".timeline-item-footer");
     if (!footer) return;
     const statusBar = this._renderStatusBarForAction(action);
-    footer.innerHTML = "";
+    DOMUtils.clearElement(footer);
     footer.appendChild(statusBar);
     this._initSortableForZones(statusBar);
   },
@@ -578,7 +574,7 @@ export const expressionEditor = {
       if (action.type === "layout" && action.layoutType === "appear") {
         const charName =
           action.characterName ||
-          configManager.getCharacterNameById(action.characterId);
+          editorService.getCharacterNameById(action.characterId);
         if (charName && !appearedCharacterNames.has(charName)) {
           appearedCharacterNames.add(charName);
           characters.push({
@@ -620,7 +616,7 @@ export const expressionEditor = {
         if (action.speakers && action.speakers.length > 0) {
           const firstSpeaker = action.speakers[0];
           nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
-          configManager.updateConfigAvatar(
+          editorService.updateCharacterAvatar(
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
             firstSpeaker.name
@@ -651,11 +647,11 @@ export const expressionEditor = {
         const characterId = action.characterId;
         const characterName =
           action.characterName ||
-          configManager.getCharacterNameById(characterId);
+          editorService.getCharacterNameById(characterId);
         card.querySelector(".speaker-name").textContent =
           characterName || `未知角色 (ID: ${characterId})`;
         const avatarDiv = card.querySelector(".dialogue-avatar");
-        configManager.updateConfigAvatar(
+        editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           characterId,
           characterName
@@ -670,9 +666,9 @@ export const expressionEditor = {
         const currentPosition = action.position?.from?.side || "center";
         const currentOffset = action.position?.from?.offsetX || 0;
         const costumeSelect = card.querySelector(".layout-costume-select");
-        costumeSelect.innerHTML = "";
+        DOMUtils.clearElement(costumeSelect);
         const availableCostumes =
-          costumeManager.availableCostumes[characterName] || [];
+          editorService.costumeManager.availableCostumes[characterName] || [];
         availableCostumes.forEach((costumeId) => {
           const option = new Option(costumeId, costumeId);
           costumeSelect.add(option);
@@ -685,9 +681,9 @@ export const expressionEditor = {
           costumeSelect.add(option, 0);
         }
         costumeSelect.value = action.costume;
-        positionSelect.innerHTML = "";
-        toPositionSelect.innerHTML = "";
-        Object.entries(positionManager.positionNames).forEach(
+        DOMUtils.clearElement(positionSelect);
+        DOMUtils.clearElement(toPositionSelect);
+        Object.entries(editorService.positionManager.positionNames).forEach(
           ([value, name]) => {
             const optionFrom = new Option(name, value);
             const optionTo = new Option(name, value);
@@ -760,7 +756,7 @@ export const expressionEditor = {
         groupSize: groupSize,
       });
     } else {
-      timeline.innerHTML = "";
+      DOMUtils.clearElement(timeline);
       const fragment = document.createDocumentFragment();
       actions.forEach((action) => {
         const card = renderSingleCard(action);
@@ -785,7 +781,7 @@ export const expressionEditor = {
         statusTagElement.dataset.characterName = char.name;
 
         const avatarDiv = tag.querySelector(".dialogue-avatar");
-        configManager.updateConfigAvatar(
+        editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           char.id,
           char.name
@@ -819,7 +815,7 @@ export const expressionEditor = {
         id: action.characterId,
         name:
           action.characterName ||
-          configManager.getCharacterNameById(action.characterId),
+          editorService.getCharacterNameById(action.characterId),
       };
       if (!char.name) return statusBar;
       const tag = statusTagTemplate.content.cloneNode(true);
@@ -827,7 +823,7 @@ export const expressionEditor = {
       statusTagElement.dataset.characterId = char.id;
       statusTagElement.dataset.characterName = char.name;
       const avatarDiv = tag.querySelector(".dialogue-avatar");
-      configManager.updateConfigAvatar(
+      editorService.updateCharacterAvatar(
         { querySelector: () => avatarDiv },
         char.id,
         char.name
@@ -865,16 +861,16 @@ export const expressionEditor = {
     const motionItems = new Set(this.tempLibraryItems.motion);
     const expressionItems = new Set(this.tempLibraryItems.expression);
     stagedCharacterIds.forEach((id) => {
-      motionManager
+      editorService.motionManager
         .getAvailableItemsForCharacter(id)
         .forEach((item) => motionItems.add(item));
-      expressionManager
+      editorService.expressionManager
         .getAvailableItemsForCharacter(id)
         .forEach((item) => expressionItems.add(item));
     });
     if (stagedCharacterIds.size === 0) {
-      motionManager.getAllKnownItems().forEach((item) => motionItems.add(item));
-      expressionManager
+      editorService.motionManager.getAllKnownItems().forEach((item) => motionItems.add(item));
+      editorService.expressionManager
         .getAllKnownItems()
         .forEach((item) => expressionItems.add(item));
     }
@@ -903,7 +899,7 @@ export const expressionEditor = {
 
   _createProjectFileFromSegments(segments) {
     const characterMap = new Map(
-      Object.entries(state.get("currentConfig")).map(([name, ids]) => [
+      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
         name,
         { characterId: ids[0], name: name },
       ])
@@ -991,7 +987,7 @@ export const expressionEditor = {
     const input = document.getElementById(
       isMotion ? "tempMotionInput" : "tempExpressionInput"
     );
-    const manager = isMotion ? motionManager : expressionManager;
+    const manager = isMotion ? editorService.motionManager : editorService.expressionManager;
     const tempList = this.tempLibraryItems[type];
     const trimmedId = input.value.trim();
     if (!trimmedId) {

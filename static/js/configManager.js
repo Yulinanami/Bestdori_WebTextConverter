@@ -73,10 +73,8 @@ export const configManager = {
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
-        console.log("已加载本地保存的配置");
       } else {
         state.set("currentConfig", { ...this.defaultConfig });
-        console.log("使用默认配置");
       }
 
       quoteManager.renderQuoteOptions();

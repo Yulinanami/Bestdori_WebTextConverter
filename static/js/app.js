@@ -2,7 +2,6 @@
 import { state } from "./stateManager.js";
 import {
   ui,
-  initGlobalModalListeners,
   initializeModalCloseButtons,
   initPerformanceSettingsPersistence,
 } from "./uiUtils.js";
@@ -66,11 +65,6 @@ function initializeApp() {
 
   // 加载服装配置
   costumeManager.loadCostumeConfig();
-
-  // 初始化全局模态框监听器
-  initGlobalModalListeners();
-
-  console.log("应用初始化完成");
 }
 // 绑定经典视图事件
 function bindClassicViewEvents() {
@@ -206,7 +200,6 @@ function bindClassicViewEvents() {
 
   document.getElementById("inputText").addEventListener("input", (e) => {
     if (state.get("projectFile")) {
-      console.log("Input text changed, resetting project file state.");
       state.set("projectFile", null);
     }
   });

@@ -1,5 +1,6 @@
 // Live2D 位置管理功能
 import { DataUtils } from "./utils/DataUtils.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
@@ -185,7 +186,7 @@ export const positionManager = {
             `;
       fragment.appendChild(item);
     });
-    positionList.innerHTML = "";
+    DOMUtils.clearElement(positionList);
     positionList.appendChild(fragment);
   },
 

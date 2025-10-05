@@ -3,6 +3,7 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { converter } from "./converter.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 
 export const quoteManager = {
   // 加载自定义引号
@@ -20,8 +21,8 @@ export const quoteManager = {
   // 渲染引号选项
   renderQuoteOptions() {
     const container = document.getElementById("quoteOptionsContainer");
-    if (!container) return; 
-    container.innerHTML = "";
+    if (!container) return;
+    DOMUtils.clearElement(container);
     this.loadCustomQuotes();
     const fragment = document.createDocumentFragment();
     const quotesConfig = state.get("configData")?.quotes_config;
@@ -124,7 +125,7 @@ export const quoteManager = {
       const splitContainer = document.getElementById(
         "splitQuoteOptionsContainer"
       );
-      splitContainer.innerHTML = "";
+      DOMUtils.clearElement(splitContainer);
       mainContainer
         .querySelectorAll(".quote-option-checkbox")
         .forEach((mainCheckbox, index) => {

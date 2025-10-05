@@ -1,10 +1,6 @@
-import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { configManager } from "./configManager.js";
-import { selectionManager } from "./selectionManager.js";
 import { historyManager } from "./historyManager.js";
-import { projectManager } from "./projectManager.js";
-import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
+import { editorService } from "./services/EditorService.js";
 import { DataUtils } from "./utils/DataUtils.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
@@ -94,7 +90,7 @@ export const speakerEditor = {
           const characterItem = pinBtn.closest(".character-item");
           if (characterItem && characterItem.dataset.characterName) {
             const characterName = characterItem.dataset.characterName;
-            pinnedCharacterManager.toggle(characterName);
+            editorService.togglePinCharacter(characterName);
             const usedIds = this._getUsedCharacterIds();
             this.renderCharacterList(usedIds);
           }
@@ -113,7 +109,7 @@ export const speakerEditor = {
         }
       }
       const canvas = document.getElementById("speakerEditorCanvas");
-      selectionManager.detach(canvas);
+      editorService.detachSelection(canvas);
       ui.closeModal("speakerEditorModal");
     };
     this.domCache.modal
@@ -211,7 +207,7 @@ export const speakerEditor = {
           this.scrollAnimationFrame = null;
         }
 
-        selectionManager.detach(this.domCache.canvas);
+        editorService.detachSelection(this.domCache.canvas);
       },
     });
   },
@@ -232,8 +228,9 @@ export const speakerEditor = {
     try {
       let initialState;
       const rawText = document.getElementById("inputText").value;
-      if (state.get("projectFile")) {
-        initialState = state.get("projectFile");
+      const projectState = editorService.getProjectState();
+      if (projectState) {
+        initialState = projectState;
         ui.showStatus("已加载现有项目进度。", "info");
       } else {
         const response = await axios.post("/api/segment-text", {
@@ -249,8 +246,8 @@ export const speakerEditor = {
       this.renderCharacterList(usedCharacterIds);
       this.initDragAndDrop();
       const canvas = document.getElementById("speakerEditorCanvas");
-      selectionManager.clear();
-      selectionManager.attach(canvas, ".dialogue-item");
+      editorService.clearSelection();
+      editorService.attachSelection(canvas, ".dialogue-item");
       canvas.addEventListener("selectionchange", (e) => {
         const selectedIds = new Set(e.detail.selectedIds);
         const allCards = canvas.querySelectorAll(".dialogue-item");
@@ -278,7 +275,7 @@ export const speakerEditor = {
 
   createProjectFileFromSegments(segments) {
     const characterMap = new Map(
-      Object.entries(state.get("currentConfig")).map(([name, ids]) => [
+      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
         name,
         { characterId: ids[0], name: name },
       ])
@@ -348,7 +345,7 @@ export const speakerEditor = {
         avatarContainer.style.display = "flex";
         speakerNameDiv.style.display = "block";
         dialogueItem.classList.remove("narrator");
-        configManager.updateConfigAvatar(
+        editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           firstSpeaker.characterId,
           firstSpeaker.name
@@ -406,7 +403,7 @@ export const speakerEditor = {
         groupSize: groupSize,
       });
     } else {
-      canvas.innerHTML = "";
+      DOMUtils.clearElement(canvas);
       const fragment = document.createDocumentFragment();
       actions.forEach((action) => {
         fragment.appendChild(renderSingleCard(action));
@@ -424,10 +421,10 @@ export const speakerEditor = {
   renderCharacterList(usedCharacterIds) {
     const listContainer = document.getElementById("speakerEditorCharacterList");
     const template = document.getElementById("draggable-character-template");
-    listContainer.innerHTML = "";
+    DOMUtils.clearElement(listContainer);
     const fragment = document.createDocumentFragment();
-    const characters = Object.entries(state.get("currentConfig"));
-    const pinned = pinnedCharacterManager.getPinned();
+    const characters = editorService.getAllCharacters();
+    const pinned = editorService.getPinnedCharacters();
     characters.sort(([nameA, idsA], [nameB, idsB]) => {
       const isAPinned = pinned.has(nameA);
       const isBPinned = pinned.has(nameB);
@@ -445,10 +442,10 @@ export const speakerEditor = {
         characterItem.classList.add("is-used");
       }
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      configManager.updateConfigAvatar(avatarWrapper, characterId, name);
+      editorService.updateCharacterAvatar(avatarWrapper, characterId, name);
       item.querySelector(".character-name").textContent = name;
       const pinBtn = item.querySelector(".pin-btn");
-      if (pinnedCharacterManager.isPinned(name)) {
+      if (pinned.has(name)) {
         pinBtn.classList.add("is-pinned");
       }
       fragment.appendChild(item);
@@ -611,7 +608,7 @@ export const speakerEditor = {
   },
 
   updateSpeakerAssignment(actionId, newSpeaker) {
-    const selectedIds = selectionManager.getSelectedIds();
+    const selectedIds = editorService.selectionManager.getSelectedIds();
     const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
     this._executeCommand((currentState) => {
       targetIds.forEach((id) => {
@@ -632,7 +629,7 @@ export const speakerEditor = {
     const usedIds = this._getUsedCharacterIds();
     this.renderCharacterList(usedIds);
 
-    selectionManager.clear();
+    editorService.clearSelection();
     this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
       );
@@ -769,7 +766,7 @@ export const speakerEditor = {
       editor: baseEditor,
       modalId: "speakerEditorModal",
       applyChanges: () => {
-        projectManager.save(this.projectFileState, (savedState) => {
+        editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
         });
       },
@@ -777,15 +774,15 @@ export const speakerEditor = {
   },
 
   exportProject() {
-    projectManager.export(this.projectFileState);
+    editorService.projectManager.export(this.projectFileState);
   },
 
   async importProject() {
-    const importedProject = await projectManager.import();
+    const importedProject = await editorService.projectManager.import();
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", DataUtils.deepClone(importedProject));
+      editorService.setProjectState(DataUtils.deepClone(importedProject));
       historyManager.clear();
       const usedIds = this.renderCanvas();
       this.renderCharacterList(usedIds);
@@ -798,7 +795,7 @@ export const speakerEditor = {
       const response = await axios.post("/api/segment-text", { text: rawText });
       return this.createProjectFileFromSegments(response.data.segments);
     };
-    projectManager.reset(getDefaultStateFn, (newState) => {
+    editorService.projectManager.reset(getDefaultStateFn, (newState) => {
       this.projectFileState = newState;
       this.originalStateOnOpen = JSON.stringify(newState);
       historyManager.clear();
@@ -806,8 +803,8 @@ export const speakerEditor = {
       this.renderCharacterList(usedIds);
       const canvas = this.domCache.canvas;
       if (canvas) {
-        selectionManager.detach(canvas);
-        selectionManager.attach(canvas, ".dialogue-item");
+        editorService.detachSelection(canvas);
+        editorService.attachSelection(canvas, ".dialogue-item");
       }
     });
   },

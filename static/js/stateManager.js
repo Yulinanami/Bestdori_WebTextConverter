@@ -17,7 +17,6 @@ export const state = {
     return _state[key];
   },
   set(key, value) {
-    // console.log(`[State Change] ${key}:`, value); // 方便调试
     _state[key] = value;
   },
   getAll() {

@@ -4,6 +4,7 @@ import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { modalService } from "./services/ModalService.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 
 let statusTimer = null;
 export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
@@ -122,14 +123,6 @@ export const ui = {
   },
 };
 
-// 全局模态框关闭功能（已废弃，由 ModalService 处理）
-// 保留此函数以保持向后兼容，但实际上 modalService.init() 已经处理了这些事件
-export function initGlobalModalListeners() {
-  // 不再需要，modalService 已经处理了全局事件
-  // 但为了避免破坏现有代码，保留空函数
-  console.log('[Deprecated] initGlobalModalListeners 已由 ModalService 接管');
-}
-
 export function initPerformanceSettingsPersistence() {
   const checkbox = document.getElementById("groupCardsCheckbox");
   if (!checkbox) return;
@@ -157,7 +150,7 @@ export function renderGroupedView({
   renderItemFn,
   groupSize = 50,
 }) {
-  container.innerHTML = "";
+  DOMUtils.clearElement(container);
   const totalActions = actions.length;
   const numGroups = Math.ceil(totalActions / groupSize);
   const fragment = document.createDocumentFragment();
