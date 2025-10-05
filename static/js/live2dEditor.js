@@ -774,8 +774,12 @@ export const live2dEditor = {
       });
     } else {
       DOMUtils.clearElement(timeline);
-      const cards = actions.map(renderSingleCard).filter(card => card);
-      DOMUtils.appendChildren(timeline, cards);
+      const fragment = document.createDocumentFragment();
+      actions.forEach((action) => {
+        const card = renderSingleCard(action);
+        if (card) fragment.appendChild(card);
+      });
+      timeline.appendChild(fragment);
     }
   },
 
