@@ -1,5 +1,5 @@
-import { DataUtils } from "./utils/DataUtils.js";
 // Live2D 位置管理功能
+import { DataUtils } from "./utils/DataUtils.js";
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";

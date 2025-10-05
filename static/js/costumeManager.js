@@ -1,6 +1,6 @@
+// 服装管理相关功能
 import { DataUtils } from "./utils/DataUtils.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
-// 服装管理相关功能
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";

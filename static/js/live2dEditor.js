@@ -1,10 +1,9 @@
+// live2d布局模式
 import { DataUtils } from "./utils/DataUtils.js";
-// 文件: static/js/live2dEditor.js (完整替换)
+import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
-
-// live2d布局模式
 import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
@@ -696,7 +695,7 @@ export const live2dEditor = {
         const currentPosition = action.position?.from?.side || "center";
         const currentOffset = action.position?.from?.offsetX || 0;
         const costumeSelect = card.querySelector(".layout-costume-select");
-        costumeSelect.innerHTML = "";
+        DOMUtils.clearElement(costumeSelect);
         const availableCostumes =
           costumeManager.availableCostumes[characterName] || [];
         availableCostumes.forEach((costumeId) => {
@@ -711,8 +710,8 @@ export const live2dEditor = {
           costumeSelect.add(option, 0);
         }
         costumeSelect.value = action.costume;
-        positionSelect.innerHTML = "";
-        toPositionSelect.innerHTML = "";
+        DOMUtils.clearElement(positionSelect);
+        DOMUtils.clearElement(toPositionSelect);
         Object.entries(positionManager.positionNames).forEach(
           ([value, name]) => {
             const optionFrom = new Option(name, value);
@@ -727,13 +726,14 @@ export const live2dEditor = {
           ".to-position-container"
         );
         if (action.layoutType === "move") {
-          toPositionContainer.style.display = "grid";
+          DOMUtils.toggleDisplay(toPositionContainer, true);
+          toPositionContainer.style.display = "grid"; // 保持 grid 布局
           card.querySelector(".layout-position-select-to").value =
             action.position?.to?.side || "center";
           card.querySelector(".layout-offset-input-to").value =
             action.position?.to?.offsetX || 0;
         } else {
-          toPositionContainer.style.display = "none";
+          DOMUtils.toggleDisplay(toPositionContainer, false);
         }
       } else {
         return null;
@@ -773,20 +773,16 @@ export const live2dEditor = {
         groupSize: groupSize,
       });
     } else {
-      timeline.innerHTML = "";
-      const fragment = document.createDocumentFragment();
-      actions.forEach((action) => {
-        const card = renderSingleCard(action);
-        if (card) fragment.appendChild(card);
-      });
-      timeline.appendChild(fragment);
+      DOMUtils.clearElement(timeline);
+      const cards = actions.map(renderSingleCard).filter(card => card);
+      DOMUtils.appendChildren(timeline, cards);
     }
   },
 
   renderCharacterList(usedCharacterNames) {
     const listContainer = document.getElementById("live2dEditorCharacterList");
     const template = document.getElementById("draggable-character-template");
-    listContainer.innerHTML = "";
+    DOMUtils.clearElement(listContainer);
     const fragment = document.createDocumentFragment();
     const pinned = pinnedCharacterManager.getPinned();
     // 使用 DataUtils.sortBy 替代手动排序，处理置顶逻辑

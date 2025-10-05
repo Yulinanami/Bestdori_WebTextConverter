@@ -670,57 +670,86 @@ export const speakerEditor = {
 
   showMultiSpeakerPopover(actionId, targetElement) {
     // 移除所有旧的 popover 防止内存泄漏
-    document.querySelectorAll("#speaker-popover").forEach(p => p.remove());
+    DOMUtils.getElements("#speaker-popover").forEach(p => p.remove());
+
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
-    const popover = document.createElement("div");
-    popover.id = "speaker-popover";
-    popover.style.cssText = `
-        position: fixed;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        z-index: 10001;
-        padding: 8px;
-        min-width: 150px;
-    `;
-    action.speakers.forEach((speaker) => {
-      const item = document.createElement("div");
-      item.style.cssText = `display: flex; align-items: center; padding: 6px 8px; border-radius: 5px;`;
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = speaker.name;
-      nameSpan.style.flexGrow = "1";
-      const deleteBtn = document.createElement("button");
-      deleteBtn.innerHTML = "&times;";
-      deleteBtn.style.cssText = `
-            border: none; background: #f1f5f9; color: #64748b; border-radius: 50%;
-            width: 22px; height: 22px; cursor: pointer; margin-left: 10px;
-            display: flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1;
-            transition: all 0.2s ease;
-        `;
-      deleteBtn.onmouseover = () => {
-        deleteBtn.style.background = "#fee2e2";
-        deleteBtn.style.color = "#ef4444";
-      };
-      deleteBtn.onmouseout = () => {
-        deleteBtn.style.background = "#f1f5f9";
-        deleteBtn.style.color = "#64748b";
-      };
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.removeSpeakerFromAction(actionId, speaker.characterId);
-        popover.remove();
-      });
-      item.appendChild(nameSpan);
-      item.appendChild(deleteBtn);
-      popover.appendChild(item);
+
+    // 使用 DOMUtils 创建 popover
+    const popover = DOMUtils.createElement("div", {
+      id: "speaker-popover",
+      style: {
+        position: "fixed",
+        background: "white",
+        border: "1px solid #e2e8f0",
+        borderRadius: "8px",
+        boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
+        zIndex: "10001",
+        padding: "8px",
+        minWidth: "150px",
+      },
     });
+
+    // 为每个说话人创建列表项
+    const items = action.speakers.map((speaker) => {
+      const nameSpan = DOMUtils.createElement("span", {
+        style: { flexGrow: "1" },
+      }, speaker.name);
+
+      const deleteBtn = DOMUtils.createElement("button", {
+        className: "speaker-delete-btn",
+        innerHTML: "&times;",
+        style: {
+          border: "none",
+          background: "#f1f5f9",
+          color: "#64748b",
+          borderRadius: "50%",
+          width: "22px",
+          height: "22px",
+          cursor: "pointer",
+          marginLeft: "10px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "16px",
+          lineHeight: "1",
+          transition: "all 0.2s ease",
+        },
+        onMouseover: (e) => {
+          e.currentTarget.style.background = "#fee2e2";
+          e.currentTarget.style.color = "#ef4444";
+        },
+        onMouseout: (e) => {
+          e.currentTarget.style.background = "#f1f5f9";
+          e.currentTarget.style.color = "#64748b";
+        },
+        onClick: (e) => {
+          e.stopPropagation();
+          this.removeSpeakerFromAction(actionId, speaker.characterId);
+          popover.remove();
+        },
+      });
+
+      return DOMUtils.createElement("div", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          padding: "6px 8px",
+          borderRadius: "5px",
+        },
+      }, [nameSpan, deleteBtn]);
+    });
+
+    // 批量添加所有列表项
+    DOMUtils.appendChildren(popover, items);
     document.body.appendChild(popover);
+
+    // 定位 popover
     const rect = targetElement.getBoundingClientRect();
     popover.style.top = `${rect.bottom + 5}px`;
     popover.style.left = `${rect.left}px`;
 
+    // 点击外部关闭
     setTimeout(() => {
       document.addEventListener(
         "click",

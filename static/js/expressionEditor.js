@@ -1,5 +1,6 @@
-import { DataUtils } from "./utils/DataUtils.js";
 // 动作表情编辑器
+import { DataUtils } from "./utils/DataUtils.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
@@ -295,7 +296,7 @@ export const expressionEditor = {
       dropZone.querySelector(".drop-zone-value").textContent = value;
       const clearBtn = dropZone.querySelector(".clear-state-btn");
       if (clearBtn) {
-        clearBtn.style.display = value && value !== "--" ? "block" : "none";
+        DOMUtils.toggleDisplay(clearBtn, value && value !== "--");
       }
     }
   },
@@ -721,10 +722,10 @@ export const expressionEditor = {
         footer.appendChild(statusBar);
         this._initSortableForZones(statusBar);
       } else {
-        const setupButton = document.createElement("button");
-        setupButton.className =
-          "btn btn-secondary btn-sm setup-expressions-btn";
-        setupButton.textContent = "设置动作/表情";
+        const setupButton = DOMUtils.createButton(
+          "设置动作/表情",
+          "btn btn-secondary btn-sm setup-expressions-btn"
+        );
         footer.appendChild(setupButton);
       }
       return card;
@@ -773,8 +774,9 @@ export const expressionEditor = {
     const statusTagTemplate = document.getElementById(
       "character-status-tag-template"
     );
-    const statusBar = document.createElement("div");
-    statusBar.className = "character-status-bar";
+    const statusBar = DOMUtils.createElement("div", {
+      className: "character-status-bar",
+    });
     if (action.type === "talk") {
       this.stagedCharacters.forEach((char) => {
         const tag = statusTagTemplate.content.cloneNode(true);
@@ -800,8 +802,7 @@ export const expressionEditor = {
         );
         motionValue.textContent = currentMotion;
         if (motionClearBtn)
-          motionClearBtn.style.display =
-            currentMotion !== "--" ? "block" : "none";
+          DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
         const expValue = tag.querySelector(
           ".expression-drop-zone .drop-zone-value"
         );
@@ -810,8 +811,7 @@ export const expressionEditor = {
         );
         expValue.textContent = currentExpression;
         if (expClearBtn)
-          expClearBtn.style.display =
-            currentExpression !== "--" ? "block" : "none";
+          DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
         statusBar.appendChild(tag);
       });
     } else if (action.type === "layout") {
@@ -844,8 +844,7 @@ export const expressionEditor = {
       );
       motionValue.textContent = currentMotion;
       if (motionClearBtn)
-        motionClearBtn.style.display =
-          currentMotion !== "--" ? "block" : "none";
+        DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
       const expValue = tag.querySelector(
         ".expression-drop-zone .drop-zone-value"
       );
@@ -854,8 +853,7 @@ export const expressionEditor = {
       );
       expValue.textContent = currentExpression;
       if (expClearBtn)
-        expClearBtn.style.display =
-          currentExpression !== "--" ? "block" : "none";
+        DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
       statusBar.appendChild(tag);
     }
 
@@ -889,16 +887,18 @@ export const expressionEditor = {
 
   _renderLibrary(type, items) {
     const container = document.getElementById(`${type}LibraryList`);
-    container.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-    items.forEach((item) => {
-      const itemEl = document.createElement("div");
-      itemEl.className = "config-list-item draggable-item";
-      itemEl.draggable = true;
-      itemEl.innerHTML = `<span class="item-name">${item}</span>`;
-      fragment.appendChild(itemEl);
-    });
-    container.appendChild(fragment);
+    DOMUtils.clearElement(container);
+
+    const itemElements = items.map((item) =>
+      DOMUtils.createElement("div", {
+        className: "config-list-item draggable-item",
+        draggable: true,
+      }, [
+        DOMUtils.createElement("span", { className: "item-name" }, item),
+      ])
+    );
+
+    DOMUtils.appendChildren(container, itemElements);
   },
 
   _createProjectFileFromSegments(segments) {

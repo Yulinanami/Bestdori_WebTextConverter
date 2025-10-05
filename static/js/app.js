@@ -18,8 +18,6 @@ import { live2dEditor } from "./live2dEditor.js";
 import { expressionEditor } from "./expressionEditor.js";
 import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
-
-// 导入新的服务层
 import { modalService } from "./services/ModalService.js";
 import { eventBus } from "./services/EventBus.js";
 
