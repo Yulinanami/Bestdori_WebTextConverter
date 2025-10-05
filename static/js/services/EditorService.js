@@ -198,8 +198,8 @@ class EditorService {
   /**
    * 附加选择管理器
    */
-  attachSelection(element) {
-    return this.selectionManager?.attach?.(element);
+  attachSelection(element, itemSelector) {
+    return this.selectionManager?.attach?.(element, itemSelector);
   }
 
   /**

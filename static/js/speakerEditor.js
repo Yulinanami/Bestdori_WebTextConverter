@@ -12,6 +12,7 @@ const baseEditor = new BaseEditor({
   renderCallback: () => {
     const usedIds = speakerEditor.renderCanvas();
     speakerEditor.renderCharacterList(usedIds);
+    speakerEditor._reattachSelection(); // 重新绑定选择功能
   },
   afterCommandCallback: () => {
     // 撤销/重做后清除缓存
@@ -171,6 +172,16 @@ export const speakerEditor = {
   // 缓存失效
   _invalidateCache() {
     this._usedCharacterIdsCache = null;
+  },
+
+  // 重新绑定选择功能
+  _reattachSelection() {
+    const canvas = this.domCache.canvas;
+    if (canvas) {
+      editorService.detachSelection(canvas);
+      editorService.clearSelection();
+      editorService.attachSelection(canvas, ".dialogue-item");
+    }
   },
 
   _getUsedCharacterIds() {
@@ -695,7 +706,6 @@ export const speakerEditor = {
 
       const deleteBtn = DOMUtils.createElement("button", {
         className: "speaker-delete-btn",
-        innerHTML: "&times;",
         style: {
           border: "none",
           background: "#f1f5f9",
@@ -725,7 +735,7 @@ export const speakerEditor = {
           this.removeSpeakerFromAction(actionId, speaker.characterId);
           popover.remove();
         },
-      });
+      }, "×");
 
       return DOMUtils.createElement("div", {
         style: {

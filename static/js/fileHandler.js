@@ -1,6 +1,6 @@
 // 文件处理相关功能
 import { state } from "./stateManager.js";
-import { VALID_EXTENSIONS, FILE_EXTENSIONS } from "./constants.js";
+import { VALID_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { apiService } from "./services/ApiService.js";
 import { eventBus, EVENTS } from "./services/EventBus.js";
