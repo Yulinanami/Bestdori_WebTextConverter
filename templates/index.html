@@ -31,7 +31,7 @@
         <p>
           将对话文本转换为JSON格式，支持多种角色映射，使用方法请点击右边的问号按钮
         </p>
-        <button id="helpBtn" class="btn btn-secondary">?</button>
+        <button id="helpBtn" class="btn btn-secondary" aria-label="打开使用说明">?</button>
       </div>
 
       <!-- 经典视图 -->
@@ -44,10 +44,10 @@
               <input type="file" accept=".txt,.docx,.md" id="fileInput" />
               <div class="file-upload-label">
                 <div>
-                  <div style="font-weight: 600; margin-bottom: 5px">
+                  <div class="file-upload-title">
                     点击或拖拽上传文件
                   </div>
-                  <div style="font-size: 0.9rem; color: #718096">
+                  <div class="file-upload-subtitle">
                     支持 .txt, .docx, .md 格式（最大16MB）
                   </div>
                 </div>
@@ -60,9 +60,8 @@
             <div class="section-title">
               文本输入
               <button
-                class="btn btn-secondary"
+                class="btn btn-secondary ml-auto"
                 id="formatTextBtn"
-                style="margin-left: auto"
               >
                 格式化文本
               </button>
@@ -83,23 +82,14 @@
               ></textarea>
             </div>
 
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
+            <hr class="section-divider" />
 
             <!-- 说话人编辑模式-->
             <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
+              <p class="form-label text-subtitle">
                 说话人编辑模式
               </p>
-              <p style="color: #718096; margin-bottom: 15px">
+              <p class="text-hint">
                 通过拖拽为对话指派说话人，以应对不规范的文本格式。
               </p>
               <button class="btn btn-primary" id="openSpeakerEditorBtn">
@@ -114,7 +104,7 @@
 
             <!-- 旁白名称 -->
             <div class="form-group">
-              <label class="form-label">旁白名称（默认为空白）：</label>
+              <label for="narratorName" class="form-label">旁白名称（默认为空白）：</label>
               <input
                 type="text"
                 class="form-input"
@@ -123,116 +113,76 @@
                 placeholder="设置旁白的名称"
               />
             </div>
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
+            <hr class="section-divider" />
             <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
+              <p class="form-label text-subtitle">
                 性能优化
               </p>
-              <p style="color: #718096; margin-bottom: 15px">
+              <p class="text-hint">
                 当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
               </p>
               <label class="auto-preview-label">
                 <input type="checkbox" id="groupCardsCheckbox" />
-                <span style="font-weight: 500">启用编辑器卡片分组</span>
+                <span class="font-medium">启用编辑器卡片分组</span>
               </label>
             </div>
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
+            <hr class="section-divider" />
 
             <!-- 引号处理 -->
             <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
+              <p class="form-label text-subtitle">
                 引号处理
               </p>
-              <p style="color: #718096; margin-bottom: 15px">
+              <p class="text-hint">
                 选择或添加需要自动移除首尾引号的种类
               </p>
 
               <!-- 预设引号选项 -->
               <div
                 id="quoteOptionsContainer"
-                class="btn-group"
-                style="margin-bottom: 20px"
+                class="btn-group mb-20"
               >
                 <!-- JS将在这里动态填充复选框 -->
               </div>
 
               <!-- 自定义引号选项 -->
-              <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0">
-                <p
-                  style="font-weight: 500; color: #4a5568; margin-bottom: 10px"
-                >
+              <div class="pt-15 border-dashed">
+                <p class="font-medium text-gray mb-10">
                   添加自定义引号对：
                 </p>
-                <div
-                  style="
-                    display: flex;
-                    gap: 10px;
-                    align-items: center;
-                    flex-wrap: wrap;
-                  "
-                >
+                <div class="flex flex-center flex-gap-sm flex-wrap">
                   <input
                     type="text"
                     id="customQuoteOpen"
-                    class="form-input"
+                    class="form-input w-100 flex-grow-0"
                     placeholder="起始符号"
-                    style="width: 100px; flex-grow: 0"
                   />
                   <input
                     type="text"
                     id="customQuoteClose"
-                    class="form-input"
+                    class="form-input w-100 flex-grow-0"
                     placeholder="结束符号"
-                    style="width: 100px; flex-grow: 0"
                   />
                   <button
                     id="addCustomQuoteBtn"
-                    class="btn btn-secondary"
-                    style="flex-shrink: 0"
+                    class="btn btn-secondary flex-shrink-0"
                   >
                     添加
                   </button>
                 </div>
               </div>
             </div>
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
+            <hr class="section-divider" />
 
             <!-- Live2D 布局设置 -->
             <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
+              <p class="form-label text-subtitle">
                 Live2D 布局模式
               </p>
-              <p style="color: #718096; margin-bottom: 15px">
+              <p class="text-hint">
                 在可视化时间线中，精确地为角色添加入场、退场和移动动画。
               </p>
-              <div style="display: flex; gap: 20px; align-items: center">
+              <div class="flex flex-center flex-gap-md">
                 <button class="btn btn-primary" id="openLive2dEditorBtn">
                   打开 Live2D 布局编辑器
                 </button>
@@ -245,25 +195,16 @@
               </div>
             </div>
 
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #e2e8f0;
-                margin: 25px 0;
-              "
-            />
+            <hr class="section-divider" />
 
-            <div>
-              <p
-                class="form-label"
-                style="font-size: 1.1rem; margin-bottom: 5px"
-              >
+            <div class="mb-20">
+              <p class="form-label text-subtitle">
                 动作与表情
               </p>
-              <p style="color: #718096; margin-bottom: 15px">
+              <p class="text-hint">
                 管理全局可用的动作表情列表，并为在场角色设置对话时的具体状态。
               </p>
-              <div style="display: flex; gap: 20px; align-items: center">
+              <div class="flex flex-center flex-gap-md">
                 <button class="btn btn-primary" id="openExpressionEditorBtn">
                   打开动作/表情编辑器
                 </button>
@@ -276,35 +217,27 @@
               </div>
             </div>
 
-            <div class="modal" id="motionExpressionModal">
-              <div class="modal-content" style="max-width: 900px; width: 95%">
+            <div class="modal" id="motionExpressionModal" role="dialog" aria-modal="true" aria-labelledby="motionExpressionModalTitle">
+              <div class="modal-content modal-xl">
                 <div class="modal-header">
-                  <div class="modal-title">动作/表情配置</div>
+                  <div class="modal-title" id="motionExpressionModalTitle">动作/表情配置</div>
                   <button
                     class="modal-close"
                     data-modal-id="motionExpressionModal"
+                    aria-label="关闭对话框"
                   >
                     ×
                   </button>
                 </div>
                 <div class="modal-body">
                   <!-- 顶部描述和操作按钮 -->
-                  <div style="margin-bottom: 20px">
-                    <p style="color: #718096; margin-bottom: 10px">
+                  <div class="mb-20">
+                    <p class="text-muted mb-10">
                       管理全局可用的 Live2D
                       动作和表情列表。自定义项将保存在您的浏览器本地。
                     </p>
                   </div>
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 25px;
-                      padding-bottom: 20px;
-                      border-bottom: 1px solid var(--border-primary);
-                    "
-                  >
+                  <div class="flex-between mb-25 pt-20 pb-20 border-top">
                     <button
                       class="btn btn-secondary"
                       id="resetMotionExpressionBtn"
@@ -320,18 +253,12 @@
                   </div>
 
                   <!-- 两栏布局 -->
-                  <div
-                    style="
-                      display: grid;
-                      grid-template-columns: 1fr 1fr;
-                      gap: 30px;
-                    "
-                  >
+                  <div class="grid-2col">
                     <!-- 左栏：动作配置 -->
                     <div class="config-column">
                       <h4 class="config-column-title">动作 (Motions)</h4>
                       <div class="form-group">
-                        <label class="form-label">添加自定义动作ID:</label>
+                        <label for="customMotionInput" class="form-label">添加自定义动作ID:</label>
                         <div class="input-group">
                           <input
                             type="text"
@@ -356,7 +283,7 @@
                     <div class="config-column">
                       <h4 class="config-column-title">表情 (Expressions)</h4>
                       <div class="form-group">
-                        <label class="form-label">添加自定义表情ID:</label>
+                        <label for="customExpressionInput" class="form-label">添加自定义表情ID:</label>
                         <div class="input-group">
                           <input
                             type="text"
@@ -382,29 +309,30 @@
             </div>
 
             <!-- 动作/表情编辑模式模态框 -->
-            <div class="modal modal-fullscreen" id="expressionEditorModal" tabindex="-1">
+            <div class="modal modal-fullscreen" id="expressionEditorModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="expressionEditorModalTitle">
               <div class="modal-content">
                 <div class="modal-header">
-                  <div class="modal-title">动作/表情编辑模式</div>
+                  <div class="modal-title" id="expressionEditorModalTitle">动作/表情编辑模式</div>
                   <button
                     class="modal-close"
                     data-modal-id="expressionEditorModal"
+                    aria-label="关闭对话框"
                   >
                     ×
                   </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body editor-layout">
                   <!-- 左栏：时间线 -->
-                  <div id="expressionEditorTimeline">
+                  <div id="expressionEditorTimeline" class="editor-canvas">
                     <!-- JS 将在此处渲染时间线卡片 -->
                   </div>
                   <!-- 右栏：资源库 -->
-                  <div id="expressionEditorLibrary">
+                  <div id="expressionEditorLibrary" class="editor-sidebar">
                     <!-- 动作列表 -->
                     <div class="config-column">
                       <h4 class="config-column-title">动作 (Motions)</h4>
                       <div class="form-group">
-                        <label class="form-label">搜索动作:</label>
+                        <label for="motionSearchInput" class="form-label">搜索动作:</label>
                         <div class="search-input-container">
                           <input
                             type="text"
@@ -413,16 +341,15 @@
                             placeholder="输入关键词进行筛选..."
                           />
                           <button
-                            class="clear-search-btn"
+                            class="clear-search-btn hidden"
                             id="clearMotionSearchBtn"
-                            style="display: none"
                           >
                             ×
                           </button>
                         </div>
                       </div>
                       <div class="form-group">
-                        <label class="form-label">添加临时动作ID:</label>
+                        <label for="tempMotionInput" class="form-label">添加临时动作ID:</label>
                         <div class="input-group">
                           <input
                             type="text"
@@ -446,7 +373,7 @@
                     <div class="config-column">
                       <h4 class="config-column-title">表情 (Expressions)</h4>
                       <div class="form-group">
-                        <label class="form-label">搜索表情:</label>
+                        <label for="expressionSearchInput" class="form-label">搜索表情:</label>
                         <div class="search-input-container">
                           <input
                             type="text"
@@ -455,16 +382,15 @@
                             placeholder="输入关键词进行筛选..."
                           />
                           <button
-                            class="clear-search-btn"
+                            class="clear-search-btn hidden"
                             id="clearExpressionSearchBtn"
-                            style="display: none"
                           >
                             ×
                           </button>
                         </div>
                       </div>
                       <div class="form-group">
-                        <label class="form-label">添加临时表情ID:</label>
+                        <label for="tempExpressionInput" class="form-label">添加临时表情ID:</label>
                         <div class="input-group">
                           <input
                             type="text"
@@ -489,18 +415,9 @@
                     </div>
                   </div>
                 </div>
-                <div
-                  class="modal-footer"
-                  style="
-                    padding: 15px 30px;
-                    border-top: 1px solid #e2e8f0;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                  "
-                >
+                <div class="modal-footer">
                   <!-- 左侧按钮组 -->
-                  <div style="display: flex; gap: 10px">
+                  <div class="flex flex-gap-sm">
                     <button
                       class="btn btn-secondary"
                       id="expressionUndoBtn"
@@ -522,7 +439,7 @@
                     </button>
                   </div>
                   <!-- 中间按钮组 -->
-                  <div style="display: flex; gap: 10px">
+                  <div class="flex flex-gap-sm">
                     <button class="btn btn-secondary" id="importExpressionsBtn">
                       导入进度
                     </button>
@@ -531,7 +448,7 @@
                     </button>
                   </div>
                   <!-- 右侧按钮组 -->
-                  <div style="display: flex; gap: 10px">
+                  <div class="flex flex-gap-sm">
                     <button class="btn btn-danger" id="resetExpressionsBtn">
                       恢复默认
                     </button>
@@ -549,7 +466,7 @@
               </div>
             </div>
 
-            <!-- 3. 在文件底部 </body> 标签之前，添加新的模板 -->
+            <!-- 角色状态标签模板 -->
             <template id="character-status-tag-template">
               <div class="character-status-tag" data-character-id="">
                 <div class="character-info">
@@ -561,7 +478,7 @@
                     <span class="drop-zone-label">动作</span>
                     <span class="drop-zone-value">--</span>
                     <!-- 新增删除按钮 -->
-                    <button class="clear-state-btn" style="display: none">
+                    <button class="clear-state-btn hidden">
                       ×
                     </button>
                   </div>
@@ -572,7 +489,7 @@
                     <span class="drop-zone-label">表情</span>
                     <span class="drop-zone-value">--</span>
                     <!-- 新增删除按钮 -->
-                    <button class="clear-state-btn" style="display: none">
+                    <button class="clear-state-btn hidden">
                       ×
                     </button>
                   </div>
@@ -581,35 +498,26 @@
             </template>
 
             <!-- 位置配置模态框 -->
-            <div class="modal" id="positionModal">
-              <div class="modal-content" style="max-width: 800px">
+            <div class="modal" id="positionModal" role="dialog" aria-modal="true" aria-labelledby="positionModalTitle">
+              <div class="modal-content modal-xl">
                 <div class="modal-header">
-                  <div class="modal-title">Live2D 位置配置</div>
-                  <button class="modal-close">×</button>
+                  <div class="modal-title" id="positionModalTitle">Live2D 位置配置</div>
+                  <button class="modal-close" aria-label="关闭对话框">×</button>
                 </div>
                 <div class="modal-body">
-                  <div style="margin-bottom: 20px">
-                    <p style="color: #718096; margin-bottom: 10px">
+                  <div class="mb-20">
+                    <p class="text-muted mb-10">
                       配置角色的默认出现位置。您可以为每个角色单独设置，或使用自动分配模式。
                     </p>
-                    <p style="color: #3182ce; font-size: 0.9rem">
+                    <p class="text-info">
                       提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
                     </p>
                   </div>
-                  <div
-                    style="
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: center;
-                      margin-bottom: 20px;
-                      padding-bottom: 20px;
-                      border-bottom: 1px solid #e2e8f0;
-                    "
-                  >
+                  <div class="flex-between mb-25 pt-20 pb-20 border-top">
                     <button class="btn btn-secondary" id="resetPositionsBtn">
                       恢复默认
                     </button>
-                    <div style="display: flex; gap: 10px">
+                    <div class="flex flex-gap-sm">
                       <button class="btn btn-secondary btn-modal-close">
                         取消
                       </button>
@@ -619,35 +527,21 @@
                     </div>
                   </div>
 
-                  <div
-                    style="
-                      margin-bottom: 20px;
-                      padding: 15px;
-                      background: #f7fafc;
-                      border-radius: 8px;
-                    "
-                  >
+                  <div class="p-15 bg-light rounded-lg mb-20">
                     <label class="auto-preview-label">
                       <input
                         type="checkbox"
                         id="autoPositionCheckbox"
                         checked
                       />
-                      <span style="font-weight: 500">自动分配位置模式</span>
+                      <span class="font-medium">自动分配位置模式</span>
                     </label>
-                    <p
-                      style="
-                        color: #718096;
-                        font-size: 0.9rem;
-                        margin-top: 8px;
-                        margin-bottom: 0;
-                      "
-                    >
+                    <p class="text-hint mt-8 mb-0">
                       启用后，角色将按出场顺序自动分配到不同位置（左、中、右循环）
                     </p>
                   </div>
 
-                  <div id="manualPositionConfig" style="display: none">
+                  <div id="manualPositionConfig" class="hidden">
                     <div id="positionList"></div>
                   </div>
                 </div>
@@ -667,9 +561,8 @@
 
             <!-- 进度条容器 -->
             <div
-              class="progress-container"
+              class="progress-container hidden"
               id="progressContainer"
-              style="display: none"
             >
               <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
@@ -679,15 +572,14 @@
             <!-- 状态消息容器 -->
             <div
               id="statusMessage"
-              class="status-message status-info"
-              style="display: none"
+              class="status-message status-info hidden"
             ></div>
           </div>
           <!-- 经典视图的结果显示区域 -->
-          <div class="section" id="resultSection" style="display: none">
+          <div class="section hidden" id="resultSection">
             <div class="result-header">
               <div class="section-title">转换结果</div>
-              <div style="display: flex; gap: 10px">
+              <div class="flex flex-gap-sm">
                 <button class="btn btn-success" id="downloadBtn">
                   下载JSON
                 </button>
@@ -708,36 +600,25 @@
       </div>
 
       <!-- 配置管理模态框 -->
-      <div class="modal" id="configModal">
-        <div class="modal-content" style="max-width: 700px">
+      <div class="modal" id="configModal" role="dialog" aria-modal="true" aria-labelledby="configModalTitle">
+        <div class="modal-content modal-xl">
           <div class="modal-header">
-            <div class="modal-title">角色映射配置</div>
-            <button class="modal-close" data-modal-id="configModal">×</button>
+            <div class="modal-title" id="configModalTitle">角色映射配置</div>
+            <button class="modal-close" data-modal-id="configModal" aria-label="关闭对话框">×</button>
           </div>
           <div class="modal-body">
-            <div style="margin-bottom: 20px">
-              <p style="color: #718096; margin-bottom: 10px">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
                 配置角色名称与ID的映射关系，多个ID用逗号分隔
               </p>
-              <p style="color: #e53e3e; font-size: 0.9rem">
+              <p class="text-warning">
                 <strong>提示：</strong
                 >自定义添加的角色ID应该是默认角色列表里已有的角色ID，否则会导致你自定义的角色无法自动添加Live2D。
               </p>
             </div>
 
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 20px;
-                border-bottom: 1px solid #e2e8f0;
-                flex-wrap: wrap;
-                gap: 10px;
-              "
-            >
-              <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <div class="flex-between mb-25 pt-20 pb-20 border-top flex-wrap flex-gap-sm">
+              <div class="flex flex-gap-sm flex-wrap">
                 <button class="btn btn-secondary" id="addConfigBtn">
                   添加角色
                 </button>
@@ -751,7 +632,7 @@
                   type="file"
                   id="importConfigInput"
                   accept=".json"
-                  style="display: none"
+                  class="hidden"
                 />
                 <button class="btn btn-secondary" id="importConfigBtn">
                   导入配置
@@ -764,7 +645,7 @@
                   清除缓存
                 </button>
               </div>
-              <div style="display: flex; gap: 10px">
+              <div class="flex flex-gap-sm">
                 <button
                   class="btn btn-secondary btn-modal-close"
                   data-modal-id="configModal"
@@ -783,32 +664,26 @@
       </div>
 
       <!-- 服装配置模态框 -->
-      <div class="modal" id="costumeModal">
-        <div class="modal-content" style="max-width: 800px">
+      <div class="modal" id="costumeModal" role="dialog" aria-modal="true" aria-labelledby="costumeModalTitle">
+        <div class="modal-content modal-xl">
           <div class="modal-header">
-            <div class="modal-title">角色服装配置</div>
-            <button class="modal-close">×</button>
+            <div class="modal-title" id="costumeModalTitle">角色服装配置</div>
+            <button class="modal-close" aria-label="关闭对话框">×</button>
           </div>
           <div class="modal-body">
-            <div style="margin-bottom: 20px">
-              <p style="color: #718096; margin-bottom: 10px">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
                 为每个角色配置默认服装。您可以从预设服装中选择，或添加自定义服装ID。
               </p>
-              <p style="color: #3182ce; font-size: 0.9rem">
+              <p class="text-info">
                 提示：点击"浏览数据库"可以查看 Bestdori 的所有可用服装ID。
               </p>
-              <p style="color: #e53e3e; font-size: 0.9rem">
+              <p class="text-warning">
                 <strong>提示：</strong>服装配置将保存在您的浏览器本地。
               </p>
             </div>
 
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 20px;
-              "
-            >
+            <div class="flex-between mb-20 pt-20 border-top">
               <button class="btn btn-secondary" id="resetCostumesBtn">
                 恢复默认
               </button>
@@ -823,11 +698,11 @@
       </div>
 
       <!-- 帮助模态框 -->
-      <div class="modal" id="helpModal">
+      <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
         <div class="modal-content">
           <div class="modal-header">
-            <div class="modal-title">使用说明</div>
-            <button class="modal-close" data-modal-id="helpModal">×</button>
+            <div class="modal-title" id="helpModalTitle">使用说明</div>
+            <button class="modal-close" data-modal-id="helpModal" aria-label="关闭对话框">×</button>
           </div>
           <div class="modal-body" id="helpContent">
             <div class="help-section">
@@ -962,66 +837,55 @@
       </div>
 
       <!-- 分屏引号设置模态框 -->
-      <div class="modal" id="splitQuoteModal">
-        <div class="modal-content" style="max-width: 500px">
+      <div class="modal" id="splitQuoteModal" role="dialog" aria-modal="true" aria-labelledby="splitQuoteModalTitle">
+        <div class="modal-content modal-sm">
           <div class="modal-header">
-            <div class="modal-title">引号处理设置</div>
-            <button class="modal-close" data-modal-id="splitQuoteModal">
+            <div class="modal-title" id="splitQuoteModalTitle">引号处理设置</div>
+            <button class="modal-close" data-modal-id="splitQuoteModal" aria-label="关闭对话框">
               ×
             </button>
           </div>
           <div class="modal-body">
-            <p style="color: #718096; margin-bottom: 15px">
+            <p class="text-muted mb-15">
               选择需要自动移除首尾引号的种类
             </p>
 
             <!-- 预设引号选项（复用主界面的） -->
             <div
               id="splitQuoteOptionsContainer"
-              class="btn-group"
-              style="margin-bottom: 20px"
+              class="btn-group mb-20"
             >
               <!-- JS将在这里动态填充复选框 -->
             </div>
 
             <!-- 自定义引号选项 -->
-            <div style="padding-top: 15px; border-top: 1px dashed #cbd5e0">
-              <p style="font-weight: 500; color: #4a5568; margin-bottom: 10px">
+            <div class="pt-15 border-dashed">
+              <p class="font-medium text-gray mb-10">
                 添加自定义引号对：
               </p>
-              <div
-                style="
-                  display: flex;
-                  gap: 10px;
-                  align-items: center;
-                  flex-wrap: wrap;
-                "
-              >
+              <div class="flex flex-center flex-gap-sm flex-wrap">
                 <input
                   type="text"
                   id="splitCustomQuoteOpen"
-                  class="form-input"
+                  class="form-input w-100 flex-grow-0"
                   placeholder="起始符号"
-                  style="width: 100px; flex-grow: 0"
                 />
                 <input
                   type="text"
                   id="splitCustomQuoteClose"
-                  class="form-input"
+                  class="form-input w-100 flex-grow-0"
                   placeholder="结束符号"
-                  style="width: 100px; flex-grow: 0"
                 />
                 <button
                   id="addSplitCustomQuoteBtn"
-                  class="btn btn-secondary"
-                  style="flex-shrink: 0"
+                  class="btn btn-secondary flex-shrink-0"
                 >
                   添加
                 </button>
               </div>
             </div>
 
-            <div style="text-align: right; margin-top: 20px">
+            <div class="text-right mt-20">
               <button
                 class="btn btn-primary btn-modal-close"
                 data-modal-id="splitQuoteModal"
@@ -1033,50 +897,27 @@
         </div>
       </div>
 
-      <div class="modal modal-fullscreen" id="speakerEditorModal" tabindex="-1">
+      <div class="modal modal-fullscreen" id="speakerEditorModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="speakerEditorModalTitle">
         <div class="modal-content">
           <div class="modal-header">
-            <div class="modal-title">说话人编辑模式</div>
-            <button class="modal-close" data-modal-id="speakerEditorModal">
+            <div class="modal-title" id="speakerEditorModalTitle">说话人编辑模式</div>
+            <button class="modal-close" data-modal-id="speakerEditorModal" aria-label="关闭对话框">
               ×
             </button>
           </div>
-          <div
-            class="modal-body"
-            style="display: flex; flex: 1; overflow: hidden; gap: 20px"
-          >
+          <div class="modal-body editor-layout">
             <!-- 左栏：文本片段 -->
-            <div
-              id="speakerEditorCanvas"
-              style="flex: 3; overflow-y: auto; padding-right: 15px"
-            >
+            <div id="speakerEditorCanvas" class="editor-canvas">
               <!-- JS 将在此处渲染文本片段卡片 -->
             </div>
             <!-- 右栏：角色列表 -->
-            <div
-              id="speakerEditorCharacterList"
-              style="
-                flex: 1;
-                overflow-y: auto;
-                border-left: 1px solid #e2e8f0;
-                padding-left: 15px;
-              "
-            >
+            <div id="speakerEditorCharacterList" class="editor-sidebar">
               <!-- JS 将在此处渲染角色列表 -->
             </div>
           </div>
-          <div
-            class="modal-footer"
-            style="
-              padding: 15px 30px;
-              border-top: 1px solid #e2e8f0;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
+          <div class="modal-footer">
             <!-- 左侧按钮组 -->
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button
                 class="btn btn-secondary"
                 id="undoBtn"
@@ -1095,7 +936,7 @@
               </button>
             </div>
             <!-- 中间按钮组 -->
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-secondary" id="importProjectBtn">
                 导入进度
               </button>
@@ -1104,7 +945,7 @@
               </button>
             </div>
             <!-- 右侧按钮组 -->
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-danger" id="resetSpeakersBtn">
                 恢复默认
               </button>
@@ -1120,68 +961,43 @@
         </div>
       </div>
 
-      <!-- 模板：用于说话人编辑器中的文本片段卡片 -->
+      <!-- 说话人编辑器：文本片段卡片模板 -->
       <template id="text-snippet-card-template">
         <div class="dialogue-item" data-id="">
           <div class="card-sequence-number"></div>
-          <!-- 复用 .dialogue-item 样式 -->
-          <!-- 头像区域 (初始隐藏) -->
-          <div class="speaker-avatar-container" style="display: none">
+          <!-- 头像区域 -->
+          <div class="speaker-avatar-container hidden">
             <div class="dialogue-avatar"></div>
-            <!-- 多人标记 (初始隐藏) -->
-            <div class="multi-speaker-badge" style="display: none"></div>
+            <div class="multi-speaker-badge hidden"></div>
           </div>
           <!-- 文本内容 -->
           <div class="dialogue-content">
-            <div class="speaker-name" style="display: none"></div>
+            <div class="speaker-name hidden"></div>
             <div class="dialogue-text"></div>
           </div>
         </div>
       </template>
 
-      <div class="modal modal-fullscreen" id="live2dEditorModal" tabindex="-1">
+      <div class="modal modal-fullscreen" id="live2dEditorModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="live2dEditorModalTitle">
         <div class="modal-content">
           <div class="modal-header">
-            <div class="modal-title">Live2D 布局模式</div>
-            <button class="modal-close" data-modal-id="live2dEditorModal">
+            <div class="modal-title" id="live2dEditorModalTitle">Live2D 布局模式</div>
+            <button class="modal-close" data-modal-id="live2dEditorModal" aria-label="关闭对话框">
               ×
             </button>
           </div>
-          <div
-            class="modal-body"
-            style="display: flex; flex: 1; overflow: hidden; gap: 20px"
-          >
+          <div class="modal-body editor-layout">
             <!-- 左栏：时间线 -->
-            <div
-              id="live2dEditorTimeline"
-              style="flex: 3; overflow-y: auto; padding-right: 15px"
-            >
+            <div id="live2dEditorTimeline" class="editor-canvas">
               <!-- JS 将在此处渲染混合卡片 -->
             </div>
             <!-- 右栏：角色列表 -->
-            <div
-              id="live2dEditorCharacterList"
-              style="
-                flex: 1;
-                overflow-y: auto;
-                border-left: 1px solid #e2e8f0;
-                padding-left: 15px;
-              "
-            >
+            <div id="live2dEditorCharacterList" class="editor-sidebar">
               <!-- JS 将在此处渲染角色列表 -->
             </div>
           </div>
-          <div
-            class="modal-footer"
-            style="
-              padding: 15px 30px;
-              border-top: 1px solid #e2e8f0;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
-            <div style="display: flex; gap: 10px">
+          <div class="modal-footer">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-secondary" id="live2dUndoBtn" disabled>
                 撤销 (Ctrl+Z)
               </button>
@@ -1189,12 +1005,12 @@
                 重做 (Ctrl+Y)
               </button>
             </div>
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-secondary" id="autoLayoutBtn">
                 一键智能布局
               </button>
             </div>
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-secondary" id="importLayoutsBtn">
                 导入进度
               </button>
@@ -1202,7 +1018,7 @@
                 导出进度
               </button>
             </div>
-            <div style="display: flex; gap: 10px">
+            <div class="flex flex-gap-sm">
               <button class="btn btn-danger" id="resetLayoutsBtn">
                 清空布局
               </button>
@@ -1282,18 +1098,7 @@
             </div>
 
             <!-- 第三行：终点位置 (To)，默认隐藏 -->
-            <div
-              class="to-position-container"
-              style="
-                display: none;
-                grid-column: 1 / -1;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px 15px;
-                margin-top: 5px;
-                padding-top: 5px;
-                border-top: 1px dashed #e2e8f0;
-              "
-            >
+            <div class="to-position-container to-position-grid">
               <div class="form-group-inline">
                 <label>移动到:</label>
                 <select
@@ -1319,22 +1124,9 @@
       </template>
 
       <template id="draggable-character-template">
-        <div
-          class="character-item"
-          style="
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border-radius: 8px;
-            cursor: grab;
-            margin-bottom: 10px;
-          "
-        >
+        <div class="character-item character-item-wrapper">
           <div class="config-avatar"></div>
-          <span
-            class="character-name"
-            style="margin-left: 10px; font-weight: 500; flex-grow: 1"
-          ></span>
+          <span class="character-name character-name-text"></span>
           <button class="pin-btn" title="置顶/取消置顶">📌</button>
         </div>
       </template>
@@ -1383,7 +1175,7 @@
               </button>
             </div>
           </div>
-          <div id="" class="costume-details" style="display: none">
+          <div id="" class="costume-details hidden">
             <div class="costume-current">
               <label>当前服装：</label>
               <select class="form-input costume-select" data-character-key="">
@@ -1393,7 +1185,7 @@
             <div class="costume-available-list">
               <div class="costume-list-header">
                 <label>可用服装列表：</label>
-                <div style="display: flex; gap: 8px">
+                <div class="flex flex-gap-sm">
                   <button
                     class="btn btn-sm btn-secondary add-costume-btn"
                     data-character-key=""

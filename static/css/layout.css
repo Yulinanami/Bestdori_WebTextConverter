@@ -133,3 +133,252 @@
   color: var(--color-info);
   border: 1px solid var(--border-secondary);
 }
+
+/* 分隔线 */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  margin: 25px 0;
+}
+
+/* 文本样式 */
+.text-hint {
+  color: var(--color-text-muted);
+  margin-bottom: 15px;
+}
+
+.text-warning {
+  color: var(--color-error);
+  font-size: 0.9rem;
+}
+
+.text-info {
+  color: var(--color-info);
+  font-size: 0.9rem;
+}
+
+.text-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+/* 文件上传样式 */
+.file-upload-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.file-upload-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* 工具类 */
+.ml-auto {
+  margin-left: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Flex布局工具类 */
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-gap-sm {
+  gap: 10px;
+}
+
+.flex-gap-md {
+  gap: 20px;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Grid布局工具类 */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+/* 内边距工具类 */
+.p-15 {
+  padding: 15px;
+}
+
+.pb-20 {
+  padding-bottom: 20px;
+}
+
+.pt-15 {
+  padding-top: 15px;
+}
+
+.pt-20 {
+  padding-top: 20px;
+}
+
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+.mb-15 {
+  margin-bottom: 15px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.mb-25 {
+  margin-bottom: 25px;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+/* 边框工具类 */
+.border-top {
+  border-top: 1px solid var(--border-primary);
+}
+
+.border-dashed {
+  border-top: 1px dashed var(--border-secondary);
+}
+
+/* 背景工具类 */
+.bg-light {
+  background: var(--color-neutral-light);
+  border-radius: var(--radius-lg);
+}
+
+/* 字体粗细 */
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* 宽度 */
+.w-100 {
+  width: 100px !important;
+}
+
+.w-80 {
+  width: 80px !important;
+}
+
+.flex-grow-0 {
+  flex-grow: 0;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+/* 文本对齐 */
+.text-right {
+  text-align: right;
+}
+
+/* 圆角 */
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+/* 特定颜色文本 */
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-blue {
+  color: var(--color-info);
+}
+
+.text-red {
+  color: var(--color-error);
+}
+
+.text-gray {
+  color: #4a5568;
+}
+
+/* 编辑器布局 */
+.editor-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 20px;
+}
+
+.editor-canvas {
+  flex: 3;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.editor-sidebar {
+  flex: 1;
+  overflow-y: auto;
+  border-left: 1px solid var(--border-primary);
+  padding-left: 15px;
+}
+
+/* 模板内特定样式 */
+.character-item-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  cursor: grab;
+  margin-bottom: 10px;
+}
+
+.character-name-text {
+  margin-left: 10px;
+  font-weight: 500;
+  flex-grow: 1;
+}
+
+/* Grid布局 - 移动位置 */
+.to-position-grid {
+  display: none;
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 15px;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border-primary);
+}
+
+/* 额外的内边距工具类 */
+.mt-20 {
+  margin-top: 20px;
+}

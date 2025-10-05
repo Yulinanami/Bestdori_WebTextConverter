@@ -315,10 +315,17 @@ export const costumeManager = {
   toggleCostumeDetails(safeDomId) {
     const details = document.getElementById(`costume-details-${safeDomId}`);
     const toggle = document.getElementById(`toggle-${safeDomId}`);
-    if (details.style.display === "none") {
+    // 检查元素是否隐藏（通过class或style）
+    const isHidden = details.classList.contains('hidden') ||
+                     details.style.display === 'none' ||
+                     window.getComputedStyle(details).display === 'none';
+
+    if (isHidden) {
+      details.classList.remove('hidden');
       details.style.display = "block";
       toggle.textContent = "▲";
     } else {
+      details.classList.add('hidden');
       details.style.display = "none";
       toggle.textContent = "▼";
     }
