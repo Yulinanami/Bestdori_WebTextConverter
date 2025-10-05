@@ -9,8 +9,12 @@
 /* 3. 布局样式 */
 @import url("layout.css");
 
-/* 4. 可复用组件样式 */
-@import url("components.css");
+/* 4. 组件样式（已模块化） */
+@import url("buttons.css");
+@import url("avatars.css");
+@import url("forms.css");
+@import url("cards.css");
+@import url("editor-specific.css");
 
 /* 5. 模态框样式 */
 @import url("modals.css");

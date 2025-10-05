@@ -1,119 +1,15 @@
 /* views.css - 视图特定样式 */
 
-
-
 /* 预览内容 */
 .preview-content {
   height: 100%;
   overflow-y: auto;
 }
 
-
-
 /* 对话预览 */
 .dialogue-preview {
   padding: var(--spacing-lg);
-  background: #f5f5f5;
-}
-
-
-.dialogue-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-white);
-  font-weight: bold;
-  font-size: var(--text-lg);
-  margin-right: var(--spacing-md);
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-  background: #f0f0f0; /* 默认背景色 */
-}
-
-/* 头像图片样式 */
-.dialogue-avatar .avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
-}
-
-/* 加载中状态 */
-.dialogue-avatar.loading {
-  background: #f0f0f0;
-}
-
-.dialogue-avatar.loading::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-/* 加载动画 */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* 回退样式（显示文字） */
-.dialogue-avatar.fallback {
-  background: var(--color-secondary) !important;
-  color: var(--text-secondary) !important;
-  transition: all var(--transition-normal);
-}
-
-/* 头像边框效果 */
-.dialogue-avatar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  pointer-events: none;
-}
-
-.dialogue-item:hover .dialogue-avatar::after {
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .dialogue-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: var(--text-base);
-    margin-right: var(--spacing-sm);
-  }
-}
-
-
-/* 对话预览容器美化 */
-.dialogue-preview {
-  padding: var(--spacing-lg);
-  background: #f5f5f5;
+  background: var(--color-neutral-light);
 }
 
 /* 对话项动画增强 */

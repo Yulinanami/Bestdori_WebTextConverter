@@ -18,3 +18,13 @@
     transform: translate(-50%, -50%) scale(1);
   }
 }
+
+/* 加载骨架屏动画 (用于头像加载) */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

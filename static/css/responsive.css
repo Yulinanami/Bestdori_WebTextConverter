@@ -63,18 +63,6 @@
     font-size: var(--text-lg);
   }
 
-  /* 视图切换调整 */
-  .view-toggle {
-    flex-wrap: wrap;
-    padding: var(--spacing-md);
-  }
-
-  .view-btn {
-    margin: 5px;
-    padding: 8px 16px;
-    font-size: var(--text-sm);
-  }
-
   /* 按钮组调整 */
   .btn-group {
     flex-direction: column;
@@ -135,9 +123,9 @@
   }
 
   /* 自定义引号输入调整 */
-  #customQuoteOpen,
-  #customQuoteClose {
-    width: 80px !important;
+  .form-input#customQuoteOpen,
+  .form-input#customQuoteClose {
+    width: 80px;
   }
 }
 
@@ -206,11 +194,6 @@
   .header h1 {
     font-size: var(--text-xl);
   }
-
-  .view-btn {
-    font-size: var(--text-xs);
-    padding: 6px 12px;
-  }
 }
 
 /* 横屏模式优化 */
@@ -229,11 +212,10 @@
 
   .container {
     box-shadow: none;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-secondary);
   }
 
   .btn,
-  .view-toggle,
   #helpBtn,
   .file-upload,
   .modal {
@@ -243,6 +225,6 @@
   .result-content {
     background: white;
     color: black;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-secondary);
   }
 }

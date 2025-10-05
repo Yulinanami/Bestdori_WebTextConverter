@@ -1,0 +1,330 @@
+/* cards.css - 卡片和配置项样式 */
+
+/* 配置项布局 */
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  transition: background-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* 输入框调整 */
+.config-item .config-name {
+  flex: 2;
+  min-width: 150px;
+}
+
+.config-item .config-ids {
+  flex: 1;
+  min-width: 100px;
+}
+
+/* 服装配置项样式 */
+.costume-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  transition: transform 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.costume-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.costume-character-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.costume-character-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.costume-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.costume-select {
+  min-width: 200px;
+}
+
+/* 自定义角色标记 */
+.custom-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: var(--text-xs);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  margin-left: 4px;
+}
+
+.costume-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* 服装配置项详细样式 */
+.costume-config-item {
+  margin-bottom: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: background-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.costume-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+}
+
+.costume-details {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+  border-top: 1px solid var(--border-primary);
+}
+
+.costume-current {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding-top: var(--spacing-md);
+}
+
+.costume-current label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.costume-available-list {
+  margin-top: var(--spacing-md);
+}
+
+.costume-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.costume-list-header label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.costume-list-header > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.costume-list-items {
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.costume-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease;
+}
+
+.costume-list-item:hover {
+  background: var(--bg-secondary);
+}
+
+.costume-item-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.costume-item-actions .btn {
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+}
+
+.empty-costume-list {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--spacing-md);
+}
+
+/* 位置配置项样式 */
+.position-config-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  transition: background-color 0.3s ease,
+              transform 0.3s ease;
+  gap: var(--spacing-md);
+}
+
+.position-character-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.position-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.position-select {
+  width: 120px;
+}
+
+.position-offset-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.position-offset-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.position-offset-input {
+  width: 80px;
+  padding: 6px 10px;
+  font-size: var(--text-sm);
+  text-align: center;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.position-offset-input:hover {
+  border-color: var(--border-secondary);
+}
+
+.position-offset-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.position-offset-input:disabled {
+  background: var(--bg-secondary);
+  cursor: not-allowed;
+}
+
+/* 偏移单位提示 */
+.position-offset-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-left: -4px;
+}
+
+/* 配置列 */
+.config-column {
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.config-column-title {
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border-primary);
+  padding-bottom: 10px;
+}
+
+/* 列表容器 */
+.item-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  border: 1px solid var(--border-primary);
+}
+
+.config-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.config-list-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.config-list-item.is-custom .item-name::after {
+  content: '*';
+  color: var(--color-primary);
+  font-weight: bold;
+  margin-left: 5px;
+  font-size: 1.2em;
+}
+
+.item-name {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.item-actions .remove-btn {
+  font-size: 1.2em;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+/* 卡片序号样式 */
+.card-sequence-number {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #a0aec0;
+  z-index: 5;
+}
+
+/* 为布局卡片的序号调整位置，避免与删除按钮重叠 */
+.layout-item .card-sequence-number {
+  top: 12px;
+  right: 45px;
+}

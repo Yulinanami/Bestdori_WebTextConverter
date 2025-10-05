@@ -1,0 +1,147 @@
+/* avatars.css - 头像组件样式 */
+
+/* 配置项头像样式 */
+.config-avatar-wrapper {
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.config-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--text-secondary);
+  background: var(--color-secondary);
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #e2e8f0;
+  transition: border-color 0.3s ease,
+              transform 0.3s ease;
+}
+
+.config-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+.config-avatar.fallback {
+  background: var(--color-secondary);
+  color: var(--text-secondary);
+}
+
+.config-avatar[data-id="0"] {
+  animation: none;
+}
+
+/* 特殊ID提示 */
+.config-avatar::after {
+  content: attr(data-id);
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-weight: normal;
+  display: none;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* 对话头像样式 */
+.dialogue-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-white);
+  font-weight: bold;
+  font-size: var(--text-lg);
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+/* 头像图片样式 */
+.dialogue-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* 不同尺寸头像 */
+.dialogue-avatar.micro-avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.8em;
+}
+
+.dialogue-avatar.small-avatar {
+  width: 35px;
+  height: 35px;
+}
+
+/* 加载中状态 */
+.dialogue-avatar.loading {
+  background: #f0f0f0;
+}
+
+.dialogue-avatar.loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 回退样式（显示文字） */
+.dialogue-avatar.fallback {
+  background: var(--color-secondary);
+  color: var(--text-secondary);
+  transition: background-color var(--transition-normal),
+              color var(--transition-normal);
+}
+
+/* 头像边框效果 */
+.dialogue-avatar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.dialogue-item:hover .dialogue-avatar::after {
+  border-color: rgba(255, 255, 255, 0.5);
+}

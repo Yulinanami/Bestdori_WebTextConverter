@@ -68,24 +68,6 @@
   margin-right: 12px;
 }
 
-/* 视图切换 */
-.view-toggle {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-lg);
-  background: var(--bg-secondary);
-  border-bottom: 2px solid var(--border-primary);
-}
-
-/* 视图内容 */
-.view-content {
-  display: none;
-}
-
-.view-content.active {
-  display: block;
-}
-
 /* 结果区域 */
 .result-header {
   display: flex;
