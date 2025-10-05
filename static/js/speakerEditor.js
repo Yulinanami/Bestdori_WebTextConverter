@@ -7,15 +7,66 @@ import { projectManager } from "./projectManager.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 import { DataUtils } from "./utils/DataUtils.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
+import { BaseEditor } from "./utils/BaseEditor.js";
+import { DragHelper } from "./utils/DragHelper.js";
+import { EditorHelper } from "./utils/EditorHelper.js";
+
+// 创建基础编辑器实例
+const baseEditor = new BaseEditor({
+  renderCallback: () => {
+    const usedIds = speakerEditor.renderCanvas();
+    speakerEditor.renderCharacterList(usedIds);
+  },
+  afterCommandCallback: () => {
+    // 撤销/重做后清除缓存
+    speakerEditor._invalidateCache();
+  },
+  groupSize: 50,
+});
 
 export const speakerEditor = {
-  projectFileState: null,
-  originalStateOnOpen: null,
-  activeGroupIndex: 0,
-  scrollInterval: null,
+  // 使用 baseEditor 代理状态管理
+  get projectFileState() {
+    return baseEditor.projectFileState;
+  },
+  set projectFileState(value) {
+    baseEditor.projectFileState = value;
+    this._invalidateCache(); // 清除缓存
+  },
+  get originalStateOnOpen() {
+    return baseEditor.originalStateOnOpen;
+  },
+  set originalStateOnOpen(value) {
+    baseEditor.originalStateOnOpen = value;
+  },
+  get activeGroupIndex() {
+    return baseEditor.activeGroupIndex;
+  },
+  set activeGroupIndex(value) {
+    baseEditor.activeGroupIndex = value;
+  },
+
+  // DOM 缓存
+  domCache: {},
+  // 计算结果缓存
+  _usedCharacterIdsCache: null,
+  // Sortable 实例管理
+  sortableInstances: [],
+  // 滚动动画
+  scrollAnimationFrame: null,
   scrollSpeed: 0,
 
   init() {
+    // 缓存 DOM 元素
+    this.domCache = {
+      groupCheckbox: document.getElementById("groupCardsCheckbox"),
+      canvas: document.getElementById("speakerEditorCanvas"),
+      characterList: document.getElementById("speakerEditorCharacterList"),
+      modal: document.getElementById("speakerEditorModal"),
+      undoBtn: document.getElementById("undoBtn"),
+      redoBtn: document.getElementById("redoBtn"),
+    };
+
     document
       .getElementById("openSpeakerEditorBtn")
       ?.addEventListener("click", () => this.open());
@@ -31,13 +82,9 @@ export const speakerEditor = {
     document
       .getElementById("resetSpeakersBtn")
       ?.addEventListener("click", () => this.reset());
-    document
-      .getElementById("undoBtn")
-      ?.addEventListener("click", () => historyManager.undo());
-    document
-      .getElementById("redoBtn")
-      ?.addEventListener("click", () => historyManager.redo());
-    const characterList = document.getElementById("speakerEditorCharacterList");
+    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
+    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
+    const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
         const pinBtn = e.target.closest(".pin-btn");
@@ -54,9 +101,8 @@ export const speakerEditor = {
         }
       });
     }
-    const modal = document.getElementById("speakerEditorModal");
-    if (modal) {
-      modal.focus();
+    if (this.domCache.modal) {
+      this.domCache.modal.focus();
     }
     const handleCloseAttempt = (e) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
@@ -70,19 +116,17 @@ export const speakerEditor = {
       selectionManager.detach(canvas);
       ui.closeModal("speakerEditorModal");
     };
-    modal
+    this.domCache.modal
       ?.querySelector(".btn-modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
-    modal
+    this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {
-      const undoBtn = document.getElementById("undoBtn");
-      const redoBtn = document.getElementById("redoBtn");
-      if (undoBtn) undoBtn.disabled = !e.detail.canUndo;
-      if (redoBtn) redoBtn.disabled = !e.detail.canRedo;
+      if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
+      if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
     });
-    modal?.addEventListener("keydown", (e) => {
+    this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
         return;
       if (e.ctrlKey || e.metaKey) {
@@ -101,7 +145,8 @@ export const speakerEditor = {
   },
 
   _findClosestCard(y) {
-    const canvas = document.getElementById("speakerEditorCanvas");
+    const canvas = this.domCache.canvas;
+    if (!canvas) return null;
     const cards = Array.from(canvas.querySelectorAll(".dialogue-item"));
 
     let closestCard = null;
@@ -127,7 +172,17 @@ export const speakerEditor = {
     return closestCard;
   },
 
+  // 缓存失效
+  _invalidateCache() {
+    this._usedCharacterIdsCache = null;
+  },
+
   _getUsedCharacterIds() {
+    // 使用缓存
+    if (this._usedCharacterIdsCache) {
+      return this._usedCharacterIdsCache;
+    }
+
     const usedIds = new Set();
     if (this.projectFileState && this.projectFileState.actions) {
       this.projectFileState.actions.forEach((action) => {
@@ -138,13 +193,27 @@ export const speakerEditor = {
         }
       });
     }
+    this._usedCharacterIdsCache = usedIds;
     return usedIds;
   },
 
   _closeEditor() {
-    const canvas = document.getElementById("speakerEditorCanvas");
-    selectionManager.detach(canvas);
-    ui.closeModal("speakerEditorModal");
+    EditorHelper.closeEditor({
+      modalId: "speakerEditorModal",
+      beforeClose: () => {
+        // 销毁 Sortable 实例
+        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances = [];
+
+        // 停止滚动动画
+        if (this.scrollAnimationFrame) {
+          cancelAnimationFrame(this.scrollAnimationFrame);
+          this.scrollAnimationFrame = null;
+        }
+
+        selectionManager.detach(this.domCache.canvas);
+      },
+    });
   },
 
   initiateClose() {
@@ -202,23 +271,9 @@ export const speakerEditor = {
     }
   },
 
+  // 使用 BaseEditor 的 executeCommand 方法
   _executeCommand(changeFn) {
-    const beforeState = JSON.stringify(this.projectFileState);
-    const command = {
-      execute: () => {
-        const newState = JSON.parse(beforeState);
-        changeFn(newState);
-        this.projectFileState = newState;
-        const usedIds = this.renderCanvas();
-        this.renderCharacterList(usedIds);
-      },
-      undo: () => {
-        this.projectFileState = JSON.parse(beforeState);
-        const usedIds = this.renderCanvas();
-        this.renderCharacterList(usedIds);
-      },
-    };
-    historyManager.do(command);
+    baseEditor.executeCommand(changeFn);
   },
 
   createProjectFileFromSegments(segments) {
@@ -258,27 +313,23 @@ export const speakerEditor = {
    * @returns {Set<number>} 一个包含所有已使用角色ID的Set集合。
    */
   renderCanvas() {
-    const canvas = document.getElementById("speakerEditorCanvas");
-    const usedIds = new Set();
-    if (this.projectFileState && this.projectFileState.actions) {
-      this.projectFileState.actions.forEach((action) => {
-        if (action.type === "talk" && action.speakers) {
-          action.speakers.forEach((speaker) =>
-            usedIds.add(speaker.characterId)
-          );
-        }
-      });
-    }
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
+    const canvas = this.domCache.canvas;
+    if (!canvas) return new Set();
+
+    const usedIds = this._getUsedCharacterIds(); // 使用缓存
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
     const actions = this.projectFileState.actions.filter(
       (a) => a.type === "talk"
     );
     const groupSize = 50;
+
+    // 创建索引缓存 Map 以提升性能
+    const actionIndexMap = new Map(
+      this.projectFileState.actions.map((a, idx) => [a.id, idx])
+    );
+
     const renderSingleCard = (action) => {
-      const globalIndex = this.projectFileState.actions.findIndex(
-        (a) => a.id === action.id
-      );
+      const globalIndex = actionIndexMap.get(action.id) ?? -1;
       const template = document.getElementById("text-snippet-card-template");
       const card = template.content.cloneNode(true);
       const numberDiv = card.querySelector(".card-sequence-number");
@@ -338,10 +389,8 @@ export const speakerEditor = {
 
           if (isOpening) {
             setTimeout(() => {
-              const scrollContainer = document.getElementById(
-                "speakerEditorCanvas"
-              );
-              const header = scrollContainer.querySelector(
+              const scrollContainer = this.domCache.canvas;
+              const header = scrollContainer?.querySelector(
                 `.timeline-group-header[data-group-idx="${index}"]`
               );
               if (scrollContainer && header) {
@@ -408,9 +457,15 @@ export const speakerEditor = {
   },
 
   initDragAndDrop() {
-    const characterList = document.getElementById("speakerEditorCharacterList");
-    const canvas = document.getElementById("speakerEditorCanvas");
-    new Sortable(characterList, {
+    const characterList = this.domCache.characterList;
+    const canvas = this.domCache.canvas;
+    if (!characterList || !canvas) return;
+
+    // 清理旧的 Sortable 实例
+    this.sortableInstances.forEach(instance => instance?.destroy());
+    this.sortableInstances = [];
+
+    this.sortableInstances.push(new Sortable(characterList, {
       group: {
         name: "shared-speakers",
         pull: "clone",
@@ -425,8 +480,7 @@ export const speakerEditor = {
       },
       onEnd: () => {
         document.removeEventListener("dragover", this.handleDragScrolling);
-        clearInterval(this.scrollInterval);
-        this.scrollInterval = null;
+        this.stopScrolling();
       },
       onAdd: (evt) => {
         const cardItem = evt.item;
@@ -436,125 +490,124 @@ export const speakerEditor = {
         }
         cardItem.remove();
       },
+    }));
+    // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
+    const onEndHandler = DragHelper.createOnEndHandler({
+      editor: baseEditor,
+      getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+      groupSize: 50,
+      executeFn: (globalOldIndex, globalNewIndex) => {
+        this._executeCommand((currentState) => {
+          const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+          currentState.actions.splice(globalNewIndex, 0, movedItem);
+        });
+      },
     });
-    new Sortable(canvas, {
-      group: "shared-speakers",
-      sort: true,
-      animation: 150,
-      onStart: () => {
-        document.addEventListener("dragover", this.handleDragScrolling);
-      },
-      onEnd: (evt) => {
-        document.removeEventListener("dragover", this.handleDragScrolling);
-        clearInterval(this.scrollInterval);
-        this.scrollInterval = null;
-        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-          const isGroupingEnabled =
-            document.getElementById("groupCardsCheckbox").checked;
-          const groupSize = 50;
-          let localOldIndex = evt.oldIndex;
-          let localNewIndex = evt.newIndex;
-          if (
-            isGroupingEnabled &&
-            this.projectFileState.actions.length > groupSize &&
-            this.activeGroupIndex !== null &&
-            this.activeGroupIndex >= 0
-          ) {
-            const headerOffset = this.activeGroupIndex + 1;
-            localOldIndex = Math.max(0, localOldIndex - headerOffset);
-            localNewIndex = Math.max(0, localNewIndex - headerOffset);
-          }
-          const globalOldIndex = this._getGlobalIndex(localOldIndex);
-          const globalNewIndex = this._getGlobalIndex(localNewIndex);
-          this._executeCommand((currentState) => {
-            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
-            currentState.actions.splice(globalNewIndex, 0, movedItem);
-          });
-        }
-      },
-      onAdd: (evt) => {
-        const characterItem = evt.item;
-        characterItem.style.display = "none";
-        const dropY = evt.originalEvent.clientY;
-        const targetCard = this._findClosestCard(dropY);
 
-        if (!targetCard) {
-          characterItem.remove();
-          return;
-        }
-        const characterId = parseInt(characterItem.dataset.characterId);
-        const characterName = characterItem.dataset.characterName;
-        const actionId = targetCard.dataset.id;
-        if (characterId && actionId) {
-          this.updateSpeakerAssignment(actionId, {
-            characterId,
-            name: characterName,
-          });
-        }
+    // 创建自定义的 onAdd 处理器（speakerEditor 有特殊逻辑）
+    const onAddHandler = (evt) => {
+      const characterItem = evt.item;
+      characterItem.style.display = "none";
+      const dropY = evt.originalEvent.clientY;
+      const targetCard = this._findClosestCard(dropY);
+
+      if (!targetCard) {
         characterItem.remove();
-      },
-    });
+        return;
+      }
+      const characterId = parseInt(characterItem.dataset.characterId);
+      const characterName = characterItem.dataset.characterName;
+      const actionId = targetCard.dataset.id;
+      if (characterId && actionId) {
+        this.updateSpeakerAssignment(actionId, {
+          characterId,
+          name: characterName,
+        });
+      }
+      characterItem.remove();
+    };
+
+    this.sortableInstances.push(new Sortable(
+      canvas,
+      DragHelper.createSortableConfig({
+        group: "shared-speakers",
+        onEnd: (evt) => {
+          document.removeEventListener("dragover", this.handleDragScrolling);
+          this.stopScrolling();
+          onEndHandler(evt);
+        },
+        onAdd: onAddHandler,
+        extraConfig: {
+          sort: true,
+          onStart: () => {
+            document.addEventListener("dragover", this.handleDragScrolling);
+          },
+        },
+      })
+    ));
   },
 
+  // 使用 BaseEditor 的 getGlobalIndex 方法
   _getGlobalIndex(localIndex) {
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
-    if (
-      !isGroupingEnabled ||
-      this.activeGroupIndex === null ||
-      this.activeGroupIndex < 0
-    ) {
-      return localIndex;
-    }
-    const groupSize = 50;
-    const offset = this.activeGroupIndex * groupSize;
-    return offset + localIndex;
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
+    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
   },
 
   handleDragScrolling: (e) => {
-    const canvas = document.getElementById("speakerEditorCanvas");
-    const characterList = document.getElementById("speakerEditorCharacterList");
+    const canvas = speakerEditor.domCache.canvas;
+    const characterList = speakerEditor.domCache.characterList;
     if (!canvas || !characterList) return;
+
     let scrollTarget = null;
     if (e.target.closest("#speakerEditorCanvas")) {
       scrollTarget = canvas;
     } else if (e.target.closest("#speakerEditorCharacterList")) {
       scrollTarget = characterList;
     } else {
-      clearInterval(speakerEditor.scrollInterval);
-      speakerEditor.scrollInterval = null;
+      speakerEditor.stopScrolling();
       return;
     }
+
     const rect = scrollTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     const hotZone = 75;
     let newScrollSpeed = 0;
+
     if (mouseY < rect.top + hotZone) {
       newScrollSpeed = -10;
     } else if (mouseY > rect.bottom - hotZone) {
       newScrollSpeed = 10;
     }
+
     if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== speakerEditor.scrollSpeed ||
-        !speakerEditor.scrollInterval
-      ) {
+      if (newScrollSpeed !== speakerEditor.scrollSpeed || !speakerEditor.scrollAnimationFrame) {
         speakerEditor.scrollSpeed = newScrollSpeed;
         speakerEditor.startScrolling(scrollTarget);
       }
     } else {
-      clearInterval(speakerEditor.scrollInterval);
-      speakerEditor.scrollInterval = null;
+      speakerEditor.stopScrolling();
     }
   },
 
+  // 使用 requestAnimationFrame 优化滚动性能
   startScrolling(elementToScroll) {
-    clearInterval(this.scrollInterval);
-    this.scrollInterval = setInterval(() => {
-      if (elementToScroll) {
+    this.stopScrolling(); // 先停止之前的动画
+
+    const scroll = () => {
+      if (elementToScroll && this.scrollSpeed !== 0) {
         elementToScroll.scrollTop += this.scrollSpeed;
+        this.scrollAnimationFrame = requestAnimationFrame(scroll);
       }
-    }, 20);
+    };
+    scroll();
+  },
+
+  stopScrolling() {
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+      this.scrollAnimationFrame = null;
+    }
+    this.scrollSpeed = 0;
   },
 
   updateSpeakerAssignment(actionId, newSpeaker) {
@@ -573,10 +626,14 @@ export const speakerEditor = {
         }
       });
     });
+
+    // 清除缓存并更新右侧角色列表
+    this._invalidateCache();
+    const usedIds = this._getUsedCharacterIds();
+    this.renderCharacterList(usedIds);
+
     selectionManager.clear();
-    document
-      .getElementById("speakerEditorCanvas")
-      .dispatchEvent(
+    this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
       );
   },
@@ -590,6 +647,11 @@ export const speakerEditor = {
         );
       }
     });
+
+    // 清除缓存并更新右侧角色列表
+    this._invalidateCache();
+    const usedIds = this._getUsedCharacterIds();
+    this.renderCharacterList(usedIds);
   },
 
   removeAllSpeakersFromAction(actionId) {
@@ -599,11 +661,16 @@ export const speakerEditor = {
         action.speakers = [];
       }
     });
+
+    // 清除缓存并更新右侧角色列表
+    this._invalidateCache();
+    const usedIds = this._getUsedCharacterIds();
+    this.renderCharacterList(usedIds);
   },
 
   showMultiSpeakerPopover(actionId, targetElement) {
-    const existingPopover = document.getElementById("speaker-popover");
-    if (existingPopover) existingPopover.remove();
+    // 移除所有旧的 popover 防止内存泄漏
+    document.querySelectorAll("#speaker-popover").forEach(p => p.remove());
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
     const popover = document.createElement("div");
@@ -669,9 +736,14 @@ export const speakerEditor = {
   },
 
   save() {
-    projectManager.save(this.projectFileState, (savedState) => {
-      this.originalStateOnOpen = JSON.stringify(savedState);
-      this._closeEditor();
+    EditorHelper.saveEditor({
+      editor: baseEditor,
+      modalId: "speakerEditorModal",
+      applyChanges: () => {
+        projectManager.save(this.projectFileState, (savedState) => {
+          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+        });
+      },
     });
   },
 
@@ -703,9 +775,11 @@ export const speakerEditor = {
       historyManager.clear();
       const usedIds = this.renderCanvas();
       this.renderCharacterList(usedIds);
-      const canvas = document.getElementById("speakerEditorCanvas");
-      selectionManager.detach(canvas);
-      selectionManager.attach(canvas, ".dialogue-item");
+      const canvas = this.domCache.canvas;
+      if (canvas) {
+        selectionManager.detach(canvas);
+        selectionManager.attach(canvas, ".dialogue-item");
+      }
     });
   },
 };

@@ -1,5 +1,8 @@
 import { DataUtils } from "./utils/DataUtils.js";
 // 文件: static/js/live2dEditor.js (完整替换)
+import { BaseEditor } from "./utils/BaseEditor.js";
+import { DragHelper } from "./utils/DragHelper.js";
+import { EditorHelper } from "./utils/EditorHelper.js";
 
 // live2d布局模式
 import { state } from "./stateManager.js";
@@ -11,14 +14,56 @@ import { historyManager } from "./historyManager.js";
 import { projectManager } from "./projectManager.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 
+// 创建基础编辑器实例
+const baseEditor = new BaseEditor({
+  renderCallback: () => {
+    live2dEditor.renderTimeline();
+    const usedNames = live2dEditor._getUsedCharacterIds();
+    live2dEditor.renderCharacterList(usedNames);
+  },
+  groupSize: 50,
+});
+
 export const live2dEditor = {
-  projectFileState: null,
-  originalStateOnOpen: null,
-  activeGroupIndex: 0,
-  scrollInterval: null,
+  // 使用 baseEditor 代理状态管理
+  get projectFileState() {
+    return baseEditor.projectFileState;
+  },
+  set projectFileState(value) {
+    baseEditor.projectFileState = value;
+  },
+  get originalStateOnOpen() {
+    return baseEditor.originalStateOnOpen;
+  },
+  set originalStateOnOpen(value) {
+    baseEditor.originalStateOnOpen = value;
+  },
+  get activeGroupIndex() {
+    return baseEditor.activeGroupIndex;
+  },
+  set activeGroupIndex(value) {
+    baseEditor.activeGroupIndex = value;
+  },
+
+  // DOM 缓存
+  domCache: {},
+  // Sortable 实例管理
+  sortableInstances: [],
+  // 滚动动画
+  scrollAnimationFrame: null,
   scrollSpeed: 0,
 
   init() {
+    // 缓存 DOM 元素
+    this.domCache = {
+      groupCheckbox: document.getElementById("groupCardsCheckbox"),
+      timeline: document.getElementById("live2dEditorTimeline"),
+      characterList: document.getElementById("live2dEditorCharacterList"),
+      modal: document.getElementById("live2dEditorModal"),
+      undoBtn: document.getElementById("live2dUndoBtn"),
+      redoBtn: document.getElementById("live2dRedoBtn"),
+    };
+
     document
       .getElementById("openLive2dEditorBtn")
       ?.addEventListener("click", () => this.open());
@@ -28,12 +73,8 @@ export const live2dEditor = {
     document
       .getElementById("resetLayoutsBtn")
       ?.addEventListener("click", () => this._clearAllLayouts());
-    document
-      .getElementById("live2dUndoBtn")
-      ?.addEventListener("click", () => historyManager.undo());
-    document
-      .getElementById("live2dRedoBtn")
-      ?.addEventListener("click", () => historyManager.redo());
+    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
+    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
     document
       .getElementById("saveLayoutsBtn")
       ?.addEventListener("click", () => this.save());
@@ -43,7 +84,7 @@ export const live2dEditor = {
     document
       .getElementById("exportLayoutsBtn")
       ?.addEventListener("click", () => this.exportProject());
-    const characterList = document.getElementById("live2dEditorCharacterList");
+    const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
         const pinBtn = e.target.closest(".pin-btn");
@@ -59,7 +100,6 @@ export const live2dEditor = {
         }
       });
     }
-    const modal = document.getElementById("live2dEditorModal");
     const handleCloseAttempt = (e) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
         if (!confirm("您有未保存的更改，确定要关闭吗？")) {
@@ -70,21 +110,19 @@ export const live2dEditor = {
       }
       this._closeEditor();
     };
-    modal
+    this.domCache.modal
       ?.querySelector(".btn-modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
-    modal
+    this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {
-      if (
-        document.getElementById("live2dEditorModal").style.display === "flex"
-      ) {
-        document.getElementById("live2dUndoBtn").disabled = !e.detail.canUndo;
-        document.getElementById("live2dRedoBtn").disabled = !e.detail.canRedo;
+      if (this.domCache.modal?.style.display === "flex") {
+        if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
+        if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
       }
     });
-    modal?.addEventListener("keydown", (e) => {
+    this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
       if (e.ctrlKey || e.metaKey) {
         if (e.key === "z") {
@@ -126,9 +164,8 @@ export const live2dEditor = {
       const usedCharacterNames = this._getUsedCharacterIds();
       this.renderCharacterList(usedCharacterNames);
       this.initDragAndDrop();
-      const modal = document.getElementById("live2dEditorModal");
-      if (modal) modal.focus();
-      const timeline = document.getElementById("live2dEditorTimeline");
+      if (this.domCache.modal) this.domCache.modal.focus();
+      const timeline = this.domCache.timeline;
       timeline.onclick = (e) => {
         const card = e.target.closest(".layout-item");
         if (!card) return;
@@ -183,9 +220,14 @@ export const live2dEditor = {
   },
 
   save() {
-    projectManager.save(this.projectFileState, (savedState) => {
-      this.originalStateOnOpen = JSON.stringify(savedState);
-      this._closeEditor();
+    EditorHelper.saveEditor({
+      editor: baseEditor,
+      modalId: "live2dEditorModal",
+      applyChanges: () => {
+        projectManager.save(this.projectFileState, (savedState) => {
+          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+        });
+      },
     });
   },
 
@@ -204,7 +246,20 @@ export const live2dEditor = {
   },
 
   _closeEditor() {
-    ui.closeModal("live2dEditorModal");
+    EditorHelper.closeEditor({
+      modalId: "live2dEditorModal",
+      beforeClose: () => {
+        // 销毁 Sortable 实例
+        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances = [];
+
+        // 停止滚动动画
+        if (this.scrollAnimationFrame) {
+          cancelAnimationFrame(this.scrollAnimationFrame);
+          this.scrollAnimationFrame = null;
+        }
+      },
+    });
   },
 
   _applyAutoLayout() {
@@ -367,71 +422,79 @@ export const live2dEditor = {
   },
 
   handleDragScrolling: (e) => {
-    const timeline = document.getElementById("live2dEditorTimeline");
-    const characterList = document.getElementById("live2dEditorCharacterList");
+    const timeline = live2dEditor.domCache.timeline;
+    const characterList = live2dEditor.domCache.characterList;
     if (!timeline || !characterList) return;
+
     let scrollTarget = null;
     if (e.target.closest("#live2dEditorTimeline")) {
       scrollTarget = timeline;
     } else if (e.target.closest("#live2dEditorCharacterList")) {
       scrollTarget = characterList;
     } else {
-      clearInterval(live2dEditor.scrollInterval);
-      live2dEditor.scrollInterval = null;
+      live2dEditor.stopScrolling();
       return;
     }
+
     const rect = scrollTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     const hotZone = 75;
     let newScrollSpeed = 0;
+
     if (mouseY < rect.top + hotZone) {
       newScrollSpeed = -10;
     } else if (mouseY > rect.bottom - hotZone) {
       newScrollSpeed = 10;
     }
+
     if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== live2dEditor.scrollSpeed ||
-        !live2dEditor.scrollInterval
-      ) {
+      if (newScrollSpeed !== live2dEditor.scrollSpeed || !live2dEditor.scrollAnimationFrame) {
         live2dEditor.scrollSpeed = newScrollSpeed;
         live2dEditor.startScrolling(scrollTarget);
       }
     } else {
-      clearInterval(live2dEditor.scrollInterval);
-      live2dEditor.scrollInterval = null;
+      live2dEditor.stopScrolling();
     }
   },
 
+  // 使用 requestAnimationFrame 优化滚动性能
   startScrolling(elementToScroll) {
-    clearInterval(this.scrollInterval);
-    this.scrollInterval = setInterval(() => {
-      if (elementToScroll) {
+    this.stopScrolling();
+
+    const scroll = () => {
+      if (elementToScroll && this.scrollSpeed !== 0) {
         elementToScroll.scrollTop += this.scrollSpeed;
+        this.scrollAnimationFrame = requestAnimationFrame(scroll);
       }
-    }, 20);
+    };
+    scroll();
   },
 
-  _getGlobalIndex(localIndex) {
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
-    if (
-      !isGroupingEnabled ||
-      this.activeGroupIndex === null ||
-      this.activeGroupIndex < 0
-    ) {
-      return localIndex;
+  stopScrolling() {
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+      this.scrollAnimationFrame = null;
     }
-    const groupSize = 50;
-    // 当前分组的起始位置 = 分组索引 × 每组大小
-    const offset = this.activeGroupIndex * groupSize;
-    return offset + localIndex;
+    this.scrollSpeed = 0;
+  },
+
+  // 使用 BaseEditor 的 getGlobalIndex 方法
+  _getGlobalIndex(localIndex) {
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
+    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
   },
 
   initDragAndDrop() {
-    const characterList = document.getElementById("live2dEditorCharacterList");
-    const timeline = document.getElementById("live2dEditorTimeline");
-    new Sortable(characterList, {
+    const characterList = this.domCache.characterList;
+    const timeline = this.domCache.timeline;
+    if (!characterList || !timeline) return;
+
+    // 清理旧的 Sortable 实例
+    this.sortableInstances.forEach(instance => instance?.destroy());
+    this.sortableInstances = [];
+
+    // 角色列表的 Sortable 配置（只允许拖出，不允许排序）
+    this.sortableInstances.push(new Sortable(characterList, {
       group: {
         name: "live2d-shared",
         pull: "clone",
@@ -442,77 +505,62 @@ export const live2dEditor = {
         document.addEventListener("dragover", this.handleDragScrolling),
       onEnd: () => {
         document.removeEventListener("dragover", this.handleDragScrolling);
-        clearInterval(this.scrollInterval);
-        this.scrollInterval = null;
+        this.stopScrolling();
+      },
+    }));
+
+    // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
+    const onEndHandler = DragHelper.createOnEndHandler({
+      editor: baseEditor,
+      getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+      groupSize: 50,
+      executeFn: (globalOldIndex, globalNewIndex) => {
+        this._executeCommand((currentState) => {
+          const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+          currentState.actions.splice(globalNewIndex, 0, movedItem);
+        });
       },
     });
-    new Sortable(timeline, {
-      group: "live2d-shared",
-      animation: 150,
-      sort: true,
-      filter: ".timeline-group-header",
-      onStart: () =>
-        document.addEventListener("dragover", this.handleDragScrolling),
-      onEnd: (evt) => {
-        document.removeEventListener("dragover", this.handleDragScrolling);
-        clearInterval(this.scrollInterval);
-        this.scrollInterval = null;
-        if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-          const isGroupingEnabled =
-            document.getElementById("groupCardsCheckbox").checked;
-          const groupSize = 50;
-          let localOldIndex = evt.oldIndex;
-          let localNewIndex = evt.newIndex;
-          if (
-            isGroupingEnabled &&
-            this.projectFileState.actions.length > groupSize &&
-            this.activeGroupIndex !== null &&
-            this.activeGroupIndex >= 0
-          ) {
-            // 减去前面所有分组标题（包括当前分组）占据的位置
-            const headerOffset = this.activeGroupIndex + 1;
-            localOldIndex = Math.max(0, localOldIndex - headerOffset);
-            localNewIndex = Math.max(0, localNewIndex - headerOffset);
-          }
-          const globalOldIndex = this._getGlobalIndex(localOldIndex);
-          const globalNewIndex = this._getGlobalIndex(localNewIndex);
-          this._executeCommand((currentState) => {
-            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
-            currentState.actions.splice(globalNewIndex, 0, movedItem);
-          });
-        }
-      },
-      onAdd: (evt) => {
-        const characterItem = evt.item;
-        if (!characterItem.classList.contains("character-item")) {
-          characterItem.remove();
-          return;
-        }
-        const isGroupingEnabled =
-          document.getElementById("groupCardsCheckbox").checked;
-        let localInsertIndex = evt.newDraggableIndex;
-        if (
-          isGroupingEnabled &&
-          this.activeGroupIndex !== null &&
-          this.activeGroupIndex >= 0
-        ) {
-          // 减去前面所有分组标题（包括当前分组）占据的位置
-          const headerOffset = this.activeGroupIndex + 1;
-          localInsertIndex = Math.max(0, localInsertIndex - headerOffset);
-        }
-        const globalInsertIndex = this._getGlobalIndex(localInsertIndex);
-        const characterId = parseInt(characterItem.dataset.characterId);
-        const characterName = characterItem.dataset.characterName;
-        if (characterId && characterName) {
+
+    // 使用 DragHelper 创建 onAdd 处理器（添加新卡片）
+    const onAddHandler = DragHelper.createOnAddHandler({
+      editor: baseEditor,
+      getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+      validateItem: (item) => item.classList.contains("character-item"),
+      extractData: (item) => ({
+        characterId: parseInt(item.dataset.characterId),
+        characterName: item.dataset.characterName,
+      }),
+      executeFn: (data, globalInsertIndex) => {
+        if (data.characterId && data.characterName) {
           this.insertLayoutAction(
-            characterId,
-            characterName,
+            data.characterId,
+            data.characterName,
             globalInsertIndex
           );
         }
-        characterItem.remove();
       },
     });
+
+    // 时间轴的 Sortable 配置
+    this.sortableInstances.push(new Sortable(
+      timeline,
+      DragHelper.createSortableConfig({
+        group: "live2d-shared",
+        onEnd: (evt) => {
+          document.removeEventListener("dragover", this.handleDragScrolling);
+          this.stopScrolling();
+          onEndHandler(evt);
+        },
+        onAdd: onAddHandler,
+        extraConfig: {
+          sort: true,
+          filter: ".timeline-group-header",
+          onStart: () =>
+            document.addEventListener("dragover", this.handleDragScrolling),
+        },
+      })
+    ));
   },
 
   insertLayoutAction(characterId, characterName, index) {
@@ -547,27 +595,9 @@ export const live2dEditor = {
     });
   },
 
+  // 使用 BaseEditor 的 executeCommand 方法
   _executeCommand(changeFn) {
-    const beforeState = JSON.stringify(this.projectFileState);
-    const tempState = JSON.parse(beforeState);
-    changeFn(tempState);
-    const afterState = JSON.stringify(tempState);
-    if (beforeState === afterState) return;
-    const command = {
-      execute: () => {
-        this.projectFileState = JSON.parse(afterState);
-        this.renderTimeline();
-        const usedNames = this._getUsedCharacterIds();
-        this.renderCharacterList(usedNames);
-      },
-      undo: () => {
-        this.projectFileState = JSON.parse(beforeState);
-        this.renderTimeline();
-        const usedNames = this._getUsedCharacterIds();
-        this.renderCharacterList(usedNames);
-      },
-    };
-    historyManager.do(command);
+    baseEditor.executeCommand(changeFn, { skipIfNoChange: true });
   },
 
   _getDefaultCostume(characterName) {
@@ -589,19 +619,24 @@ export const live2dEditor = {
   },
 
   renderTimeline() {
-    const timeline = document.getElementById("live2dEditorTimeline");
+    const timeline = this.domCache.timeline;
+    if (!timeline) return;
+
     const talkTemplate = document.getElementById("timeline-talk-card-template");
     const layoutTemplate = document.getElementById(
       "timeline-layout-card-template"
     );
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
     const actions = this.projectFileState.actions;
     const groupSize = 50;
+
+    // 创建索引缓存 Map
+    const actionIndexMap = new Map(
+      this.projectFileState.actions.map((a, idx) => [a.id, idx])
+    );
+
     const renderSingleCard = (action) => {
-      const globalIndex = this.projectFileState.actions.findIndex(
-        (a) => a.id === action.id
-      );
+      const globalIndex = actionIndexMap.get(action.id) ?? -1;
       let card;
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
@@ -721,10 +756,8 @@ export const live2dEditor = {
 
           if (isOpening) {
             setTimeout(() => {
-              const scrollContainer = document.getElementById(
-                "live2dEditorTimeline"
-              );
-              const header = scrollContainer.querySelector(
+              const scrollContainer = this.domCache.timeline;
+              const header = scrollContainer?.querySelector(
                 `.timeline-group-header[data-group-idx="${index}"]`
               );
               if (scrollContainer && header) {

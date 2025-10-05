@@ -1,5 +1,8 @@
 import { DataUtils } from "./utils/DataUtils.js";
 // 动作表情编辑器
+import { BaseEditor } from "./utils/BaseEditor.js";
+import { DragHelper } from "./utils/DragHelper.js";
+import { EditorHelper } from "./utils/EditorHelper.js";
 import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
@@ -9,16 +12,58 @@ import { projectManager } from "./projectManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 
+// 创建基础编辑器实例
+const baseEditor = new BaseEditor({
+  renderCallback: () => {
+    expressionEditor.renderTimeline();
+  },
+  groupSize: 50,
+});
+
 export const expressionEditor = {
-  projectFileState: null,
-  originalStateOnOpen: null,
-  activeGroupIndex: 0,
-  stagedCharacters: [],
-  tempLibraryItems: { motion: [], expression: [] },
-  scrollInterval: null,
+  // 使用 baseEditor 代理状态管理
+  get projectFileState() {
+    return baseEditor.projectFileState;
+  },
+  set projectFileState(value) {
+    baseEditor.projectFileState = value;
+  },
+  get originalStateOnOpen() {
+    return baseEditor.originalStateOnOpen;
+  },
+  set originalStateOnOpen(value) {
+    baseEditor.originalStateOnOpen = value;
+  },
+  get activeGroupIndex() {
+    return baseEditor.activeGroupIndex;
+  },
+  set activeGroupIndex(value) {
+    baseEditor.activeGroupIndex = value;
+  },
+
+  // DOM 缓存
+  domCache: {},
+  // Sortable 实例管理
+  sortableInstances: [],
+  // 滚动动画
+  scrollAnimationFrame: null,
   scrollSpeed: 0,
 
+  stagedCharacters: [],
+  tempLibraryItems: { motion: [], expression: [] },
+
   init() {
+    // 缓存 DOM 元素
+    this.domCache = {
+      groupCheckbox: document.getElementById("groupCardsCheckbox"),
+      timeline: document.getElementById("expressionEditorTimeline"),
+      modal: document.getElementById("expressionEditorModal"),
+      undoBtn: document.getElementById("expressionUndoBtn"),
+      redoBtn: document.getElementById("expressionRedoBtn"),
+      motionList: document.getElementById("motionLibraryList"),
+      expressionList: document.getElementById("expressionLibraryList"),
+    };
+
     document
       .getElementById("openExpressionEditorBtn")
       ?.addEventListener("click", () => this.open());
@@ -34,12 +79,8 @@ export const expressionEditor = {
     document
       .getElementById("resetExpressionsBtn")
       ?.addEventListener("click", () => this.reset());
-    document
-      .getElementById("expressionUndoBtn")
-      ?.addEventListener("click", () => historyManager.undo());
-    document
-      .getElementById("expressionRedoBtn")
-      ?.addEventListener("click", () => historyManager.redo());
+    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
+    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
     document
       .getElementById("addTempMotionBtn")
       ?.addEventListener("click", () => this._addTempItem("motion"));
@@ -72,7 +113,6 @@ export const expressionEditor = {
       ?.addEventListener("input", (e) =>
         this._filterLibraryList("expression", e)
       );
-    const modal = document.getElementById("expressionEditorModal");
     const handleCloseAttempt = (e) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
         if (!confirm("您有未保存的更改，确定要关闭吗？")) {
@@ -83,24 +123,19 @@ export const expressionEditor = {
       }
       this._closeEditor();
     };
-    modal
+    this.domCache.modal
       ?.querySelector(".btn-modal-close")
       ?.addEventListener("click", handleCloseAttempt);
-    modal
+    this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt);
     document.addEventListener("historychange", (e) => {
-      if (
-        document.getElementById("expressionEditorModal").style.display ===
-        "flex"
-      ) {
-        const undoBtn = document.getElementById("expressionUndoBtn");
-        const redoBtn = document.getElementById("expressionRedoBtn");
-        if (undoBtn) undoBtn.disabled = !e.detail.canUndo;
-        if (redoBtn) redoBtn.disabled = !e.detail.canRedo;
+      if (this.domCache.modal?.style.display === "flex") {
+        if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
+        if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
       }
     });
-    modal?.addEventListener("keydown", (e) => {
+    this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
       if (e.ctrlKey || e.metaKey) {
         if (e.key === "z") {
@@ -118,10 +153,11 @@ export const expressionEditor = {
   },
 
   handleDragScrolling: (e) => {
-    const timeline = document.getElementById("expressionEditorTimeline");
-    const motionList = document.getElementById("motionLibraryList");
-    const expressionList = document.getElementById("expressionLibraryList");
+    const timeline = expressionEditor.domCache.timeline;
+    const motionList = expressionEditor.domCache.motionList;
+    const expressionList = expressionEditor.domCache.expressionList;
     if (!timeline || !motionList || !expressionList) return;
+
     let scrollTarget = null;
     if (timeline.contains(e.target)) {
       scrollTarget = timeline;
@@ -130,41 +166,52 @@ export const expressionEditor = {
     } else if (expressionList.contains(e.target)) {
       scrollTarget = expressionList;
     }
+
     if (!scrollTarget) {
-      clearInterval(expressionEditor.scrollInterval);
-      expressionEditor.scrollInterval = null;
+      expressionEditor.stopScrolling();
       return;
     }
+
     const rect = scrollTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     const hotZone = 75;
     let newScrollSpeed = 0;
+
     if (mouseY < rect.top + hotZone) {
       newScrollSpeed = -10;
     } else if (mouseY > rect.bottom - hotZone) {
       newScrollSpeed = 10;
     }
+
     if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== expressionEditor.scrollSpeed ||
-        !expressionEditor.scrollInterval
-      ) {
+      if (newScrollSpeed !== expressionEditor.scrollSpeed || !expressionEditor.scrollAnimationFrame) {
         expressionEditor.scrollSpeed = newScrollSpeed;
         expressionEditor.startScrolling(scrollTarget);
       }
     } else {
-      clearInterval(expressionEditor.scrollInterval);
-      expressionEditor.scrollInterval = null;
+      expressionEditor.stopScrolling();
     }
   },
 
+  // 使用 requestAnimationFrame 优化滚动性能
   startScrolling(elementToScroll) {
-    clearInterval(this.scrollInterval);
-    this.scrollInterval = setInterval(() => {
-      if (elementToScroll) {
+    this.stopScrolling();
+
+    const scroll = () => {
+      if (elementToScroll && this.scrollSpeed !== 0) {
         elementToScroll.scrollTop += this.scrollSpeed;
+        this.scrollAnimationFrame = requestAnimationFrame(scroll);
       }
-    }, 20);
+    };
+    scroll();
+  },
+
+  stopScrolling() {
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+      this.scrollAnimationFrame = null;
+    }
+    this.scrollSpeed = 0;
   },
 
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
@@ -254,9 +301,14 @@ export const expressionEditor = {
   },
 
   save() {
-    projectManager.save(this.projectFileState, (savedState) => {
-      this.originalStateOnOpen = JSON.stringify(savedState);
-      this._closeEditor();
+    EditorHelper.saveEditor({
+      editor: baseEditor,
+      modalId: "expressionEditorModal",
+      applyChanges: () => {
+        projectManager.save(this.projectFileState, (savedState) => {
+          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+        });
+      },
     });
   },
 
@@ -324,9 +376,9 @@ export const expressionEditor = {
       if (motionSearch) motionSearch.value = "";
       if (expressionSearch) expressionSearch.value = "";
       this.renderTimeline();
-      this.renderLibraries();
-      document.getElementById("expressionEditorModal")?.focus();
-      const timeline = document.getElementById("expressionEditorTimeline");
+      this.domCache.modal?.focus();
+      const timeline = this.domCache.timeline;
+
       timeline.onclick = (e) => {
         const card = e.target.closest(".timeline-item");
         if (!card) return;
@@ -363,45 +415,43 @@ export const expressionEditor = {
         }
       };
 
-      new Sortable(timeline, {
-        group: "timeline-cards",
-        animation: 150,
-        sort: true,
-        onStart: () => {
-          document.addEventListener("dragover", this.handleDragScrolling);
-        },
-        onEnd: (evt) => {
-          document.removeEventListener("dragover", this.handleDragScrolling);
-          clearInterval(this.scrollInterval);
-          this.scrollInterval = null;
-          if (evt.from === evt.to && evt.oldIndex !== evt.newIndex) {
-            const isGroupingEnabled =
-              document.getElementById("groupCardsCheckbox").checked;
-            const groupSize = 50;
-            let localOldIndex = evt.oldIndex;
-            let localNewIndex = evt.newIndex;
-            if (
-              isGroupingEnabled &&
-              this.projectFileState.actions.length > groupSize &&
-              this.activeGroupIndex !== null &&
-              this.activeGroupIndex >= 0
-            ) {
-              const headerOffset = this.activeGroupIndex + 1;
-              localOldIndex = Math.max(0, localOldIndex - headerOffset);
-              localNewIndex = Math.max(0, localNewIndex - headerOffset);
-            }
-            const globalOldIndex = this._getGlobalIndex(localOldIndex);
-            const globalNewIndex = this._getGlobalIndex(localNewIndex);
-            this._executeCommand((currentState) => {
-              const [movedItem] = currentState.actions.splice(
-                globalOldIndex,
-                1
-              );
-              currentState.actions.splice(globalNewIndex, 0, movedItem);
-            });
-          }
+      // 使用 DragHelper 创建 onEnd 处理器
+      const onEndHandler = DragHelper.createOnEndHandler({
+        editor: baseEditor,
+        getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+        groupSize: 50,
+        executeFn: (globalOldIndex, globalNewIndex) => {
+          this._executeCommand((currentState) => {
+            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+            currentState.actions.splice(globalNewIndex, 0, movedItem);
+          });
         },
       });
+
+      // 清理旧的 Sortable 实例
+      this.sortableInstances.forEach(instance => instance?.destroy());
+      this.sortableInstances = [];
+
+      this.sortableInstances.push(new Sortable(
+        timeline,
+        DragHelper.createSortableConfig({
+          group: "timeline-cards",
+          onEnd: (evt) => {
+            document.removeEventListener("dragover", this.handleDragScrolling);
+            this.stopScrolling();
+            onEndHandler(evt);
+          },
+          extraConfig: {
+            sort: true,
+            onStart: () => {
+              document.addEventListener("dragover", this.handleDragScrolling);
+            },
+          },
+        })
+      ));
+
+      // 渲染资源库并初始化拖放（必须在渲染后初始化）
+      this.renderLibraries();
     } catch (error) {
       ui.showStatus(
         `加载编辑器失败: ${error.response?.data?.error || error.message}`,
@@ -410,19 +460,10 @@ export const expressionEditor = {
     }
   },
 
+  // 使用 BaseEditor 的 getGlobalIndex 方法
   _getGlobalIndex(localIndex) {
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
-    if (
-      !isGroupingEnabled ||
-      this.activeGroupIndex === null ||
-      this.activeGroupIndex < 0
-    ) {
-      return localIndex;
-    }
-    const groupSize = 50;
-    const offset = this.activeGroupIndex * groupSize;
-    return offset + localIndex;
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
+    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
   },
 
   /**
@@ -506,10 +547,15 @@ export const expressionEditor = {
   },
 
   initDragAndDropForLibraries() {
+    // 先销毁资源库相关的 Sortable 实例（只保留 timeline 的实例）
+    const timelineSortable = this.sortableInstances[0]; // timeline 的实例是第一个
+    this.sortableInstances.slice(1).forEach(instance => instance?.destroy());
+    this.sortableInstances = timelineSortable ? [timelineSortable] : [];
+
     ["motion", "expression"].forEach((type) => {
-      const libraryList = document.getElementById(`${type}LibraryList`);
+      const libraryList = type === "motion" ? this.domCache.motionList : this.domCache.expressionList;
       if (libraryList) {
-        new Sortable(libraryList, {
+        this.sortableInstances.push(new Sortable(libraryList, {
           group: { name: type, pull: "clone", put: false },
           sort: false,
           onStart: () => {
@@ -517,10 +563,9 @@ export const expressionEditor = {
           },
           onEnd: () => {
             document.removeEventListener("dragover", this.handleDragScrolling);
-            clearInterval(this.scrollInterval);
-            this.scrollInterval = null;
+            this.stopScrolling();
           },
-        });
+        }));
       }
     });
   },
@@ -546,19 +591,24 @@ export const expressionEditor = {
   },
 
   renderTimeline() {
-    const timeline = document.getElementById("expressionEditorTimeline");
+    const timeline = this.domCache.timeline;
+    if (!timeline) return;
+
     const talkTemplate = document.getElementById("timeline-talk-card-template");
     const layoutTemplate = document.getElementById(
       "timeline-layout-card-template"
     );
-    const isGroupingEnabled =
-      document.getElementById("groupCardsCheckbox").checked;
+    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
     const actions = this.projectFileState.actions;
     const groupSize = 50;
+
+    // 创建索引缓存 Map
+    const actionIndexMap = new Map(
+      this.projectFileState.actions.map((a, idx) => [a.id, idx])
+    );
+
     const renderSingleCard = (action) => {
-      const globalIndex = this.projectFileState.actions.findIndex(
-        (a) => a.id === action.id
-      );
+      const globalIndex = actionIndexMap.get(action.id) ?? -1;
       let card;
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
@@ -692,10 +742,8 @@ export const expressionEditor = {
 
           if (isOpening) {
             setTimeout(() => {
-              const scrollContainer = document.getElementById(
-                "expressionEditorTimeline"
-              );
-              const header = scrollContainer.querySelector(
+              const scrollContainer = this.domCache.timeline;
+              const header = scrollContainer?.querySelector(
                 `.timeline-group-header[data-group-idx="${index}"]`
               );
               if (scrollContainer && header) {
@@ -834,6 +882,8 @@ export const expressionEditor = {
     }
     this._renderLibrary("motion", Array.from(motionItems).sort());
     this._renderLibrary("expression", Array.from(expressionItems).sort());
+
+    // 渲染完成后初始化拖放
     this.initDragAndDropForLibraries();
   },
 
@@ -882,21 +932,9 @@ export const expressionEditor = {
     };
     return newProjectFile;
   },
+  // 使用 BaseEditor 的 executeCommand 方法
   _executeCommand(changeFn) {
-    const beforeState = JSON.stringify(this.projectFileState);
-    const command = {
-      execute: () => {
-        const newState = JSON.parse(beforeState);
-        changeFn(newState);
-        this.projectFileState = newState;
-        this.renderTimeline();
-      },
-      undo: () => {
-        this.projectFileState = JSON.parse(beforeState);
-        this.renderTimeline();
-      },
-    };
-    historyManager.do(command);
+    baseEditor.executeCommand(changeFn);
   },
 
   _deleteLayoutAction(actionId) {
@@ -1012,6 +1050,19 @@ export const expressionEditor = {
   },
 
   _closeEditor() {
-    ui.closeModal("expressionEditorModal");
+    EditorHelper.closeEditor({
+      modalId: "expressionEditorModal",
+      beforeClose: () => {
+        // 销毁 Sortable 实例
+        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances = [];
+
+        // 停止滚动动画
+        if (this.scrollAnimationFrame) {
+          cancelAnimationFrame(this.scrollAnimationFrame);
+          this.scrollAnimationFrame = null;
+        }
+      },
+    });
   },
 };
