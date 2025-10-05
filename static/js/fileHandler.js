@@ -2,6 +2,8 @@
 import { state } from "./stateManager.js";
 import { VALID_EXTENSIONS, FILE_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
+import { apiService } from "./services/ApiService.js";
+import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const fileHandler = {
   // 设置文件拖拽功能
@@ -45,12 +47,14 @@ export const fileHandler = {
   async handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
+
     const filename = file.name.toLowerCase();
     const isValidFile = VALID_EXTENSIONS.some((ext) => filename.endsWith(ext));
     if (!isValidFile) {
       ui.showStatus("只支持 .txt, .docx, .md 文件！", "error");
       return;
     }
+
     const fileUploadLabel = document.querySelector(".file-upload-label");
     const originalContent = fileUploadLabel.innerHTML;
     fileUploadLabel.innerHTML = `
@@ -60,30 +64,27 @@ export const fileHandler = {
                 <div style="font-size: 0.9rem; color: #718096;">请稍候</div>
             </div>
         `;
-    const formData = new FormData();
-    formData.append("file", file);
+
     try {
       ui.showProgress(20);
       ui.showStatus("正在上传文件...", "info");
-      const response = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+
+      const data = await apiService.uploadFile(file);
+
       ui.showProgress(100);
-      document.getElementById("inputText").value = response.data.content;
+      document.getElementById("inputText").value = data.content;
+
       if (state.get("projectFile")) {
         console.log("File uploaded, resetting project file state.");
         state.set("projectFile", null);
       }
 
       ui.showStatus("文件上传成功！", "success");
+      eventBus.emit(EVENTS.FILE_UPLOADED, { filename, content: data.content });
+
       setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
-      ui.showStatus(
-        `文件上传失败: ${error.response?.data?.error || error.message}`,
-        "error"
-      );
+      ui.showStatus(error.message, "error");
       ui.hideProgress();
     } finally {
       fileUploadLabel.innerHTML = originalContent;
@@ -97,6 +98,7 @@ export const fileHandler = {
       ui.showStatus("没有可下载的结果！", "error");
       return;
     }
+
     await ui.withButtonLoading(
       buttonId,
       async () => {
@@ -104,18 +106,14 @@ export const fileHandler = {
           .toISOString()
           .slice(0, 19)
           .replace(/[:-]/g, "")}.json`;
+
         try {
-          const response = await axios.post(
-            "/api/download",
-            {
-              content: state.get("currentResult"),
-              filename: filename,
-            },
-            {
-              responseType: "blob",
-            }
+          const blob = await apiService.downloadResult(
+            state.get("currentResult"),
+            filename
           );
-          const url = window.URL.createObjectURL(new Blob([response.data]));
+
+          const url = window.URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
           link.setAttribute("download", filename);
@@ -123,12 +121,11 @@ export const fileHandler = {
           link.click();
           link.remove();
           window.URL.revokeObjectURL(url);
+
           ui.showStatus("文件下载成功！", "success");
+          eventBus.emit(EVENTS.FILE_DOWNLOADED, { filename });
         } catch (error) {
-          ui.showStatus(
-            `下载失败: ${error.response?.data?.error || error.message}`,
-            "error"
-          );
+          ui.showStatus(error.message, "error");
         }
       },
       "下载中..."

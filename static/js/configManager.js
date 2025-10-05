@@ -1,10 +1,17 @@
 // 配置管理相关功能
 import { state } from "./stateManager.js";
-import { ui, GROUPING_STORAGE_KEY } from "./uiUtils.js";
+import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { apiService } from "./services/ApiService.js";
+import { modalService } from "./services/ModalService.js";
+import { eventBus, EVENTS } from "./services/EventBus.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
+import { StringUtils } from "./utils/StringUtils.js";
+import { DataUtils } from "./utils/DataUtils.js";
 
 export const configManager = {
   defaultConfig: null,
@@ -59,9 +66,10 @@ export const configManager = {
   // 加载配置
   async loadConfig() {
     try {
-      const response = await axios.get("/api/config");
-      state.set("configData", response.data);
-      this.defaultConfig = response.data.character_mapping;
+      const data = await apiService.getConfig();
+      state.set("configData", data);
+      this.defaultConfig = data.character_mapping;
+
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
@@ -70,41 +78,26 @@ export const configManager = {
         state.set("currentConfig", { ...this.defaultConfig });
         console.log("使用默认配置");
       }
-      
+
       quoteManager.renderQuoteOptions();
       motionManager.init();
-      expressionManager.init(); 
+      expressionManager.init();
+
+      eventBus.emit(EVENTS.CONFIG_LOADED, data);
     } catch (error) {
       console.error("加载配置失败:", error);
-      ui.showStatus("无法加载应用配置", "error");
+      ui.showStatus(error.message || "无法加载应用配置", "error");
     }
   },
 
   // 从 LocalStorage 加载配置
   loadLocalConfig() {
-    try {
-      const saved = localStorage.getItem("bestdori_character_mapping");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("加载本地配置失败:", error);
-    }
-    return null;
+    return storageService.get(STORAGE_KEYS.CHARACTER_MAPPING);
   },
 
   // 保存配置到 LocalStorage
   saveLocalConfig(config) {
-    try {
-      localStorage.setItem(
-        "bestdori_character_mapping",
-        JSON.stringify(config)
-      );
-      return true;
-    } catch (error) {
-      console.error("保存本地配置失败:", error);
-      return false;
-    }
+    return storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config);
   },
 
   // 打开配置管理模态框
@@ -114,7 +107,7 @@ export const configManager = {
       async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         this.renderConfigList();
-        ui.openModal("configModal");
+        modalService.open("configModal");
       },
       "加载配置..."
     );
@@ -122,13 +115,13 @@ export const configManager = {
 
   // 重置为默认配置（保留服装配置）
   async resetConfig() {
-    if (
-      confirm(
-        "【警告】此操作将恢复为系统默认角色列表。\n\n" +
-          "所有自定义添加的角色及其服装配置都将被删除。\n\n" +
-          "确定要继续吗？"
-      )
-    ) {
+    const confirmed = await modalService.confirm(
+      "【警告】此操作将恢复为系统默认角色列表。\n\n" +
+        "所有自定义添加的角色及其服装配置都将被删除。\n\n" +
+        "确定要继续吗？"
+    );
+
+    if (confirmed) {
       await ui.withButtonLoading(
         "resetConfigBtn",
         async () => {
@@ -136,20 +129,26 @@ export const configManager = {
           const currentAvailableCostumes = costumeManager
             ? { ...costumeManager.availableCostumes }
             : {};
-          localStorage.removeItem("bestdori_character_mapping");
+
+          storageService.remove(STORAGE_KEYS.CHARACTER_MAPPING);
           state.set("currentConfig", { ...this.defaultConfig });
-          localStorage.removeItem("bestdori_custom_quotes");
+
+          storageService.remove(STORAGE_KEYS.CUSTOM_QUOTES);
           state.set("customQuotes", []);
+
           if (costumeManager) {
             await this.updateCostumesAfterConfigReset(
               currentCostumes,
               currentAvailableCostumes
             );
           }
+
           await new Promise((resolve) => setTimeout(resolve, 300));
           this.renderConfigList();
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
+
+          eventBus.emit(EVENTS.CONFIG_RESET);
         },
         "重置中..."
       );
@@ -185,12 +184,11 @@ export const configManager = {
   // 渲染配置列表
   renderConfigList() {
     const configList = document.getElementById("configList");
-    const sortedConfig = Object.entries(state.get("currentConfig")).sort(
-      ([, idsA], [, idsB]) => {
-        const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
-        const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
-        return idA - idB;
-      }
+    // 使用 DataUtils.sortBy 替代手动排序
+    const sortedConfig = DataUtils.sortBy(
+      Object.entries(state.get("currentConfig")),
+      ([, ids]) => ids?.[0] ?? Infinity,
+      "asc"
     );
     this.renderNormalConfigList(sortedConfig);
   },
@@ -198,21 +196,24 @@ export const configManager = {
   renderNormalConfigList(sortedConfig) {
     const configList = document.getElementById("configList");
     const template = document.getElementById("config-item-template");
-    const fragment = document.createDocumentFragment();
-    sortedConfig.forEach(([name, ids]) => {
+
+    // 使用 map 创建所有配置项元素
+    const configItems = sortedConfig.map(([name, ids]) => {
       const clone = template.content.cloneNode(true);
       const configItem = clone.querySelector(".config-item");
-      const primaryId = ids && ids.length > 0 ? ids[0] : 0;
+      const primaryId = ids?.[0] ?? 0;
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
       this.updateConfigAvatar(avatarWrapper, primaryId, name);
-      const nameInput = configItem.querySelector(".config-name");
-      nameInput.value = name;
-      const idsInput = configItem.querySelector(".config-ids");
-      idsInput.value = Array.isArray(ids) ? ids.join(",") : ids;
-      fragment.appendChild(configItem);
+
+      configItem.querySelector(".config-name").value = name;
+      configItem.querySelector(".config-ids").value = Array.isArray(ids) ? ids.join(",") : ids;
+
+      return configItem;
     });
-    configList.innerHTML = "";
-    configList.appendChild(fragment);
+
+    // 使用 DOMUtils 工具函数批量更新 DOM
+    DOMUtils.clearElement(configList);
+    DOMUtils.appendChildren(configList, configItems);
   },
 
   // 更新配置项头像
@@ -271,7 +272,8 @@ export const configManager = {
         if (this.saveLocalConfig(newConfig)) {
           state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");
-          ui.closeModal("configModal");
+          modalService.close("configModal");
+          eventBus.emit(EVENTS.CONFIG_SAVED, newConfig);
         } else {
           ui.showStatus("配置保存失败，可能是存储空间不足", "error");
         }
@@ -312,9 +314,8 @@ export const configManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         const a = document.createElement("a");
         a.href = url;
-        a.download = `bestdori_config_${new Date()
-          .toISOString()
-          .slice(0, 10)}.json`;
+        // 使用 StringUtils.generateFilename 生成文件名
+        a.download = StringUtils.generateFilename("bestdori_config", "json");
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -394,35 +395,36 @@ export const configManager = {
 
   // 清除所有本地存储
   async clearLocalStorage() {
-    if (
-      !confirm(
-        "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
-          "  - 自定义角色映射\n" +
-          "  - 所有角色的服装配置\n" +
-          "  - 自定义引号\n" +
-          "  - Live2D 布局和位置设置\n\n" +
-          "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
-      )
-    ) {
+    const confirmed = await modalService.confirm(
+      "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
+        "  - 自定义角色映射\n" +
+        "  - 所有角色的服装配置\n" +
+        "  - 自定义引号\n" +
+        "  - Live2D 布局和位置设置\n\n" +
+        "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
+    );
+
+    if (!confirmed) {
       return;
     }
+
     await ui.withButtonLoading(
       "clearCacheBtn",
       async () => {
         const keysToRemove = [
-          "bestdori_character_mapping",
-          "bestdori_custom_quotes",
-          "bestdori_costume_mapping_v2",
-          "bestdori_available_costumes_v2",
-          "bestdori_position_config",
-          GROUPING_STORAGE_KEY,
+          STORAGE_KEYS.CHARACTER_MAPPING,
+          STORAGE_KEYS.CUSTOM_QUOTES,
+          STORAGE_KEYS.COSTUME_MAPPING_V2,
+          STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
+          STORAGE_KEYS.POSITION_CONFIG,
+          STORAGE_KEYS.CARD_GROUPING,
         ];
+
         console.log("正在清除以下本地缓存:", keysToRemove);
-        keysToRemove.forEach((key) => {
-          localStorage.removeItem(key);
-        });
+        storageService.removeMultiple(keysToRemove);
+
         await new Promise((resolve) => setTimeout(resolve, 500));
-        alert("缓存已成功清除！网页即将重新加载。");
+        await modalService.alert("缓存已成功清除！网页即将重新加载。");
         location.reload();
       },
       "清除中..."

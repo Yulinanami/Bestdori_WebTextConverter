@@ -2,35 +2,19 @@
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { converter } from "./converter.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 
 export const quoteManager = {
   // 加载自定义引号
   loadCustomQuotes() {
-    try {
-      const saved = localStorage.getItem("bestdori_custom_quotes");
-      if (saved) {
-        state.set("customQuotes", JSON.parse(saved));
-        return true;
-      }
-    } catch (error) {
-      console.error("加载自定义引号失败:", error);
-    }
-    state.set("customQuotes", []);
-    return false;
+    const saved = storageService.get(STORAGE_KEYS.CUSTOM_QUOTES, []);
+    state.set("customQuotes", saved);
+    return saved.length > 0;
   },
 
   // 保存自定义引号到本地
   saveCustomQuotes() {
-    try {
-      localStorage.setItem(
-        "bestdori_custom_quotes",
-        JSON.stringify(state.get("customQuotes"))
-      );
-      return true;
-    } catch (error) {
-      console.error("保存自定义引号失败:", error);
-      return false;
-    }
+    return storageService.set(STORAGE_KEYS.CUSTOM_QUOTES, state.get("customQuotes"));
   },
 
   // 渲染引号选项

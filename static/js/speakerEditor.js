@@ -5,6 +5,8 @@ import { selectionManager } from "./selectionManager.js";
 import { historyManager } from "./historyManager.js";
 import { projectManager } from "./projectManager.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
+import { DataUtils } from "./utils/DataUtils.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 
 export const speakerEditor = {
   projectFileState: null,
@@ -171,7 +173,7 @@ export const speakerEditor = {
         const segments = response.data.segments;
         initialState = this.createProjectFileFromSegments(segments);
       }
-      this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.projectFileState = DataUtils.deepClone(initialState);
       this.originalStateOnOpen = JSON.stringify(initialState);
       historyManager.clear();
       const usedCharacterIds = this.renderCanvas();
@@ -682,7 +684,7 @@ export const speakerEditor = {
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", JSON.parse(JSON.stringify(importedProject)));
+      state.set("projectFile", DataUtils.deepClone(importedProject));
       historyManager.clear();
       const usedIds = this.renderCanvas();
       this.renderCharacterList(usedIds);

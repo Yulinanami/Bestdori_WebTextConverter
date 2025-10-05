@@ -2,6 +2,8 @@
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
+import { apiService } from "./services/ApiService.js";
+import { eventBus, EVENTS } from "./services/EventBus.js";
 
 function createProjectFileFromText(text) {
   const segments = text
@@ -70,13 +72,10 @@ export const converter = {
       ui.showProgress(10);
       ui.showStatus("正在发送项目数据...", "info");
 
-      const response = await axios.post("/api/convert", {
-        projectFile: projectFile,
-        quoteConfig: selectedQuotes,
-        narratorName: narratorName,
-      });
+      eventBus.emit(EVENTS.CONVERT_START, { projectFile, selectedQuotes, narratorName });
 
-      const result = response.data.result;
+      const data = await apiService.convertText(projectFile, selectedQuotes, narratorName);
+      const result = data.result;
 
       ui.showProgress(100);
       state.set("currentResult", result);
@@ -85,13 +84,14 @@ export const converter = {
       document.getElementById("resultSection").style.display = "block";
       ui.showStatus("转换完成！", "success");
       ui.scrollToElement("resultSection");
+
+      eventBus.emit(EVENTS.CONVERT_SUCCESS, result);
+
       setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
-      const errorMsg = `转换失败: ${
-        error.response?.data?.error || error.message
-      }`;
-      ui.showStatus(errorMsg, "error");
+      ui.showStatus(error.message, "error");
       ui.hideProgress();
+      eventBus.emit(EVENTS.CONVERT_ERROR, error);
     } finally {
       ui.setButtonLoading(buttonId, false);
     }

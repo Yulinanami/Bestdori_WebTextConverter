@@ -1,3 +1,4 @@
+import { DataUtils } from "./utils/DataUtils.js";
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 
@@ -8,7 +9,7 @@ export const projectManager = {
    * @param {function} onComplete - 操作完成后的回调函数 (例如关闭模态框)。
    */
   save(currentState, onComplete) {
-    const newState = JSON.parse(JSON.stringify(currentState));
+    const newState = DataUtils.deepClone(currentState);
     state.set("projectFile", newState);
     ui.showStatus("工作进度已保存！", "success");
     if (onComplete) {

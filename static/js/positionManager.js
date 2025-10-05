@@ -1,7 +1,11 @@
+import { DataUtils } from "./utils/DataUtils.js";
 // Live2D 位置管理功能
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { modalService } from "./services/ModalService.js";
+import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const positionManager = {
   positions: ["leftInside", "center", "rightInside"],
@@ -18,6 +22,11 @@ export const positionManager = {
 
   // 初始化
   init() {
+    // 注册特殊的模态框关闭处理器
+    modalService.registerCloseHandler("positionModal", () => {
+      this.closePositionModal();
+    });
+
     this.loadPositionConfig();
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
@@ -66,15 +75,10 @@ export const positionManager = {
 
   // 加载配置
   loadPositionConfig() {
-    const saved = localStorage.getItem("bestdori_position_config");
-    if (saved) {
-      try {
-        const config = JSON.parse(saved);
-        this.autoPositionMode = config.autoPositionMode !== false;
-        this.manualPositions = config.manualPositions || {};
-      } catch (e) {
-        console.error("加载位置配置失败:", e);
-      }
+    const config = storageService.get(STORAGE_KEYS.POSITION_CONFIG);
+    if (config) {
+      this.autoPositionMode = config.autoPositionMode !== false;
+      this.manualPositions = config.manualPositions || {};
     }
   },
 
@@ -84,25 +88,25 @@ export const positionManager = {
       autoPositionMode: this.autoPositionMode,
       manualPositions: this.manualPositions,
     };
-    localStorage.setItem("bestdori_position_config", JSON.stringify(config));
+    return storageService.set(STORAGE_KEYS.POSITION_CONFIG, config);
   },
 
   // 打开位置配置模态框
   openPositionModal() {
     this.tempAutoPositionMode = this.autoPositionMode;
-    this.tempManualPositions = JSON.parse(JSON.stringify(this.manualPositions));
+    this.tempManualPositions = DataUtils.deepClone(this.manualPositions);
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
       autoCheckbox.checked = this.tempAutoPositionMode;
     }
     this.renderPositionList();
     this.toggleManualConfig();
-    ui.openModal("positionModal");
+    modalService.open("positionModal");
   },
 
   // 关闭模态框
   closePositionModal() {
-    ui.closeModal("positionModal");
+    modalService.close("positionModal");
   },
 
   // 切换手动配置显示
@@ -191,13 +195,12 @@ export const positionManager = {
       "savePositionsBtn",
       async () => {
         this.autoPositionMode = this.tempAutoPositionMode;
-        this.manualPositions = JSON.parse(
-          JSON.stringify(this.tempManualPositions)
-        );
+        this.manualPositions = DataUtils.deepClone(this.tempManualPositions);
         await new Promise((resolve) => setTimeout(resolve, 300));
         this.savePositionConfig();
         ui.showStatus("位置配置已保存！", "success");
         this.closePositionModal();
+        eventBus.emit(EVENTS.POSITION_SAVED, { autoPositionMode: this.autoPositionMode, manualPositions: this.manualPositions });
       },
       "保存中..."
     );
@@ -205,7 +208,8 @@ export const positionManager = {
 
   // 重置为默认位置（全部设为中间，偏移清零）
   async resetPositions() {
-    if (confirm("确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？")) {
+    const confirmed = await modalService.confirm("确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？");
+    if (confirmed) {
       await ui.withButtonLoading(
         "resetPositionsBtn",
         async () => {

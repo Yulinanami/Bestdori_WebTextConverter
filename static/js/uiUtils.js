@@ -2,9 +2,11 @@
 import { state } from "./stateManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { modalService } from "./services/ModalService.js";
 
 let statusTimer = null;
-export const GROUPING_STORAGE_KEY = "bestdori_card_grouping_enabled";
+export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
 
 export const ui = {
   showProgress(percent) {
@@ -30,24 +32,11 @@ export const ui = {
   },
 
   openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      document.body.classList.add("modal-open"); 
-      modal.style.display = "flex";
-      const modalContent = modal.querySelector(".modal-content");
-      if (modalContent) {
-        const topPosition = window.scrollY + window.innerHeight * 0.47;
-        modalContent.style.top = `${topPosition}px`;
-      }
-    }
+    modalService.open(modalId);
   },
 
   closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      document.body.classList.remove("modal-open"); 
-      modal.style.display = "none";
-    }
+    modalService.close(modalId);
   },
 
   setButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
@@ -133,51 +122,26 @@ export const ui = {
   },
 };
 
-// 全局模态框关闭功能
+// 全局模态框关闭功能（已废弃，由 ModalService 处理）
+// 保留此函数以保持向后兼容，但实际上 modalService.init() 已经处理了这些事件
 export function initGlobalModalListeners() {
-  window.addEventListener("click", function (event) {
-    const modals = document.querySelectorAll(".modal");
-    modals.forEach((modal) => {
-      if (event.target === modal) {
-        if (modal.id === "costumeModal") {
-          costumeManager.cancelCostumeChanges();
-          return;
-        }
-        ui.closeModal(modal.id);
-      }
-    });
-  });
-  window.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-      const modals = document.querySelectorAll(".modal");
-      modals.forEach((modal) => {
-        if (modal.style.display !== "none") {
-          if (modal.id === "costumeModal") {
-            costumeManager.cancelCostumeChanges();
-            return;
-          }
-          ui.closeModal(modal.id);
-        }
-      });
-    }
-  });
+  // 不再需要，modalService 已经处理了全局事件
+  // 但为了避免破坏现有代码，保留空函数
+  console.log('[Deprecated] initGlobalModalListeners 已由 ModalService 接管');
 }
 
 export function initPerformanceSettingsPersistence() {
   const checkbox = document.getElementById("groupCardsCheckbox");
   if (!checkbox) return;
-  try {
-    const savedState = localStorage.getItem(GROUPING_STORAGE_KEY);
-    checkbox.checked = savedState === "true";
-  } catch (error) {
-    console.error("加载卡片分组设置失败:", error);
-    checkbox.checked = false;
-  }
+
+  // 加载保存的设置
+  const savedState = storageService.get(GROUPING_STORAGE_KEY, false);
+  checkbox.checked = savedState === true || savedState === "true";
+
+  // 监听变化
   checkbox.addEventListener("change", (e) => {
-    try {
-      localStorage.setItem(GROUPING_STORAGE_KEY, e.target.checked);
-    } catch (error) {
-      console.error("保存卡片分组设置失败:", error);
+    if (!storageService.set(GROUPING_STORAGE_KEY, e.target.checked)) {
+      console.error("保存卡片分组设置失败");
       if (ui && ui.showStatus) {
         ui.showStatus("无法保存设置，可能是浏览器存储空间已满。", "error");
       }
@@ -242,14 +206,14 @@ export function initializeModalCloseButtons() {
     .querySelectorAll(".modal-close, .btn-modal-close")
     .forEach((button) => {
       button.addEventListener("click", () => {
-        const modalId = button.dataset.modalId || button.closest(".modal").id;
+        const modalId = button.dataset.modalId || button.closest(".modal")?.id;
         if (modalId) {
           if (modalId === "costumeModal") {
             costumeManager.cancelCostumeChanges();
           } else if (modalId === "positionModal") {
             positionManager.closePositionModal();
           } else {
-            ui.closeModal(modalId);
+            modalService.close(modalId);
           }
         }
       });

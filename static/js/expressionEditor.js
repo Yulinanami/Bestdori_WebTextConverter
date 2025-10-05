@@ -1,3 +1,4 @@
+import { DataUtils } from "./utils/DataUtils.js";
 // 动作表情编辑器
 import { state } from "./stateManager.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
@@ -268,7 +269,7 @@ export const expressionEditor = {
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", JSON.parse(JSON.stringify(importedProject)));
+      state.set("projectFile", DataUtils.deepClone(importedProject));
       historyManager.clear();
       this.stagedCharacters = this._calculateStagedCharacters(
         this.projectFileState
@@ -280,7 +281,7 @@ export const expressionEditor = {
   reset() {
     projectManager.reset(
       () => {
-        const newState = JSON.parse(JSON.stringify(this.projectFileState));
+        const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions.forEach((action) => {
           if (action.type === "talk") action.characterStates = {};
           else if (action.type === "layout") action.initialState = {};
@@ -311,7 +312,7 @@ export const expressionEditor = {
           response.data.segments
         );
       }
-      this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.projectFileState = DataUtils.deepClone(initialState);
       this.originalStateOnOpen = JSON.stringify(this.projectFileState);
       this.stagedCharacters = this._calculateStagedCharacters(
         this.projectFileState

@@ -58,3 +58,4 @@ dist/
 config.local.yaml
 secrets.yaml
 .secrets
+.claude

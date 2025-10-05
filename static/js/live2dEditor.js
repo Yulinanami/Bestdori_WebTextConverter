@@ -1,3 +1,4 @@
+import { DataUtils } from "./utils/DataUtils.js";
 // 文件: static/js/live2dEditor.js (完整替换)
 
 // live2d布局模式
@@ -118,7 +119,7 @@ export const live2dEditor = {
           ui.showStatus("已根据当前文本创建新项目。", "info");
         }
       }
-      this.projectFileState = JSON.parse(JSON.stringify(initialState));
+      this.projectFileState = DataUtils.deepClone(initialState);
       this.originalStateOnOpen = JSON.stringify(initialState);
       historyManager.clear();
       this.renderTimeline();
@@ -196,7 +197,7 @@ export const live2dEditor = {
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      state.set("projectFile", JSON.parse(JSON.stringify(importedProject)));
+      state.set("projectFile", DataUtils.deepClone(importedProject));
       historyManager.clear();
       this.renderTimeline();
     }
@@ -275,7 +276,7 @@ export const live2dEditor = {
   _clearAllLayouts() {
     projectManager.reset(
       () => {
-        const newState = JSON.parse(JSON.stringify(this.projectFileState));
+        const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions = newState.actions.filter((a) => a.type !== "layout");
         return newState;
       },
@@ -422,6 +423,7 @@ export const live2dEditor = {
       return localIndex;
     }
     const groupSize = 50;
+    // 当前分组的起始位置 = 分组索引 × 每组大小
     const offset = this.activeGroupIndex * groupSize;
     return offset + localIndex;
   },
@@ -467,6 +469,7 @@ export const live2dEditor = {
             this.activeGroupIndex !== null &&
             this.activeGroupIndex >= 0
           ) {
+            // 减去前面所有分组标题（包括当前分组）占据的位置
             const headerOffset = this.activeGroupIndex + 1;
             localOldIndex = Math.max(0, localOldIndex - headerOffset);
             localNewIndex = Math.max(0, localNewIndex - headerOffset);
@@ -493,6 +496,7 @@ export const live2dEditor = {
           this.activeGroupIndex !== null &&
           this.activeGroupIndex >= 0
         ) {
+          // 减去前面所有分组标题（包括当前分组）占据的位置
           const headerOffset = this.activeGroupIndex + 1;
           localInsertIndex = Math.max(0, localInsertIndex - headerOffset);
         }
@@ -751,15 +755,17 @@ export const live2dEditor = {
     const template = document.getElementById("draggable-character-template");
     listContainer.innerHTML = "";
     const fragment = document.createDocumentFragment();
-    const characters = Object.entries(state.get("currentConfig"));
     const pinned = pinnedCharacterManager.getPinned();
-    characters.sort(([nameA, idsA], [nameB, idsB]) => {
-      const isAPinned = pinned.has(nameA);
-      const isBPinned = pinned.has(nameB);
-      if (isAPinned && !isBPinned) return -1;
-      if (!isAPinned && isBPinned) return 1;
-      return idsA[0] - idsB[0];
-    });
+    // 使用 DataUtils.sortBy 替代手动排序，处理置顶逻辑
+    const characters = DataUtils.sortBy(
+      Object.entries(state.get("currentConfig")),
+      ([name, ids]) => {
+        const isPinned = pinned.has(name);
+        // 置顶的角色返回负数（排在前面），使用 ID 作为次要排序
+        return isPinned ? -1000000 + (ids[0] || 0) : (ids[0] || 0);
+      },
+      "asc"
+    );
     characters.forEach(([name, ids]) => {
       const item = template.content.cloneNode(true);
       const characterItem = item.querySelector(".character-item");

@@ -1,7 +1,13 @@
+import { DataUtils } from "./utils/DataUtils.js";
+import { DOMUtils } from "./utils/DOMUtils.js";
 // 服装管理相关功能
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { apiService } from "./services/ApiService.js";
+import { modalService } from "./services/ModalService.js";
+import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const costumeManager = {
   defaultCostumes: {},
@@ -16,6 +22,12 @@ export const costumeManager = {
   originalAvailableCostumes: {},
 
   init() {
+    // 注册特殊的模态框关闭处理器
+    modalService.registerCloseHandler("costumeModal", () => {
+      this.cancelCostumeChanges();
+    });
+
+    // 原有的初始化代码
     const costumeList = document.getElementById("costumeList");
     if (!costumeList) return;
     costumeList.addEventListener("click", (e) => {
@@ -122,19 +134,20 @@ export const costumeManager = {
   // 加载服装配置
   async loadCostumeConfig() {
     try {
-      const response = await axios.get("/api/costumes");
-      this.defaultAvailableCostumes = response.data.available_costumes;
-      this.defaultCostumes = response.data.default_costumes;
-      const configResponse = await axios.get("/api/config");
-      this.builtInCharacters = new Set(
-        Object.keys(configResponse.data.character_mapping)
-      );
+      const costumeData = await apiService.getCostumes();
+      this.defaultAvailableCostumes = costumeData.available_costumes;
+      this.defaultCostumes = costumeData.default_costumes;
+
+      const configData = await apiService.getConfig();
+      this.builtInCharacters = new Set(Object.keys(configData.character_mapping));
+
       const savedCostumes = this.loadLocalCostumes();
       if (savedCostumes) {
         state.set("currentCostumes", savedCostumes);
       } else {
         state.set("currentCostumes", this.convertDefaultCostumesToNameBased());
       }
+
       const savedAvailableCostumes = this.loadLocalAvailableCostumes();
       if (savedAvailableCostumes) {
         this.availableCostumes = savedAvailableCostumes;
@@ -143,71 +156,37 @@ export const costumeManager = {
       }
     } catch (error) {
       console.error("加载服装配置失败:", error);
-      ui.showStatus("无法加载服装配置", "error");
+      ui.showStatus(error.message || "无法加载服装配置", "error");
     }
   },
 
   // 从 LocalStorage 加载服装配置
   loadLocalCostumes() {
-    try {
-      const saved = localStorage.getItem("bestdori_costume_mapping_v2");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("加载本地服装配置失败:", error);
-    }
-    return null;
+    return storageService.get(STORAGE_KEYS.COSTUME_MAPPING_V2);
   },
 
   // 保存服装配置到 LocalStorage
   saveLocalCostumes(costumes) {
-    try {
-      localStorage.setItem(
-        "bestdori_costume_mapping_v2",
-        JSON.stringify(costumes)
-      );
-      return true;
-    } catch (error) {
-      console.error("保存本地服装配置失败:", error);
-      return false;
-    }
+    return storageService.set(STORAGE_KEYS.COSTUME_MAPPING_V2, costumes);
   },
 
   // 加载本地可用服装列表
   loadLocalAvailableCostumes() {
-    try {
-      const saved = localStorage.getItem("bestdori_available_costumes_v2");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("加载本地可用服装列表失败:", error);
-    }
-    return null;
+    return storageService.get(STORAGE_KEYS.AVAILABLE_COSTUMES_V2);
   },
 
   // 修改保存可用服装列表的方法，添加验证
   saveLocalAvailableCostumes() {
-    try {
-      const hasValidData =
-        Object.keys(this.availableCostumes).length > 0 &&
-        Object.values(this.availableCostumes).some((list) =>
-          Array.isArray(list)
-        );
-      if (!hasValidData) {
-        console.warn("尝试保存空的可用服装列表，操作已取消");
-        return false;
-      }
-      localStorage.setItem(
-        "bestdori_available_costumes_v2",
-        JSON.stringify(this.availableCostumes)
-      );
-      return true;
-    } catch (error) {
-      console.error("保存可用服装列表失败:", error);
+    const hasValidData =
+      Object.keys(this.availableCostumes).length > 0 &&
+      Object.values(this.availableCostumes).some((list) => Array.isArray(list));
+
+    if (!hasValidData) {
+      console.warn("尝试保存空的可用服装列表，操作已取消");
       return false;
     }
+
+    return storageService.set(STORAGE_KEYS.AVAILABLE_COSTUMES_V2, this.availableCostumes);
   },
 
   // 打开服装配置模态框
@@ -216,20 +195,12 @@ export const costumeManager = {
       "costumeConfigBtn",
       async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
-        this.originalCostumes = JSON.parse(
-          JSON.stringify(state.get("currentCostumes"))
-        );
-        this.originalAvailableCostumes = JSON.parse(
-          JSON.stringify(this.availableCostumes)
-        );
-        this.tempCostumeChanges = JSON.parse(
-          JSON.stringify(state.get("currentCostumes"))
-        );
-        this.tempAvailableCostumes = JSON.parse(
-          JSON.stringify(this.availableCostumes)
-        );
+        this.originalCostumes = DataUtils.deepClone(state.get("currentCostumes"));
+        this.originalAvailableCostumes = DataUtils.deepClone(this.availableCostumes);
+        this.tempCostumeChanges = DataUtils.deepClone(state.get("currentCostumes"));
+        this.tempAvailableCostumes = DataUtils.deepClone(this.availableCostumes);
         this.renderCostumeList();
-        ui.openModal("costumeModal");
+        modalService.open("costumeModal");
       },
       "加载配置..."
     );
@@ -240,12 +211,11 @@ export const costumeManager = {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
     const fragment = document.createDocumentFragment();
-    const characterEntries = Object.entries(state.get("currentConfig")).sort(
-      ([, idsA], [, idsB]) => {
-        const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
-        const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
-        return idA - idB;
-      }
+    // 使用 DataUtils.sortBy 替代手动排序
+    const characterEntries = DataUtils.sortBy(
+      Object.entries(state.get("currentConfig")),
+      ([, ids]) => ids?.[0] ?? Infinity,
+      "asc"
     );
 
     characterEntries.forEach(([name, ids]) => {
@@ -308,7 +278,7 @@ export const costumeManager = {
       );
       fragment.appendChild(costumeItem);
     });
-    costumeList.innerHTML = "";
+    DOMUtils.clearElement(costumeList);
     costumeList.appendChild(fragment);
   },
 
@@ -355,8 +325,8 @@ export const costumeManager = {
   },
 
   // 添加新服装（只修改临时状态）
-  addNewCostume(characterKey, safeDomId) {
-    const costumeId = prompt("请输入新的服装ID：");
+  async addNewCostume(characterKey, safeDomId) {
+    const costumeId = await modalService.prompt("请输入新的服装ID：");
     if (costumeId && costumeId.trim()) {
       const trimmedId = costumeId.trim();
       if (!this.tempAvailableCostumes[characterKey]) {
@@ -373,8 +343,8 @@ export const costumeManager = {
   },
 
   // 编辑服装（只修改临时状态）
-  editCostume(characterKey, index, oldCostume, safeDomId) {
-    const newCostume = prompt("编辑服装ID：", oldCostume);
+  async editCostume(characterKey, index, oldCostume, safeDomId) {
+    const newCostume = await modalService.prompt("编辑服装ID：", oldCostume);
     if (newCostume && newCostume.trim() && newCostume !== oldCostume) {
       const trimmedId = newCostume.trim();
       if (this.tempAvailableCostumes[characterKey].includes(trimmedId)) {
@@ -390,9 +360,10 @@ export const costumeManager = {
   },
 
   // 删除服装（只修改临时状态）
-  deleteCostume(characterKey, index, safeDomId) {
+  async deleteCostume(characterKey, index, safeDomId) {
     const costume = this.tempAvailableCostumes[characterKey][index];
-    if (confirm(`确定要删除服装 "${costume}" 吗？`)) {
+    const confirmed = await modalService.confirm(`确定要删除服装 "${costume}" 吗？`);
+    if (confirmed) {
       this.tempAvailableCostumes[characterKey].splice(index, 1);
       if (this.tempCostumeChanges[characterKey] === costume) {
         this.tempCostumeChanges[characterKey] = "";
@@ -442,18 +413,14 @@ export const costumeManager = {
     await ui.withButtonLoading(
       "saveCostumesBtn",
       async () => {
-        state.set(
-          "currentCostumes",
-          JSON.parse(JSON.stringify(this.tempCostumeChanges))
-        );
-        this.availableCostumes = JSON.parse(
-          JSON.stringify(this.tempAvailableCostumes)
-        );
+        state.set("currentCostumes", DataUtils.deepClone(this.tempCostumeChanges));
+        this.availableCostumes = DataUtils.deepClone(this.tempAvailableCostumes);
         this.saveLocalCostumes(state.get("currentCostumes"));
         this.saveLocalAvailableCostumes();
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("服装配置已保存！", "success");
-        ui.closeModal("costumeModal");
+        modalService.close("costumeModal");
+        eventBus.emit(EVENTS.COSTUME_SAVED, state.get("currentCostumes"));
       },
       "保存中..."
     );
@@ -461,16 +428,16 @@ export const costumeManager = {
 
   // 取消所有临时更改
   cancelCostumeChanges() {
-    ui.closeModal("costumeModal");
+    modalService.close("costumeModal");
   },
 
   // 重置为默认服装
   async resetCostumes() {
-    if (
-      confirm(
-        "确定要恢复默认服装配置吗？这将只重置内置角色的服装设置，自定义角色的服装配置将保留。"
-      )
-    ) {
+    const confirmed = await modalService.confirm(
+      "确定要恢复默认服装配置吗？这将只重置内置角色的服装设置，自定义角色的服装配置将保留。"
+    );
+
+    if (confirmed) {
       const customCharacterCostumes = {};
       const customCharacterAvailableCostumes = {};
       Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {

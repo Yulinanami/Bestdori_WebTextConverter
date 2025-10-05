@@ -19,14 +19,22 @@ import { expressionEditor } from "./expressionEditor.js";
 import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 
+// 导入新的服务层
+import { modalService } from "./services/ModalService.js";
+import { eventBus } from "./services/EventBus.js";
+
 // 初始化应用
 function initializeApp() {
+  // 初始化服务层
+  modalService.init();
+  eventBus.setDebug(false); // 生产环境设置为 false
+
   // 绑定经典视图事件
   bindClassicViewEvents();
 
   // 绑定模态框事件
   bindModalEvents();
-  
+
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
 
@@ -63,6 +71,8 @@ function initializeApp() {
 
   // 初始化全局模态框监听器
   initGlobalModalListeners();
+
+  console.log("应用初始化完成");
 }
 // 绑定经典视图事件
 function bindClassicViewEvents() {
