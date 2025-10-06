@@ -26,7 +26,7 @@ def create_app():
     # 请求前日志
     @app.before_request
     def log_request_info():
-        logger.info(f"收到请求: {request.method} {request.path}")
+        logger.debug(f"收到请求: {request.method} {request.path}")
         if request.method == "POST" and request.content_type and "application/json" in request.content_type:
             try:
                 logger.debug(f"请求数据: {request.json}")
@@ -36,7 +36,7 @@ def create_app():
     # 响应后日志
     @app.after_request
     def log_response_info(response):
-        logger.info(f"响应状态: {response.status_code} - {request.method} {request.path}")
+        logger.debug(f"响应状态: {response.status_code} - {request.method} {request.path}")
         return response
 
     @app.route("/")

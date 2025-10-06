@@ -130,14 +130,14 @@ class ProjectConverter:
             )
             # 记录动作详情
             if motion or expression:
-                logger.debug(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}ms")
+                logger.info(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}ms")
 
         if speakers:
             action_name = " & ".join(names)
-            logger.debug(f"对话动作 - 说话人: {action_name} (ID: {character_ids}), 内容: {processed_body[:30]}...")
+            logger.info(f"对话动作 - 说话人: {action_name} (ID: {character_ids}), 内容: {processed_body[:30]}...")
         else:
             action_name = narrator_name
-            logger.debug(f"对话动作 - 旁白: {processed_body[:30]}...")
+            logger.info(f"对话动作 - 旁白: {processed_body[:30]}...")
 
         bestdori_action = ActionItem(
             characters=self._get_output_ids(character_ids),
@@ -163,9 +163,9 @@ class ProjectConverter:
         offset_to = to_pos.get("offsetX", 0)
 
         # 记录布局动作详情
-        logger.debug(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}")
-        logger.debug(f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})")
-        logger.debug(f"  初始状态 - 动作: {motion or '无'}, 表情: {expression or '无'}")
+        logger.info(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}")
+        logger.info(f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})")
+        logger.info(f"  初始状态 - 动作: {motion or '无'}, 表情: {expression or '无'}")
 
         bestdori_action = LayoutActionItem(
             layoutType=layout_type,
