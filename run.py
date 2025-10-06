@@ -18,6 +18,9 @@ logging.basicConfig(
 logging.getLogger("waitress").setLevel(logging.WARNING)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
+# 确保项目模块的日志级别为 DEBUG
+logging.getLogger("src").setLevel(logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 app = create_app()
