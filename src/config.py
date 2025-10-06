@@ -24,6 +24,7 @@ class ConfigManager:
             return {}
 
         try:
+            logger.info(f"正在加载配置文件: {self.config_path}")
             with open(self.config_path, "r", encoding="utf-8") as f:
                 config_data = yaml.safe_load(f) or {}
                 if not isinstance(config_data, dict):
@@ -31,6 +32,7 @@ class ConfigManager:
                         f"配置文件 {self.config_path} 顶层不是一个有效的字典。将使用空配置。"
                     )
                     return {}
+                logger.info(f"配置文件加载成功 - 包含 {len(config_data)} 个顶级配置项")
                 return config_data
         except yaml.YAMLError as e:
             logger.error(f"配置文件 {self.config_path} 格式错误: {e}。将使用空配置。")
@@ -43,10 +45,12 @@ class ConfigManager:
 
     def _save_config(self, config: Dict[str, Any]):
         try:
+            logger.info(f"正在保存配置文件: {self.config_path}")
             with open(self.config_path, "w", encoding="utf-8") as f:
                 yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+            logger.info("配置文件保存成功")
         except Exception as e:
-            logger.error(f"配置文件保存失败: {e}")
+            logger.error(f"配置文件保存失败: {e}", exc_info=True)
 
     def get_character_mapping(self) -> Dict[str, List[int]]:
         return self.config.get("character_mapping", {})

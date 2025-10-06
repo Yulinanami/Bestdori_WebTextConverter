@@ -10,15 +10,16 @@ config_bp = Blueprint("config", __name__, url_prefix="/api")
 def get_config():
     config_manager = current_app.config["CONFIG_MANAGER"]
     try:
-        return jsonify(
-            {
-                "character_mapping": config_manager.get_character_mapping(),
-                "parsing_config": config_manager.get_parsing_config(),
-                "quotes_config": config_manager.get_quotes_config(),
-                "character_motions": config_manager.get_character_motions(),
-                "character_expressions": config_manager.get_character_expressions(),
-            }
-        )
+        logger.info("收到配置加载请求")
+        config_data = {
+            "character_mapping": config_manager.get_character_mapping(),
+            "parsing_config": config_manager.get_parsing_config(),
+            "quotes_config": config_manager.get_quotes_config(),
+            "character_motions": config_manager.get_character_motions(),
+            "character_expressions": config_manager.get_character_expressions(),
+        }
+        logger.info(f"配置加载成功 - 包含 {len(config_data)} 个配置项")
+        return jsonify(config_data)
     except Exception as e:
         logger.error(f"获取配置失败: {e}", exc_info=True)
         return jsonify({"error": f"获取配置失败: {str(e)}"}), 500
@@ -28,12 +29,13 @@ def get_config():
 def get_costumes():
     config_manager = current_app.config["CONFIG_MANAGER"]
     try:
-        return jsonify(
-            {
-                "available_costumes": config_manager.get_available_costumes(),
-                "default_costumes": config_manager.get_costume_mapping(),
-            }
-        )
+        logger.info("收到服装配置加载请求")
+        costume_data = {
+            "available_costumes": config_manager.get_available_costumes(),
+            "default_costumes": config_manager.get_costume_mapping(),
+        }
+        logger.info("服装配置加载成功")
+        return jsonify(costume_data)
     except Exception as e:
         logger.error(f"获取服装配置失败: {e}", exc_info=True)
         return jsonify({"error": f"获取服装配置失败: {str(e)}"}), 500

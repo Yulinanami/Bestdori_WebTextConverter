@@ -54,6 +54,19 @@ class ProjectConverter:
         )
         global_settings = project_file.get("globalSettings", {})
 
+        # 统计转换信息
+        talk_actions = [a for a in actions if a.get("characters") is not None]
+        layout_actions = [a for a in actions if a.get("layoutType") is not None]
+        unique_characters = set()
+        for action in actions:
+            if "characters" in action:
+                unique_characters.update(action.get("characters", []))
+            if "character" in action:
+                unique_characters.add(action["character"])
+
+        logger.info(f"转换统计 - 对话动作: {len(talk_actions)}, 布局动作: {len(layout_actions)}, 涉及角色数: {len(unique_characters)}")
+        logger.info(f"全局设置 - 服务器: {global_settings.get('server', 0)}, 背景: {global_settings.get('background', 'N/A')}, BGM: {global_settings.get('bgm', 'N/A')}")
+
         result = ConversionResult(
             server=global_settings.get("server", 0),
             voice=global_settings.get("voice", ""),
@@ -103,18 +116,29 @@ class ProjectConverter:
         motions = []
         character_states = talk_action.get("characterStates", {})
         for char_id_str, state in character_states.items():
+            char_id = int(char_id_str)
+            motion = state.get("motion", "")
+            expression = state.get("expression", "")
+            delay = state.get("delay", 0)
             motions.append(
                 {
-                    "character": self._get_output_id(int(char_id_str)),
-                    "motion": state.get("motion", ""),
-                    "expression": state.get("expression", ""),
-                    "delay": state.get("delay", 0),
+                    "character": self._get_output_id(char_id),
+                    "motion": motion,
+                    "expression": expression,
+                    "delay": delay,
                 }
             )
+            # 记录动作详情
+            if motion or expression:
+                logger.debug(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}ms")
+
         if speakers:
             action_name = " & ".join(names)
+            logger.debug(f"对话动作 - 说话人: {action_name} (ID: {character_ids}), 内容: {processed_body[:30]}...")
         else:
             action_name = narrator_name
+            logger.debug(f"对话动作 - 旁白: {processed_body[:30]}...")
+
         bestdori_action = ActionItem(
             characters=self._get_output_ids(character_ids),
             name=action_name,
@@ -127,18 +151,32 @@ class ProjectConverter:
         position = layout_action.get("position", {})
         initial_state = layout_action.get("initialState", {})
         char_id = int(layout_action.get("characterId", 0))
+        layout_type = layout_action.get("layoutType", "appear")
+        costume = layout_action.get("costume", "")
+        motion = initial_state.get("motion", "")
+        expression = initial_state.get("expression", "")
         from_pos = position.get("from", {})
         to_pos = position.get("to", {})
+        side_from = from_pos.get("side", "center")
+        side_to = to_pos.get("side", "center")
+        offset_from = from_pos.get("offsetX", 0)
+        offset_to = to_pos.get("offsetX", 0)
+
+        # 记录布局动作详情
+        logger.debug(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}")
+        logger.debug(f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})")
+        logger.debug(f"  初始状态 - 动作: {motion or '无'}, 表情: {expression or '无'}")
+
         bestdori_action = LayoutActionItem(
-            layoutType=layout_action.get("layoutType", "appear"),
+            layoutType=layout_type,
             character=self._get_output_id(char_id),
-            costume=layout_action.get("costume", ""),
-            motion=initial_state.get("motion", ""),
-            expression=initial_state.get("expression", ""),
-            sideFrom=from_pos.get("side", "center"),
-            sideFromOffsetX=from_pos.get("offsetX", 0),
-            sideTo=to_pos.get("side", "center"),
-            sideToOffsetX=to_pos.get("offsetX", 0),
+            costume=costume,
+            motion=motion,
+            expression=expression,
+            sideFrom=side_from,
+            sideFromOffsetX=offset_from,
+            sideTo=side_to,
+            sideToOffsetX=offset_to,
         )
 
         return asdict(bestdori_action)
