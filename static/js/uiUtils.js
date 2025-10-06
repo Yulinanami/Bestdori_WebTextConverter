@@ -67,7 +67,7 @@ export const ui = {
         const icon = document.getElementById("convertIcon");
         const text = document.getElementById("convertText");
         if (icon && text) {
-          icon.textContent = "🔄";
+          icon.textContent = "";
           text.textContent = "开始转换";
         }
       } else if (button.dataset.originalContent) {

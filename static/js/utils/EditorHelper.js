@@ -75,29 +75,61 @@ export const EditorHelper = {
    * @param {Object} params - 参数对象
    * @param {Object} params.editor - 编辑器实例（必须有 BaseEditor 的方法）
    * @param {string} params.modalId - 模态框ID
+   * @param {string} params.buttonId - 保存按钮ID（用于显示加载状态，可选）
    * @param {Function} params.applyChanges - 应用更改的回调
    * @param {Function} params.beforeSave - 保存前的回调（可选）
    * @param {Function} params.afterSave - 保存后的回调（可选）
+   * @param {string} params.loadingText - 加载提示文本（默认："保存中..."）
    */
-  saveEditor(params) {
-    const { editor, modalId, applyChanges, beforeSave, afterSave } = params;
+  async saveEditor(params) {
+    const {
+      editor,
+      modalId,
+      buttonId,
+      applyChanges,
+      beforeSave,
+      afterSave,
+      loadingText = "保存中..."
+    } = params;
 
-    if (beforeSave) {
-      beforeSave();
+    // 如果提供了 buttonId，使用加载动画
+    if (buttonId) {
+      ui.setButtonLoading(buttonId, true, loadingText);
     }
 
-    // 应用更改
-    applyChanges();
+    // 记录开始时间，确保最小显示时间
+    const startTime = Date.now();
+    const minDisplayTime = 300; // 最小显示300ms
 
-    // 清理备份
-    editor.clearBackup();
+    try {
+      if (beforeSave) {
+        await beforeSave();
+      }
 
-    if (afterSave) {
-      afterSave();
+      // 应用更改
+      await applyChanges();
+
+      // 清理备份
+      editor.clearBackup();
+
+      if (afterSave) {
+        await afterSave();
+      }
+
+      // 确保加载动画至少显示了最小时间
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minDisplayTime) {
+        await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsedTime));
+      }
+    } finally {
+      // 在关闭模态框之前恢复按钮状态
+      if (buttonId) {
+        ui.setButtonLoading(buttonId, false);
+      }
+
+      // 关闭模态框
+      modalService.close(modalId);
     }
-
-    // 关闭模态框
-    modalService.close(modalId);
   },
 
   /**

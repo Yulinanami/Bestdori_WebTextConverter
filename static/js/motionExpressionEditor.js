@@ -33,15 +33,22 @@ export const motionExpressionEditor = {
     closeBtn?.addEventListener("click", () => this.handleCloseAttempt());
   },
 
-  open() {
-    this.tempCustomMotions = JSON.parse(
-      JSON.stringify(motionManager.customItems)
+  async open() {
+    await ui.withButtonLoading(
+      "openMotionExpressionBtn",
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        this.tempCustomMotions = JSON.parse(
+          JSON.stringify(motionManager.customItems)
+        );
+        this.tempCustomExpressions = JSON.parse(
+          JSON.stringify(expressionManager.customItems)
+        );
+        this.renderLists();
+        ui.openModal("motionExpressionModal");
+      },
+      "加载中..."
     );
-    this.tempCustomExpressions = JSON.parse(
-      JSON.stringify(expressionManager.customItems)
-    );
-    this.renderLists();
-    ui.openModal("motionExpressionModal");
   },
 
   renderLists() {
@@ -141,16 +148,23 @@ export const motionExpressionEditor = {
     );
   },
 
-  reset() {
+  async reset() {
     if (
       confirm(
         "确定要恢复默认列表吗？您在此窗口中添加或删除的所有自定义项都将被丢弃。"
       )
     ) {
-      this.tempCustomMotions = [];
-      this.tempCustomExpressions = [];
-      this.renderLists();
-      ui.showStatus("已在编辑器中恢复默认，请点击保存以生效。", "info");
+      await ui.withButtonLoading(
+        "resetMotionExpressionBtn",
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          this.tempCustomMotions = [];
+          this.tempCustomExpressions = [];
+          this.renderLists();
+          ui.showStatus("已在编辑器中恢复默认，请点击保存以生效。", "info");
+        },
+        "恢复中..."
+      );
     }
   },
 

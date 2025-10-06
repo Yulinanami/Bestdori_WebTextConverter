@@ -93,16 +93,23 @@ export const positionManager = {
   },
 
   // 打开位置配置模态框
-  openPositionModal() {
-    this.tempAutoPositionMode = this.autoPositionMode;
-    this.tempManualPositions = DataUtils.deepClone(this.manualPositions);
-    const autoCheckbox = document.getElementById("autoPositionCheckbox");
-    if (autoCheckbox) {
-      autoCheckbox.checked = this.tempAutoPositionMode;
-    }
-    this.renderPositionList();
-    this.toggleManualConfig();
-    modalService.open("positionModal");
+  async openPositionModal() {
+    await ui.withButtonLoading(
+      "positionConfigBtn",
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        this.tempAutoPositionMode = this.autoPositionMode;
+        this.tempManualPositions = DataUtils.deepClone(this.manualPositions);
+        const autoCheckbox = document.getElementById("autoPositionCheckbox");
+        if (autoCheckbox) {
+          autoCheckbox.checked = this.tempAutoPositionMode;
+        }
+        this.renderPositionList();
+        this.toggleManualConfig();
+        modalService.open("positionModal");
+      },
+      "加载中..."
+    );
   },
 
   // 关闭模态框

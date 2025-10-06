@@ -134,52 +134,61 @@ export const live2dEditor = {
   },
 
   async open() {
-    ui.openModal("live2dEditorModal");
-    try {
-      let initialState;
-      const rawText = document.getElementById("inputText").value;
-      const projectState = editorService.getProjectState();
-      if (projectState) {
-        initialState = projectState;
-        ui.showStatus("已加载现有项目进度。", "info");
-      } else {
-        const response = await axios.post("/api/segment-text", {
-          text: rawText,
-        });
-        const segments = response.data.segments;
-        initialState = this.createProjectFileFromSegments(segments);
-        if (rawText.trim()) {
-          ui.showStatus("已根据当前文本创建新项目。", "info");
+    await EditorHelper.openEditor({
+      editor: baseEditor,
+      modalId: "live2dEditorModal",
+      buttonId: "openLive2dEditorBtn",
+      loadingText: "加载中...",
+      beforeOpen: async () => {
+        try {
+          let initialState;
+          const rawText = document.getElementById("inputText").value;
+          const projectState = editorService.getProjectState();
+          if (projectState) {
+            initialState = projectState;
+            ui.showStatus("已加载现有项目进度。", "info");
+          } else {
+            const response = await axios.post("/api/segment-text", {
+              text: rawText,
+            });
+            const segments = response.data.segments;
+            initialState = this.createProjectFileFromSegments(segments);
+            if (rawText.trim()) {
+              ui.showStatus("已根据当前文本创建新项目。", "info");
+            }
+          }
+          this.projectFileState = DataUtils.deepClone(initialState);
+          this.originalStateOnOpen = JSON.stringify(initialState);
+          historyManager.clear();
+        } catch (error) {
+          ui.showStatus(
+            `加载编辑器失败: ${error.response?.data?.error || error.message}`,
+            "error"
+          );
+          throw error;
         }
-      }
-      this.projectFileState = DataUtils.deepClone(initialState);
-      this.originalStateOnOpen = JSON.stringify(initialState);
-      historyManager.clear();
-      this.renderTimeline();
-      const usedCharacterNames = this._getUsedCharacterIds();
-      this.renderCharacterList(usedCharacterNames);
-      this.initDragAndDrop();
-      if (this.domCache.modal) this.domCache.modal.focus();
-      const timeline = this.domCache.timeline;
-      timeline.onclick = (e) => {
-        const card = e.target.closest(".layout-item");
-        if (!card) return;
-        if (e.target.matches(".layout-remove-btn")) {
-          this._deleteLayoutAction(card.dataset.id);
-        }
-      };
-      timeline.onchange = (e) => {
-        const card = e.target.closest(".layout-item");
-        if (!card || !e.target.matches("select, input")) return;
-        this._updateLayoutActionProperty(card.dataset.id, e.target);
-      };
-    } catch (error) {
-      ui.showStatus(
-        `加载编辑器失败: ${error.response?.data?.error || error.message}`,
-        "error"
-      );
-      this._closeEditor();
-    }
+      },
+      afterOpen: async () => {
+        this.renderTimeline();
+        const usedCharacterNames = this._getUsedCharacterIds();
+        this.renderCharacterList(usedCharacterNames);
+        this.initDragAndDrop();
+        if (this.domCache.modal) this.domCache.modal.focus();
+        const timeline = this.domCache.timeline;
+        timeline.onclick = (e) => {
+          const card = e.target.closest(".layout-item");
+          if (!card) return;
+          if (e.target.matches(".layout-remove-btn")) {
+            this._deleteLayoutAction(card.dataset.id);
+          }
+        };
+        timeline.onchange = (e) => {
+          const card = e.target.closest(".layout-item");
+          if (!card || !e.target.matches("select, input")) return;
+          this._updateLayoutActionProperty(card.dataset.id, e.target);
+        };
+      },
+    });
   },
 
   createProjectFileFromSegments(segments) {
@@ -214,10 +223,11 @@ export const live2dEditor = {
     return newProjectFile;
   },
 
-  save() {
-    EditorHelper.saveEditor({
+  async save() {
+    await EditorHelper.saveEditor({
       editor: baseEditor,
       modalId: "live2dEditorModal",
+      buttonId: "saveLayoutsBtn",
       applyChanges: () => {
         editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
@@ -323,8 +333,8 @@ export const live2dEditor = {
     return usedNames;
   },
 
-  _clearAllLayouts() {
-    editorService.projectManager.reset(
+  async _clearAllLayouts() {
+    await editorService.projectManager.reset(
       () => {
         const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions = newState.actions.filter((a) => a.type !== "layout");
@@ -335,6 +345,12 @@ export const live2dEditor = {
         this.originalStateOnOpen = JSON.stringify(newState);
         historyManager.clear();
         this.renderTimeline();
+      },
+      {
+        buttonId: "resetLayoutsBtn",
+        confirmMessage: "确定要清空所有布局吗？当前编辑模式下的所有布局修改都将丢失。",
+        loadingText: "清空中...",
+        successMessage: "已清空所有布局。"
       }
     );
   },

@@ -81,18 +81,37 @@ export const projectManager = {
    * @param {function} getDefaultStateFn - 一个能返回全新默认状态的函数。
    * @param {function} onComplete - 恢复成功后的回调。
    */
-  async reset(getDefaultStateFn, onComplete) {
-    if (!confirm("确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。")) {
+  async reset(getDefaultStateFn, onComplete, options = {}) {
+    const {
+      buttonId = null,
+      confirmMessage = "确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。",
+      loadingText = "恢复中...",
+      successMessage = "已恢复为默认状态。",
+      minDelay = 300
+    } = options;
+
+    if (!confirm(confirmMessage)) {
       return;
     }
-    try {
-      const newState = await getDefaultStateFn();
-      ui.showStatus("已恢复为默认状态。", "info");
-      if (onComplete) {
-        onComplete(newState);
+
+    const resetLogic = async () => {
+      await new Promise((resolve) => setTimeout(resolve, minDelay));
+      try {
+        const newState = await getDefaultStateFn();
+        ui.showStatus(successMessage, "info");
+        if (onComplete) {
+          onComplete(newState);
+        }
+      } catch (error) {
+        ui.showStatus(`恢复默认失败: ${error.message}`, "error");
+        throw error;
       }
-    } catch (error) {
-      ui.showStatus(`恢复默认失败: ${error.message}`, "error");
+    };
+
+    if (buttonId) {
+      await ui.withButtonLoading(buttonId, resetLogic, loadingText);
+    } else {
+      await resetLogic();
     }
   },
 };

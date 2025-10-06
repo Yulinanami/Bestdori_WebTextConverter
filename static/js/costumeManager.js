@@ -445,35 +445,42 @@ export const costumeManager = {
     );
 
     if (confirmed) {
-      const customCharacterCostumes = {};
-      const customCharacterAvailableCostumes = {};
-      Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
-        if (!this.builtInCharacters.has(name)) {
-          const characterKey = this.getCharacterKey(name);
-          if (this.tempCostumeChanges[characterKey] !== undefined) {
-            customCharacterCostumes[characterKey] =
-              this.tempCostumeChanges[characterKey];
-          }
-          if (this.tempAvailableCostumes[characterKey]) {
-            customCharacterAvailableCostumes[characterKey] = [
-              ...this.tempAvailableCostumes[characterKey],
-            ];
-          }
-        }
-      });
-      const defaultCostumesNameBased = this.convertDefaultCostumesToNameBased();
-      const defaultAvailableCostumesNameBased =
-        this.convertAvailableCostumesToNameBased();
-      this.tempCostumeChanges = {
-        ...defaultCostumesNameBased,
-        ...customCharacterCostumes,
-      };
-      this.tempAvailableCostumes = {
-        ...defaultAvailableCostumesNameBased,
-        ...customCharacterAvailableCostumes,
-      };
-      this.renderCostumeList();
-      ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
+      await ui.withButtonLoading(
+        "resetCostumesBtn",
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          const customCharacterCostumes = {};
+          const customCharacterAvailableCostumes = {};
+          Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
+            if (!this.builtInCharacters.has(name)) {
+              const characterKey = this.getCharacterKey(name);
+              if (this.tempCostumeChanges[characterKey] !== undefined) {
+                customCharacterCostumes[characterKey] =
+                  this.tempCostumeChanges[characterKey];
+              }
+              if (this.tempAvailableCostumes[characterKey]) {
+                customCharacterAvailableCostumes[characterKey] = [
+                  ...this.tempAvailableCostumes[characterKey],
+                ];
+              }
+            }
+          });
+          const defaultCostumesNameBased = this.convertDefaultCostumesToNameBased();
+          const defaultAvailableCostumesNameBased =
+            this.convertAvailableCostumesToNameBased();
+          this.tempCostumeChanges = {
+            ...defaultCostumesNameBased,
+            ...customCharacterCostumes,
+          };
+          this.tempAvailableCostumes = {
+            ...defaultAvailableCostumesNameBased,
+            ...customCharacterAvailableCostumes,
+          };
+          this.renderCostumeList();
+          ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
+        },
+        "恢复中..."
+      );
     }
   },
 

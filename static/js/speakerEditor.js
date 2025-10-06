@@ -234,49 +234,57 @@ export const speakerEditor = {
   },
 
   async open() {
-    ui.openModal("speakerEditorModal");
-
-    try {
-      let initialState;
-      const rawText = document.getElementById("inputText").value;
-      const projectState = editorService.getProjectState();
-      if (projectState) {
-        initialState = projectState;
-        ui.showStatus("已加载现有项目进度。", "info");
-      } else {
-        const response = await axios.post("/api/segment-text", {
-          text: rawText,
-        });
-        const segments = response.data.segments;
-        initialState = this.createProjectFileFromSegments(segments);
-      }
-      this.projectFileState = DataUtils.deepClone(initialState);
-      this.originalStateOnOpen = JSON.stringify(initialState);
-      historyManager.clear();
-      const usedCharacterIds = this.renderCanvas();
-      this.renderCharacterList(usedCharacterIds);
-      this.initDragAndDrop();
-      const canvas = document.getElementById("speakerEditorCanvas");
-      editorService.clearSelection();
-      editorService.attachSelection(canvas, ".dialogue-item");
-      canvas.addEventListener("selectionchange", (e) => {
-        const selectedIds = new Set(e.detail.selectedIds);
-        const allCards = canvas.querySelectorAll(".dialogue-item");
-        allCards.forEach((card) => {
-          if (selectedIds.has(card.dataset.id)) {
-            card.classList.add("is-selected");
+    await EditorHelper.openEditor({
+      editor: baseEditor,
+      modalId: "speakerEditorModal",
+      buttonId: "openSpeakerEditorBtn",
+      loadingText: "加载中...",
+      beforeOpen: async () => {
+        try {
+          let initialState;
+          const rawText = document.getElementById("inputText").value;
+          const projectState = editorService.getProjectState();
+          if (projectState) {
+            initialState = projectState;
+            ui.showStatus("已加载现有项目进度。", "info");
           } else {
-            card.classList.remove("is-selected");
+            const response = await axios.post("/api/segment-text", {
+              text: rawText,
+            });
+            const segments = response.data.segments;
+            initialState = this.createProjectFileFromSegments(segments);
           }
+          this.projectFileState = DataUtils.deepClone(initialState);
+          this.originalStateOnOpen = JSON.stringify(initialState);
+          historyManager.clear();
+        } catch (error) {
+          ui.showStatus(
+            `加载编辑器失败: ${error.response?.data?.error || error.message}`,
+            "error"
+          );
+          throw error;
+        }
+      },
+      afterOpen: async () => {
+        const usedCharacterIds = this.renderCanvas();
+        this.renderCharacterList(usedCharacterIds);
+        this.initDragAndDrop();
+        const canvas = document.getElementById("speakerEditorCanvas");
+        editorService.clearSelection();
+        editorService.attachSelection(canvas, ".dialogue-item");
+        canvas.addEventListener("selectionchange", (e) => {
+          const selectedIds = new Set(e.detail.selectedIds);
+          const allCards = canvas.querySelectorAll(".dialogue-item");
+          allCards.forEach((card) => {
+            if (selectedIds.has(card.dataset.id)) {
+              card.classList.add("is-selected");
+            } else {
+              card.classList.remove("is-selected");
+            }
+          });
         });
-      });
-    } catch (error) {
-      ui.showStatus(
-        `加载编辑器失败: ${error.response?.data?.error || error.message}`,
-        "error"
-      );
-      this._closeEditor();
-    }
+      },
+    });
   },
 
   // 使用 BaseEditor 的 executeCommand 方法
@@ -771,10 +779,11 @@ export const speakerEditor = {
     }, 0);
   },
 
-  save() {
-    EditorHelper.saveEditor({
+  async save() {
+    await EditorHelper.saveEditor({
       editor: baseEditor,
       modalId: "speakerEditorModal",
+      buttonId: "saveSpeakersBtn",
       applyChanges: () => {
         editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
@@ -805,17 +814,25 @@ export const speakerEditor = {
       const response = await axios.post("/api/segment-text", { text: rawText });
       return this.createProjectFileFromSegments(response.data.segments);
     };
-    editorService.projectManager.reset(getDefaultStateFn, (newState) => {
-      this.projectFileState = newState;
-      this.originalStateOnOpen = JSON.stringify(newState);
-      historyManager.clear();
-      const usedIds = this.renderCanvas();
-      this.renderCharacterList(usedIds);
-      const canvas = this.domCache.canvas;
-      if (canvas) {
-        editorService.detachSelection(canvas);
-        editorService.attachSelection(canvas, ".dialogue-item");
+
+    await editorService.projectManager.reset(
+      getDefaultStateFn,
+      (newState) => {
+        this.projectFileState = newState;
+        this.originalStateOnOpen = JSON.stringify(newState);
+        historyManager.clear();
+        const usedIds = this.renderCanvas();
+        this.renderCharacterList(usedIds);
+        const canvas = this.domCache.canvas;
+        if (canvas) {
+          editorService.detachSelection(canvas);
+          editorService.attachSelection(canvas, ".dialogue-item");
+        }
+      },
+      {
+        buttonId: "resetSpeakersBtn",
+        loadingText: "恢复中..."
       }
-    });
+    );
   },
 };

@@ -157,6 +157,11 @@
   height: 14px;
 }
 
+/* 转换按钮图标 - 默认隐藏 */
+#convertIcon:empty {
+  display: none;
+}
+
 /* 置顶按钮样式 */
 .pin-btn {
   background: none;

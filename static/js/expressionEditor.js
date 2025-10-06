@@ -296,10 +296,11 @@ export const expressionEditor = {
     }
   },
 
-  save() {
-    EditorHelper.saveEditor({
+  async save() {
+    await EditorHelper.saveEditor({
       editor: baseEditor,
       modalId: "expressionEditorModal",
+      buttonId: "saveExpressionsBtn",
       applyChanges: () => {
         editorService.projectManager.save(this.projectFileState, (savedState) => {
           baseEditor.originalStateOnOpen = JSON.stringify(savedState);
@@ -326,8 +327,8 @@ export const expressionEditor = {
     }
   },
 
-  reset() {
-    editorService.projectManager.reset(
+  async reset() {
+    await editorService.projectManager.reset(
       () => {
         const newState = DataUtils.deepClone(this.projectFileState);
         newState.actions.forEach((action) => {
@@ -341,120 +342,134 @@ export const expressionEditor = {
         this.originalStateOnOpen = JSON.stringify(newState);
         historyManager.clear();
         this.renderTimeline();
+      },
+      {
+        buttonId: "resetExpressionsBtn",
+        loadingText: "恢复中..."
       }
     );
   },
 
   async open() {
-    try {
-      this.tempLibraryItems = { motion: [], expression: [] };
-      let initialState;
-      const rawText = document.getElementById("inputText").value;
-      const projectState = editorService.getProjectState();
-      if (projectState) {
-        initialState = projectState;
-      } else {
-        const response = await axios.post("/api/segment-text", {
-          text: rawText,
-        });
-        initialState = this._createProjectFileFromSegments(
-          response.data.segments
-        );
-      }
-      this.projectFileState = DataUtils.deepClone(initialState);
-      this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-      this.stagedCharacters = this._calculateStagedCharacters(
-        this.projectFileState
-      );
-      historyManager.clear();
-      ui.openModal("expressionEditorModal");
-      const motionSearch = document.getElementById("motionSearchInput");
-      const expressionSearch = document.getElementById("expressionSearchInput");
-      if (motionSearch) motionSearch.value = "";
-      if (expressionSearch) expressionSearch.value = "";
-      this.renderTimeline();
-      this.domCache.modal?.focus();
-      const timeline = this.domCache.timeline;
-
-      timeline.onclick = (e) => {
-        const card = e.target.closest(".timeline-item");
-        if (!card) return;
-        if (e.target.matches(".setup-expressions-btn")) {
-          this.showExpressionSetupUI(card);
-          return;
-        }
-        if (e.target.matches(".clear-state-btn")) {
-          const dropZone = e.target.closest(".drop-zone");
-          const statusTag = e.target.closest(".character-status-tag");
-          if (dropZone && statusTag) {
-            const actionId = card.dataset.id;
-            const characterName = statusTag.dataset.characterName;
-            const type = dropZone.dataset.type;
-            this._executePropertyChangeCommand(
-              actionId,
-              characterName,
-              type,
-              "--"
+    await EditorHelper.openEditor({
+      editor: baseEditor,
+      modalId: "expressionEditorModal",
+      buttonId: "openExpressionEditorBtn",
+      loadingText: "加载中...",
+      beforeOpen: async () => {
+        try {
+          this.tempLibraryItems = { motion: [], expression: [] };
+          let initialState;
+          const rawText = document.getElementById("inputText").value;
+          const projectState = editorService.getProjectState();
+          if (projectState) {
+            initialState = projectState;
+          } else {
+            const response = await axios.post("/api/segment-text", {
+              text: rawText,
+            });
+            initialState = this._createProjectFileFromSegments(
+              response.data.segments
             );
           }
-          return;
+          this.projectFileState = DataUtils.deepClone(initialState);
+          this.originalStateOnOpen = JSON.stringify(this.projectFileState);
+          this.stagedCharacters = this._calculateStagedCharacters(
+            this.projectFileState
+          );
+          historyManager.clear();
+        } catch (error) {
+          ui.showStatus(
+            `加载编辑器失败: ${error.response?.data?.error || error.message}`,
+            "error"
+          );
+          throw error;
         }
-        if (e.target.matches(".layout-remove-btn")) {
-          this._deleteLayoutAction(card.dataset.id);
-          return;
-        }
-      };
+      },
+      afterOpen: async () => {
+        const motionSearch = document.getElementById("motionSearchInput");
+        const expressionSearch = document.getElementById("expressionSearchInput");
+        if (motionSearch) motionSearch.value = "";
+        if (expressionSearch) expressionSearch.value = "";
+        this.renderTimeline();
+        this.domCache.modal?.focus();
+        const timeline = this.domCache.timeline;
 
-      timeline.onchange = (e) => {
-        const card = e.target.closest(".layout-item");
-        if (card && e.target.matches("select, input")) {
-          this._updateLayoutActionProperty(card.dataset.id, e.target);
-        }
-      };
+        timeline.onclick = (e) => {
+          const card = e.target.closest(".timeline-item");
+          if (!card) return;
+          if (e.target.matches(".setup-expressions-btn")) {
+            this.showExpressionSetupUI(card);
+            return;
+          }
+          if (e.target.matches(".clear-state-btn")) {
+            const dropZone = e.target.closest(".drop-zone");
+            const statusTag = e.target.closest(".character-status-tag");
+            if (dropZone && statusTag) {
+              const actionId = card.dataset.id;
+              const characterName = statusTag.dataset.characterName;
+              const type = dropZone.dataset.type;
+              this._executePropertyChangeCommand(
+                actionId,
+                characterName,
+                type,
+                "--"
+              );
+            }
+            return;
+          }
+          if (e.target.matches(".layout-remove-btn")) {
+            this._deleteLayoutAction(card.dataset.id);
+            return;
+          }
+        };
 
-      // 使用 DragHelper 创建 onEnd 处理器
-      const onEndHandler = DragHelper.createOnEndHandler({
-        editor: baseEditor,
-        getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
-        groupSize: 50,
-        executeFn: (globalOldIndex, globalNewIndex) => {
-          this._executeCommand((currentState) => {
-            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
-            currentState.actions.splice(globalNewIndex, 0, movedItem);
-          });
-        },
-      });
+        timeline.onchange = (e) => {
+          const card = e.target.closest(".layout-item");
+          if (card && e.target.matches("select, input")) {
+            this._updateLayoutActionProperty(card.dataset.id, e.target);
+          }
+        };
 
-      // 清理旧的 Sortable 实例
-      this.sortableInstances.forEach(instance => instance?.destroy());
-      this.sortableInstances = [];
-
-      this.sortableInstances.push(new Sortable(
-        timeline,
-        DragHelper.createSortableConfig({
-          group: "timeline-cards",
-          onEnd: (evt) => {
-            document.removeEventListener("dragover", this.handleDragScrolling);
-            this.stopScrolling();
-            onEndHandler(evt);
+        // 使用 DragHelper 创建 onEnd 处理器
+        const onEndHandler = DragHelper.createOnEndHandler({
+          editor: baseEditor,
+          getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+          groupSize: 50,
+          executeFn: (globalOldIndex, globalNewIndex) => {
+            this._executeCommand((currentState) => {
+              const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+              currentState.actions.splice(globalNewIndex, 0, movedItem);
+            });
           },
-          extraConfig: {
-            sort: true,
-            onStart: () => {
-              document.addEventListener("dragover", this.handleDragScrolling);
+        });
+
+        // 清理旧的 Sortable 实例
+        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances = [];
+
+        this.sortableInstances.push(new Sortable(
+          timeline,
+          DragHelper.createSortableConfig({
+            group: "timeline-cards",
+            onEnd: (evt) => {
+              document.removeEventListener("dragover", this.handleDragScrolling);
+              this.stopScrolling();
+              onEndHandler(evt);
             },
-          },
-        })
-      ));
+            extraConfig: {
+              sort: true,
+              onStart: () => {
+                document.addEventListener("dragover", this.handleDragScrolling);
+              },
+            },
+          })
+        ));
 
-      // 渲染资源库并初始化拖放（必须在渲染后初始化）
-      this.renderLibraries();
-    } catch (error) {
-      ui.showStatus(
-        `加载编辑器失败: ${error.response?.data?.error || error.message}`,
-        "error"
-      );
-    }
+        // 渲染资源库并初始化拖放（必须在渲染后初始化）
+        this.renderLibraries();
+      },
+    });
   },
 
   // 使用 BaseEditor 的 getGlobalIndex 方法
