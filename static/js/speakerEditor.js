@@ -166,12 +166,10 @@ export const speakerEditor = {
     return closestCard;
   },
 
-  // 缓存失效
   _invalidateCache() {
     this._usedCharacterIdsCache = null;
   },
 
-  // 重新绑定选择功能
   _reattachSelection() {
     const canvas = this.domCache.canvas;
     if (canvas) {
@@ -181,8 +179,12 @@ export const speakerEditor = {
     }
   },
 
+  /**
+   * 获取所有已使用的角色ID(带缓存优化)
+   * 缓存在状态改变时由_invalidateCache()清除
+   * @returns {Set<number>} 角色ID集合
+   */
   _getUsedCharacterIds() {
-    // 使用缓存
     if (this._usedCharacterIdsCache) {
       return this._usedCharacterIdsCache;
     }
@@ -322,8 +324,12 @@ export const speakerEditor = {
   },
 
   /**
-   * 渲染左侧的文本片段卡片画布，并返回已使用的角色ID集合。
-   * @returns {Set<number>} 一个包含所有已使用角色ID的Set集合。
+   * 渲染左侧对话卡片画布
+   * 支持分组模式和普通模式两种渲染方式:
+   * - 分组模式: 每50条对话折叠为一组,提升长剧本性能
+   * - 普通模式: 一次性渲染所有对话卡片
+   * 卡片显示对话文本、说话人头像、序号,支持多说话人徽章
+   * @returns {Set<number>} 已使用的角色ID集合
    */
   renderCanvas() {
     const canvas = this.domCache.canvas;
@@ -469,6 +475,12 @@ export const speakerEditor = {
     listContainer.appendChild(fragment);
   },
 
+  /**
+   * 初始化拖拽功能
+   * 设置两个Sortable实例:
+   * 1. 角色列表 - 可拖出(clone模式),拖回时清除说话人
+   * 2. 对话画布 - 可排序,可接收角色拖入并分配说话人
+   */
   initDragAndDrop() {
     const characterList = this.domCache.characterList;
     const canvas = this.domCache.canvas;
@@ -478,11 +490,12 @@ export const speakerEditor = {
     this.sortableInstances.forEach(instance => instance?.destroy());
     this.sortableInstances = [];
 
+    // 角色列表的Sortable配置
     this.sortableInstances.push(new Sortable(characterList, {
       group: {
         name: "shared-speakers",
-        pull: "clone",
-        put: true,
+        pull: "clone", // 拖出时克隆
+        put: true, // 可接收拖回
       },
       sort: false,
       onMove: (evt) => {
@@ -496,6 +509,7 @@ export const speakerEditor = {
         this.stopScrolling();
       },
       onAdd: (evt) => {
+        // 拖回角色列表时,清除该对话的说话人
         const cardItem = evt.item;
         const actionId = cardItem.dataset.id;
         if (actionId) {
@@ -681,6 +695,13 @@ export const speakerEditor = {
     this.renderCharacterList(usedIds);
   },
 
+  /**
+   * 显示多说话人弹出菜单
+   * 点击多说话人徽章时触发,显示该对话的所有说话人列表
+   * 每个说话人旁边有删除按钮,点击外部自动关闭
+   * @param {string} actionId - 动作ID
+   * @param {HTMLElement} targetElement - 触发弹出菜单的元素(用于定位)
+   */
   showMultiSpeakerPopover(actionId, targetElement) {
     // 移除所有旧的 popover 防止内存泄漏
     DOMUtils.getElements("#speaker-popover").forEach(p => p.remove());

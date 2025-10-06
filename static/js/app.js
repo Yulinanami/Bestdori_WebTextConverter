@@ -24,7 +24,7 @@ import { eventBus } from "./services/EventBus.js";
 function initializeApp() {
   // 初始化服务层
   modalService.init();
-  eventBus.setDebug(false); // 生产环境设置为 false
+  eventBus.setDebug(false); 
 
   // 绑定经典视图事件
   bindClassicViewEvents();

@@ -142,6 +142,18 @@ export function initPerformanceSettingsPersistence() {
   });
 }
 
+/**
+ * 渲染分组折叠视图
+ * 将大量动作分组显示,每组50条(可配置)
+ * 点击组头展开/折叠该组,同时只能展开一组
+ * 性能优化:只渲染展开组的DOM元素,其他组只显示头部
+ * @param {HTMLElement} container - 容器元素
+ * @param {Array} actions - 动作数组
+ * @param {number|null} activeGroupIndex - 当前展开的组索引
+ * @param {Function} onGroupClick - 组头点击回调
+ * @param {Function} renderItemFn - 单个动作渲染函数
+ * @param {number} groupSize - 每组大小,默认50
+ */
 export function renderGroupedView({
   container,
   actions,

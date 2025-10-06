@@ -1,21 +1,15 @@
-/**
- * ApiService - 统一的 HTTP 请求服务
- * 封装 axios 调用，提供统一的错误处理和请求配置
- */
-
+// API服务 - 封装所有后端接口调用
 class ApiService {
   constructor() {
     this.baseURL = "";
-    this.timeout = 30000; // 30秒超时
+    this.timeout = 30000;
     this.defaultHeaders = {
       "Content-Type": "application/json",
     };
   }
 
   /**
-   * 处理 API 错误
-   * @param {Error} error - axios 错误对象
-   * @returns {string} 错误消息
+   * 统一错误处理,将axios错误转换为友好的错误消息
    */
   _handleError(error) {
     if (error.response) {
@@ -48,12 +42,6 @@ class ApiService {
     }
   }
 
-  /**
-   * 通用 GET 请求
-   * @param {string} url - 请求路径
-   * @param {object} config - axios 配置
-   * @returns {Promise<any>} 响应数据
-   */
   async get(url, config = {}) {
     try {
       const response = await axios.get(url, {
@@ -69,11 +57,7 @@ class ApiService {
   }
 
   /**
-   * 通用 POST 请求
-   * @param {string} url - 请求路径
-   * @param {any} data - 请求数据
-   * @param {object} config - axios 配置
-   * @returns {Promise<any>} 响应数据
+   * POST请求 - 自动处理FormData,跳过JSON header
    */
   async post(url, data = {}, config = {}) {
     try {
@@ -90,13 +74,6 @@ class ApiService {
     }
   }
 
-  /**
-   * 通用 PUT 请求
-   * @param {string} url - 请求路径
-   * @param {any} data - 请求数据
-   * @param {object} config - axios 配置
-   * @returns {Promise<any>} 响应数据
-   */
   async put(url, data = {}, config = {}) {
     try {
       const response = await axios.put(url, data, {
@@ -112,12 +89,6 @@ class ApiService {
     }
   }
 
-  /**
-   * 通用 DELETE 请求
-   * @param {string} url - 请求路径
-   * @param {object} config - axios 配置
-   * @returns {Promise<any>} 响应数据
-   */
   async delete(url, config = {}) {
     try {
       const response = await axios.delete(url, {
@@ -132,30 +103,18 @@ class ApiService {
     }
   }
 
-  // ==================== 业务相关 API ====================
+  // ==================== 业务 API ====================
 
-  /**
-   * 获取配置
-   * @returns {Promise<object>} 配置数据
-   */
   async getConfig() {
     return await this.get("/api/config");
   }
 
-  /**
-   * 获取服装配置
-   * @returns {Promise<object>} 服装配置数据
-   */
   async getCostumes() {
     return await this.get("/api/costumes");
   }
 
   /**
-   * 转换文本
-   * @param {object} projectFile - 项目文件
-   * @param {Array} quoteConfig - 引号配置
-   * @param {string} narratorName - 旁白名称
-   * @returns {Promise<object>} 转换结果
+   * 转换项目文件为Bestdori JSON
    */
   async convertText(projectFile, quoteConfig = [], narratorName = " ") {
     return await this.post("/api/convert", {
@@ -166,27 +125,15 @@ class ApiService {
   }
 
   /**
-   * 上传文件
-   * @param {File} file - 文件对象
-   * @returns {Promise<object>} 上传结果
+   * 上传文本文件(.txt, .docx等)
    */
   async uploadFile(file) {
     const formData = new FormData();
     formData.append("file", file);
-
-    return await this.post("/api/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    // 不设置Content-Type,让浏览器自动添加boundary
+    return await this.post("/api/upload", formData);
   }
 
-  /**
-   * 下载结果
-   * @param {string} content - 内容
-   * @param {string} filename - 文件名
-   * @returns {Promise<Blob>} 文件 Blob
-   */
   async downloadResult(content, filename) {
     try {
       const response = await axios.post(
@@ -205,13 +152,6 @@ class ApiService {
     }
   }
 
-  /**
-   * 批量转换
-   * @param {Array} files - 文件列表
-   * @param {Array} quoteConfig - 引号配置
-   * @param {string} narratorName - 旁白名称
-   * @returns {Promise<object>} 批量转换结果
-   */
   async batchConvert(files, quoteConfig = [], narratorName = " ") {
     return await this.post("/api/batch-convert", {
       files,

@@ -1,4 +1,4 @@
-// 状态管理
+// 全局状态管理
 const _state = {
   currentResult: "",
   currentConfig: {},

@@ -153,6 +153,13 @@ export const configManager = {
     }
   },
 
+  /**
+   * 重置角色配置后更新服装配置
+   * 保留现有角色的服装设置,为新角色使用默认服装
+   * 确保重置角色列表时不会丢失用户已配置的服装
+   * @param {Object} previousCostumes - 重置前的服装映射
+   * @param {Object} previousAvailableCostumes - 重置前的可用服装列表
+   */
   async updateCostumesAfterConfigReset(
     previousCostumes,
     previousAvailableCostumes
@@ -324,7 +331,16 @@ export const configManager = {
     );
   },
 
-  // 导入配置（包含所有子配置）
+  /**
+   * 导入完整配置文件
+   * 支持导入多个子系统配置:
+   * - character_mapping: 角色映射
+   * - custom_quotes: 自定义引号
+   * - costume_mapping/available_costumes: 服装配置
+   * - position_config: 位置配置
+   * 解析JSON文件后依次调用各子系统的导入方法
+   * @param {File} file - 配置JSON文件
+   */
   importConfig(file) {
     const reader = new FileReader();
     reader.onload = (e) => {

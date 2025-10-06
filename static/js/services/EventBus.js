@@ -1,29 +1,20 @@
-/**
- * EventBus - 事件总线服务
- * 用于模块间的解耦通信
- */
-
+// 事件总线 - 用于模块间解耦通信
 class EventBus {
   constructor() {
     this.events = {};
     this.debugMode = false;
   }
 
-  /**
-   * 启用调试模式
-   * @param {boolean} enabled - 是否启用
-   */
   setDebug(enabled) {
     this.debugMode = enabled;
   }
 
   /**
    * 订阅事件
-   * @param {string} eventName - 事件名称
+   * @param {string} eventName - 事件名
    * @param {Function} callback - 回调函数
-   * @param {object} options - 选项
-   * @param {boolean} options.once - 是否只执行一次
-   * @returns {Function} 取消订阅的函数
+   * @param {object} options - {once: boolean} 是否只执行一次
+   * @returns {Function} 取消订阅函数
    */
   on(eventName, callback, options = {}) {
     if (typeof callback !== "function") {
@@ -52,20 +43,12 @@ class EventBus {
     return () => this.off(eventName, callback);
   }
 
-  /**
-   * 订阅事件（只执行一次）
-   * @param {string} eventName - 事件名称
-   * @param {Function} callback - 回调函数
-   * @returns {Function} 取消订阅的函数
-   */
   once(eventName, callback) {
     return this.on(eventName, callback, { once: true });
   }
 
   /**
-   * 取消订阅事件
-   * @param {string} eventName - 事件名称
-   * @param {Function} callback - 回调函数（可选，不传则取消所有）
+   * 取消订阅 - 不传callback则取消该事件的所有订阅
    */
   off(eventName, callback = null) {
     if (!this.events[eventName]) {
@@ -94,11 +77,6 @@ class EventBus {
     }
   }
 
-  /**
-   * 触发事件
-   * @param {string} eventName - 事件名称
-   * @param {any} data - 事件数据
-   */
   emit(eventName, data = null) {
     if (!this.events[eventName]) {
       if (this.debugMode) {
@@ -131,26 +109,14 @@ class EventBus {
     });
   }
 
-  /**
-   * 获取所有事件名称
-   * @returns {string[]} 事件名称列表
-   */
   getEventNames() {
     return Object.keys(this.events);
   }
 
-  /**
-   * 获取指定事件的监听器数量
-   * @param {string} eventName - 事件名称
-   * @returns {number} 监听器数量
-   */
   getListenerCount(eventName) {
     return this.events[eventName]?.length || 0;
   }
 
-  /**
-   * 清空所有事件监听器
-   */
   clear() {
     this.events = {};
     if (this.debugMode) {
@@ -159,10 +125,8 @@ class EventBus {
   }
 
   /**
-   * 等待事件触发
-   * @param {string} eventName - 事件名称
-   * @param {number} timeout - 超时时间（毫秒），0 表示不超时
-   * @returns {Promise<any>} 事件数据
+   * 等待事件触发,返回Promise
+   * @param {number} timeout - 超时时间(ms), 0表示不超时
    */
   waitFor(eventName, timeout = 0) {
     return new Promise((resolve, reject) => {

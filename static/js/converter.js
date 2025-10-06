@@ -5,6 +5,12 @@ import { quoteManager } from "./quoteManager.js";
 import { apiService } from "./services/ApiService.js";
 import { eventBus, EVENTS } from "./services/EventBus.js";
 
+/**
+ * 将纯文本转换为项目文件格式
+ * 自动识别"角色名:对话"格式，未匹配的内容作为旁白
+ * @param {string} text - 输入文本，段落间用空行分隔
+ * @returns {Object} 项目文件对象 { version, actions }
+ */
 function createProjectFileFromText(text) {
   const segments = text
     .split(/\n\s*\n/)
@@ -65,6 +71,12 @@ export const converter = {
     );
   },
 
+  /**
+   * 从项目文件转换为Bestdori JSON格式
+   * @param {Object} projectFile - 项目文件对象
+   * @param {Array<Array<string>>} selectedQuotes - 引号对数组 [["「", "」"]]
+   * @param {string} narratorName - 旁白名称
+   */
   async convertFromProjectFile(projectFile, selectedQuotes = [], narratorName) {
     const buttonId = "convertBtn";
     try {

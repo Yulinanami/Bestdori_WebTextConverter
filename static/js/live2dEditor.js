@@ -264,6 +264,13 @@ export const live2dEditor = {
     });
   },
 
+  /**
+   * 一键智能布局算法
+   * 1. 清空所有现有布局动作
+   * 2. 遍历对话动作,找到每个角色的首次发言
+   * 3. 在首次发言前插入登场动作(appear)
+   * 4. 根据配置自动设置位置和服装
+   */
   _applyAutoLayout() {
     if (
       !confirm(
@@ -273,11 +280,14 @@ export const live2dEditor = {
       return;
     }
     this._executeCommand((currentState) => {
+      // 清空现有布局
       currentState.actions = currentState.actions.filter(
         (a) => a.type !== "layout"
       );
       const appearedCharacterNames = new Set();
       const newActions = [];
+
+      // 遍历对话,为首次发言的角色创建登场动作
       currentState.actions.forEach((action) => {
         if (action.type === "talk" && action.speakers.length > 0) {
           action.speakers.forEach((speaker) => {
@@ -571,6 +581,13 @@ export const live2dEditor = {
     ));
   },
 
+  /**
+   * 插入布局动作(拖拽角色到时间轴时调用)
+   * 根据角色的历史状态智能判断动作类型:
+   * - 角色未登场 -> appear(登场)
+   * - 角色已登场 -> move(移动)
+   * 自动继承上一次的服装和位置
+   */
   insertLayoutAction(characterId, characterName, index) {
     this._executeCommand((currentState) => {
       const previousState = this._getCharacterStateAtIndex(
@@ -627,6 +644,13 @@ export const live2dEditor = {
     return { position: "center", offset: 0 };
   },
 
+  /**
+   * 渲染Live2D布局编辑器时间轴
+   * 渲染两种类型的卡片:
+   * - talk卡片: 显示对话内容和说话人信息(只读)
+   * - layout卡片: 可编辑的布局动作,包含类型/位置/服装/偏移量选择器
+   * 支持分组模式(50条/组)优化长剧本性能,自动显示卡片序号和布局类型样式
+   */
   renderTimeline() {
     const timeline = this.domCache.timeline;
     if (!timeline) return;
@@ -829,10 +853,20 @@ export const live2dEditor = {
     listContainer.appendChild(fragment);
   },
 
+  /**
+   * 获取角色在指定索引位置的状态
+   * 通过回溯历史布局动作,追踪角色的登场状态、位置和服装
+   * @param {Array} actions - 动作数组
+   * @param {string} characterName - 角色名
+   * @param {number} startIndex - 检查的起始索引
+   * @returns {Object} { onStage: 是否在场, lastPosition: 最后位置, lastCostume: 最后服装 }
+   */
   _getCharacterStateAtIndex(actions, characterName, startIndex) {
     let onStage = false;
     let lastPosition = null;
     let lastCostume = null;
+
+    // 从头遍历到指定索引,追踪角色状态变化
     for (let i = 0; i < startIndex; i++) {
       const action = actions[i];
       if (action.type === "layout" && action.characterName === characterName) {

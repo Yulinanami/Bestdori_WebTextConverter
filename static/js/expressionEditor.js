@@ -599,6 +599,13 @@ export const expressionEditor = {
     return characters;
   },
 
+  /**
+   * 渲染表情编辑器时间轴
+   * 渲染两种类型的卡片:
+   * - talk卡片: 显示对话内容,可设置每个登场角色的动作/表情
+   * - layout卡片: Live2D布局动作(登场/移动/退场),可编辑位置和服装
+   * 支持分组模式(50条/组)和普通模式,自动显示卡片序号和表情设置状态
+   */
   renderTimeline() {
     const timeline = this.domCache.timeline;
     if (!timeline) return;
@@ -778,6 +785,15 @@ export const expressionEditor = {
     }
   },
 
+  /**
+   * 为动作渲染角色状态栏
+   * 根据动作类型渲染:
+   * - talk动作: 为所有登场角色创建状态标签
+   * - layout动作: 为该布局涉及的角色创建状态标签
+   * 每个状态标签包含角色头像、名称、动作/表情拖放区和清除按钮
+   * @param {Object} action - 动作对象
+   * @returns {HTMLElement} 状态栏DOM元素
+   */
   _renderStatusBarForAction(action) {
     const statusTagTemplate = document.getElementById(
       "character-status-tag-template"
@@ -1017,6 +1033,11 @@ export const expressionEditor = {
     ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
   },
 
+  /**
+   * 批量打开Live2D浏览器查看器
+   * 扫描当前时间轴中的所有服装ID,为每个服装打开Bestdori Live2D浏览器
+   * 超过5个服装时需要用户确认,避免打开过多标签页
+   */
   _openLive2dViewers() {
     if (!this.projectFileState || !this.projectFileState.actions) {
       ui.showStatus("没有可分析的剧情内容。", "error");

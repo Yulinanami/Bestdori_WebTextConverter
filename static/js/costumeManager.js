@@ -80,7 +80,12 @@ export const costumeManager = {
     return characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "_");
   },
 
-  // 转换可用服装列表为基于角色名称的映射
+  /**
+   * 转换可用服装列表为基于角色名称的映射
+   * 原始数据按角色ID存储,转换为按角色名称存储
+   * 自动包含默认服装(如果不在列表中会自动添加)
+   * @returns {Object} 角色名称到服装ID数组的映射
+   */
   convertAvailableCostumesToNameBased() {
     const nameBased = {};
     Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
@@ -206,7 +211,14 @@ export const costumeManager = {
     );
   },
 
-  // 渲染服装列表
+  /**
+   * 渲染服装配置列表
+   * 为每个角色创建配置卡片,包含:
+   * - 角色头像和名称
+   * - 当前服装下拉选择器
+   * - 可折叠的详细配置区域(服装ID列表、添加/编辑/删除按钮)
+   * 使用临时状态(tempCostumeChanges/tempAvailableCostumes)进行编辑
+   */
   renderCostumeList() {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
