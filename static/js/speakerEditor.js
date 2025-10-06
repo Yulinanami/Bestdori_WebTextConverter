@@ -114,9 +114,6 @@ export const speakerEditor = {
       ui.closeModal("speakerEditorModal");
     };
     this.domCache.modal
-      ?.querySelector(".btn-modal-close")
-      ?.addEventListener("click", handleCloseAttempt, true);
-    this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {

@@ -120,9 +120,6 @@ export const expressionEditor = {
       this._closeEditor();
     };
     this.domCache.modal
-      ?.querySelector(".btn-modal-close")
-      ?.addEventListener("click", handleCloseAttempt);
-    this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt);
     document.addEventListener("historychange", (e) => {
