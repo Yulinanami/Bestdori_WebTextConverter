@@ -28,3 +28,15 @@
     transform: translateX(100%);
   }
 }
+
+/* 状态提示滑入动画（从左侧滑入） */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

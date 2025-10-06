@@ -110,10 +110,17 @@
 
 /* 状态消息 */
 .status-message {
-  margin-top: var(--spacing-sm);
+  position: fixed;
+  top: 20px;
+  left: 20px;
   padding: 12px 16px;
   border-radius: var(--radius-md);
   font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  max-width: 500px;
+  animation: slideInLeft 0.3s ease;
 }
 
 .status-success {

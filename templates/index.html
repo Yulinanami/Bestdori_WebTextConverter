@@ -559,11 +559,6 @@
               </div>
             </div>
 
-            <!-- 状态消息容器 -->
-            <div
-              id="statusMessage"
-              class="status-message status-info hidden"
-            ></div>
           </div>
           <!-- 经典视图的结果显示区域 -->
           <div class="section hidden" id="resultSection">
@@ -1183,5 +1178,11 @@
         src="{{ url_for('static', filename='js/app.js') }}"
       ></script>
     </div>
+
+    <!-- 状态消息容器（移到 body 直接子元素，确保 fixed 定位相对于视口） -->
+    <div
+      id="statusMessage"
+      class="status-message status-info hidden"
+    ></div>
   </body>
 </html>
