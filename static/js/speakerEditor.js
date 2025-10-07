@@ -827,30 +827,36 @@ export const speakerEditor = {
   },
 
   async reset() {
-    const getDefaultStateFn = async () => {
+    if (!confirm("确定要恢复默认说话人吗？此操作可以撤销。")) {
+      return;
+    }
+
+    const resetBtn = document.getElementById("resetSpeakersBtn");
+    const originalText = resetBtn?.textContent;
+    if (resetBtn) resetBtn.textContent = "恢复中...";
+
+    try {
       const rawText = document.getElementById("inputText").value;
       const response = await axios.post("/api/segment-text", { text: rawText });
-      return this.createProjectFileFromSegments(response.data.segments);
-    };
+      const defaultState = this.createProjectFileFromSegments(response.data.segments);
 
-    await editorService.projectManager.reset(
-      getDefaultStateFn,
-      (newState) => {
-        this.projectFileState = newState;
-        this.originalStateOnOpen = JSON.stringify(newState);
-        historyManager.clear();
-        const usedIds = this.renderCanvas();
-        this.renderCharacterList(usedIds);
-        const canvas = this.domCache.canvas;
-        if (canvas) {
-          editorService.detachSelection(canvas);
-          editorService.attachSelection(canvas, ".dialogue-item");
-        }
-      },
-      {
-        buttonId: "resetSpeakersBtn",
-        loadingText: "恢复中..."
+      this._executeCommand((currentState) => {
+        // 将 defaultState 的所有属性复制到 currentState
+        Object.assign(currentState, defaultState);
+      });
+
+      // 重新附加选择功能
+      const canvas = this.domCache.canvas;
+      if (canvas) {
+        editorService.detachSelection(canvas);
+        editorService.attachSelection(canvas, ".dialogue-item");
       }
-    );
+
+      ui.showStatus("已恢复默认说话人。", "success");
+    } catch (error) {
+      ui.showStatus(`恢复失败: ${error.message}`, "error");
+    } finally {
+      if (resetBtn && originalText) resetBtn.textContent = originalText;
+    }
   },
 };

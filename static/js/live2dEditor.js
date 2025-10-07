@@ -341,27 +341,22 @@ export const live2dEditor = {
   },
 
   async _clearAllLayouts() {
-    await editorService.projectManager.reset(
-      () => {
-        const newState = DataUtils.deepClone(this.projectFileState);
-        newState.actions = newState.actions.filter((a) => a.type !== "layout");
-        return newState;
-      },
-      (newState) => {
-        this.projectFileState = newState;
-        this.originalStateOnOpen = JSON.stringify(newState);
-        historyManager.clear();
-        this.renderTimeline();
-        const usedCharacterNames = this._getUsedCharacterIds();
-        this.renderCharacterList(usedCharacterNames);
-      },
-      {
-        buttonId: "resetLayoutsBtn",
-        confirmMessage: "确定要清空所有布局吗？当前编辑模式下的所有布局修改都将丢失。",
-        loadingText: "清空中...",
-        successMessage: "已清空所有布局。"
-      }
-    );
+    if (!confirm("确定要清空所有布局吗？此操作可以撤销。")) {
+      return;
+    }
+
+    const resetBtn = document.getElementById("resetLayoutsBtn");
+    const originalText = resetBtn?.textContent;
+    if (resetBtn) resetBtn.textContent = "清空中...";
+
+    try {
+      this._executeCommand((currentState) => {
+        currentState.actions = currentState.actions.filter((a) => a.type !== "layout");
+      });
+      ui.showStatus("已清空所有布局。", "success");
+    } finally {
+      if (resetBtn && originalText) resetBtn.textContent = originalText;
+    }
   },
 
   _handleTimelineEvent(e) {

@@ -325,26 +325,25 @@ export const expressionEditor = {
   },
 
   async reset() {
-    await editorService.projectManager.reset(
-      () => {
-        const newState = DataUtils.deepClone(this.projectFileState);
-        newState.actions.forEach((action) => {
+    if (!confirm("确定要恢复默认表情动作吗？此操作可以撤销。")) {
+      return;
+    }
+
+    const resetBtn = document.getElementById("resetExpressionsBtn");
+    const originalText = resetBtn?.textContent;
+    if (resetBtn) resetBtn.textContent = "恢复中...";
+
+    try {
+      this._executeCommand((currentState) => {
+        currentState.actions.forEach((action) => {
           if (action.type === "talk") action.characterStates = {};
           else if (action.type === "layout") action.initialState = {};
         });
-        return newState;
-      },
-      (newState) => {
-        this.projectFileState = newState;
-        this.originalStateOnOpen = JSON.stringify(newState);
-        historyManager.clear();
-        this.renderTimeline();
-      },
-      {
-        buttonId: "resetExpressionsBtn",
-        loadingText: "恢复中..."
-      }
-    );
+      });
+      ui.showStatus("已恢复默认表情动作。", "success");
+    } finally {
+      if (resetBtn && originalText) resetBtn.textContent = originalText;
+    }
   },
 
   async open() {
