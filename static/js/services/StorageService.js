@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   MOTION_CONFIG: "bestdori_motion_config",
   EXPRESSION_CONFIG: "bestdori_expression_config",
   LIVE2D_SUBSEQUENT_MODE: "bestdori_live2d_subsequent_mode",
+  SPEAKER_MULTI_SELECT_MODE: "bestdori_speaker_multi_select_mode",
 };
 
 class StorageService {

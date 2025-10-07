@@ -6,6 +6,7 @@ import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -43,6 +44,8 @@ export const speakerEditor = {
     baseEditor.activeGroupIndex = value;
   },
 
+  // 多选模式切换按钮
+  isMultiSelectMode: false, 
   // DOM 缓存
   domCache: {},
   // 计算结果缓存
@@ -63,7 +66,12 @@ export const speakerEditor = {
       modal: document.getElementById("speakerEditorModal"),
       undoBtn: document.getElementById("undoBtn"),
       redoBtn: document.getElementById("redoBtn"),
+      toggleMultiSelectBtn: document.getElementById("toggleMultiSelectBtn"), 
     };
+
+    // 从本地存储加载多选模式配置
+    const savedMode = storageService.get(STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE);
+    this.isMultiSelectMode = savedMode === true;
 
     document
       .getElementById("openSpeakerEditorBtn")
@@ -82,6 +90,7 @@ export const speakerEditor = {
       ?.addEventListener("click", () => this.reset());
     this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
     this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
+    this.domCache.toggleMultiSelectBtn?.addEventListener("click", () => this._toggleMultiSelectMode());
     const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
@@ -139,6 +148,63 @@ export const speakerEditor = {
     });
   },
 
+  /**
+   * 切换多选模式的状态和UI
+   */
+  _toggleMultiSelectMode() {
+    this.isMultiSelectMode = !this.isMultiSelectMode;
+    storageService.set(STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE, this.isMultiSelectMode);
+    const btn = this.domCache.toggleMultiSelectBtn;
+    if (btn) {
+      if (this.isMultiSelectMode) {
+        btn.textContent = "多选: 开";
+      } else {
+        btn.textContent = "多选: 关";
+      }
+    }
+    // 切换模式时清空当前选择，避免混淆
+    editorService.clearSelection();
+    this.domCache.canvas?.dispatchEvent(
+      new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
+    );
+  },
+
+  /**
+   * 处理卡片点击事件，根据多选模式执行不同操作
+   * @param {MouseEvent} e - 点击事件对象
+   */
+  _handleCardClick(e) {
+    const item = e.target.closest(".dialogue-item");
+    if (!item || !item.dataset.id) return;
+    const id = item.dataset.id;
+    if (this.isMultiSelectMode) {
+      editorService.selectionManager.toggle(id);
+    } else {
+      if (e.ctrlKey || e.metaKey) {
+        editorService.selectionManager.toggle(id);
+      } else if (e.shiftKey) {
+        editorService.selectionManager.selectRange(id, this.domCache.canvas, ".dialogue-item");
+      } else {
+        const isAlreadyOnlySelected =
+          editorService.selectionManager.selectedIds.has(id) &&
+          editorService.selectionManager.selectedIds.size === 1;
+        if (isAlreadyOnlySelected) {
+          editorService.selectionManager.clear();
+        } else {
+          editorService.selectionManager.selectSingle(id);
+        }
+      }
+    }
+    
+    // 更新 lastSelectedId 并触发事件
+    editorService.selectionManager.lastSelectedId = editorService.selectionManager.selectedIds.has(id) ? id : null;
+    this.domCache.canvas.dispatchEvent(
+      new CustomEvent("selectionchange", {
+        detail: { selectedIds: editorService.selectionManager.getSelectedIds() },
+      })
+    );
+  },
+
   // 根据 Y 坐标查找最接近的对话卡片（用于拖拽插入位置计算）
   _findClosestCard(y) {
     const canvas = this.domCache.canvas;
@@ -177,9 +243,14 @@ export const speakerEditor = {
   _reattachSelection() {
     const canvas = this.domCache.canvas;
     if (canvas) {
-      editorService.detachSelection(canvas);
+      if (this._boundCardClickHandler) {
+        canvas.removeEventListener("click", this._boundCardClickHandler);
+      }
       editorService.clearSelection();
-      editorService.attachSelection(canvas, ".dialogue-item");
+      if (!this._boundCardClickHandler) {
+        this._boundCardClickHandler = this._handleCardClick.bind(this);
+      }
+      canvas.addEventListener("click", this._boundCardClickHandler);
     }
   },
 
@@ -272,12 +343,20 @@ export const speakerEditor = {
         }
       },
       afterOpen: async () => {
+        if (this.domCache.toggleMultiSelectBtn) {
+            this.domCache.toggleMultiSelectBtn.textContent = this.isMultiSelectMode ? "多选: 开" : "多选: 关";
+        }
+
         const usedCharacterIds = this.renderCanvas();
         this.renderCharacterList(usedCharacterIds);
         this.initDragAndDrop();
         const canvas = document.getElementById("speakerEditorCanvas");
-        editorService.clearSelection();
-        editorService.attachSelection(canvas, ".dialogue-item");
+        editorService.clearSelection(); 
+        if (this._boundCardClickHandler) { // 移除旧的监听器，防止重复绑定
+            canvas.removeEventListener("click", this._boundCardClickHandler);
+        }
+        this._boundCardClickHandler = this._handleCardClick.bind(this);
+        canvas.addEventListener("click", this._boundCardClickHandler);
         canvas.addEventListener("selectionchange", (e) => {
           const selectedIds = new Set(e.detail.selectedIds);
           const allCards = canvas.querySelectorAll(".dialogue-item");
@@ -649,7 +728,7 @@ export const speakerEditor = {
   // 更新对话的说话人分配（支持多选批量分配）
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = editorService.selectionManager.getSelectedIds();
-    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
+    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId]; 
     this._executeCommand((currentState) => {
       targetIds.forEach((id) => {
         const actionToUpdate = currentState.actions.find((a) => a.id === id);
@@ -668,7 +747,6 @@ export const speakerEditor = {
     this._invalidateCache();
     const usedIds = this._getUsedCharacterIds();
     this.renderCharacterList(usedIds);
-
     editorService.clearSelection();
     this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
