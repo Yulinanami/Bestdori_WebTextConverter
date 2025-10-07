@@ -7,6 +7,7 @@ import { EditorHelper } from "./utils/EditorHelper.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
 import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js"; 
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -46,7 +47,10 @@ export const live2dEditor = {
   // 滚动动画
   scrollAnimationFrame: null,
   scrollSpeed: 0,
+  // 后续布局模式: 'move' 或 'hide'
+  subsequentLayoutMode: 'move',
 
+  // 初始化编辑器，绑定事件监听器和快捷键
   init() {
     // 缓存 DOM 元素
     this.domCache = {
@@ -56,7 +60,14 @@ export const live2dEditor = {
       modal: document.getElementById("live2dEditorModal"),
       undoBtn: document.getElementById("live2dUndoBtn"),
       redoBtn: document.getElementById("live2dRedoBtn"),
+      toggleSubsequentModeBtn: document.getElementById("toggleSubsequentLayoutModeBtn"),
+      subsequentModeText: document.getElementById("subsequentLayoutModeText"),
     };
+
+    const savedMode = storageService.get(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE);
+    if (savedMode === 'hide' || savedMode === 'move') {
+        this.subsequentLayoutMode = savedMode;
+    }
 
     document
       .getElementById("openLive2dEditorBtn")
@@ -78,6 +89,7 @@ export const live2dEditor = {
     document
       .getElementById("exportLayoutsBtn")
       ?.addEventListener("click", () => this.exportProject());
+    this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () => this._toggleSubsequentLayoutMode());
     const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
@@ -130,6 +142,7 @@ export const live2dEditor = {
     });
   },
 
+  // 打开 Live2D 布局编辑器模态框
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -170,6 +183,7 @@ export const live2dEditor = {
         const usedCharacterNames = this._getUsedCharacterIds();
         this.renderCharacterList(usedCharacterNames);
         this.initDragAndDrop();
+        this._updateSubsequentModeButton();
         if (this.domCache.modal) this.domCache.modal.focus();
         const timeline = this.domCache.timeline;
         timeline.onclick = (e) => {
@@ -188,6 +202,7 @@ export const live2dEditor = {
     });
   },
 
+  // 从文本片段创建项目文件（解析说话人并创建对话动作）
   createProjectFileFromSegments(segments) {
     const characterMap = new Map(
       Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
@@ -220,6 +235,7 @@ export const live2dEditor = {
     return newProjectFile;
   },
 
+  // 保存 Live2D 布局到全局状态
   async save() {
     await EditorHelper.saveEditor({
       editor: baseEditor,
@@ -233,9 +249,12 @@ export const live2dEditor = {
     });
   },
 
+  // 导出项目文件
   exportProject() {
     editorService.projectManager.export(this.projectFileState);
   },
+
+  // 导入项目文件
   async importProject() {
     const importedProject = await editorService.projectManager.import();
     if (importedProject) {
@@ -247,6 +266,7 @@ export const live2dEditor = {
     }
   },
 
+  // 关闭编辑器并清理资源
   _closeEditor() {
     EditorHelper.closeEditor({
       modalId: "live2dEditorModal",
@@ -328,6 +348,7 @@ export const live2dEditor = {
     ui.showStatus("已应用智能布局！", "success");
   },
 
+  // 获取所有已使用的角色名称集合（在布局中出现的角色）
   _getUsedCharacterIds() {
     const usedNames = new Set();
     if (this.projectFileState && this.projectFileState.actions) {
@@ -359,6 +380,7 @@ export const live2dEditor = {
     }
   },
 
+  // 处理时间轴卡片的交互事件（选择框和输入框变更）
   _handleTimelineEvent(e) {
     const target = e.target;
     const card = target.closest(".layout-item");
@@ -372,6 +394,7 @@ export const live2dEditor = {
     }
   },
 
+  // 更新布局动作的属性（类型、服装、位置、偏移）
   _updateLayoutActionProperty(actionId, targetElement) {
     const value =
       targetElement.type === "number"
@@ -399,6 +422,7 @@ export const live2dEditor = {
     });
   },
 
+  // 更新布局动作（旧版方法，已被 _updateLayoutActionProperty 替代）
   _updateLayoutAction(actionId, controlClassName, value) {
     const oldState = JSON.stringify(this.projectFileState);
     const command = {
@@ -428,6 +452,7 @@ export const live2dEditor = {
     historyManager.do(command);
   },
 
+  // 删除布局动作
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
@@ -472,7 +497,7 @@ export const live2dEditor = {
     }
   },
 
-  // 使用 requestAnimationFrame 优化滚动性能
+  // 开始自动滚动动画（使用 requestAnimationFrame 优化性能）
   startScrolling(elementToScroll) {
     this.stopScrolling();
 
@@ -485,6 +510,7 @@ export const live2dEditor = {
     scroll();
   },
 
+  // 停止自动滚动动画
   stopScrolling() {
     if (this.scrollAnimationFrame) {
       cancelAnimationFrame(this.scrollAnimationFrame);
@@ -499,6 +525,7 @@ export const live2dEditor = {
     return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
   },
 
+  // 初始化拖放功能（角色列表拖入时间轴创建布局动作）
   initDragAndDrop() {
     const characterList = this.domCache.characterList;
     const timeline = this.domCache.timeline;
@@ -580,10 +607,29 @@ export const live2dEditor = {
   },
 
   /**
+   * 切换后续布局模式（移动/退场）
+   */
+  _toggleSubsequentLayoutMode() {
+    this.subsequentLayoutMode = this.subsequentLayoutMode === 'move' ? 'hide' : 'move';
+    storageService.set(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE, this.subsequentLayoutMode); 
+    this._updateSubsequentModeButton();
+  },
+
+  /**
+   * 更新后续布局模式按钮的文本
+   */
+  _updateSubsequentModeButton() {
+    if (this.domCache.subsequentModeText) {
+      const modeText = this.subsequentLayoutMode === 'move' ? '移动' : '退场';
+      this.domCache.subsequentModeText.textContent = `后续: ${modeText}`;
+    }
+  },
+
+  /**
    * 插入布局动作(拖拽角色到时间轴时调用)
    * 根据角色的历史状态智能判断动作类型:
    * - 角色未登场 -> appear(登场)
-   * - 角色已登场 -> move(移动)
+   * - 角色已登场 -> 根据 subsequentLayoutMode 设置为 move(移动) 或 hide(退场)
    * 自动继承上一次的服装和位置
    */
   insertLayoutAction(characterId, characterName, index) {
@@ -593,7 +639,7 @@ export const live2dEditor = {
         characterName,
         index
       );
-      const layoutType = previousState.onStage ? "move" : "appear";
+      const layoutType = previousState.onStage ? this.subsequentLayoutMode : "appear";
       const costumeToUse =
         previousState.lastCostume || this._getDefaultCostume(characterName);
       const defaultPosition = this._getDefaultPosition(characterName);
@@ -623,10 +669,12 @@ export const live2dEditor = {
     baseEditor.executeCommand(changeFn, { skipIfNoChange: true });
   },
 
+  // 获取角色的默认服装ID
   _getDefaultCostume(characterName) {
     return editorService.state.get("currentCostumes")[characterName] || "";
   },
 
+  // 获取角色的默认位置配置（自动模式或手动模式）
   _getDefaultPosition(characterName) {
     const pm = editorService.positionManager;
     if (
@@ -815,6 +863,7 @@ export const live2dEditor = {
     }
   },
 
+  // 渲染右侧可拖拽角色列表（高亮已使用的角色）
   renderCharacterList(usedCharacterNames) {
     const listContainer = document.getElementById("live2dEditorCharacterList");
     const template = document.getElementById("draggable-character-template");

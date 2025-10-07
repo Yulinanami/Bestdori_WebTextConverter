@@ -3,9 +3,10 @@ import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
 
 export const motionExpressionEditor = {
-  tempCustomMotions: [],
-  tempCustomExpressions: [],
+  tempCustomMotions: [], // 临时自定义动作列表
+  tempCustomExpressions: [], // 临时自定义表情列表
 
+  // 初始化编辑器，绑定事件监听器
   init() {
     document
       .getElementById("openMotionExpressionBtn")
@@ -33,6 +34,7 @@ export const motionExpressionEditor = {
     closeBtn?.addEventListener("click", () => this.handleCloseAttempt());
   },
 
+  // 打开动作表情编辑器模态框
   async open() {
     await ui.withButtonLoading(
       "openMotionExpressionBtn",
@@ -51,11 +53,13 @@ export const motionExpressionEditor = {
     );
   },
 
+  // 渲染动作和表情列表
   renderLists() {
     this.renderList("motion");
     this.renderList("expression");
   },
 
+  // 渲染单个列表（动作或表情）
   renderList(type) {
     const isMotion = type === "motion";
     const manager = isMotion ? motionManager : expressionManager;
@@ -92,6 +96,7 @@ export const motionExpressionEditor = {
     listContainer.appendChild(fragment);
   },
 
+  // 添加自定义动作或表情项
   addItem(type) {
     const isMotion = type === "motion";
     const input = document.getElementById(
@@ -116,6 +121,7 @@ export const motionExpressionEditor = {
     this.renderList(type);
   },
 
+  // 处理删除自定义项的点击事件
   handleDelete(e, type) {
     if (e.target.matches(".remove-btn")) {
       const idToDelete = e.target.dataset.id;
@@ -132,6 +138,7 @@ export const motionExpressionEditor = {
     }
   },
 
+  // 保存自定义动作和表情配置
   async save() {
     await ui.withButtonLoading(
       "saveMotionExpressionBtn",
@@ -148,6 +155,7 @@ export const motionExpressionEditor = {
     );
   },
 
+  // 恢复默认列表（清空自定义项）
   async reset() {
     if (
       confirm(
@@ -168,6 +176,7 @@ export const motionExpressionEditor = {
     }
   },
 
+  // 处理关闭编辑器的尝试（检查未保存的更改）
   handleCloseAttempt() {
     const isDirty =
       JSON.stringify(this.tempCustomMotions) !==

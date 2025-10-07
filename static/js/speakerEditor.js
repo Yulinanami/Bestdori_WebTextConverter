@@ -53,6 +53,7 @@ export const speakerEditor = {
   scrollAnimationFrame: null,
   scrollSpeed: 0,
 
+  // 初始化编辑器，绑定事件监听器和快捷键
   init() {
     // 缓存 DOM 元素
     this.domCache = {
@@ -138,6 +139,7 @@ export const speakerEditor = {
     });
   },
 
+  // 根据 Y 坐标查找最接近的对话卡片（用于拖拽插入位置计算）
   _findClosestCard(y) {
     const canvas = this.domCache.canvas;
     if (!canvas) return null;
@@ -166,10 +168,12 @@ export const speakerEditor = {
     return closestCard;
   },
 
+  // 清除已使用角色ID的缓存（状态变更时调用）
   _invalidateCache() {
     this._usedCharacterIdsCache = null;
   },
 
+  // 重新附加卡片选择功能
   _reattachSelection() {
     const canvas = this.domCache.canvas;
     if (canvas) {
@@ -203,6 +207,7 @@ export const speakerEditor = {
     return usedIds;
   },
 
+  // 关闭编辑器并清理资源
   _closeEditor() {
     EditorHelper.closeEditor({
       modalId: "speakerEditorModal",
@@ -222,6 +227,7 @@ export const speakerEditor = {
     });
   },
 
+  // 尝试关闭编辑器（有未保存更改时弹出确认）
   initiateClose() {
     if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
       if (confirm("您有未保存的更改，确定要关闭吗？")) {
@@ -232,6 +238,7 @@ export const speakerEditor = {
     }
   },
 
+  // 打开说话人编辑器模态框
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -291,6 +298,7 @@ export const speakerEditor = {
     baseEditor.executeCommand(changeFn);
   },
 
+  // 从文本片段创建项目文件（解析说话人并创建对话动作）
   createProjectFileFromSegments(segments) {
     const characterMap = new Map(
       Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
@@ -616,7 +624,7 @@ export const speakerEditor = {
     }
   },
 
-  // 使用 requestAnimationFrame 优化滚动性能
+  // 开始自动滚动动画（使用 requestAnimationFrame 优化性能）
   startScrolling(elementToScroll) {
     this.stopScrolling(); // 先停止之前的动画
 
@@ -629,6 +637,7 @@ export const speakerEditor = {
     scroll();
   },
 
+  // 停止自动滚动动画
   stopScrolling() {
     if (this.scrollAnimationFrame) {
       cancelAnimationFrame(this.scrollAnimationFrame);
@@ -637,6 +646,7 @@ export const speakerEditor = {
     this.scrollSpeed = 0;
   },
 
+  // 更新对话的说话人分配（支持多选批量分配）
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = editorService.selectionManager.getSelectedIds();
     const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
@@ -665,6 +675,7 @@ export const speakerEditor = {
       );
   },
 
+  // 从对话中移除指定说话人
   removeSpeakerFromAction(actionId, characterIdToRemove) {
     this._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
@@ -681,6 +692,7 @@ export const speakerEditor = {
     this.renderCharacterList(usedIds);
   },
 
+  // 清空对话的所有说话人
   removeAllSpeakersFromAction(actionId) {
     this._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
@@ -797,6 +809,7 @@ export const speakerEditor = {
     }, 0);
   },
 
+  // 保存说话人配置到全局状态
   async save() {
     await EditorHelper.saveEditor({
       editor: baseEditor,
@@ -810,10 +823,12 @@ export const speakerEditor = {
     });
   },
 
+  // 导出项目文件
   exportProject() {
     editorService.projectManager.export(this.projectFileState);
   },
 
+  // 导入项目文件
   async importProject() {
     const importedProject = await editorService.projectManager.import();
     if (importedProject) {
@@ -826,6 +841,7 @@ export const speakerEditor = {
     }
   },
 
+  // 恢复默认说话人（重新解析文本自动分配说话人）
   async reset() {
     if (!confirm("确定要恢复默认说话人吗？此操作可以撤销。")) {
       return;

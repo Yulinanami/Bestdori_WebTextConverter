@@ -199,6 +199,7 @@ export const expressionEditor = {
     scroll();
   },
 
+  // 停止自动滚动动画
   stopScrolling() {
     if (this.scrollAnimationFrame) {
       cancelAnimationFrame(this.scrollAnimationFrame);
@@ -207,6 +208,7 @@ export const expressionEditor = {
     this.scrollSpeed = 0;
   },
 
+  // 执行角色状态属性变更命令（支持撤销/重做）
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
     let oldValue = "--";
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
@@ -248,6 +250,7 @@ export const expressionEditor = {
     historyManager.do(command);
   },
 
+  // 应用角色状态变更到项目数据
   _applyCharacterStateChange(actionId, characterName, type, value) {
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
@@ -274,6 +277,7 @@ export const expressionEditor = {
     }
   },
 
+  // 更新单个角色状态标签的 UI 显示
   _updateSingleTagUI(actionId, characterName, type, value) {
     const timelineItem = document.querySelector(
       `.timeline-item[data-id="${actionId}"]`
@@ -293,6 +297,7 @@ export const expressionEditor = {
     }
   },
 
+  // 保存表情动作配置到全局状态
   async save() {
     await EditorHelper.saveEditor({
       editor: baseEditor,
@@ -306,10 +311,12 @@ export const expressionEditor = {
     });
   },
 
+  // 导出项目文件
   exportProject() {
     editorService.projectManager.export(this.projectFileState);
   },
 
+  // 导入项目文件
   async importProject() {
     const importedProject = await editorService.projectManager.import();
     if (importedProject) {
@@ -324,6 +331,7 @@ export const expressionEditor = {
     }
   },
 
+  // 恢复默认表情动作（清空所有角色状态配置）
   async reset() {
     if (!confirm("确定要恢复默认表情动作吗？此操作可以撤销。")) {
       return;
@@ -346,6 +354,7 @@ export const expressionEditor = {
     }
   },
 
+  // 打开表情动作编辑器模态框
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -498,6 +507,7 @@ export const expressionEditor = {
     });
   },
 
+  // 显示卡片的表情设置 UI（展开状态栏）
   showExpressionSetupUI(cardElement) {
     const actionId = cardElement.dataset.id;
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
@@ -510,6 +520,7 @@ export const expressionEditor = {
     this._initSortableForZones(statusBar);
   },
 
+  // 检查动作是否包含表情数据（characterStates 或 initialState）
   _actionHasExpressionData(action) {
     if (action.type === "talk") {
       return (
@@ -522,6 +533,7 @@ export const expressionEditor = {
     return false;
   },
 
+  // 为状态栏的拖放区域初始化 Sortable（接受动作/表情拖放）
   _initSortableForZones(parentElement) {
     parentElement.querySelectorAll(".drop-zone").forEach((zone) => {
       new Sortable(zone, {
@@ -554,6 +566,7 @@ export const expressionEditor = {
     });
   },
 
+  // 初始化动作和表情资源库的拖放功能
   initDragAndDropForLibraries() {
     // 先销毁资源库相关的 Sortable 实例（只保留 timeline 的实例）
     const timelineSortable = this.sortableInstances[0]; // timeline 的实例是第一个
@@ -578,6 +591,7 @@ export const expressionEditor = {
     });
   },
 
+  // 计算当前在场的角色列表（根据 layout 动作的 appear 事件）
   _calculateStagedCharacters(projectFile) {
     const appearedCharacterNames = new Set();
     const characters = [];
@@ -883,6 +897,7 @@ export const expressionEditor = {
     return statusBar;
   },
 
+  // 渲染动作和表情资源库（根据在场角色动态生成可用列表）
   renderLibraries() {
     const stagedCharacterIds = new Set(this.stagedCharacters.map((c) => c.id));
     const motionItems = new Set(this.tempLibraryItems.motion);
@@ -908,6 +923,7 @@ export const expressionEditor = {
     this.initDragAndDropForLibraries();
   },
 
+  // 渲染单个资源库（动作或表情）
   _renderLibrary(type, items) {
     const container = document.getElementById(`${type}LibraryList`);
     DOMUtils.clearElement(container);
@@ -924,6 +940,7 @@ export const expressionEditor = {
     DOMUtils.appendChildren(container, itemElements);
   },
 
+  // 从文本片段创建项目文件（用于导入时）
   _createProjectFileFromSegments(segments) {
     const characterMap = new Map(
       Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
@@ -955,11 +972,13 @@ export const expressionEditor = {
     };
     return newProjectFile;
   },
+
   // 使用 BaseEditor 的 executeCommand 方法
   _executeCommand(changeFn) {
     baseEditor.executeCommand(changeFn);
   },
 
+  // 删除 layout 动作
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
@@ -968,6 +987,7 @@ export const expressionEditor = {
     });
   },
 
+  // 更新 layout 动作的属性（类型、位置、偏移、服装）
   _updateLayoutActionProperty(actionId, targetElement) {
     const value =
       targetElement.type === "number"
@@ -1009,6 +1029,7 @@ export const expressionEditor = {
     });
   },
 
+  // 添加临时动作或表情项（用户自定义未在配置中的项）
   _addTempItem(type) {
     const isMotion = type === "motion";
     const input = document.getElementById(
@@ -1077,6 +1098,7 @@ export const expressionEditor = {
     });
   },
 
+  // 关闭编辑器并清理资源
   _closeEditor() {
     EditorHelper.closeEditor({
       modalId: "expressionEditorModal",

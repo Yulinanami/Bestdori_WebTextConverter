@@ -48,6 +48,7 @@ function createProjectFileFromText(text) {
 }
 
 export const converter = {
+  // 转换文本为 Bestdori JSON 格式
   async convertText() {
     let projectFileToConvert;
 
