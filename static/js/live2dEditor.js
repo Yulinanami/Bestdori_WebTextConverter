@@ -263,6 +263,8 @@ export const live2dEditor = {
       editorService.setProjectState(DataUtils.deepClone(importedProject));
       historyManager.clear();
       this.renderTimeline();
+      const usedCharacterNames = this._getUsedCharacterIds();
+      this.renderCharacterList(usedCharacterNames);
     }
   },
 
