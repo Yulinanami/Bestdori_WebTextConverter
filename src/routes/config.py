@@ -17,6 +17,7 @@ def get_config():
             "quotes_config": config_manager.get_quotes_config(),
             "character_motions": config_manager.get_character_motions(),
             "character_expressions": config_manager.get_character_expressions(),
+            "avatar_mapping": config_manager.get_avatar_mapping(),
         }
         logger.info(f"配置加载成功 - 包含 {len(config_data)} 个配置项")
         return jsonify(config_data)

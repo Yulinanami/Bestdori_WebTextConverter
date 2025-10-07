@@ -352,6 +352,8 @@ export const live2dEditor = {
         this.originalStateOnOpen = JSON.stringify(newState);
         historyManager.clear();
         this.renderTimeline();
+        const usedCharacterNames = this._getUsedCharacterIds();
+        this.renderCharacterList(usedCharacterNames);
       },
       {
         buttonId: "resetLayoutsBtn",
@@ -544,6 +546,7 @@ export const live2dEditor = {
     const onAddHandler = DragHelper.createOnAddHandler({
       editor: baseEditor,
       getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+      groupSize: 50,
       validateItem: (item) => item.classList.contains("character-item"),
       extractData: (item) => ({
         characterId: parseInt(item.dataset.characterId),
@@ -869,7 +872,7 @@ export const live2dEditor = {
     // 从头遍历到指定索引,追踪角色状态变化
     for (let i = 0; i < startIndex; i++) {
       const action = actions[i];
-      if (action.type === "layout" && action.characterName === characterName) {
+      if (action && action.type === "layout" && action.characterName === characterName) {
         if (action.layoutType === "appear" || action.layoutType === "move") {
           onStage = true;
           if (action.position && action.position.to) {

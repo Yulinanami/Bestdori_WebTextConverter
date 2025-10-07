@@ -75,3 +75,7 @@ class ConfigManager:
 
     def get_character_expressions(self) -> Dict[int, List[str]]:
         return self.config.get("character_expressions", {})
+
+    def get_avatar_mapping(self) -> Dict[int, int]:
+        """获取角色ID到头像ID的映射"""
+        return self.config.get("avatar_mapping", {})

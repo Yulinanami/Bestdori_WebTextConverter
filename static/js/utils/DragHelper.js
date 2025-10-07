@@ -97,7 +97,7 @@ export const DragHelper = {
    * @returns {Function} onAdd 事件处理器
    */
   createOnAddHandler(params) {
-    const { editor, getGroupingEnabled, validateItem, extractData, executeFn } =
+    const { editor, getGroupingEnabled, validateItem, extractData, executeFn, groupSize = 50 } =
       params;
 
     return (evt) => {
@@ -114,6 +114,7 @@ export const DragHelper = {
 
       if (
         isGroupingEnabled &&
+        editor.projectFileState?.actions?.length > groupSize &&
         editor.activeGroupIndex !== null &&
         editor.activeGroupIndex >= 0
       ) {

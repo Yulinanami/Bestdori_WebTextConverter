@@ -51,16 +51,16 @@ export const configManager = {
     }
   },
 
+  /**
+   * 获取角色头像ID
+   * 使用avatar_mapping配置将特殊角色ID映射到对应的头像ID
+   * 例如: Mujica成员(ID 337-341)映射到Mujica头像(ID 1-6)
+   * @param {number} characterId - 角色ID
+   * @returns {number} 头像ID
+   */
   getAvatarId(characterId) {
-    const mujicaAvatarMapping = {
-      229: 6, // 纯田真奈
-      337: 1, // 三角初华
-      338: 2, // 若叶睦
-      339: 3, // 八幡海铃
-      340: 4, // 祐天寺若麦
-      341: 5, // 丰川祥子
-    };
-    return mujicaAvatarMapping[characterId] || characterId;
+    const avatarMapping = state.get("avatarMapping") || {};
+    return avatarMapping[characterId] || characterId;
   },
 
   // 加载配置
@@ -69,6 +69,7 @@ export const configManager = {
       const data = await apiService.getConfig();
       state.set("configData", data);
       this.defaultConfig = data.character_mapping;
+      state.set("avatarMapping", data.avatar_mapping || {});
 
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
