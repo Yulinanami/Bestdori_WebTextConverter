@@ -933,18 +933,9 @@ export const speakerEditor = {
       const rawText = document.getElementById("inputText").value;
       const response = await axios.post("/api/segment-text", { text: rawText });
       const defaultState = this.createProjectFileFromSegments(response.data.segments);
-
       this._executeCommand((currentState) => {
-        // 将 defaultState 的所有属性复制到 currentState
         Object.assign(currentState, defaultState);
       });
-
-      // 重新附加选择功能
-      const canvas = this.domCache.canvas;
-      if (canvas) {
-        editorService.detachSelection(canvas);
-        editorService.attachSelection(canvas, ".dialogue-item");
-      }
 
       ui.showStatus("已恢复默认说话人。", "success");
     } catch (error) {
