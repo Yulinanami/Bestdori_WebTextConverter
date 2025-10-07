@@ -107,7 +107,7 @@ class EditorService {
    * 切换角色固定状态
    */
   togglePinCharacter(characterName) {
-    return this.pinnedCharacterManager.togglePin(characterName);
+    return this.pinnedCharacterManager.toggle(characterName);
   }
 
   // ==================== 服装管理 ====================
