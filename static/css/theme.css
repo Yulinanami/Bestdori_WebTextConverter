@@ -305,3 +305,22 @@
 [data-theme="dark"] .delete-costume-btn:hover {
   background: #991b1b;
 }
+
+/* 状态消息 - 黑夜模式 */
+[data-theme="dark"] .status-success {
+  background: #064e3b;
+  color: #34d399;
+  border-color: #10b981;
+}
+
+[data-theme="dark"] .status-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border-color: #ef4444;
+}
+
+[data-theme="dark"] .status-info {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #6b7280;
+}
