@@ -805,10 +805,9 @@ export const speakerEditor = {
     // 使用 DOMUtils 创建 popover
     const popover = DOMUtils.createElement("div", {
       id: "speaker-popover",
+      className: "speaker-popover-menu",
       style: {
         position: "fixed",
-        background: "white",
-        border: "1px solid #e2e8f0",
         borderRadius: "8px",
         boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
         zIndex: "10001",
@@ -826,9 +825,6 @@ export const speakerEditor = {
       const deleteBtn = DOMUtils.createElement("button", {
         className: "speaker-delete-btn",
         style: {
-          border: "none",
-          background: "#f1f5f9",
-          color: "#64748b",
           borderRadius: "50%",
           width: "22px",
           height: "22px",
@@ -839,15 +835,6 @@ export const speakerEditor = {
           justifyContent: "center",
           fontSize: "16px",
           lineHeight: "1",
-          transition: "all 0.2s ease",
-        },
-        onMouseover: (e) => {
-          e.currentTarget.style.background = "#fee2e2";
-          e.currentTarget.style.color = "#ef4444";
-        },
-        onMouseout: (e) => {
-          e.currentTarget.style.background = "#f1f5f9";
-          e.currentTarget.style.color = "#64748b";
         },
         onClick: (e) => {
           e.stopPropagation();
