@@ -29,6 +29,36 @@
   font-size: var(--text-lg);
 }
 
+/* 主题选择器内联样式（在操作区） */
+.theme-selector-inline {
+  padding: 12px 20px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  height: 48px;
+}
+
+.theme-selector-inline:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
+}
+
+.theme-selector-inline:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.theme-selector-inline option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
 /* 主要内容区域 */
 .main-content {
   padding: var(--spacing-2xl);

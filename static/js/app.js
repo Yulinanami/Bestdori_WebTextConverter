@@ -19,6 +19,7 @@ import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 import { modalService } from "./services/ModalService.js";
 import { eventBus } from "./services/EventBus.js";
+import { themeManager } from "./themeManager.js";
 
 // 初始化应用
 function initializeApp() {

@@ -77,4 +77,231 @@
   --text-2xl: 1.5rem;
   --text-3xl: 2rem;
   --text-4xl: 2.5rem;
+
+  /* 分组标题颜色 */
+  --group-header-active-bg: #ebf8ff;
+  --group-header-active-border: #90cdf4;
+}
+
+/* 黑夜模式主题 */
+[data-theme="dark"] {
+  /* 主要颜色 */
+  --primary-gradient: #1a1a1a;
+  --secondary-gradient: #2d2d2d;
+
+  /* 基础颜色 */
+  --color-primary: #6b7280;
+  --color-primary-dark: #9ca3af;
+  --color-secondary: #374151;
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-error: #ef4444;
+  --color-error-light: #7f1d1d;
+  --color-error-lighter: #450a0a;
+  --color-info: #9ca3af;
+  --color-neutral: #6b7280;
+  --color-neutral-light: #1f2937;
+
+  /* 文本颜色 */
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-light: #6b7280;
+  --text-white: #ffffff;
+
+  /* 背景颜色 */
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-dark: #030712;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* 边框颜色 */
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --border-focus: #9ca3af;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
+
+  /* 分组标题颜色 - 黑夜模式 */
+  --group-header-active-bg: #1e3a5f;
+  --group-header-active-border: #3b82f6;
+}
+
+/* 黑夜模式下的特殊样式调整 */
+[data-theme="dark"] .character-item.is-used {
+  border-color: #10b981;
+  background-color: #064e3b;
+}
+
+[data-theme="dark"] .dialogue-item.is-selected .dialogue-text {
+  background-color: #1e3a5f;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .dialogue-item.narrator.is-selected .dialogue-text {
+  background-color: #1e3a5f;
+  border-color: #3b82f6;
+}
+
+[data-theme="dark"] .layout-item {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .layout-type-appear {
+  background-color: #064e3b;
+  border-left-color: #10b981;
+}
+
+[data-theme="dark"] .layout-type-move {
+  background-color: #422006;
+  border-left-color: #fbbf24;
+}
+
+[data-theme="dark"] .layout-type-hide {
+  background-color: #450a0a;
+  border-left-color: #ef4444;
+}
+
+[data-theme="dark"] .container {
+  background: rgba(31, 41, 55, 0.95);
+}
+
+[data-theme="dark"] .sortable-drag .character-item {
+  background: rgba(31, 41, 55, 0.9);
+}
+
+[data-theme="dark"] .drop-zone.sortable-ghost-receiving {
+  background-color: #1e3a5f;
+  border-color: #3b82f6;
+}
+
+[data-theme="dark"] #speakerEditorCanvas.sortable-ghost-receiving {
+  background-color: #1e3a5f;
+}
+
+[data-theme="dark"] #speakerEditorCharacterList.sortable-ghost-receiving {
+  background-color: #450a0a;
+}
+
+/* 黑夜模式下的表单输入框样式 */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  color: #f3f4f6;
+  background: #1f2937;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] input[type="text"]:focus,
+[data-theme="dark"] input[type="number"]:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  background: #111827;
+  border-color: #6b7280;
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] select option {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .file-upload:hover .file-upload-label {
+  background: #374151;
+  border-color: #6b7280;
+}
+
+[data-theme="dark"] .file-upload.dragover .file-upload-label {
+  background: #374151;
+  border-color: #6b7280;
+}
+
+[data-theme="dark"] .position-offset-input {
+  background: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .position-offset-input:focus {
+  background: #111827;
+  border-color: #6b7280;
+}
+
+/* 布局卡片内的输入框和选择框 */
+[data-theme="dark"] .layout-item input,
+[data-theme="dark"] .layout-item select {
+  color: #f3f4f6;
+  background: #111827;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .layout-item input:focus,
+[data-theme="dark"] .layout-item select:focus {
+  background: #0f172a;
+  border-color: #6b7280;
+}
+
+/* 主题选择器内联样式 - 黑夜模式 */
+[data-theme="dark"] .theme-selector-inline {
+  background: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .theme-selector-inline:hover {
+  background: #111827;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .theme-selector-inline:focus {
+  border-color: #6b7280;
+}
+
+/* 按钮样式 - 黑夜模式 */
+[data-theme="dark"] .btn-secondary {
+  background: #374151;
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+[data-theme="dark"] .remove-btn {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .remove-btn:hover {
+  background: #991b1b;
+}
+
+/* 服装配置按钮 - 黑夜模式 */
+[data-theme="dark"] .edit-costume-btn {
+  background: #374151;
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .edit-costume-btn:hover {
+  background: #4b5563;
+}
+
+[data-theme="dark"] .btn-danger,
+[data-theme="dark"] .delete-costume-btn {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .btn-danger:hover,
+[data-theme="dark"] .delete-costume-btn:hover {
+  background: #991b1b;
 }

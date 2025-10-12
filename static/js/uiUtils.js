@@ -190,8 +190,8 @@ export function renderGroupedView({
       groupHeader.textContent = `▼ 对话 ${startNum} - ${endNum} (${
         endNum - startNum + 1
       }条)`;
-      groupHeader.style.background = "#ebf8ff";
-      groupHeader.style.borderColor = "#90cdf4";
+      groupHeader.style.background = "var(--group-header-active-bg, #ebf8ff)";
+      groupHeader.style.borderColor = "var(--group-header-active-border, #90cdf4)";
 
       const actionsToRender = actions.slice(startNum - 1, endNum);
       actionsToRender.forEach((action) => {

@@ -101,7 +101,7 @@
 }
 
 /* 特定按钮样式 */
-#helpBtn {
+.help-btn {
   position: absolute;
   top: 20px;
   right: 25px;
@@ -119,7 +119,7 @@
   border: 2px solid white;
 }
 
-#helpBtn:hover {
+.help-btn:hover {
   background: rgba(255, 255, 255, 0.4);
 }
 

@@ -82,12 +82,8 @@ export const quoteManager = {
     label.style.flex = "1";
     if (checkboxId.includes("custom")) {
       const deleteBtn = document.createElement("button");
-      deleteBtn.className = "btn btn-sm";
-      deleteBtn.style.background = "#fee";
-      deleteBtn.style.color = "#e53e3e";
+      deleteBtn.className = "btn btn-sm btn-danger delete-quote-btn";
       deleteBtn.style.marginLeft = "10px";
-      deleteBtn.style.padding = "2px 8px";
-      deleteBtn.style.fontSize = "0.8rem";
       deleteBtn.textContent = "删除";
       deleteBtn.onclick = () => this.removeCustomQuote(categoryName);
       wrapper.appendChild(checkbox);
