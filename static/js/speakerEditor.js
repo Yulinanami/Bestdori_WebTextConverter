@@ -255,27 +255,29 @@ export const speakerEditor = {
   },
 
   /**
-   * 获取所有已使用的角色ID(带缓存优化)
+   * 获取所有已使用的角色名称(带缓存优化)
    * 缓存在状态改变时由_invalidateCache()清除
-   * @returns {Set<number>} 角色ID集合
+   * @returns {Set<string>} 角色名称集合
    */
   _getUsedCharacterIds() {
     if (this._usedCharacterIdsCache) {
       return this._usedCharacterIdsCache;
     }
 
-    const usedIds = new Set();
+    const usedNames = new Set();
     if (this.projectFileState && this.projectFileState.actions) {
       this.projectFileState.actions.forEach((action) => {
         if (action.type === "talk" && action.speakers) {
-          action.speakers.forEach((speaker) =>
-            usedIds.add(speaker.characterId)
-          );
+          action.speakers.forEach((speaker) => {
+            if (speaker.name) {
+              usedNames.add(speaker.name);
+            }
+          });
         }
       });
     }
-    this._usedCharacterIdsCache = usedIds;
-    return usedIds;
+    this._usedCharacterIdsCache = usedNames;
+    return usedNames;
   },
 
   // 关闭编辑器并清理资源
@@ -525,9 +527,9 @@ export const speakerEditor = {
 
   /**
    * 渲染右侧的可拖拽角色列表，并高亮已使用的角色。
-   * @param {Set<number>} usedCharacterIds - 包含所有已使用角色ID的Set集合。
+   * @param {Set<string>} usedCharacterNames - 包含所有已使用角色名称的Set集合。
    */
-  renderCharacterList(usedCharacterIds) {
+  renderCharacterList(usedCharacterNames) {
     const listContainer = document.getElementById("speakerEditorCharacterList");
     const template = document.getElementById("draggable-character-template");
     DOMUtils.clearElement(listContainer);
@@ -547,7 +549,8 @@ export const speakerEditor = {
       const characterId = ids[0];
       characterItem.dataset.characterId = characterId;
       characterItem.dataset.characterName = name;
-      if (usedCharacterIds && usedCharacterIds.has(characterId)) {
+      // 使用角色名称精确匹配，而不是ID匹配
+      if (usedCharacterNames && usedCharacterNames.has(name)) {
         characterItem.classList.add("is-used");
       }
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
