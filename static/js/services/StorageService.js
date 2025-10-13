@@ -18,6 +18,11 @@ export const STORAGE_KEYS = {
 };
 
 class StorageService {
+  constructor() {
+    // 错误处理回调，可由外部设置
+    this.onQuotaExceeded = null;
+  }
+
   /**
    * 获取存储的数据
    * @param {string} key - 存储键
@@ -58,6 +63,10 @@ class StorageService {
       console.error(`[StorageService] 保存失败 (${key}):`, error);
       if (error.name === "QuotaExceededError") {
         console.error("LocalStorage 空间已满");
+        // 调用回调通知用户
+        if (this.onQuotaExceeded) {
+          this.onQuotaExceeded(key, this.getSizeFormatted());
+        }
       }
       return false;
     }

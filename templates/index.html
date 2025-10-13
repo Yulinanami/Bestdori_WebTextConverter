@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bestdori剧情文本转JSON转换器</title>
+    <!-- 在页面渲染前立即应用主题，避免闪烁 -->
+    <script>
+      (function() {
+        const theme = localStorage.getItem('theme-preference');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
     <link
       rel="icon"
       type="image/svg+xml"

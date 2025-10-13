@@ -333,6 +333,54 @@ export const configManager = {
   },
 
   /**
+   * 验证导入的配置对象是否安全
+   * 防止原型污染和恶意数据注入
+   * @param {Object} config - 待验证的配置对象
+   * @returns {boolean} 是否有效
+   */
+  validateConfig(config) {
+    // 检查是否为有效对象
+    if (!config || typeof config !== "object" || Array.isArray(config)) {
+      return false;
+    }
+
+    // 检查是否包含危险的原型属性
+    const dangerousKeys = ["__proto__", "constructor", "prototype"];
+    for (const key of dangerousKeys) {
+      if (key in config) {
+        console.error(`配置验证失败：检测到危险属性 "${key}"`);
+        return false;
+      }
+    }
+
+    // 递归检查嵌套对象
+    const checkNestedObject = (obj, depth = 0) => {
+      // 防止无限递归
+      if (depth > 10) return false;
+
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        for (const key of dangerousKeys) {
+          if (key in obj) {
+            return false;
+          }
+        }
+
+        // 检查所有子对象
+        for (const value of Object.values(obj)) {
+          if (typeof value === "object" && value !== null) {
+            if (!checkNestedObject(value, depth + 1)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    };
+
+    return checkNestedObject(config);
+  },
+
+  /**
    * 导入完整配置文件
    * 支持导入多个子系统配置:
    * - character_mapping: 角色映射
@@ -348,6 +396,12 @@ export const configManager = {
       try {
         const config = JSON.parse(e.target.result);
         console.log("导入的配置:", config);
+
+        // 验证配置安全性
+        if (!this.validateConfig(config)) {
+          throw new Error("配置文件包含不安全的数据，导入已被阻止");
+        }
+
         if (!config || typeof config !== "object") {
           throw new Error("无效的配置文件格式");
         }

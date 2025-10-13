@@ -19,13 +19,23 @@ import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 import { modalService } from "./services/ModalService.js";
 import { eventBus } from "./services/EventBus.js";
-import { themeManager } from "./themeManager.js";
+import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
+import { storageService } from "./services/StorageService.js";
 
 // 初始化应用
 function initializeApp() {
   // 初始化服务层
   modalService.init();
-  eventBus.setDebug(false); 
+  eventBus.setDebug(false);
+
+  // 设置 LocalStorage 配额超限错误处理
+  storageService.onQuotaExceeded = (key, size) => {
+    ui.showStatus(
+      `存储空间已满（当前：${size}）！请导出配置后点击"清除缓存"按钮清理数据，或删除浏览器中其他网站的数据。`,
+      "error",
+      8000
+    );
+  }; 
 
   // 绑定经典视图事件
   bindClassicViewEvents();
