@@ -94,9 +94,10 @@ export const converter = {
       state.set("currentResult", result);
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
-      document.getElementById("resultSection").style.display = "block";
+      const resultSection = document.getElementById("resultSection");
+      resultSection.style.display = "block";
       ui.showStatus("转换完成！", "success");
-      ui.scrollToElement("resultSection");
+      resultSection.scrollIntoView({ behavior: "smooth" });
 
       eventBus.emit(EVENTS.CONVERT_SUCCESS, result);
 

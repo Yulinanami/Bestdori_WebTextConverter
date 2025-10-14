@@ -87,14 +87,6 @@ export const ui = {
     }
   },
 
-  // 滚动到元素
-  scrollToElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  },
-
   // 添加复制到剪贴板的方法
   async copyToClipboard(text) {
     try {

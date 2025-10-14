@@ -80,13 +80,6 @@ class EditorService {
   }
 
   /**
-   * 根据名称获取角色 ID
-   */
-  getCharacterIdByName(characterName) {
-    return this.configManager.getCharacterIdByName(characterName);
-  }
-
-  /**
    * 获取所有角色配置
    */
   getAllCharacters() {
@@ -119,13 +112,6 @@ class EditorService {
     return this.costumeManager.getCharacterCostumes?.(characterId) || [];
   }
 
-  /**
-   * 更新服装配置
-   */
-  updateCostumeConfig(characterName, costumeId) {
-    return this.costumeManager.updateCostumeConfig?.(characterName, costumeId);
-  }
-
   // ==================== 位置管理 ====================
 
   /**
@@ -133,13 +119,6 @@ class EditorService {
    */
   getPositionPresets() {
     return this.positionManager.getPresets?.() || [];
-  }
-
-  /**
-   * 验证位置数据
-   */
-  validatePosition(position) {
-    return this.positionManager.validatePosition?.(position);
   }
 
   // ==================== 动作/表情管理 ====================
@@ -196,31 +175,10 @@ class EditorService {
   }
 
   /**
-   * 附加选择管理器
-   */
-  attachSelection(element, itemSelector) {
-    return this.selectionManager?.attach?.(element, itemSelector);
-  }
-
-  /**
    * 分离选择管理器
    */
   detachSelection(element) {
     return this.selectionManager?.detach?.(element);
-  }
-
-  /**
-   * 标记项目为已修改
-   */
-  markProjectDirty() {
-    return this.projectManager.markDirty?.();
-  }
-
-  /**
-   * 保存项目
-   */
-  saveProject() {
-    return this.projectManager.save?.();
   }
 
   // ==================== 历史记录（已通过 BaseEditor 处理）====================
