@@ -28,6 +28,7 @@
   /* 背景颜色 */
   --bg-primary: #ffffff;
   --bg-secondary: #f7fafc;
+  --bg-tertiary: #edf2f7;
   --bg-dark: #1a202c;
   --bg-overlay: rgba(0, 0, 0, 0.5);
 
@@ -112,6 +113,7 @@
   /* 背景颜色 */
   --bg-primary: #1f2937;
   --bg-secondary: #111827;
+  --bg-tertiary: #374151;
   --bg-dark: #030712;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
@@ -267,6 +269,10 @@
 }
 
 /* 按钮样式 - 黑夜模式 */
+[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  background: #374151;
+}
+
 [data-theme="dark"] .btn-secondary {
   background: #374151;
   color: #d1d5db;
@@ -295,13 +301,17 @@
   background: #4b5563;
 }
 
+[data-theme="dark"] .btn-success:hover:not(:disabled) {
+  background: var(--color-success-dark);
+}
+
 [data-theme="dark"] .btn-danger,
 [data-theme="dark"] .delete-costume-btn {
   background: #7f1d1d;
   color: #fca5a5;
 }
 
-[data-theme="dark"] .btn-danger:hover,
+[data-theme="dark"] .btn-danger:hover:not(:disabled),
 [data-theme="dark"] .delete-costume-btn:hover {
   background: #991b1b;
 }
@@ -359,4 +369,96 @@
 [data-theme="dark"] .speaker-delete-btn:hover {
   background: #7f1d1d;
   color: #fca5a5;
+}
+
+/* ===================================
+   新布局深色模式
+   =================================== */
+
+[data-theme="dark"] .app-header {
+  background: #1f2937;
+  border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .app-sidebar {
+  background: #1f2937;
+  border-right-color: #374151;
+}
+
+[data-theme="dark"] .nav-step {
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .nav-step:hover {
+  background: #374151;
+}
+
+[data-theme="dark"] .nav-step.active {
+  background: #1a1a1a;
+  border-color: #6b7280;
+}
+
+[data-theme="dark"] .nav-step.active .step-number {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .nav-step.active .step-label {
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .step-number {
+  background: #374151;
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .nav-menu-item {
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .nav-menu-item:hover {
+  background: #374151;
+}
+
+[data-theme="dark"] .app-workspace {
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .card {
+  background: #1f2937;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .card-header {
+  border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .step-footer {
+  border-top-color: #374151;
+}
+
+[data-theme="dark"] .btn-icon {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+[data-theme="dark"] .theme-selector-header {
+  background: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .theme-selector-header:hover {
+  background: #111827;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .theme-selector-header:focus {
+  border-color: #6b7280;
 }

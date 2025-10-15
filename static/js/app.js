@@ -21,6 +21,7 @@ import { modalService } from "./services/ModalService.js";
 import { eventBus } from "./services/EventBus.js";
 import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
 import { storageService } from "./services/StorageService.js";
+import { navigationManager } from "./navigationManager.js"; // 导航管理器
 
 // 初始化应用
 function initializeApp() {

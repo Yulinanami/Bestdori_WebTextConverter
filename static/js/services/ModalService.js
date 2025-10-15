@@ -101,13 +101,6 @@ class ModalService {
     // 显示模态框
     modal.style.display = "flex";
 
-    // 调整模态框位置
-    const modalContent = modal.querySelector(".modal-content");
-    if (modalContent) {
-      const topPosition = window.scrollY + window.innerHeight * 0.47;
-      modalContent.style.top = `${topPosition}px`;
-    }
-
     // 记录打开的模态框
     this.openModals.add(modalId);
 

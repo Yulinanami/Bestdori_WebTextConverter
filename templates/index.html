@@ -34,53 +34,131 @@
     <script src="{{ url_for('static', filename='js/lib/prism-json.min.js') }}"></script>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1>文本转JSON转换器</h1>
-        <p>
-          将对话文本转换为JSON格式，支持多种角色映射，使用方法请点击右边的问号按钮
-        </p>
+    <!-- 顶部标题栏 -->
+    <div class="app-header">
+      <div class="app-logo">
+        <h1>Bestdori 文本转换器</h1>
+      </div>
+      <div class="app-header-actions">
+        <select
+          id="themeSelector"
+          class="theme-selector-header"
+          aria-label="切换主题"
+        >
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
         <button
           id="helpBtn"
-          class="btn btn-secondary help-btn"
+          class="btn btn-icon"
           aria-label="打开使用说明"
+          title="使用说明"
         >
           ?
         </button>
       </div>
+    </div>
 
-      <!-- 经典视图 -->
-      <div id="classicView">
-        <div class="main-content">
-          <!-- 1. 文件上传区域 -->
-          <div class="section">
-            <div class="section-title">文件上传</div>
-            <div class="file-upload" id="fileUpload">
-              <input type="file" accept=".txt,.docx,.md" id="fileInput" />
-              <div class="file-upload-label">
-                <div>
-                  <div class="file-upload-title">点击或拖拽上传文件</div>
-                  <div class="file-upload-subtitle">
-                    支持 .txt, .docx, .md 格式（最大16MB）
+    <!-- 主应用容器 -->
+    <div class="app-container">
+      <!-- 左侧导航栏 -->
+      <aside class="app-sidebar">
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <h3 class="nav-section-title">工作流程</h3>
+            <ul class="nav-steps">
+              <li class="nav-step active" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-label">输入文本</span>
+              </li>
+              <li class="nav-step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-label">编辑器</span>
+              </li>
+              <li class="nav-step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-label">处理选项</span>
+              </li>
+              <li class="nav-step" data-step="4">
+                <span class="step-number">4</span>
+                <span class="step-label">转换导出</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="nav-section">
+            <h3 class="nav-section-title">配置</h3>
+            <ul class="nav-menu">
+              <li>
+                <button class="nav-menu-item" id="configBtn">
+                  角色映射
+                </button>
+              </li>
+              <li>
+                <button class="nav-menu-item" id="costumeConfigBtn">
+                  服装配置
+                </button>
+              </li>
+              <li>
+                <button class="nav-menu-item" id="positionConfigBtn">
+                  位置配置
+                </button>
+              </li>
+              <li>
+                <button class="nav-menu-item" id="openMotionExpressionBtn">
+                  动作/表情
+                </button>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- 右侧工作区 -->
+      <main class="app-workspace">
+        <div id="classicView">
+          <!-- 步骤1: 输入文本 -->
+          <div class="workspace-step active" data-step="1">
+            <div class="step-header">
+              <h2 class="step-title">步骤 1: 输入文本</h2>
+              <p class="step-description">上传文件或直接粘贴你的剧本内容</p>
+            </div>
+
+            <div class="step-content">
+              <!-- 文件上传 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">文件上传</h3>
+                </div>
+                <div class="card-body">
+                  <div class="file-upload" id="fileUpload">
+                    <input type="file" accept=".txt,.docx,.md" id="fileInput" />
+                    <div class="file-upload-label">
+                      <div>
+                        <div class="file-upload-title">点击或拖拽上传文件</div>
+                        <div class="file-upload-subtitle">
+                          支持 .txt, .docx, .md 格式（最大16MB）
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- 2. 文本输入区域 -->
-          <div class="section">
-            <div class="section-title">
-              文本输入
-              <button class="btn btn-secondary ml-auto" id="formatTextBtn">
-                格式化文本
-              </button>
-            </div>
-            <div class="form-group">
-              <textarea
-                class="form-input textarea"
-                id="inputText"
-                placeholder='请输入需要转换的对话文本...
+              <!-- 文本输入 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">文本输入</h3>
+                  <button class="btn btn-secondary btn-sm" id="formatTextBtn">
+                    格式化文本
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <textarea
+                      class="form-input textarea"
+                      id="inputText"
+                      placeholder='请输入需要转换的对话文本...
 
 支持格式：
 角色名：对话内容
@@ -89,128 +167,242 @@
 也可以使用你自己的引号格式（自定义引号）
 其余部分为旁白内容
 最好每段话之间用一个空行分隔'
-              ></textarea>
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            <hr class="section-divider" />
-
-            <!-- 说话人编辑模式-->
-            <div>
-              <p class="form-label text-subtitle">说话人编辑模式</p>
-              <p class="text-hint">
-                通过拖拽为对话指派说话人，以应对不规范的文本格式。
-              </p>
-              <button class="btn btn-primary" id="openSpeakerEditorBtn">
-                打开说话人编辑器
+            <div class="step-footer">
+              <button class="btn btn-primary btn-lg" onclick="document.querySelector('[data-step=&quot;2&quot;]').click()">
+                下一步：编辑器 →
               </button>
             </div>
           </div>
 
-          <!-- 3. 处理选项区域 -->
-          <div class="section">
-            <div class="section-title">处理选项</div>
-
-            <!-- 旁白名称 -->
-            <div class="form-group">
-              <label for="narratorName" class="form-label"
-                >旁白名称（默认为空白）：</label
-              >
-              <input
-                type="text"
-                class="form-input"
-                id="narratorName"
-                value=" "
-                placeholder="设置旁白的名称"
-              />
+          <!-- 步骤2: 编辑器 -->
+          <div class="workspace-step" data-step="2">
+            <div class="step-header">
+              <h2 class="step-title">步骤 2: 编辑器</h2>
+              <p class="step-description">使用编辑器完善剧情细节</p>
             </div>
-            <hr class="section-divider" />
-            <div>
-              <p class="form-label text-subtitle">性能优化</p>
-              <p class="text-hint">
-                当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
-              </p>
-              <label class="auto-preview-label">
-                <input type="checkbox" id="groupCardsCheckbox" />
-                <span class="font-medium">启用编辑器卡片分组</span>
-              </label>
-            </div>
-            <hr class="section-divider" />
 
-            <!-- 引号处理 -->
-            <div>
-              <p class="form-label text-subtitle">引号处理</p>
-              <p class="text-hint">选择或添加需要自动移除首尾引号的种类</p>
-
-              <!-- 预设引号选项 -->
-              <div id="quoteOptionsContainer" class="btn-group mb-20">
-                <!-- JS将在这里动态填充复选框 -->
+            <div class="step-content">
+              <!-- 性能优化 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">编辑器性能优化</h3>
+                </div>
+                <div class="card-body">
+                  <p class="text-hint">
+                    当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
+                  </p>
+                  <label class="auto-preview-label">
+                    <input type="checkbox" id="groupCardsCheckbox" />
+                    <span class="font-medium">启用编辑器卡片分组</span>
+                  </label>
+                </div>
               </div>
 
-              <!-- 自定义引号选项 -->
-              <div class="pt-15 border-dashed">
-                <p class="font-medium text-gray mb-10">添加自定义引号对：</p>
-                <div class="flex flex-center flex-gap-sm flex-wrap">
-                  <input
-                    type="text"
-                    id="customQuoteOpen"
-                    class="form-input w-100 flex-grow-0"
-                    placeholder="起始符号"
-                  />
-                  <input
-                    type="text"
-                    id="customQuoteClose"
-                    class="form-input w-100 flex-grow-0"
-                    placeholder="结束符号"
-                  />
-                  <button
-                    id="addCustomQuoteBtn"
-                    class="btn btn-secondary flex-shrink-0"
-                  >
-                    添加
+              <!-- 说话人编辑 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">说话人编辑器</h3>
+                </div>
+                <div class="card-body">
+                  <p class="text-hint">
+                    通过拖拽为对话指派说话人，以应对不规范的文本格式。
+                  </p>
+                  <button class="btn btn-primary" id="openSpeakerEditorBtn">
+                    打开说话人编辑器
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live2D 布局编辑器 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Live2D 布局编辑器</h3>
+                </div>
+                <div class="card-body">
+                  <p class="text-hint">
+                    在可视化时间线中，精确地为角色添加入场、退场和移动动画。
+                  </p>
+                  <button class="btn btn-primary btn-lg" id="openLive2dEditorBtn">
+                    打开 Live2D 布局编辑器
+                  </button>
+                </div>
+              </div>
+
+              <!-- 动作与表情编辑器 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">动作/表情编辑器</h3>
+                </div>
+                <div class="card-body">
+                  <p class="text-hint">
+                    管理全局可用的动作表情列表，并为在场角色设置对话时的具体状态。
+                  </p>
+                  <button class="btn btn-primary btn-lg" id="openExpressionEditorBtn">
+                    打开动作/表情编辑器
                   </button>
                 </div>
               </div>
             </div>
-            <hr class="section-divider" />
 
-            <!-- Live2D 布局设置 -->
-            <div>
-              <p class="form-label text-subtitle">Live2D 布局模式</p>
-              <p class="text-hint">
-                在可视化时间线中，精确地为角色添加入场、退场和移动动画。
-              </p>
-              <div class="flex flex-center flex-gap-md">
-                <button class="btn btn-primary" id="openLive2dEditorBtn">
-                  打开 Live2D 布局编辑器
-                </button>
-                <button class="btn btn-secondary btn-sm" id="costumeConfigBtn">
-                  服装配置
-                </button>
-                <button class="btn btn-secondary btn-sm" id="positionConfigBtn">
-                  位置配置
-                </button>
+            <div class="step-footer">
+              <button class="btn btn-secondary" onclick="document.querySelector('[data-step=&quot;1&quot;]').click()">
+                ← 上一步
+              </button>
+              <button class="btn btn-primary btn-lg" onclick="document.querySelector('[data-step=&quot;3&quot;]').click()">
+                下一步：处理选项 →
+              </button>
+            </div>
+          </div>
+
+          <!-- 步骤3: 处理选项 -->
+          <div class="workspace-step" data-step="3">
+            <div class="step-header">
+              <h2 class="step-title">步骤 3: 处理选项</h2>
+              <p class="step-description">配置文本处理的各种选项</p>
+            </div>
+
+            <div class="step-content">
+              <!-- 基础设置 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">基础设置</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="narratorName" class="form-label"
+                      >旁白名称（默认为空白）：</label
+                    >
+                    <input
+                      type="text"
+                      class="form-input"
+                      id="narratorName"
+                      value=" "
+                      placeholder="设置旁白的名称"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 引号处理 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">引号处理</h3>
+                </div>
+                <div class="card-body">
+                  <p class="text-hint mb-15">选择或添加需要自动移除首尾引号的种类</p>
+
+                  <!-- 预设引号选项 -->
+                  <div id="quoteOptionsContainer" class="btn-group mb-20">
+                    <!-- JS将在这里动态填充复选框 -->
+                  </div>
+
+                  <!-- 自定义引号选项 -->
+                  <div class="pt-15 border-dashed">
+                    <p class="font-medium text-gray mb-10">添加自定义引号对：</p>
+                    <div class="flex flex-center flex-gap-sm flex-wrap">
+                      <input
+                        type="text"
+                        id="customQuoteOpen"
+                        class="form-input w-100 flex-grow-0"
+                        placeholder="起始符号"
+                      />
+                      <input
+                        type="text"
+                        id="customQuoteClose"
+                        class="form-input w-100 flex-grow-0"
+                        placeholder="结束符号"
+                      />
+                      <button
+                        id="addCustomQuoteBtn"
+                        class="btn btn-secondary flex-shrink-0"
+                      >
+                        添加
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <hr class="section-divider" />
+            <div class="step-footer">
+              <button class="btn btn-secondary" onclick="document.querySelector('[data-step=&quot;2&quot;]').click()">
+                ← 上一步
+              </button>
+              <button class="btn btn-primary btn-lg" onclick="document.querySelector('[data-step=&quot;4&quot;]').click()">
+                下一步：转换导出 →
+              </button>
+            </div>
+          </div>
 
-            <div class="mb-20">
-              <p class="form-label text-subtitle">动作与表情</p>
-              <p class="text-hint">
-                管理全局可用的动作表情列表，并为在场角色设置对话时的具体状态。
-              </p>
-              <div class="flex flex-center flex-gap-md">
-                <button class="btn btn-primary" id="openExpressionEditorBtn">
-                  打开动作/表情编辑器
-                </button>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="openMotionExpressionBtn"
-                >
-                  动作/表情配置
-                </button>
+          <!-- 步骤4: 转换导出 -->
+          <div class="workspace-step" data-step="4">
+            <div class="step-header">
+              <h2 class="step-title">步骤 4: 转换导出</h2>
+              <p class="step-description">转换为JSON并导出到Bestdori</p>
+            </div>
+
+            <div class="step-content">
+              <!-- 转换操作 -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">开始转换</h3>
+                </div>
+                <div class="card-body">
+                  <button class="btn btn-primary btn-lg btn-block" id="convertBtn">
+                    <span id="convertIcon"></span>
+                    <span id="convertText">开始转换</span>
+                  </button>
+
+                  <!-- 进度条容器 -->
+                  <div class="progress-container hidden" id="progressContainer">
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 转换结果 -->
+              <div class="card hidden" id="resultSection">
+                <div class="card-header">
+                  <h3 class="card-title">转换结果</h3>
+                  <div class="flex flex-gap-sm">
+                    <button class="btn btn-success" id="downloadBtn">
+                      下载JSON
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      id="gotoBestdoriBtn"
+                      title="在新标签页打开 Bestdori 故事编辑器"
+                    >
+                      跳转到 Bestdori
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="result-content">
+                    <pre><code class="language-json" id="resultContent"></code></pre>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <div class="step-footer">
+              <button class="btn btn-secondary" onclick="document.querySelector('[data-step=&quot;3&quot;]').click()">
+                ← 上一步
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
 
             <div
               class="modal"
@@ -565,57 +757,6 @@
               </div>
             </div>
           </div>
-
-          <!-- 4. 操作按钮 -->
-          <div class="section">
-            <div class="section-title">操作</div>
-            <div class="btn-group">
-              <button class="btn btn-primary" id="convertBtn">
-                <span id="convertIcon"></span>
-                <span id="convertText">开始转换</span>
-              </button>
-              <button class="btn btn-secondary" id="configBtn">配置管理</button>
-              <select
-                id="themeSelector"
-                class="theme-selector-inline"
-                aria-label="切换主题"
-              >
-                <option value="light">浅色模式</option>
-                <option value="dark">深色模式</option>
-              </select>
-            </div>
-
-            <!-- 进度条容器 -->
-            <div class="progress-container hidden" id="progressContainer">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-              </div>
-            </div>
-          </div>
-          <!-- 经典视图的结果显示区域 -->
-          <div class="section hidden" id="resultSection">
-            <div class="result-header">
-              <div class="section-title">转换结果</div>
-              <div class="flex flex-gap-sm">
-                <button class="btn btn-success" id="downloadBtn">
-                  下载JSON
-                </button>
-                <button
-                  class="btn btn-primary"
-                  id="gotoBestdoriBtn"
-                  title="在新标签页打开 Bestdori 故事编辑器"
-                >
-                  跳转到 Bestdori
-                </button>
-              </div>
-            </div>
-            <div class="result-content">
-              <pre><code class="language-json" id="resultContent"></code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 配置管理模态框 -->
       <div
         class="modal"

@@ -1,5 +1,70 @@
 /* buttons.css - 按钮组件样式 */
 
+/* ===================================
+   新按钮系统
+   =================================== */
+
+/* 图标按钮 */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  padding: 0;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+}
+
+/* 大按钮 */
+.btn-lg {
+  padding: 16px 32px;
+  font-size: var(--text-lg);
+}
+
+/* 全宽按钮 */
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+/* 顶部主题选择器样式 */
+.theme-selector-header {
+  padding: 8px 16px;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+.theme-selector-header:hover {
+  background: var(--bg-secondary);
+}
+
+.theme-selector-header:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+/* ===================================
+   旧按钮系统（保留兼容）
+   =================================== */
+
 /* 按钮基础样式 */
 .btn {
   padding: 12px 24px;
@@ -31,7 +96,7 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  background: #1a1a1a;
 }
 
 .btn-secondary {
@@ -40,7 +105,7 @@
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--border-secondary);
+  background: #cbd5e0;
 }
 
 .btn-success {
@@ -49,7 +114,7 @@
 }
 
 .btn-success:hover:not(:disabled) {
-  box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3);
+  background: var(--color-success-dark);
 }
 
 .btn-danger {
@@ -57,8 +122,8 @@
   color: var(--color-error);
 }
 
-.btn-danger:hover {
-  background: var(--color-error-light);
+.btn-danger:hover:not(:disabled) {
+  background: #fecaca;
 }
 
 /* 按钮尺寸 */
@@ -93,11 +158,11 @@
   padding: 6px 12px;
   cursor: pointer;
   font-size: var(--text-xs);
+  transition: background-color var(--transition-normal);
 }
 
 .remove-btn:hover {
-  background: var(--color-error-light);
-  filter: brightness(0.95);
+  background: #feb2b2;
 }
 
 /* 特定按钮样式 */
@@ -119,19 +184,10 @@
   border: 2px solid white;
 }
 
-.help-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
 /* Bestdori 跳转按钮样式 */
 #gotoBestdoriBtn,
 #splitGotoBestdoriBtn {
   background: var(--color-neutral);
-}
-
-#gotoBestdoriBtn:hover,
-#splitGotoBestdoriBtn:hover {
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Live2D 数据库按钮样式 */
@@ -139,10 +195,6 @@
   background: var(--color-neutral);
   color: white;
   font-size: var(--text-xs);
-}
-
-.costume-list-header .btn-primary:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* 按钮内的加载动画 */
@@ -171,18 +223,11 @@
   margin-left: auto;
   font-size: 1.1rem;
   opacity: 0.3;
-  transition: opacity 0.2s ease,
-              transform 0.2s ease;
   transform: rotate(0deg);
 }
 
 .character-item:hover .pin-btn {
   opacity: 0.7;
-}
-
-.pin-btn:hover {
-  opacity: 1;
-  transform: scale(1.2);
 }
 
 .pin-btn.is-pinned {
@@ -204,11 +249,6 @@
   line-height: 1;
   color: #a0aec0;
   padding: 0;
-  transition: color 0.2s ease;
-}
-
-.clear-search-btn:hover {
-  color: #4a5568;
 }
 
 .clear-state-btn {
@@ -222,8 +262,4 @@
   font-size: 1.2em;
   line-height: 1;
   padding: 0 4px;
-}
-
-.clear-state-btn:hover {
-  color: var(--color-error);
 }

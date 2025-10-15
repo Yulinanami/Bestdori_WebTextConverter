@@ -1,5 +1,40 @@
 /* cards.css - 卡片和配置项样式 */
 
+/* ===================================
+   新卡片系统
+   =================================== */
+
+/* 通用卡片样式 */
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-body {
+  padding: var(--spacing-lg);
+}
+
+/* ===================================
+   旧卡片系统（保留兼容）
+   =================================== */
+
 /* 配置项布局 */
 .config-item {
   display: flex;

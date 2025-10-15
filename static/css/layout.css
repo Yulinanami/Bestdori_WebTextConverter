@@ -1,5 +1,226 @@
 /* layout.css - 布局相关样式 */
 
+/* ===================================
+   新布局系统 - 左右分栏
+   =================================== */
+
+/* 顶部标题栏 */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-xl);
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-logo h1 {
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* 主应用容器 */
+.app-container {
+  display: flex;
+  margin-top: 64px;
+  min-height: calc(100vh - 64px);
+}
+
+/* 左侧导航栏 */
+.app-sidebar {
+  width: 280px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-primary);
+  overflow-y: auto;
+  position: fixed;
+  left: 0;
+  top: 64px;
+  bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-nav {
+  padding: var(--spacing-xl);
+}
+
+.nav-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.nav-section-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+  letter-spacing: 0.5px;
+}
+
+/* 步骤导航 */
+.nav-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-step {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.nav-step:hover {
+  background: var(--bg-secondary);
+}
+
+.nav-step.active {
+  background: var(--primary-gradient);
+  color: var(--text-white);
+  border-color: var(--color-primary);
+}
+
+.nav-step.active .step-number {
+  background: var(--text-white);
+  color: var(--color-primary);
+}
+
+.nav-step.active .step-label {
+  color: var(--text-white);
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.step-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* 配置菜单 */
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.nav-menu-item:hover {
+  background: var(--bg-secondary);
+}
+
+/* 右侧工作区 */
+.app-workspace {
+  margin-left: 280px;
+  flex: 1;
+  padding: var(--spacing-2xl);
+  background: var(--secondary-gradient);
+  min-height: calc(100vh - 64px);
+}
+
+/* 工作区步骤容器 */
+.workspace-step {
+  display: none;
+}
+
+.workspace-step.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 步骤头部 */
+.step-header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.step-title {
+  font-size: var(--text-3xl);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.step-description {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* 步骤内容 */
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* 步骤底部 */
+.step-footer {
+  margin-top: var(--spacing-2xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border-primary);
+}
+
+/* ===================================
+   旧布局系统（保留兼容）
+   =================================== */
+
 /* 主容器 */
 .container {
   max-width: 1400px;
