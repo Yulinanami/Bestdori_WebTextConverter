@@ -205,13 +205,7 @@ export function initializeModalCloseButtons() {
       button.addEventListener("click", () => {
         const modalId = button.dataset.modalId || button.closest(".modal")?.id;
         if (modalId) {
-          if (modalId === "costumeModal") {
-            costumeManager.cancelCostumeChanges();
-          } else if (modalId === "positionModal") {
-            positionManager.closePositionModal();
-          } else {
-            modalService.close(modalId);
-          }
+          modalService.close(modalId);
         }
       });
     });
