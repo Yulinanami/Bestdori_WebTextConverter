@@ -308,8 +308,12 @@ export const configManager = {
               ? positionManager.manualPositions
               : {},
           },
+          custom_motions: motionManager ? motionManager.customItems : [],
+          custom_expressions: expressionManager
+            ? expressionManager.customItems
+            : [],
           export_date: new Date().toISOString(),
-          version: "1.1",
+          version: "1.2",
         };
         const dataStr = JSON.stringify(fullConfig, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -403,6 +407,24 @@ export const configManager = {
             positionManager.importPositions(config.position_config);
             console.log("位置配置已导入");
           }
+          // 导入自定义动作/表情
+          if (config.custom_motions && Array.isArray(config.custom_motions)) {
+            if (typeof motionManager !== "undefined") {
+              motionManager.customItems = [...config.custom_motions];
+              motionManager.saveCustomItems();
+              console.log("自定义动作已导入");
+            }
+          }
+          if (
+            config.custom_expressions &&
+            Array.isArray(config.custom_expressions)
+          ) {
+            if (typeof expressionManager !== "undefined") {
+              expressionManager.customItems = [...config.custom_expressions];
+              expressionManager.saveCustomItems();
+              console.log("自定义表情已导入");
+            }
+          }
         } else {
           throw new Error("配置文件中没有有效数据");
         }
@@ -432,6 +454,7 @@ export const configManager = {
         "  - 自定义角色映射\n" +
         "  - 所有角色的服装配置\n" +
         "  - 自定义引号\n" +
+        "  - 自定义动作和表情\n" +
         "  - Live2D 布局和位置设置\n\n" +
         "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
     );
@@ -450,6 +473,8 @@ export const configManager = {
           STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
           STORAGE_KEYS.POSITION_CONFIG,
           STORAGE_KEYS.CARD_GROUPING,
+          STORAGE_KEYS.CUSTOM_MOTIONS,
+          STORAGE_KEYS.CUSTOM_EXPRESSIONS,
         ];
 
         console.log("正在清除以下本地缓存:", keysToRemove);

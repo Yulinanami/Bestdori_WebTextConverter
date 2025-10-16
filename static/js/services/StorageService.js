@@ -11,8 +11,8 @@ export const STORAGE_KEYS = {
   POSITION_CONFIG: "bestdori_position_config",
   CARD_GROUPING: "bestdori_card_grouping_enabled",
   PINNED_CHARACTERS: "bestdori_pinned_characters",
-  MOTION_CONFIG: "bestdori_motion_config",
-  EXPRESSION_CONFIG: "bestdori_expression_config",
+  CUSTOM_MOTIONS: "bestdori_custom_motions",
+  CUSTOM_EXPRESSIONS: "bestdori_custom_expressions",
   LIVE2D_SUBSEQUENT_MODE: "bestdori_live2d_subsequent_mode",
   SPEAKER_MULTI_SELECT_MODE: "bestdori_speaker_multi_select_mode",
 };
