@@ -98,6 +98,19 @@ export const configManager = {
     return storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config);
   },
 
+  // 打开配置管理模态框
+  async openConfigModal() {
+    await ui.withButtonLoading(
+      "configBtn",
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        this.renderConfigList();
+        modalService.open("configModal");
+      },
+      "加载配置..."
+    );
+  },
+
   // 重置为默认配置（保留服装配置）
   async resetConfig() {
     const confirmed = await modalService.confirm(
@@ -262,6 +275,7 @@ export const configManager = {
         if (this.saveLocalConfig(newConfig)) {
           state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");
+          modalService.close("configModal");
           eventBus.emit(EVENTS.CONFIG_SAVED, newConfig);
         } else {
           ui.showStatus("配置保存失败，可能是存储空间不足", "error");

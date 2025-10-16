@@ -98,6 +98,12 @@ function bindClassicViewEvents() {
 
   // 配置相关
   document
+    .getElementById("configBtn")
+    .addEventListener(
+      "click",
+      configManager.openConfigModal.bind(configManager)
+    );
+  document
     .getElementById("addConfigBtn")
     .addEventListener("click", configManager.addConfigItem.bind(configManager));
   document
@@ -153,6 +159,23 @@ function bindClassicViewEvents() {
     clearCacheBtn.addEventListener(
       "click",
       configManager.clearLocalStorage.bind(configManager)
+    );
+  }
+
+  // 位置配置按钮
+  const positionConfigBtn = document.getElementById("positionConfigBtn");
+  if (positionConfigBtn) {
+    positionConfigBtn.addEventListener("click", () => {
+      positionManager.openPositionModal();
+    });
+  }
+
+  // 服装配置按钮
+  const costumeConfigBtn = document.getElementById("costumeConfigBtn");
+  if (costumeConfigBtn) {
+    costumeConfigBtn.addEventListener(
+      "click",
+      costumeManager.openCostumeModal.bind(costumeManager)
     );
   }
 
