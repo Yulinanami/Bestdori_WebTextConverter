@@ -22,12 +22,6 @@ export const costumeManager = {
   originalAvailableCostumes: {},
 
   init() {
-    // 注册特殊的模态框关闭处理器
-    modalService.registerCloseHandler("costumeModal", () => {
-      this.cancelCostumeChanges();
-    });
-
-    // 原有的初始化代码
     const costumeList = document.getElementById("costumeList");
     if (!costumeList) return;
     costumeList.addEventListener("click", (e) => {
@@ -192,23 +186,6 @@ export const costumeManager = {
     }
 
     return storageService.set(STORAGE_KEYS.AVAILABLE_COSTUMES_V2, this.availableCostumes);
-  },
-
-  // 打开服装配置模态框
-  async openCostumeModal() {
-    await ui.withButtonLoading(
-      "costumeConfigBtn",
-      async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        this.originalCostumes = DataUtils.deepClone(state.get("currentCostumes"));
-        this.originalAvailableCostumes = DataUtils.deepClone(this.availableCostumes);
-        this.tempCostumeChanges = DataUtils.deepClone(state.get("currentCostumes"));
-        this.tempAvailableCostumes = DataUtils.deepClone(this.availableCostumes);
-        this.renderCostumeList();
-        modalService.open("costumeModal");
-      },
-      "加载配置..."
-    );
   },
 
   /**
@@ -438,17 +415,12 @@ export const costumeManager = {
         this.saveLocalAvailableCostumes();
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("服装配置已保存！", "success");
-        modalService.close("costumeModal");
         eventBus.emit(EVENTS.COSTUME_SAVED, state.get("currentCostumes"));
       },
       "保存中..."
     );
   },
 
-  // 取消所有临时更改
-  cancelCostumeChanges() {
-    modalService.close("costumeModal");
-  },
 
   // 重置为默认服装
   async resetCostumes() {

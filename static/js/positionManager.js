@@ -23,11 +23,6 @@ export const positionManager = {
 
   // 初始化
   init() {
-    // 注册特殊的模态框关闭处理器
-    modalService.registerCloseHandler("positionModal", () => {
-      this.closePositionModal();
-    });
-
     this.loadPositionConfig();
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
@@ -90,31 +85,6 @@ export const positionManager = {
       manualPositions: this.manualPositions,
     };
     return storageService.set(STORAGE_KEYS.POSITION_CONFIG, config);
-  },
-
-  // 打开位置配置模态框
-  async openPositionModal() {
-    await ui.withButtonLoading(
-      "positionConfigBtn",
-      async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        this.tempAutoPositionMode = this.autoPositionMode;
-        this.tempManualPositions = DataUtils.deepClone(this.manualPositions);
-        const autoCheckbox = document.getElementById("autoPositionCheckbox");
-        if (autoCheckbox) {
-          autoCheckbox.checked = this.tempAutoPositionMode;
-        }
-        this.renderPositionList();
-        this.toggleManualConfig();
-        modalService.open("positionModal");
-      },
-      "加载中..."
-    );
-  },
-
-  // 关闭模态框
-  closePositionModal() {
-    modalService.close("positionModal");
   },
 
   // 切换手动配置显示
@@ -207,7 +177,6 @@ export const positionManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         this.savePositionConfig();
         ui.showStatus("位置配置已保存！", "success");
-        this.closePositionModal();
         eventBus.emit(EVENTS.POSITION_SAVED, { autoPositionMode: this.autoPositionMode, manualPositions: this.manualPositions });
       },
       "保存中..."

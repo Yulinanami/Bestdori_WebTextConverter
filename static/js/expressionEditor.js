@@ -235,7 +235,10 @@ export const expressionEditor = {
           type,
           newValue
         );
-        this._updateSingleTagUI(actionId, characterName, type, newValue);
+        // 使用 requestAnimationFrame 确保在下一帧更新UI，避免与拖拽操作冲突
+        requestAnimationFrame(() => {
+          this._updateSingleTagUI(actionId, characterName, type, newValue);
+        });
       },
       undo: () => {
         this._applyCharacterStateChange(
@@ -244,7 +247,9 @@ export const expressionEditor = {
           type,
           oldValue
         );
-        this._updateSingleTagUI(actionId, characterName, type, oldValue);
+        requestAnimationFrame(() => {
+          this._updateSingleTagUI(actionId, characterName, type, oldValue);
+        });
       },
     };
     historyManager.do(command);
@@ -283,13 +288,18 @@ export const expressionEditor = {
       `.timeline-item[data-id="${actionId}"]`
     );
     if (!timelineItem) return;
+
     const statusTag = timelineItem.querySelector(
       `.character-status-tag[data-character-name="${characterName}"]`
     );
     if (!statusTag) return;
+
     const dropZone = statusTag.querySelector(`.${type}-drop-zone`);
     if (dropZone) {
-      dropZone.querySelector(".drop-zone-value").textContent = value;
+      const valueElement = dropZone.querySelector(".drop-zone-value");
+      if (valueElement) {
+        valueElement.textContent = value;
+      }
       const clearBtn = dropZone.querySelector(".clear-state-btn");
       if (clearBtn) {
         DOMUtils.toggleDisplay(clearBtn, value && value !== "--");
@@ -545,14 +555,30 @@ export const expressionEditor = {
         },
         animation: 150,
         onAdd: (evt) => {
-          const value = evt.item ? evt.item.textContent : null;
+          const value = evt.item ? evt.item.textContent.trim() : null;
           const dropZone = evt.to;
           const statusTag = dropZone.closest(".character-status-tag");
           const timelineItem = dropZone.closest(".timeline-item");
+
+          // 立即移除拖拽的元素
+          evt.item.remove();
+
           if (value && statusTag && timelineItem) {
             const characterName = statusTag.dataset.characterName;
             const actionId = timelineItem.dataset.id;
             const type = dropZone.dataset.type;
+
+            // 先立即更新UI显示
+            const valueElement = dropZone.querySelector(".drop-zone-value");
+            if (valueElement) {
+              valueElement.textContent = value;
+            }
+            const clearBtn = dropZone.querySelector(".clear-state-btn");
+            if (clearBtn) {
+              DOMUtils.toggleDisplay(clearBtn, true);
+            }
+
+            // 然后更新数据（这会触发历史记录）
             this._executePropertyChangeCommand(
               actionId,
               characterName,
@@ -560,7 +586,6 @@ export const expressionEditor = {
               value
             );
           }
-          evt.item.remove();
         },
       });
     });
