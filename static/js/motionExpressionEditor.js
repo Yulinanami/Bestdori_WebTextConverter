@@ -149,7 +149,6 @@ export const motionExpressionEditor = {
         expressionManager.saveCustomItems();
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("动作/表情配置已保存！", "success");
-        ui.closeModal("motionExpressionModal");
       },
       "保存中..."
     );
