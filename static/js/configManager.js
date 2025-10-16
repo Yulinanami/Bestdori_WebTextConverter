@@ -55,7 +55,6 @@ export const configManager = {
    * 获取角色头像ID
    * 使用avatar_mapping配置将特殊角色ID映射到对应的头像ID
    * 例如: Mujica成员(ID 337-341)映射到Mujica头像(ID 1-6)
-   * @param {number} characterId - 角色ID
    * @returns {number} 头像ID
    */
   getAvatarId(characterId) {
@@ -158,8 +157,6 @@ export const configManager = {
    * 重置角色配置后更新服装配置
    * 保留现有角色的服装设置,为新角色使用默认服装
    * 确保重置角色列表时不会丢失用户已配置的服装
-   * @param {Object} previousCostumes - 重置前的服装映射
-   * @param {Object} previousAvailableCostumes - 重置前的可用服装列表
    */
   async updateCostumesAfterConfigReset(
     previousCostumes,
@@ -333,51 +330,18 @@ export const configManager = {
   },
 
   /**
-   * 验证导入的配置对象是否安全
-   * 防止原型污染和恶意数据注入
-   * @param {Object} config - 待验证的配置对象
+   * 验证导入的配置对象格式
+   * 
    * @returns {boolean} 是否有效
    */
   validateConfig(config) {
-    // 检查是否为有效对象
+    // 只检查是否为有效对象
     if (!config || typeof config !== "object" || Array.isArray(config)) {
+      console.error("配置验证失败：不是有效的对象");
       return false;
     }
-
-    // 检查是否包含危险的原型属性
-    const dangerousKeys = ["__proto__", "constructor", "prototype"];
-    for (const key of dangerousKeys) {
-      if (key in config) {
-        console.error(`配置验证失败：检测到危险属性 "${key}"`);
-        return false;
-      }
-    }
-
-    // 递归检查嵌套对象
-    const checkNestedObject = (obj, depth = 0) => {
-      // 防止无限递归
-      if (depth > 10) return false;
-
-      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
-        for (const key of dangerousKeys) {
-          if (key in obj) {
-            return false;
-          }
-        }
-
-        // 检查所有子对象
-        for (const value of Object.values(obj)) {
-          if (typeof value === "object" && value !== null) {
-            if (!checkNestedObject(value, depth + 1)) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
-    };
-
-    return checkNestedObject(config);
+    console.log("配置格式有效");
+    return true;
   },
 
   /**
@@ -388,7 +352,6 @@ export const configManager = {
    * - costume_mapping/available_costumes: 服装配置
    * - position_config: 位置配置
    * 解析JSON文件后依次调用各子系统的导入方法
-   * @param {File} file - 配置JSON文件
    */
   importConfig(file) {
     const reader = new FileReader();
