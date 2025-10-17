@@ -187,7 +187,15 @@ export const speakerEditor = {
    * @param {MouseEvent} e - 点击事件对象
    */
   _handleCardClick(e) {
-    const item = e.target.closest(".dialogue-item");
+    const deleteButton = e.target.closest(".layout-remove-btn");
+    if (deleteButton) {
+      const layoutCard = deleteButton.closest(".layout-item");
+      if (layoutCard && layoutCard.dataset.id) {
+        this._deleteLayoutAction(layoutCard.dataset.id);
+        return;
+      }
+    }
+    const item = e.target.closest(".dialogue-item, .layout-item");
     if (!item || !item.dataset.id) return;
     const id = item.dataset.id;
     if (this.isMultiSelectMode) {
@@ -199,7 +207,7 @@ export const speakerEditor = {
         editorService.selectionManager.selectRange(
           id,
           this.domCache.canvas,
-          ".dialogue-item"
+          ".dialogue-item, .layout-item"
         );
       } else {
         const isAlreadyOnlySelected =
@@ -213,7 +221,6 @@ export const speakerEditor = {
       }
     }
 
-    // 更新 lastSelectedId 并触发事件
     editorService.selectionManager.lastSelectedId =
       editorService.selectionManager.selectedIds.has(id) ? id : null;
     this.domCache.canvas.dispatchEvent(
@@ -449,14 +456,6 @@ export const speakerEditor = {
               card.classList.remove("is-selected");
             }
           });
-        });
-
-        canvas.addEventListener("click", (e) => {
-          const card = e.target.closest(".layout-item");
-          if (!card) return;
-          if (e.target.matches(".layout-remove-btn")) {
-            this._deleteLayoutAction(card.dataset.id);
-          }
         });
 
         canvas.addEventListener("change", (e) => {
@@ -780,12 +779,18 @@ export const speakerEditor = {
           this.stopScrolling();
         },
         onAdd: (evt) => {
-          // 拖回角色列表时,清除该对话的说话人
           const cardItem = evt.item;
           const actionId = cardItem.dataset.id;
+
           if (actionId) {
-            this.removeAllSpeakersFromAction(actionId);
+            // 判断被拖入卡片的类型
+            if (cardItem.classList.contains("dialogue-item")) {
+              this.removeAllSpeakersFromAction(actionId);
+            } else if (cardItem.classList.contains("layout-item")) {
+              this._deleteLayoutAction(actionId);
+            }
           }
+
           cardItem.remove();
         },
       })
