@@ -189,7 +189,7 @@ function bindClassicViewEvents() {
     .addEventListener("click", () => ui.openModal("helpModal"));
 
   document.getElementById("shutdownBtn").addEventListener("click", () => {
-    if (confirm("您确定要关闭应用程序吗？")) {
+    if (confirm("确定要关闭应用程序吗？")) {
       ui.showStatus("正在关闭服务器...", "info");
 
       // 调用关闭API
@@ -201,7 +201,7 @@ function bindClassicViewEvents() {
           <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background: var(--secondary-gradient); color: var(--text-primary);">
             <div>
               <h1 style="font-size: 2rem; margin-bottom: 1rem;">程序已关闭</h1>
-              <p style="font-size: 1.1rem; color: var(--text-secondary);">您可以安全地关闭此浏览器窗口了。</p>
+              <p style="font-size: 1.1rem; color: var(--text-secondary);">你现在可以安全地关闭此浏览器窗口了。</p>
             </div>
           </div>
         `;
