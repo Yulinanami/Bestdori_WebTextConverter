@@ -1,9 +1,5 @@
 /* cards.css - 卡片和配置项样式 */
 
-/* ===================================
-   新卡片系统
-   =================================== */
-
 /* 通用卡片样式 */
 .card {
   background: var(--bg-primary);
@@ -31,10 +27,6 @@
   padding: var(--spacing-lg);
 }
 
-/* ===================================
-   旧卡片系统（保留兼容）
-   =================================== */
-
 /* 配置项布局 */
 .config-item {
   display: flex;
@@ -44,8 +36,7 @@
   padding: var(--spacing-md);
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
-  transition: background-color 0.3s ease,
-              box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* 输入框调整 */
@@ -68,8 +59,7 @@
   margin-bottom: var(--spacing-md);
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
-  transition: transform 0.3s ease,
-              box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .costume-item:hover {
@@ -121,8 +111,7 @@
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: background-color 0.3s ease,
-              box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .costume-item-header {
@@ -222,8 +211,7 @@
   margin-bottom: var(--spacing-sm);
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
-  transition: background-color 0.3s ease,
-              transform 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
   gap: var(--spacing-md);
 }
 
@@ -329,7 +317,7 @@
 }
 
 .config-list-item.is-custom .item-name::after {
-  content: '*';
+  content: "*";
   color: var(--color-primary);
   font-weight: bold;
   margin-left: 5px;

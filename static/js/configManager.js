@@ -196,7 +196,9 @@ export const configManager = {
       this.updateConfigAvatar(avatarWrapper, primaryId, name);
 
       configItem.querySelector(".config-name").value = name;
-      configItem.querySelector(".config-ids").value = Array.isArray(ids) ? ids.join(",") : ids;
+      configItem.querySelector(".config-ids").value = Array.isArray(ids)
+        ? ids.join(",")
+        : ids;
 
       return configItem;
     });
@@ -321,7 +323,7 @@ export const configManager = {
 
   /**
    * 验证导入的配置对象格式
-   * 
+   *
    * @returns {boolean} 是否有效
    */
   validateConfig(config) {
@@ -473,13 +475,13 @@ export const configManager = {
       "清除中..."
     );
   },
-  
-getCharacterNameById(id) {
-      for (const [name, ids] of Object.entries(state.get("currentConfig"))) {
-          if (ids.includes(id)) {
-              return name;
-          }
+
+  getCharacterNameById(id) {
+    for (const [name, ids] of Object.entries(state.get("currentConfig"))) {
+      if (ids.includes(id)) {
+        return name;
       }
-      return null;
-  }
+    }
+    return null;
+  },
 };

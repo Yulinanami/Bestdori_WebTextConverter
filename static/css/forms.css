@@ -19,8 +19,8 @@
   border-radius: var(--radius-lg);
   font-size: var(--text-base);
   transition: border-color var(--transition-normal),
-              background-color var(--transition-normal),
-              box-shadow var(--transition-normal);
+    background-color var(--transition-normal),
+    box-shadow var(--transition-normal);
   background: var(--bg-secondary);
 }
 
@@ -68,8 +68,8 @@
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   transition: border-color var(--transition-normal),
-              background-color var(--transition-normal),
-              transform var(--transition-normal);
+    background-color var(--transition-normal),
+    transform var(--transition-normal);
   min-height: 80px;
 }
 

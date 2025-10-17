@@ -15,7 +15,10 @@ export const quoteManager = {
 
   // 保存自定义引号到本地
   saveCustomQuotes() {
-    return storageService.set(STORAGE_KEYS.CUSTOM_QUOTES, state.get("customQuotes"));
+    return storageService.set(
+      STORAGE_KEYS.CUSTOM_QUOTES,
+      state.get("customQuotes")
+    );
   },
 
   // 渲染引号选项

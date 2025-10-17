@@ -28,11 +28,13 @@ class EditorService {
     this.configManager = dependencies.configManager || configManager;
     this.historyManager = dependencies.historyManager || historyManager;
     this.projectManager = dependencies.projectManager || projectManager;
-    this.pinnedCharacterManager = dependencies.pinnedCharacterManager || pinnedCharacterManager;
+    this.pinnedCharacterManager =
+      dependencies.pinnedCharacterManager || pinnedCharacterManager;
     this.costumeManager = dependencies.costumeManager || costumeManager;
     this.positionManager = dependencies.positionManager || positionManager;
     this.motionManager = dependencies.motionManager || motionManager;
-    this.expressionManager = dependencies.expressionManager || expressionManager;
+    this.expressionManager =
+      dependencies.expressionManager || expressionManager;
     this.selectionManager = dependencies.selectionManager || selectionManager;
   }
 

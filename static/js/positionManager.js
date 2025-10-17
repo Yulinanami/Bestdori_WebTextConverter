@@ -15,7 +15,6 @@ export const positionManager = {
     center: "中间",
     rightInside: "右侧",
   },
-  autoPositionMode: true,
   manualPositions: {},
   positionCounter: 0,
   tempManualPositions: {},
@@ -177,7 +176,10 @@ export const positionManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         this.savePositionConfig();
         ui.showStatus("位置配置已保存！", "success");
-        eventBus.emit(EVENTS.POSITION_SAVED, { autoPositionMode: this.autoPositionMode, manualPositions: this.manualPositions });
+        eventBus.emit(EVENTS.POSITION_SAVED, {
+          autoPositionMode: this.autoPositionMode,
+          manualPositions: this.manualPositions,
+        });
       },
       "保存中..."
     );
@@ -185,7 +187,9 @@ export const positionManager = {
 
   // 重置为默认位置（全部设为中间，偏移清零）
   async resetPositions() {
-    const confirmed = await modalService.confirm("确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？");
+    const confirmed = await modalService.confirm(
+      "确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？"
+    );
     if (confirmed) {
       await ui.withButtonLoading(
         "resetPositionsBtn",

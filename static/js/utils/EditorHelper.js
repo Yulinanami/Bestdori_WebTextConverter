@@ -89,7 +89,7 @@ export const EditorHelper = {
       applyChanges,
       beforeSave,
       afterSave,
-      loadingText = "保存中..."
+      loadingText = "保存中...",
     } = params;
 
     // 如果提供了 buttonId，使用加载动画
@@ -119,7 +119,9 @@ export const EditorHelper = {
       // 确保加载动画至少显示了最小时间
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minDisplayTime) {
-        await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsedTime));
+        await new Promise((resolve) =>
+          setTimeout(resolve, minDisplayTime - elapsedTime)
+        );
       }
     } finally {
       // 在关闭模态框之前恢复按钮状态

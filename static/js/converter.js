@@ -85,9 +85,17 @@ export const converter = {
       ui.showProgress(10);
       ui.showStatus("正在发送项目数据...", "info");
 
-      eventBus.emit(EVENTS.CONVERT_START, { projectFile, selectedQuotes, narratorName });
+      eventBus.emit(EVENTS.CONVERT_START, {
+        projectFile,
+        selectedQuotes,
+        narratorName,
+      });
 
-      const data = await apiService.convertText(projectFile, selectedQuotes, narratorName);
+      const data = await apiService.convertText(
+        projectFile,
+        selectedQuotes,
+        narratorName
+      );
       const result = data.result;
 
       ui.showProgress(100);

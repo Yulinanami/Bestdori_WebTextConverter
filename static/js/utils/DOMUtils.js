@@ -144,14 +144,10 @@ export const DOMUtils = {
    * @returns {HTMLElement}
    */
   createLoadingElement(message = "加载中...") {
-    return this.createElement(
-      "div",
-      { className: "loading-container" },
-      [
-        this.createElement("div", { className: "loading" }),
-        this.createElement("div", { className: "loading-text" }, message),
-      ]
-    );
+    return this.createElement("div", { className: "loading-container" }, [
+      this.createElement("div", { className: "loading" }),
+      this.createElement("div", { className: "loading-text" }, message),
+    ]);
   },
 
   /**
@@ -160,11 +156,7 @@ export const DOMUtils = {
    * @returns {HTMLElement}
    */
   createEmptyState(message = "暂无数据") {
-    return this.createElement(
-      "div",
-      { className: "empty-state" },
-      message
-    );
+    return this.createElement("div", { className: "empty-state" }, message);
   },
 
   /**

@@ -7,7 +7,7 @@ import { EditorHelper } from "./utils/EditorHelper.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
 import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js"; 
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -48,7 +48,7 @@ export const live2dEditor = {
   scrollAnimationFrame: null,
   scrollSpeed: 0,
   // 后续布局模式: 'move' 或 'hide'
-  subsequentLayoutMode: 'move',
+  subsequentLayoutMode: "move",
 
   // 初始化编辑器，绑定事件监听器和快捷键
   init() {
@@ -60,13 +60,15 @@ export const live2dEditor = {
       modal: document.getElementById("live2dEditorModal"),
       undoBtn: document.getElementById("live2dUndoBtn"),
       redoBtn: document.getElementById("live2dRedoBtn"),
-      toggleSubsequentModeBtn: document.getElementById("toggleSubsequentLayoutModeBtn"),
+      toggleSubsequentModeBtn: document.getElementById(
+        "toggleSubsequentLayoutModeBtn"
+      ),
       subsequentModeText: document.getElementById("subsequentLayoutModeText"),
     };
 
     const savedMode = storageService.get(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE);
-    if (savedMode === 'hide' || savedMode === 'move') {
-        this.subsequentLayoutMode = savedMode;
+    if (savedMode === "hide" || savedMode === "move") {
+      this.subsequentLayoutMode = savedMode;
     }
 
     document
@@ -78,8 +80,12 @@ export const live2dEditor = {
     document
       .getElementById("resetLayoutsBtn")
       ?.addEventListener("click", () => this._clearAllLayouts());
-    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
-    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
+    this.domCache.undoBtn?.addEventListener("click", () =>
+      historyManager.undo()
+    );
+    this.domCache.redoBtn?.addEventListener("click", () =>
+      historyManager.redo()
+    );
     document
       .getElementById("saveLayoutsBtn")
       ?.addEventListener("click", () => this.save());
@@ -89,7 +95,9 @@ export const live2dEditor = {
     document
       .getElementById("exportLayoutsBtn")
       ?.addEventListener("click", () => this.exportProject());
-    this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () => this._toggleSubsequentLayoutMode());
+    this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () =>
+      this._toggleSubsequentLayoutMode()
+    );
     const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
@@ -121,8 +129,10 @@ export const live2dEditor = {
       ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {
       if (this.domCache.modal?.style.display === "flex") {
-        if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
-        if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
+        if (this.domCache.undoBtn)
+          this.domCache.undoBtn.disabled = !e.detail.canUndo;
+        if (this.domCache.redoBtn)
+          this.domCache.redoBtn.disabled = !e.detail.canRedo;
       }
     });
     this.domCache.modal?.addEventListener("keydown", (e) => {
@@ -242,9 +252,12 @@ export const live2dEditor = {
       modalId: "live2dEditorModal",
       buttonId: "saveLayoutsBtn",
       applyChanges: () => {
-        editorService.projectManager.save(this.projectFileState, (savedState) => {
-          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-        });
+        editorService.projectManager.save(
+          this.projectFileState,
+          (savedState) => {
+            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+          }
+        );
       },
     });
   },
@@ -274,7 +287,7 @@ export const live2dEditor = {
       modalId: "live2dEditorModal",
       beforeClose: () => {
         // 销毁 Sortable 实例
-        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances.forEach((instance) => instance?.destroy());
         this.sortableInstances = [];
 
         // 停止滚动动画
@@ -316,10 +329,11 @@ export const live2dEditor = {
             if (!appearedCharacterNames.has(speaker.name)) {
               appearedCharacterNames.add(speaker.name);
               const defaultCostume = this._getDefaultCostume(speaker.name);
-              const positionConfig = editorService.positionManager.getCharacterPositionConfig(
-                speaker.name,
-                appearedCharacterNames.size - 1
-              );
+              const positionConfig =
+                editorService.positionManager.getCharacterPositionConfig(
+                  speaker.name,
+                  appearedCharacterNames.size - 1
+                );
               const newLayoutAction = {
                 id: `layout-action-${Date.now()}-${speaker.characterId}`,
                 type: "layout",
@@ -374,7 +388,9 @@ export const live2dEditor = {
 
     try {
       this._executeCommand((currentState) => {
-        currentState.actions = currentState.actions.filter((a) => a.type !== "layout");
+        currentState.actions = currentState.actions.filter(
+          (a) => a.type !== "layout"
+        );
       });
       ui.showStatus("已清空所有布局。", "success");
     } finally {
@@ -490,7 +506,10 @@ export const live2dEditor = {
     }
 
     if (newScrollSpeed !== 0) {
-      if (newScrollSpeed !== live2dEditor.scrollSpeed || !live2dEditor.scrollAnimationFrame) {
+      if (
+        newScrollSpeed !== live2dEditor.scrollSpeed ||
+        !live2dEditor.scrollAnimationFrame
+      ) {
         live2dEditor.scrollSpeed = newScrollSpeed;
         live2dEditor.startScrolling(scrollTarget);
       }
@@ -534,24 +553,26 @@ export const live2dEditor = {
     if (!characterList || !timeline) return;
 
     // 清理旧的 Sortable 实例
-    this.sortableInstances.forEach(instance => instance?.destroy());
+    this.sortableInstances.forEach((instance) => instance?.destroy());
     this.sortableInstances = [];
 
     // 角色列表的 Sortable 配置（只允许拖出，不允许排序）
-    this.sortableInstances.push(new Sortable(characterList, {
-      group: {
-        name: "live2d-shared",
-        pull: "clone",
-        put: false,
-      },
-      sort: false,
-      onStart: () =>
-        document.addEventListener("dragover", this.handleDragScrolling),
-      onEnd: () => {
-        document.removeEventListener("dragover", this.handleDragScrolling);
-        this.stopScrolling();
-      },
-    }));
+    this.sortableInstances.push(
+      new Sortable(characterList, {
+        group: {
+          name: "live2d-shared",
+          pull: "clone",
+          put: false,
+        },
+        sort: false,
+        onStart: () =>
+          document.addEventListener("dragover", this.handleDragScrolling),
+        onEnd: () => {
+          document.removeEventListener("dragover", this.handleDragScrolling);
+          this.stopScrolling();
+        },
+      })
+    );
 
     // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
     const onEndHandler = DragHelper.createOnEndHandler({
@@ -588,32 +609,38 @@ export const live2dEditor = {
     });
 
     // 时间轴的 Sortable 配置
-    this.sortableInstances.push(new Sortable(
-      timeline,
-      DragHelper.createSortableConfig({
-        group: "live2d-shared",
-        onEnd: (evt) => {
-          document.removeEventListener("dragover", this.handleDragScrolling);
-          this.stopScrolling();
-          onEndHandler(evt);
-        },
-        onAdd: onAddHandler,
-        extraConfig: {
-          sort: true,
-          filter: ".timeline-group-header",
-          onStart: () =>
-            document.addEventListener("dragover", this.handleDragScrolling),
-        },
-      })
-    ));
+    this.sortableInstances.push(
+      new Sortable(
+        timeline,
+        DragHelper.createSortableConfig({
+          group: "live2d-shared",
+          onEnd: (evt) => {
+            document.removeEventListener("dragover", this.handleDragScrolling);
+            this.stopScrolling();
+            onEndHandler(evt);
+          },
+          onAdd: onAddHandler,
+          extraConfig: {
+            sort: true,
+            filter: ".timeline-group-header",
+            onStart: () =>
+              document.addEventListener("dragover", this.handleDragScrolling),
+          },
+        })
+      )
+    );
   },
 
   /**
    * 切换后续布局模式（移动/退场）
    */
   _toggleSubsequentLayoutMode() {
-    this.subsequentLayoutMode = this.subsequentLayoutMode === 'move' ? 'hide' : 'move';
-    storageService.set(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE, this.subsequentLayoutMode); 
+    this.subsequentLayoutMode =
+      this.subsequentLayoutMode === "move" ? "hide" : "move";
+    storageService.set(
+      STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
+      this.subsequentLayoutMode
+    );
     this._updateSubsequentModeButton();
   },
 
@@ -622,7 +649,7 @@ export const live2dEditor = {
    */
   _updateSubsequentModeButton() {
     if (this.domCache.subsequentModeText) {
-      const modeText = this.subsequentLayoutMode === 'move' ? '移动' : '退场';
+      const modeText = this.subsequentLayoutMode === "move" ? "移动" : "退场";
       this.domCache.subsequentModeText.textContent = `后续: ${modeText}`;
     }
   },
@@ -641,7 +668,9 @@ export const live2dEditor = {
         characterName,
         index
       );
-      const layoutType = previousState.onStage ? this.subsequentLayoutMode : "appear";
+      const layoutType = previousState.onStage
+        ? this.subsequentLayoutMode
+        : "appear";
       const costumeToUse =
         previousState.lastCostume || this._getDefaultCostume(characterName);
       const defaultPosition = this._getDefaultPosition(characterName);
@@ -679,13 +708,9 @@ export const live2dEditor = {
   // 获取角色的默认位置配置（自动模式或手动模式）
   _getDefaultPosition(characterName) {
     const pm = editorService.positionManager;
-    if (
-      !pm.autoPositionMode &&
-      pm.manualPositions[characterName]
-    ) {
+    if (!pm.autoPositionMode && pm.manualPositions[characterName]) {
       return {
-        position:
-          pm.manualPositions[characterName].position || "center",
+        position: pm.manualPositions[characterName].position || "center",
         offset: pm.manualPositions[characterName].offset || 0,
       };
     }
@@ -878,7 +903,7 @@ export const live2dEditor = {
       ([name, ids]) => {
         const isPinned = pinned.has(name);
         // 置顶的角色返回负数（排在前面），使用 ID 作为次要排序
-        return isPinned ? -1000000 + (ids[0] || 0) : (ids[0] || 0);
+        return isPinned ? -1000000 + (ids[0] || 0) : ids[0] || 0;
       },
       "asc"
     );
@@ -918,7 +943,11 @@ export const live2dEditor = {
     // 从头遍历到指定索引,追踪角色状态变化
     for (let i = 0; i < startIndex; i++) {
       const action = actions[i];
-      if (action && action.type === "layout" && action.characterName === characterName) {
+      if (
+        action &&
+        action.type === "layout" &&
+        action.characterName === characterName
+      ) {
         if (action.layoutType === "appear" || action.layoutType === "move") {
           onStage = true;
           if (action.position && action.position.to) {

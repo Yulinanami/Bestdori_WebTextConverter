@@ -97,8 +97,14 @@ export const DragHelper = {
    * @returns {Function} onAdd 事件处理器
    */
   createOnAddHandler(params) {
-    const { editor, getGroupingEnabled, validateItem, extractData, executeFn, groupSize = 50 } =
-      params;
+    const {
+      editor,
+      getGroupingEnabled,
+      validateItem,
+      extractData,
+      executeFn,
+      groupSize = 50,
+    } = params;
 
     return (evt) => {
       const item = evt.item;

@@ -3,8 +3,8 @@ import { ui } from "./uiUtils.js";
 
 class GenericConfigManager {
   constructor(name, configKey, localStorageKey) {
-    this.name = name; 
-    this.configKey = configKey; 
+    this.name = name;
+    this.configKey = configKey;
     this.localStorageKey = localStorageKey;
     this.characterItems = {};
     this.customItems = this.loadCustomItems();

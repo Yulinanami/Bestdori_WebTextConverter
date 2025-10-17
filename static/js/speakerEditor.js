@@ -45,7 +45,7 @@ export const speakerEditor = {
   },
 
   // 多选模式切换按钮
-  isMultiSelectMode: false, 
+  isMultiSelectMode: false,
   // DOM 缓存
   domCache: {},
   // 计算结果缓存
@@ -66,11 +66,13 @@ export const speakerEditor = {
       modal: document.getElementById("speakerEditorModal"),
       undoBtn: document.getElementById("undoBtn"),
       redoBtn: document.getElementById("redoBtn"),
-      toggleMultiSelectBtn: document.getElementById("toggleMultiSelectBtn"), 
+      toggleMultiSelectBtn: document.getElementById("toggleMultiSelectBtn"),
     };
 
     // 从本地存储加载多选模式配置
-    const savedMode = storageService.get(STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE);
+    const savedMode = storageService.get(
+      STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE
+    );
     this.isMultiSelectMode = savedMode === true;
 
     document
@@ -88,9 +90,15 @@ export const speakerEditor = {
     document
       .getElementById("resetSpeakersBtn")
       ?.addEventListener("click", () => this.reset());
-    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
-    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
-    this.domCache.toggleMultiSelectBtn?.addEventListener("click", () => this._toggleMultiSelectMode());
+    this.domCache.undoBtn?.addEventListener("click", () =>
+      historyManager.undo()
+    );
+    this.domCache.redoBtn?.addEventListener("click", () =>
+      historyManager.redo()
+    );
+    this.domCache.toggleMultiSelectBtn?.addEventListener("click", () =>
+      this._toggleMultiSelectMode()
+    );
     const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
@@ -127,8 +135,10 @@ export const speakerEditor = {
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {
-      if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
-      if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
+      if (this.domCache.undoBtn)
+        this.domCache.undoBtn.disabled = !e.detail.canUndo;
+      if (this.domCache.redoBtn)
+        this.domCache.redoBtn.disabled = !e.detail.canRedo;
     });
     this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
@@ -153,7 +163,10 @@ export const speakerEditor = {
    */
   _toggleMultiSelectMode() {
     this.isMultiSelectMode = !this.isMultiSelectMode;
-    storageService.set(STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE, this.isMultiSelectMode);
+    storageService.set(
+      STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
+      this.isMultiSelectMode
+    );
     const btn = this.domCache.toggleMultiSelectBtn;
     if (btn) {
       if (this.isMultiSelectMode) {
@@ -183,7 +196,11 @@ export const speakerEditor = {
       if (e.ctrlKey || e.metaKey) {
         editorService.selectionManager.toggle(id);
       } else if (e.shiftKey) {
-        editorService.selectionManager.selectRange(id, this.domCache.canvas, ".dialogue-item");
+        editorService.selectionManager.selectRange(
+          id,
+          this.domCache.canvas,
+          ".dialogue-item"
+        );
       } else {
         const isAlreadyOnlySelected =
           editorService.selectionManager.selectedIds.has(id) &&
@@ -195,12 +212,15 @@ export const speakerEditor = {
         }
       }
     }
-    
+
     // 更新 lastSelectedId 并触发事件
-    editorService.selectionManager.lastSelectedId = editorService.selectionManager.selectedIds.has(id) ? id : null;
+    editorService.selectionManager.lastSelectedId =
+      editorService.selectionManager.selectedIds.has(id) ? id : null;
     this.domCache.canvas.dispatchEvent(
       new CustomEvent("selectionchange", {
-        detail: { selectedIds: editorService.selectionManager.getSelectedIds() },
+        detail: {
+          selectedIds: editorService.selectionManager.getSelectedIds(),
+        },
       })
     );
   },
@@ -219,7 +239,7 @@ export const speakerEditor = {
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const controlClassName = targetElement.className;
-    
+
     this._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
       if (!action) return;
@@ -336,7 +356,7 @@ export const speakerEditor = {
       modalId: "speakerEditorModal",
       beforeClose: () => {
         // 销毁 Sortable 实例
-        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances.forEach((instance) => instance?.destroy());
         this.sortableInstances = [];
 
         // 停止滚动动画
@@ -396,17 +416,20 @@ export const speakerEditor = {
       },
       afterOpen: async () => {
         if (this.domCache.toggleMultiSelectBtn) {
-            this.domCache.toggleMultiSelectBtn.textContent = this.isMultiSelectMode ? "多选: 开" : "多选: 关";
+          this.domCache.toggleMultiSelectBtn.textContent = this
+            .isMultiSelectMode
+            ? "多选: 开"
+            : "多选: 关";
         }
 
         const usedCharacterIds = this.renderCanvas();
         this.renderCharacterList(usedCharacterIds);
         this.initDragAndDrop();
-        
+
         const canvas = document.getElementById("speakerEditorCanvas");
-        editorService.clearSelection(); 
+        editorService.clearSelection();
         if (this._boundCardClickHandler) {
-            canvas.removeEventListener("click", this._boundCardClickHandler);
+          canvas.removeEventListener("click", this._boundCardClickHandler);
         }
         this._boundCardClickHandler = this._handleCardClick.bind(this);
         canvas.addEventListener("click", this._boundCardClickHandler);
@@ -414,9 +437,11 @@ export const speakerEditor = {
           if (!e.detail) {
             return;
           }
-          
+
           const selectedIds = new Set(e.detail.selectedIds);
-          const allCards = canvas.querySelectorAll(".dialogue-item, .layout-item"); 
+          const allCards = canvas.querySelectorAll(
+            ".dialogue-item, .layout-item"
+          );
           allCards.forEach((card) => {
             if (selectedIds.has(card.dataset.id)) {
               card.classList.add("is-selected");
@@ -427,18 +452,18 @@ export const speakerEditor = {
         });
 
         canvas.addEventListener("click", (e) => {
-            const card = e.target.closest(".layout-item");
-            if (!card) return;
-            if (e.target.matches(".layout-remove-btn")) {
-                this._deleteLayoutAction(card.dataset.id);
-            }
+          const card = e.target.closest(".layout-item");
+          if (!card) return;
+          if (e.target.matches(".layout-remove-btn")) {
+            this._deleteLayoutAction(card.dataset.id);
+          }
         });
 
         canvas.addEventListener("change", (e) => {
-            const card = e.target.closest(".layout-item");
-            if (card && e.target.matches("select, input")) {
-                this._updateLayoutActionProperty(card.dataset.id, e.target);
-            }
+          const card = e.target.closest(".layout-item");
+          if (card && e.target.matches("select, input")) {
+            this._updateLayoutActionProperty(card.dataset.id, e.target);
+          }
         });
       },
     });
@@ -501,7 +526,9 @@ export const speakerEditor = {
     const actionIndexMap = new Map(actions.map((a, idx) => [a.id, idx]));
 
     const talkTemplate = document.getElementById("text-snippet-card-template");
-    const layoutTemplate = document.getElementById("timeline-layout-card-template");
+    const layoutTemplate = document.getElementById(
+      "timeline-layout-card-template"
+    );
 
     const renderSingleCard = (action) => {
       const globalIndex = actionIndexMap.get(action.id) ?? -1;
@@ -521,7 +548,11 @@ export const speakerEditor = {
           avatarContainer.style.display = "flex";
           speakerNameDiv.style.display = "block";
           dialogueItem.classList.remove("narrator");
-          editorService.updateCharacterAvatar({ querySelector: () => avatarDiv }, firstSpeaker.characterId, firstSpeaker.name);
+          editorService.updateCharacterAvatar(
+            { querySelector: () => avatarDiv },
+            firstSpeaker.characterId,
+            firstSpeaker.name
+          );
           const allNames = action.speakers.map((s) => s.name).join(" & ");
           speakerNameDiv.textContent = allNames;
           if (action.speakers.length > 1) {
@@ -543,7 +574,6 @@ export const speakerEditor = {
           dialogueItem.classList.add("narrator");
         }
         card.querySelector(".dialogue-text").textContent = action.text;
-
       } else if (action.type === "layout") {
         card = layoutTemplate.content.cloneNode(true);
         const item = card.querySelector(".timeline-item");
@@ -553,62 +583,88 @@ export const speakerEditor = {
         item.classList.add("layout-item");
 
         // 根据类型添加样式
-        item.classList.remove("layout-type-appear", "layout-type-move", "layout-type-hide");
-        if (action.layoutType === "appear") item.classList.add("layout-type-appear");
-        else if (action.layoutType === "move") item.classList.add("layout-type-move");
-        else if (action.layoutType === "hide") item.classList.add("layout-type-hide");
-        
+        item.classList.remove(
+          "layout-type-appear",
+          "layout-type-move",
+          "layout-type-hide"
+        );
+        if (action.layoutType === "appear")
+          item.classList.add("layout-type-appear");
+        else if (action.layoutType === "move")
+          item.classList.add("layout-type-move");
+        else if (action.layoutType === "hide")
+          item.classList.add("layout-type-hide");
+
         const characterId = action.characterId;
-        const characterName = action.characterName || editorService.getCharacterNameById(characterId);
-        
-        card.querySelector(".speaker-name").textContent = characterName || `未知角色 (ID: ${characterId})`;
+        const characterName =
+          action.characterName ||
+          editorService.getCharacterNameById(characterId);
+
+        card.querySelector(".speaker-name").textContent =
+          characterName || `未知角色 (ID: ${characterId})`;
         const avatarDiv = card.querySelector(".dialogue-avatar");
-        editorService.updateCharacterAvatar({ querySelector: () => avatarDiv }, characterId, characterName);
+        editorService.updateCharacterAvatar(
+          { querySelector: () => avatarDiv },
+          characterId,
+          characterName
+        );
         const typeSelect = card.querySelector(".layout-type-select");
         typeSelect.value = action.layoutType;
 
         const costumeSelect = card.querySelector(".layout-costume-select");
         DOMUtils.clearElement(costumeSelect);
-        const availableCostumes = editorService.costumeManager.availableCostumes[characterName] || [];
-        availableCostumes.forEach(costumeId => {
+        const availableCostumes =
+          editorService.costumeManager.availableCostumes[characterName] || [];
+        availableCostumes.forEach((costumeId) => {
           costumeSelect.add(new Option(costumeId, costumeId));
         });
         if (action.costume && !availableCostumes.includes(action.costume)) {
-          costumeSelect.add(new Option(`${action.costume} (自定义)`, action.costume), 0);
+          costumeSelect.add(
+            new Option(`${action.costume} (自定义)`, action.costume),
+            0
+          );
         }
         costumeSelect.value = action.costume;
 
         const positionSelect = card.querySelector(".layout-position-select");
-        const toPositionSelect = card.querySelector(".layout-position-select-to");
+        const toPositionSelect = card.querySelector(
+          ".layout-position-select-to"
+        );
         DOMUtils.clearElement(positionSelect);
         DOMUtils.clearElement(toPositionSelect);
-        Object.entries(editorService.positionManager.positionNames).forEach(([value, name]) => {
-          positionSelect.add(new Option(name, value));
-          toPositionSelect.add(new Option(name, value));
-        });
+        Object.entries(editorService.positionManager.positionNames).forEach(
+          ([value, name]) => {
+            positionSelect.add(new Option(name, value));
+            toPositionSelect.add(new Option(name, value));
+          }
+        );
 
         positionSelect.value = action.position?.from?.side || "center";
-        card.querySelector(".layout-offset-input").value = action.position?.from?.offsetX || 0;
-        
-        const toPositionContainer = card.querySelector(".to-position-container");
+        card.querySelector(".layout-offset-input").value =
+          action.position?.from?.offsetX || 0;
+
+        const toPositionContainer = card.querySelector(
+          ".to-position-container"
+        );
         if (action.layoutType === "move") {
-            toPositionContainer.style.display = "grid";
-            toPositionSelect.value = action.position?.to?.side || "center";
-            card.querySelector(".layout-offset-input-to").value = action.position?.to?.offsetX || 0;
+          toPositionContainer.style.display = "grid";
+          toPositionSelect.value = action.position?.to?.side || "center";
+          card.querySelector(".layout-offset-input-to").value =
+            action.position?.to?.offsetX || 0;
         } else {
-            toPositionContainer.style.display = "none";
+          toPositionContainer.style.display = "none";
         }
       } else {
         return null;
       }
-      
+
       const numberDiv = card.querySelector(".card-sequence-number");
       if (numberDiv && globalIndex !== -1) {
         numberDiv.textContent = `#${globalIndex + 1}`;
       }
       return card;
     };
-    
+
     if (isGroupingEnabled && actions.length > groupSize) {
       renderGroupedView({
         container: canvas,
@@ -619,13 +675,18 @@ export const speakerEditor = {
           this.activeGroupIndex = isOpening ? index : null;
           this.renderCanvas();
           if (isOpening) {
-              setTimeout(() => {
-                  const scrollContainer = this.domCache.canvas;
-                  const header = scrollContainer?.querySelector(`.timeline-group-header[data-group-idx="${index}"]`);
-                  if (scrollContainer && header) {
-                      scrollContainer.scrollTo({ top: header.offsetTop - 110, behavior: 'smooth' });
-                  }
-              }, 0);
+            setTimeout(() => {
+              const scrollContainer = this.domCache.canvas;
+              const header = scrollContainer?.querySelector(
+                `.timeline-group-header[data-group-idx="${index}"]`
+              );
+              if (scrollContainer && header) {
+                scrollContainer.scrollTo({
+                  top: header.offsetTop - 110,
+                  behavior: "smooth",
+                });
+              }
+            }, 0);
           }
         },
         renderItemFn: renderSingleCard,
@@ -696,37 +757,39 @@ export const speakerEditor = {
     if (!characterList || !canvas) return;
 
     // 清理旧的 Sortable 实例
-    this.sortableInstances.forEach(instance => instance?.destroy());
+    this.sortableInstances.forEach((instance) => instance?.destroy());
     this.sortableInstances = [];
 
     // 角色列表的Sortable配置
-    this.sortableInstances.push(new Sortable(characterList, {
-      group: {
-        name: "shared-speakers",
-        pull: "clone", // 拖出时克隆
-        put: true, // 可接收拖回
-      },
-      sort: false,
-      onMove: (evt) => {
-        return !evt.related.closest("#speakerEditorCharacterList");
-      },
-      onStart: () => {
-        document.addEventListener("dragover", this.handleDragScrolling);
-      },
-      onEnd: () => {
-        document.removeEventListener("dragover", this.handleDragScrolling);
-        this.stopScrolling();
-      },
-      onAdd: (evt) => {
-        // 拖回角色列表时,清除该对话的说话人
-        const cardItem = evt.item;
-        const actionId = cardItem.dataset.id;
-        if (actionId) {
-          this.removeAllSpeakersFromAction(actionId);
-        }
-        cardItem.remove();
-      },
-    }));
+    this.sortableInstances.push(
+      new Sortable(characterList, {
+        group: {
+          name: "shared-speakers",
+          pull: "clone", // 拖出时克隆
+          put: true, // 可接收拖回
+        },
+        sort: false,
+        onMove: (evt) => {
+          return !evt.related.closest("#speakerEditorCharacterList");
+        },
+        onStart: () => {
+          document.addEventListener("dragover", this.handleDragScrolling);
+        },
+        onEnd: () => {
+          document.removeEventListener("dragover", this.handleDragScrolling);
+          this.stopScrolling();
+        },
+        onAdd: (evt) => {
+          // 拖回角色列表时,清除该对话的说话人
+          const cardItem = evt.item;
+          const actionId = cardItem.dataset.id;
+          if (actionId) {
+            this.removeAllSpeakersFromAction(actionId);
+          }
+          cardItem.remove();
+        },
+      })
+    );
     // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
     const onEndHandler = DragHelper.createOnEndHandler({
       editor: baseEditor,
@@ -763,24 +826,26 @@ export const speakerEditor = {
       characterItem.remove();
     };
 
-    this.sortableInstances.push(new Sortable(
-      canvas,
-      DragHelper.createSortableConfig({
-        group: "shared-speakers",
-        onEnd: (evt) => {
-          document.removeEventListener("dragover", this.handleDragScrolling);
-          this.stopScrolling();
-          onEndHandler(evt);
-        },
-        onAdd: onAddHandler,
-        extraConfig: {
-          sort: true,
-          onStart: () => {
-            document.addEventListener("dragover", this.handleDragScrolling);
+    this.sortableInstances.push(
+      new Sortable(
+        canvas,
+        DragHelper.createSortableConfig({
+          group: "shared-speakers",
+          onEnd: (evt) => {
+            document.removeEventListener("dragover", this.handleDragScrolling);
+            this.stopScrolling();
+            onEndHandler(evt);
           },
-        },
-      })
-    ));
+          onAdd: onAddHandler,
+          extraConfig: {
+            sort: true,
+            onStart: () => {
+              document.addEventListener("dragover", this.handleDragScrolling);
+            },
+          },
+        })
+      )
+    );
   },
 
   // 使用 BaseEditor 的 getGlobalIndex 方法
@@ -816,7 +881,10 @@ export const speakerEditor = {
     }
 
     if (newScrollSpeed !== 0) {
-      if (newScrollSpeed !== speakerEditor.scrollSpeed || !speakerEditor.scrollAnimationFrame) {
+      if (
+        newScrollSpeed !== speakerEditor.scrollSpeed ||
+        !speakerEditor.scrollAnimationFrame
+      ) {
         speakerEditor.scrollSpeed = newScrollSpeed;
         speakerEditor.startScrolling(scrollTarget);
       }
@@ -850,7 +918,7 @@ export const speakerEditor = {
   // 更新对话的说话人分配（支持多选批量分配）
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = editorService.selectionManager.getSelectedIds();
-    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId]; 
+    const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
     this._executeCommand((currentState) => {
       targetIds.forEach((id) => {
         const actionToUpdate = currentState.actions.find((a) => a.id === id);
@@ -871,8 +939,8 @@ export const speakerEditor = {
     this.renderCharacterList(usedIds);
     editorService.clearSelection();
     this.domCache.canvas?.dispatchEvent(
-        new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
-      );
+      new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
+    );
   },
 
   // 从对话中移除指定说话人
@@ -916,7 +984,7 @@ export const speakerEditor = {
    */
   showMultiSpeakerPopover(actionId, targetElement) {
     // 移除所有旧的 popover 防止内存泄漏
-    DOMUtils.getElements("#speaker-popover").forEach(p => p.remove());
+    DOMUtils.getElements("#speaker-popover").forEach((p) => p.remove());
 
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
@@ -937,39 +1005,51 @@ export const speakerEditor = {
 
     // 为每个说话人创建列表项
     const items = action.speakers.map((speaker) => {
-      const nameSpan = DOMUtils.createElement("span", {
-        style: { flexGrow: "1" },
-      }, speaker.name);
+      const nameSpan = DOMUtils.createElement(
+        "span",
+        {
+          style: { flexGrow: "1" },
+        },
+        speaker.name
+      );
 
-      const deleteBtn = DOMUtils.createElement("button", {
-        className: "speaker-delete-btn",
-        style: {
-          borderRadius: "50%",
-          width: "22px",
-          height: "22px",
-          cursor: "pointer",
-          marginLeft: "10px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "16px",
-          lineHeight: "1",
+      const deleteBtn = DOMUtils.createElement(
+        "button",
+        {
+          className: "speaker-delete-btn",
+          style: {
+            borderRadius: "50%",
+            width: "22px",
+            height: "22px",
+            cursor: "pointer",
+            marginLeft: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "16px",
+            lineHeight: "1",
+          },
+          onClick: (e) => {
+            e.stopPropagation();
+            this.removeSpeakerFromAction(actionId, speaker.characterId);
+            popover.remove();
+          },
         },
-        onClick: (e) => {
-          e.stopPropagation();
-          this.removeSpeakerFromAction(actionId, speaker.characterId);
-          popover.remove();
-        },
-      }, "×");
+        "×"
+      );
 
-      return DOMUtils.createElement("div", {
-        style: {
-          display: "flex",
-          alignItems: "center",
-          padding: "6px 8px",
-          borderRadius: "5px",
+      return DOMUtils.createElement(
+        "div",
+        {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            padding: "6px 8px",
+            borderRadius: "5px",
+          },
         },
-      }, [nameSpan, deleteBtn]);
+        [nameSpan, deleteBtn]
+      );
     });
 
     // 批量添加所有列表项
@@ -1003,9 +1083,12 @@ export const speakerEditor = {
       modalId: "speakerEditorModal",
       buttonId: "saveSpeakersBtn",
       applyChanges: () => {
-        editorService.projectManager.save(this.projectFileState, (savedState) => {
-          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-        });
+        editorService.projectManager.save(
+          this.projectFileState,
+          (savedState) => {
+            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+          }
+        );
       },
     });
   },
@@ -1041,7 +1124,9 @@ export const speakerEditor = {
     try {
       const rawText = document.getElementById("inputText").value;
       const response = await axios.post("/api/segment-text", { text: rawText });
-      const defaultState = this.createProjectFileFromSegments(response.data.segments);
+      const defaultState = this.createProjectFileFromSegments(
+        response.data.segments
+      );
       this._executeCommand((currentState) => {
         Object.assign(currentState, defaultState);
       });

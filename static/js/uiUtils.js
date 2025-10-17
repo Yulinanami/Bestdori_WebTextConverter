@@ -1,7 +1,5 @@
 // UI相关的工具
 import { state } from "./stateManager.js";
-import { costumeManager } from "./costumeManager.js";
-import { positionManager } from "./positionManager.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { modalService } from "./services/ModalService.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
@@ -183,7 +181,8 @@ export function renderGroupedView({
         endNum - startNum + 1
       }条)`;
       groupHeader.style.background = "var(--group-header-active-bg, #ebf8ff)";
-      groupHeader.style.borderColor = "var(--group-header-active-border, #90cdf4)";
+      groupHeader.style.borderColor =
+        "var(--group-header-active-border, #90cdf4)";
 
       const actionsToRender = actions.slice(startNum - 1, endNum);
       actionsToRender.forEach((action) => {

@@ -63,8 +63,7 @@
   justify-content: center;
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast),
-              color var(--transition-fast),
-              transform var(--transition-fast);
+    color var(--transition-fast), transform var(--transition-fast);
 }
 
 .modal-close:hover {

@@ -15,7 +15,8 @@ class ApiService {
     if (error.response) {
       // 服务器返回错误状态码
       const status = error.response.status;
-      const message = error.response.data?.error || error.response.data?.message;
+      const message =
+        error.response.data?.error || error.response.data?.message;
 
       switch (status) {
         case 400:
@@ -60,23 +61,23 @@ class ApiService {
    * POST请求 - 自动处理FormData,跳过JSON header
    */
   async post(url, data = {}, config = {}) {
-  const isFormData = data instanceof FormData;
-  const requestHeaders = isFormData ? {} : this.defaultHeaders;
+    const isFormData = data instanceof FormData;
+    const requestHeaders = isFormData ? {} : this.defaultHeaders;
 
-  try {
-    const response = await axios.post(url, data, {
-      timeout: this.timeout,
-      // 合并请求头，允许 config 中的 headers 覆盖默认值
-      headers: { ...requestHeaders, ...config.headers },
-      ...config,
-    });
-    return response.data;
-  } catch (error) {
-    const errorMsg = this._handleError(error);
-    console.error(`[ApiService] POST ${url} 失败:`, errorMsg);
-    throw new Error(errorMsg);
+    try {
+      const response = await axios.post(url, data, {
+        timeout: this.timeout,
+        // 合并请求头，允许 config 中的 headers 覆盖默认值
+        headers: { ...requestHeaders, ...config.headers },
+        ...config,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMsg = this._handleError(error);
+      console.error(`[ApiService] POST ${url} 失败:`, errorMsg);
+      throw new Error(errorMsg);
+    }
   }
-}
 
   async put(url, data = {}, config = {}) {
     try {

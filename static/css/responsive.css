@@ -2,7 +2,6 @@
 
 /* 平板设备 (1024px 以下) */
 @media (max-width: 1024px) {
-
   .config-item-inline {
     flex: 1 1 auto;
     min-width: 200px;
@@ -198,7 +197,6 @@
 
 /* 横屏模式优化 */
 @media (orientation: landscape) and (max-height: 600px) {
-
   .dialogue-container {
     min-height: 200px;
   }

@@ -36,7 +36,7 @@ function initializeApp() {
       "error",
       8000
     );
-  }; 
+  };
 
   // 绑定经典视图事件
   bindClassicViewEvents();

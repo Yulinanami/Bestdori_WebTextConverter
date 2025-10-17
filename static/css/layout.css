@@ -1,9 +1,5 @@
 /* layout.css - 布局相关样式 */
 
-/* ===================================
-   新布局系统 - 左右分栏
-   =================================== */
-
 /* 顶部标题栏 */
 .app-header {
   position: fixed;
@@ -217,7 +213,6 @@
   border-top: 1px solid var(--border-primary);
 }
 
-
 /* 结果区域 */
 .result-header {
   display: flex;
@@ -243,7 +238,7 @@
   height: 100%;
   background: var(--primary-gradient);
   width: 0%;
-  transition: width 0.4s ease; 
+  transition: width 0.4s ease;
 }
 
 /* 状态消息 */
@@ -363,20 +358,44 @@
 }
 
 /* 内边距工具类 */
-.p-15 { padding: var(--spacing-md); }
-.pb-20 { padding-bottom: var(--spacing-lg); }
-.pt-15 { padding-top: var(--spacing-md); }
-.pt-20 { padding-top: var(--spacing-lg); }
+.p-15 {
+  padding: var(--spacing-md);
+}
+.pb-20 {
+  padding-bottom: var(--spacing-lg);
+}
+.pt-15 {
+  padding-top: var(--spacing-md);
+}
+.pt-20 {
+  padding-top: var(--spacing-lg);
+}
 
 /* 外边距工具类 */
-.mb-0 { margin-bottom: 0; }
-.mb-10 { margin-bottom: var(--spacing-sm); }
-.mb-15 { margin-bottom: var(--spacing-md); }
-.mb-20 { margin-bottom: var(--spacing-lg); }
-.mb-25 { margin-bottom: 25px; }
-.mt-0 { margin-top: 0; }
-.mt-8 { margin-top: 8px; }
-.mt-20 { margin-top: var(--spacing-lg); }
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-10 {
+  margin-bottom: var(--spacing-sm);
+}
+.mb-15 {
+  margin-bottom: var(--spacing-md);
+}
+.mb-20 {
+  margin-bottom: var(--spacing-lg);
+}
+.mb-25 {
+  margin-bottom: 25px;
+}
+.mt-0 {
+  margin-top: 0;
+}
+.mt-8 {
+  margin-top: 8px;
+}
+.mt-20 {
+  margin-top: var(--spacing-lg);
+}
 
 /* 边框工具类 */
 .border-top {

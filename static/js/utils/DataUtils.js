@@ -148,7 +148,8 @@ export const DataUtils = {
    */
   arrayToObject(arr, keyField) {
     return arr.reduce((result, item) => {
-      const key = typeof keyField === "function" ? keyField(item) : item[keyField];
+      const key =
+        typeof keyField === "function" ? keyField(item) : item[keyField];
       result[key] = item;
       return result;
     }, {});

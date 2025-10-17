@@ -20,8 +20,7 @@
   overflow: hidden;
   position: relative;
   border: 2px solid #e2e8f0;
-  transition: border-color 0.3s ease,
-              transform 0.3s ease;
+  transition: border-color 0.3s ease, transform 0.3s ease;
 }
 
 .config-avatar-img {
@@ -126,7 +125,7 @@
   background: var(--color-secondary);
   color: var(--text-secondary);
   transition: background-color var(--transition-normal),
-              color var(--transition-normal);
+    color var(--transition-normal);
 }
 
 /* 头像边框效果 */

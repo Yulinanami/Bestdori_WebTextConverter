@@ -75,8 +75,12 @@ export const expressionEditor = {
     document
       .getElementById("resetExpressionsBtn")
       ?.addEventListener("click", () => this.reset());
-    this.domCache.undoBtn?.addEventListener("click", () => historyManager.undo());
-    this.domCache.redoBtn?.addEventListener("click", () => historyManager.redo());
+    this.domCache.undoBtn?.addEventListener("click", () =>
+      historyManager.undo()
+    );
+    this.domCache.redoBtn?.addEventListener("click", () =>
+      historyManager.redo()
+    );
     document
       .getElementById("addTempMotionBtn")
       ?.addEventListener("click", () => this._addTempItem("motion"));
@@ -124,8 +128,10 @@ export const expressionEditor = {
       ?.addEventListener("click", handleCloseAttempt);
     document.addEventListener("historychange", (e) => {
       if (this.domCache.modal?.style.display === "flex") {
-        if (this.domCache.undoBtn) this.domCache.undoBtn.disabled = !e.detail.canUndo;
-        if (this.domCache.redoBtn) this.domCache.redoBtn.disabled = !e.detail.canRedo;
+        if (this.domCache.undoBtn)
+          this.domCache.undoBtn.disabled = !e.detail.canUndo;
+        if (this.domCache.redoBtn)
+          this.domCache.redoBtn.disabled = !e.detail.canRedo;
       }
     });
     this.domCache.modal?.addEventListener("keydown", (e) => {
@@ -177,7 +183,10 @@ export const expressionEditor = {
     }
 
     if (newScrollSpeed !== 0) {
-      if (newScrollSpeed !== expressionEditor.scrollSpeed || !expressionEditor.scrollAnimationFrame) {
+      if (
+        newScrollSpeed !== expressionEditor.scrollSpeed ||
+        !expressionEditor.scrollAnimationFrame
+      ) {
         expressionEditor.scrollSpeed = newScrollSpeed;
         expressionEditor.startScrolling(scrollTarget);
       }
@@ -221,7 +230,9 @@ export const expressionEditor = {
 
       if (action.type === "talk") {
         if (!action.characterStates) action.characterStates = {};
-        const character = stagedCharacters.find((c) => c.name === characterName);
+        const character = stagedCharacters.find(
+          (c) => c.name === characterName
+        );
         if (!character) {
           console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
           return;
@@ -247,9 +258,12 @@ export const expressionEditor = {
       modalId: "expressionEditorModal",
       buttonId: "saveExpressionsBtn",
       applyChanges: () => {
-        editorService.projectManager.save(this.projectFileState, (savedState) => {
-          baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-        });
+        editorService.projectManager.save(
+          this.projectFileState,
+          (savedState) => {
+            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+          }
+        );
       },
     });
   },
@@ -336,7 +350,9 @@ export const expressionEditor = {
       },
       afterOpen: async () => {
         const motionSearch = document.getElementById("motionSearchInput");
-        const expressionSearch = document.getElementById("expressionSearchInput");
+        const expressionSearch = document.getElementById(
+          "expressionSearchInput"
+        );
         if (motionSearch) motionSearch.value = "";
         if (expressionSearch) expressionSearch.value = "";
         this.renderTimeline();
@@ -382,37 +398,49 @@ export const expressionEditor = {
         // 使用 DragHelper 创建 onEnd 处理器
         const onEndHandler = DragHelper.createOnEndHandler({
           editor: baseEditor,
-          getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
+          getGroupingEnabled: () =>
+            this.domCache.groupCheckbox?.checked || false,
           groupSize: 50,
           executeFn: (globalOldIndex, globalNewIndex) => {
             this._executeCommand((currentState) => {
-              const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+              const [movedItem] = currentState.actions.splice(
+                globalOldIndex,
+                1
+              );
               currentState.actions.splice(globalNewIndex, 0, movedItem);
             });
           },
         });
 
         // 清理旧的 Sortable 实例
-        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances.forEach((instance) => instance?.destroy());
         this.sortableInstances = [];
 
-        this.sortableInstances.push(new Sortable(
-          timeline,
-          DragHelper.createSortableConfig({
-            group: "timeline-cards",
-            onEnd: (evt) => {
-              document.removeEventListener("dragover", this.handleDragScrolling);
-              this.stopScrolling();
-              onEndHandler(evt);
-            },
-            extraConfig: {
-              sort: true,
-              onStart: () => {
-                document.addEventListener("dragover", this.handleDragScrolling);
+        this.sortableInstances.push(
+          new Sortable(
+            timeline,
+            DragHelper.createSortableConfig({
+              group: "timeline-cards",
+              onEnd: (evt) => {
+                document.removeEventListener(
+                  "dragover",
+                  this.handleDragScrolling
+                );
+                this.stopScrolling();
+                onEndHandler(evt);
               },
-            },
-          })
-        ));
+              extraConfig: {
+                sort: true,
+                onStart: () => {
+                  document.addEventListener(
+                    "dragover",
+                    this.handleDragScrolling
+                  );
+                },
+              },
+            })
+          )
+        );
 
         // 渲染资源库并初始化拖放（必须在渲染后初始化）
         this.renderLibraries();
@@ -528,23 +556,31 @@ export const expressionEditor = {
   initDragAndDropForLibraries() {
     // 先销毁资源库相关的 Sortable 实例（只保留 timeline 的实例）
     const timelineSortable = this.sortableInstances[0]; // timeline 的实例是第一个
-    this.sortableInstances.slice(1).forEach(instance => instance?.destroy());
+    this.sortableInstances.slice(1).forEach((instance) => instance?.destroy());
     this.sortableInstances = timelineSortable ? [timelineSortable] : [];
 
     ["motion", "expression"].forEach((type) => {
-      const libraryList = type === "motion" ? this.domCache.motionList : this.domCache.expressionList;
+      const libraryList =
+        type === "motion"
+          ? this.domCache.motionList
+          : this.domCache.expressionList;
       if (libraryList) {
-        this.sortableInstances.push(new Sortable(libraryList, {
-          group: { name: type, pull: "clone", put: false },
-          sort: false,
-          onStart: () => {
-            document.addEventListener("dragover", this.handleDragScrolling);
-          },
-          onEnd: () => {
-            document.removeEventListener("dragover", this.handleDragScrolling);
-            this.stopScrolling();
-          },
-        }));
+        this.sortableInstances.push(
+          new Sortable(libraryList, {
+            group: { name: type, pull: "clone", put: false },
+            sort: false,
+            onStart: () => {
+              document.addEventListener("dragover", this.handleDragScrolling);
+            },
+            onEnd: () => {
+              document.removeEventListener(
+                "dragover",
+                this.handleDragScrolling
+              );
+              this.stopScrolling();
+            },
+          })
+        );
       }
     });
   },
@@ -869,7 +905,9 @@ export const expressionEditor = {
         .forEach((item) => expressionItems.add(item));
     });
     if (stagedCharacterIds.size === 0) {
-      editorService.motionManager.getAllKnownItems().forEach((item) => motionItems.add(item));
+      editorService.motionManager
+        .getAllKnownItems()
+        .forEach((item) => motionItems.add(item));
       editorService.expressionManager
         .getAllKnownItems()
         .forEach((item) => expressionItems.add(item));
@@ -887,12 +925,14 @@ export const expressionEditor = {
     DOMUtils.clearElement(container);
 
     const itemElements = items.map((item) =>
-      DOMUtils.createElement("div", {
-        className: "config-list-item draggable-item",
-        draggable: true,
-      }, [
-        DOMUtils.createElement("span", { className: "item-name" }, item),
-      ])
+      DOMUtils.createElement(
+        "div",
+        {
+          className: "config-list-item draggable-item",
+          draggable: true,
+        },
+        [DOMUtils.createElement("span", { className: "item-name" }, item)]
+      )
     );
 
     DOMUtils.appendChildren(container, itemElements);
@@ -993,7 +1033,9 @@ export const expressionEditor = {
     const input = document.getElementById(
       isMotion ? "tempMotionInput" : "tempExpressionInput"
     );
-    const manager = isMotion ? editorService.motionManager : editorService.expressionManager;
+    const manager = isMotion
+      ? editorService.motionManager
+      : editorService.expressionManager;
     const tempList = this.tempLibraryItems[type];
     const trimmedId = input.value.trim();
     if (!trimmedId) {
@@ -1062,7 +1104,7 @@ export const expressionEditor = {
       modalId: "expressionEditorModal",
       beforeClose: () => {
         // 销毁 Sortable 实例
-        this.sortableInstances.forEach(instance => instance?.destroy());
+        this.sortableInstances.forEach((instance) => instance?.destroy());
         this.sortableInstances = [];
 
         // 停止滚动动画

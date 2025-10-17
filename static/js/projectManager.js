@@ -13,7 +13,7 @@ export const projectManager = {
     state.set("projectFile", newState);
     ui.showStatus("工作进度已保存！", "success");
     if (onComplete) {
-      onComplete(newState); 
+      onComplete(newState);
     }
   },
 
@@ -87,7 +87,7 @@ export const projectManager = {
       confirmMessage = "确定要恢复默认吗？当前编辑模式下的所有修改都将丢失。",
       loadingText = "恢复中...",
       successMessage = "已恢复为默认状态。",
-      minDelay = 300
+      minDelay = 300,
     } = options;
 
     if (!confirm(confirmMessage)) {

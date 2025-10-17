@@ -101,10 +101,7 @@ class EventBus {
           this.off(eventName, listener.callback);
         }
       } catch (error) {
-        console.error(
-          `[EventBus] 事件处理错误 (${eventName}):`,
-          error
-        );
+        console.error(`[EventBus] 事件处理错误 (${eventName}):`, error);
       }
     });
   }

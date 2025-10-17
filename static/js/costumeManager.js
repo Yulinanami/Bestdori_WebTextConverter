@@ -138,7 +138,9 @@ export const costumeManager = {
       this.defaultCostumes = costumeData.default_costumes;
 
       const configData = await apiService.getConfig();
-      this.builtInCharacters = new Set(Object.keys(configData.character_mapping));
+      this.builtInCharacters = new Set(
+        Object.keys(configData.character_mapping)
+      );
 
       const savedCostumes = this.loadLocalCostumes();
       if (savedCostumes) {
@@ -185,7 +187,10 @@ export const costumeManager = {
       return false;
     }
 
-    return storageService.set(STORAGE_KEYS.AVAILABLE_COSTUMES_V2, this.availableCostumes);
+    return storageService.set(
+      STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
+      this.availableCostumes
+    );
   },
 
   /**
@@ -305,16 +310,17 @@ export const costumeManager = {
     const details = document.getElementById(`costume-details-${safeDomId}`);
     const toggle = document.getElementById(`toggle-${safeDomId}`);
     // 检查元素是否隐藏（通过class或style）
-    const isHidden = details.classList.contains('hidden') ||
-                     details.style.display === 'none' ||
-                     window.getComputedStyle(details).display === 'none';
+    const isHidden =
+      details.classList.contains("hidden") ||
+      details.style.display === "none" ||
+      window.getComputedStyle(details).display === "none";
 
     if (isHidden) {
-      details.classList.remove('hidden');
+      details.classList.remove("hidden");
       details.style.display = "block";
       toggle.textContent = "▲";
     } else {
-      details.classList.add('hidden');
+      details.classList.add("hidden");
       details.style.display = "none";
       toggle.textContent = "▼";
     }
@@ -358,7 +364,9 @@ export const costumeManager = {
   // 删除服装（只修改临时状态）
   async deleteCostume(characterKey, index, safeDomId) {
     const costume = this.tempAvailableCostumes[characterKey][index];
-    const confirmed = await modalService.confirm(`确定要删除服装 "${costume}" 吗？`);
+    const confirmed = await modalService.confirm(
+      `确定要删除服装 "${costume}" 吗？`
+    );
     if (confirmed) {
       this.tempAvailableCostumes[characterKey].splice(index, 1);
       if (this.tempCostumeChanges[characterKey] === costume) {
@@ -409,8 +417,13 @@ export const costumeManager = {
     await ui.withButtonLoading(
       "saveCostumesBtn",
       async () => {
-        state.set("currentCostumes", DataUtils.deepClone(this.tempCostumeChanges));
-        this.availableCostumes = DataUtils.deepClone(this.tempAvailableCostumes);
+        state.set(
+          "currentCostumes",
+          DataUtils.deepClone(this.tempCostumeChanges)
+        );
+        this.availableCostumes = DataUtils.deepClone(
+          this.tempAvailableCostumes
+        );
         this.saveLocalCostumes(state.get("currentCostumes"));
         this.saveLocalAvailableCostumes();
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -420,7 +433,6 @@ export const costumeManager = {
       "保存中..."
     );
   },
-
 
   // 重置为默认服装
   async resetCostumes() {
@@ -449,7 +461,8 @@ export const costumeManager = {
               }
             }
           });
-          const defaultCostumesNameBased = this.convertDefaultCostumesToNameBased();
+          const defaultCostumesNameBased =
+            this.convertDefaultCostumesToNameBased();
           const defaultAvailableCostumesNameBased =
             this.convertAvailableCostumesToNameBased();
           this.tempCostumeChanges = {
