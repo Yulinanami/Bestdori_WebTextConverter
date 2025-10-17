@@ -367,6 +367,7 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-all;
   width: 100%;
   max-width: 100%;
 }
@@ -376,6 +377,7 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-all;
   width: 100%;
   max-width: 100%;
 }
