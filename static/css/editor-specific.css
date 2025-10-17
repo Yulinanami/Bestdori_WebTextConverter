@@ -305,6 +305,7 @@
   border-top: none;
 }
 
+#speakerEditorModal .timeline-item-footer,
 #live2dEditorModal .timeline-item-footer {
   display: none;
 }
