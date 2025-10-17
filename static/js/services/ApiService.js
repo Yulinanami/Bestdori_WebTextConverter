@@ -157,6 +157,14 @@ class ApiService {
     }
   }
 
+  async shutdownServer() {
+    try {
+      await this.post("/api/shutdown", {}, { timeout: 1000 });
+    } catch (error) {
+      console.warn("Shutdown request sent. Server is closing.");
+    }
+  }
+
   async batchConvert(files, quoteConfig = [], narratorName = " ") {
     return await this.post("/api/batch-convert", {
       files,

@@ -22,6 +22,7 @@ import { eventBus } from "./services/EventBus.js";
 import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
 import { storageService } from "./services/StorageService.js";
 import { navigationManager } from "./navigationManager.js"; // 导航管理器
+import { apiService } from "./services/ApiService.js";
 
 // 初始化应用
 function initializeApp() {
@@ -186,6 +187,27 @@ function bindClassicViewEvents() {
   document
     .getElementById("helpBtn")
     .addEventListener("click", () => ui.openModal("helpModal"));
+
+  document.getElementById("shutdownBtn").addEventListener("click", () => {
+    if (confirm("您确定要关闭应用程序吗？")) {
+      ui.showStatus("正在关闭服务器...", "info");
+
+      // 调用关闭API
+      apiService.shutdownServer();
+
+      // 延迟一小段时间后，向用户显示最终信息
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background: var(--secondary-gradient); color: var(--text-primary);">
+            <div>
+              <h1 style="font-size: 2rem; margin-bottom: 1rem;">程序已关闭</h1>
+              <p style="font-size: 1.1rem; color: var(--text-secondary);">您可以安全地关闭此浏览器窗口了。</p>
+            </div>
+          </div>
+        `;
+      }, 500); // 500ms的延迟确保请求有足够时间发出
+    }
+  });
 
   document.getElementById("inputText").addEventListener("input", (e) => {
     if (state.get("projectFile")) {

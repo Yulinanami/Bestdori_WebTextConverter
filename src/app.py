@@ -1,7 +1,8 @@
 # 主应用
 import os
 import logging
-from flask import Flask, render_template, request
+import signal
+from flask import Flask, render_template, request, jsonify
 from .config import ConfigManager
 from .utils import FileFormatConverter
 from .routes import all_blueprints
@@ -22,6 +23,21 @@ def create_app():
     for bp in all_blueprints:
         app.register_blueprint(bp)
         logger.info(f"已注册蓝图: {bp.name} (前缀: {bp.url_prefix or '/'})")
+
+    @app.route('/api/shutdown', methods=['POST'])
+    def shutdown():
+        """安全地关闭服务器进程"""
+        logger.info("收到关闭服务器的请求...")
+        try:
+            # 获取当前进程的ID
+            pid = os.getpid()
+            # 发送SIGINT信号，这等同于在终端中按 Ctrl+C
+            os.kill(pid, signal.SIGINT)
+            logger.info(f"已向进程 {pid} 发送关闭信号。")
+            return jsonify({"message": "服务器正在关闭..."}), 200
+        except Exception as e:
+            logger.error(f"关闭服务器时出错: {e}", exc_info=True)
+            return jsonify({"error": str(e)}), 500
 
     # 请求前日志
     @app.before_request
