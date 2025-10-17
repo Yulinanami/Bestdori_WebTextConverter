@@ -210,101 +210,34 @@ export const expressionEditor = {
 
   // 执行角色状态属性变更命令（支持撤销/重做）
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
-    let oldValue = "--";
-    const action = this.projectFileState.actions.find((a) => a.id === actionId);
-    if (!action) return;
-    if (action.type === "talk" && action.characterStates) {
-      const character = this.stagedCharacters.find(
-        (c) => c.name === characterName
-      );
-      if (character && action.characterStates[character.id]) {
-        oldValue = action.characterStates[character.id][type] || "--";
-      }
-    } else if (
-      action.type === "layout" &&
-      action.characterName === characterName
-    ) {
-      oldValue = action.initialState ? action.initialState[type] || "--" : "--";
-    }
-    if (oldValue === newValue) return;
-    const command = {
-      execute: () => {
-        this._applyCharacterStateChange(
-          actionId,
-          characterName,
-          type,
-          newValue
-        );
-        // 使用 requestAnimationFrame 确保在下一帧更新UI，避免与拖拽操作冲突
-        requestAnimationFrame(() => {
-          this._updateSingleTagUI(actionId, characterName, type, newValue);
-        });
-      },
-      undo: () => {
-        this._applyCharacterStateChange(
-          actionId,
-          characterName,
-          type,
-          oldValue
-        );
-        requestAnimationFrame(() => {
-          this._updateSingleTagUI(actionId, characterName, type, oldValue);
-        });
-      },
-    };
-    historyManager.do(command);
-  },
+    const stagedCharacters = this.stagedCharacters;
 
-  // 应用角色状态变更到项目数据
-  _applyCharacterStateChange(actionId, characterName, type, value) {
-    const action = this.projectFileState.actions.find((a) => a.id === actionId);
-    if (!action) return;
-    const valueToStore = value === "--" ? "" : value;
-    if (action.type === "talk") {
-      if (!action.characterStates) action.characterStates = {};
-      const character = this.stagedCharacters.find(
-        (c) => c.name === characterName
-      );
-      if (!character) {
-        console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
-        return;
-      }
-      const characterId = character.id;
-      if (!action.characterStates[characterId])
-        action.characterStates[characterId] = {};
-      action.characterStates[characterId][type] = valueToStore;
-    } else if (
-      action.type === "layout" &&
-      action.characterName === characterName
-    ) {
-      if (!action.initialState) action.initialState = {};
-      action.initialState[type] = valueToStore;
-    }
-  },
+    // 使用 baseEditor 的标准命令执行器，它能保证在数据更新后进行完整的UI重绘
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (!action) return;
 
-  // 更新单个角色状态标签的 UI 显示
-  _updateSingleTagUI(actionId, characterName, type, value) {
-    const timelineItem = document.querySelector(
-      `.timeline-item[data-id="${actionId}"]`
-    );
-    if (!timelineItem) return;
+      const valueToStore = newValue === "--" ? "" : newValue;
 
-    const statusTag = timelineItem.querySelector(
-      `.character-status-tag[data-character-name="${characterName}"]`
-    );
-    if (!statusTag) return;
-
-    const dropZone = statusTag.querySelector(`.${type}-drop-zone`);
-    if (dropZone) {
-      const valueElement = dropZone.querySelector(".drop-zone-value");
-      if (valueElement) {
-        valueElement.textContent = value;
+      if (action.type === "talk") {
+        if (!action.characterStates) action.characterStates = {};
+        const character = stagedCharacters.find((c) => c.name === characterName);
+        if (!character) {
+          console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
+          return;
+        }
+        const characterId = character.id;
+        if (!action.characterStates[characterId])
+          action.characterStates[characterId] = {};
+        action.characterStates[characterId][type] = valueToStore;
+      } else if (
+        action.type === "layout" &&
+        action.characterName === characterName
+      ) {
+        if (!action.initialState) action.initialState = {};
+        action.initialState[type] = valueToStore;
       }
-      const clearBtn = dropZone.querySelector(".clear-state-btn");
-      if (clearBtn) {
-        DOMUtils.toggleDisplay(clearBtn, value && value !== "--");
-      }
-    }
+    });
   },
 
   // 保存表情动作配置到全局状态
