@@ -4,6 +4,11 @@
    新按钮系统
    =================================== */
 
+.btn-icon .material-symbols-outlined {
+  font-size: 24px; 
+  line-height: 1;
+}
+
 /* 图标按钮 */
 .btn-icon {
   width: 40px;

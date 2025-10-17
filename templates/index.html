@@ -26,6 +26,10 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/main.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/material-symbols.css') }}"
+    />
     <script src="{{ url_for('static', filename='js/lib/Sortable.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/axios.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lib/jszip.min.js') }}"></script>
@@ -66,7 +70,8 @@
             border-color: var(--color-error-light);
           "
         >
-          ⏻
+          <!-- 使用 Google Icon Font -->
+          <span class="material-symbols-outlined"> power_settings_new </span>
         </button>
       </div>
     </div>
