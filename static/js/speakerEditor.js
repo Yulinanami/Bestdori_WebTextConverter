@@ -205,6 +205,56 @@ export const speakerEditor = {
     );
   },
 
+  _deleteLayoutAction(actionId) {
+    this._executeCommand((currentState) => {
+      currentState.actions = currentState.actions.filter(
+        (a) => a.id !== actionId
+      );
+    });
+  },
+
+  _updateLayoutActionProperty(actionId, targetElement) {
+    const value =
+      targetElement.type === "number"
+        ? parseInt(targetElement.value) || 0
+        : targetElement.value;
+    const controlClassName = targetElement.className;
+    
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (!action) return;
+      if (controlClassName.includes("layout-type-select")) {
+        action.layoutType = value;
+      } else if (controlClassName.includes("layout-costume-select")) {
+        action.costume = value;
+      } else if (controlClassName.includes("layout-position-select-to")) {
+        if (!action.position) action.position = {};
+        if (!action.position.to) action.position.to = {};
+        action.position.to.side = value;
+      } else if (controlClassName.includes("layout-offset-input-to")) {
+        if (!action.position) action.position = {};
+        if (!action.position.to) action.position.to = {};
+        action.position.to.offsetX = value;
+      } else if (controlClassName.includes("layout-position-select")) {
+        if (!action.position) action.position = {};
+        if (!action.position.from) action.position.from = {};
+        action.position.from.side = value;
+        if (action.layoutType !== "move") {
+          if (!action.position.to) action.position.to = {};
+          action.position.to.side = value;
+        }
+      } else if (controlClassName.includes("layout-offset-input")) {
+        if (!action.position) action.position = {};
+        if (!action.position.from) action.position.from = {};
+        action.position.from.offsetX = value;
+        if (action.layoutType !== "move") {
+          if (!action.position.to) action.position.to = {};
+          action.position.to.offsetX = value;
+        }
+      }
+    });
+  },
+
   // 根据 Y 坐标查找最接近的对话卡片（用于拖拽插入位置计算）
   _findClosestCard(y) {
     const canvas = this.domCache.canvas;
@@ -352,16 +402,21 @@ export const speakerEditor = {
         const usedCharacterIds = this.renderCanvas();
         this.renderCharacterList(usedCharacterIds);
         this.initDragAndDrop();
+        
         const canvas = document.getElementById("speakerEditorCanvas");
         editorService.clearSelection(); 
-        if (this._boundCardClickHandler) { // 移除旧的监听器，防止重复绑定
+        if (this._boundCardClickHandler) {
             canvas.removeEventListener("click", this._boundCardClickHandler);
         }
         this._boundCardClickHandler = this._handleCardClick.bind(this);
         canvas.addEventListener("click", this._boundCardClickHandler);
         canvas.addEventListener("selectionchange", (e) => {
+          if (!e.detail) {
+            return;
+          }
+          
           const selectedIds = new Set(e.detail.selectedIds);
-          const allCards = canvas.querySelectorAll(".dialogue-item");
+          const allCards = canvas.querySelectorAll(".dialogue-item, .layout-item"); 
           allCards.forEach((card) => {
             if (selectedIds.has(card.dataset.id)) {
               card.classList.add("is-selected");
@@ -369,6 +424,21 @@ export const speakerEditor = {
               card.classList.remove("is-selected");
             }
           });
+        });
+
+        canvas.addEventListener("click", (e) => {
+            const card = e.target.closest(".layout-item");
+            if (!card) return;
+            if (e.target.matches(".layout-remove-btn")) {
+                this._deleteLayoutAction(card.dataset.id);
+            }
+        });
+
+        canvas.addEventListener("change", (e) => {
+            const card = e.target.closest(".layout-item");
+            if (card && e.target.matches("select, input")) {
+                this._updateLayoutActionProperty(card.dataset.id, e.target);
+            }
         });
       },
     });
@@ -424,100 +494,149 @@ export const speakerEditor = {
     const canvas = this.domCache.canvas;
     if (!canvas) return new Set();
 
-    const usedIds = this._getUsedCharacterIds(); // 使用缓存
+    const usedIds = this._getUsedCharacterIds();
     const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
-    const actions = this.projectFileState.actions.filter(
-      (a) => a.type === "talk"
-    );
+    const actions = this.projectFileState.actions;
     const groupSize = 50;
+    const actionIndexMap = new Map(actions.map((a, idx) => [a.id, idx]));
 
-    // 创建索引缓存 Map 以提升性能
-    const actionIndexMap = new Map(
-      this.projectFileState.actions.map((a, idx) => [a.id, idx])
-    );
+    const talkTemplate = document.getElementById("text-snippet-card-template");
+    const layoutTemplate = document.getElementById("timeline-layout-card-template");
 
     const renderSingleCard = (action) => {
       const globalIndex = actionIndexMap.get(action.id) ?? -1;
-      const template = document.getElementById("text-snippet-card-template");
-      const card = template.content.cloneNode(true);
+      let card;
+
+      if (action.type === "talk") {
+        card = talkTemplate.content.cloneNode(true);
+        const dialogueItem = card.querySelector(".dialogue-item");
+        dialogueItem.dataset.id = action.id;
+        const avatarContainer = card.querySelector(".speaker-avatar-container");
+        const avatarDiv = card.querySelector(".dialogue-avatar");
+        const speakerNameDiv = card.querySelector(".speaker-name");
+        const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
+
+        if (action.speakers && action.speakers.length > 0) {
+          const firstSpeaker = action.speakers[0];
+          avatarContainer.style.display = "flex";
+          speakerNameDiv.style.display = "block";
+          dialogueItem.classList.remove("narrator");
+          editorService.updateCharacterAvatar({ querySelector: () => avatarDiv }, firstSpeaker.characterId, firstSpeaker.name);
+          const allNames = action.speakers.map((s) => s.name).join(" & ");
+          speakerNameDiv.textContent = allNames;
+          if (action.speakers.length > 1) {
+            multiSpeakerBadge.style.display = "flex";
+            multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
+            avatarContainer.style.cursor = "pointer";
+            avatarContainer.addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.showMultiSpeakerPopover(action.id, avatarContainer);
+            });
+          } else {
+            multiSpeakerBadge.style.display = "none";
+            avatarContainer.style.cursor = "default";
+          }
+        } else {
+          avatarContainer.style.display = "none";
+          speakerNameDiv.style.display = "none";
+          multiSpeakerBadge.style.display = "none";
+          dialogueItem.classList.add("narrator");
+        }
+        card.querySelector(".dialogue-text").textContent = action.text;
+
+      } else if (action.type === "layout") {
+        card = layoutTemplate.content.cloneNode(true);
+        const item = card.querySelector(".timeline-item");
+        item.dataset.id = action.id;
+        item.dataset.layoutType = action.layoutType;
+        item.classList.remove("dialogue-item");
+        item.classList.add("layout-item");
+
+        // 根据类型添加样式
+        item.classList.remove("layout-type-appear", "layout-type-move", "layout-type-hide");
+        if (action.layoutType === "appear") item.classList.add("layout-type-appear");
+        else if (action.layoutType === "move") item.classList.add("layout-type-move");
+        else if (action.layoutType === "hide") item.classList.add("layout-type-hide");
+        
+        const characterId = action.characterId;
+        const characterName = action.characterName || editorService.getCharacterNameById(characterId);
+        
+        card.querySelector(".speaker-name").textContent = characterName || `未知角色 (ID: ${characterId})`;
+        const avatarDiv = card.querySelector(".dialogue-avatar");
+        editorService.updateCharacterAvatar({ querySelector: () => avatarDiv }, characterId, characterName);
+        const typeSelect = card.querySelector(".layout-type-select");
+        typeSelect.value = action.layoutType;
+
+        const costumeSelect = card.querySelector(".layout-costume-select");
+        DOMUtils.clearElement(costumeSelect);
+        const availableCostumes = editorService.costumeManager.availableCostumes[characterName] || [];
+        availableCostumes.forEach(costumeId => {
+          costumeSelect.add(new Option(costumeId, costumeId));
+        });
+        if (action.costume && !availableCostumes.includes(action.costume)) {
+          costumeSelect.add(new Option(`${action.costume} (自定义)`, action.costume), 0);
+        }
+        costumeSelect.value = action.costume;
+
+        const positionSelect = card.querySelector(".layout-position-select");
+        const toPositionSelect = card.querySelector(".layout-position-select-to");
+        DOMUtils.clearElement(positionSelect);
+        DOMUtils.clearElement(toPositionSelect);
+        Object.entries(editorService.positionManager.positionNames).forEach(([value, name]) => {
+          positionSelect.add(new Option(name, value));
+          toPositionSelect.add(new Option(name, value));
+        });
+
+        positionSelect.value = action.position?.from?.side || "center";
+        card.querySelector(".layout-offset-input").value = action.position?.from?.offsetX || 0;
+        
+        const toPositionContainer = card.querySelector(".to-position-container");
+        if (action.layoutType === "move") {
+            toPositionContainer.style.display = "grid";
+            toPositionSelect.value = action.position?.to?.side || "center";
+            card.querySelector(".layout-offset-input-to").value = action.position?.to?.offsetX || 0;
+        } else {
+            toPositionContainer.style.display = "none";
+        }
+      } else {
+        return null;
+      }
+      
       const numberDiv = card.querySelector(".card-sequence-number");
       if (numberDiv && globalIndex !== -1) {
         numberDiv.textContent = `#${globalIndex + 1}`;
       }
-      const dialogueItem = card.querySelector(".dialogue-item");
-      dialogueItem.dataset.id = action.id;
-      const avatarContainer = card.querySelector(".speaker-avatar-container");
-      const avatarDiv = card.querySelector(".dialogue-avatar");
-      const speakerNameDiv = card.querySelector(".speaker-name");
-      const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
-
-      if (action.speakers && action.speakers.length > 0) {
-        const firstSpeaker = action.speakers[0];
-        avatarContainer.style.display = "flex";
-        speakerNameDiv.style.display = "block";
-        dialogueItem.classList.remove("narrator");
-        editorService.updateCharacterAvatar(
-          { querySelector: () => avatarDiv },
-          firstSpeaker.characterId,
-          firstSpeaker.name
-        );
-        const allNames = action.speakers.map((s) => s.name).join(" & ");
-        speakerNameDiv.textContent = allNames;
-        if (action.speakers.length > 1) {
-          multiSpeakerBadge.style.display = "flex";
-          multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
-          avatarContainer.style.cursor = "pointer";
-          avatarContainer.addEventListener("click", (e) => {
-            e.stopPropagation();
-            this.showMultiSpeakerPopover(action.id, avatarContainer);
-          });
-        } else {
-          multiSpeakerBadge.style.display = "none";
-          avatarContainer.style.cursor = "default";
-        }
-      } else {
-        avatarContainer.style.display = "none";
-        speakerNameDiv.style.display = "none";
-        multiSpeakerBadge.style.display = "none";
-        dialogueItem.classList.add("narrator");
-      }
-      card.querySelector(".dialogue-text").textContent = action.text;
       return card;
     };
-
+    
     if (isGroupingEnabled && actions.length > groupSize) {
       renderGroupedView({
         container: canvas,
-        actions: actions,
+        actions,
         activeGroupIndex: this.activeGroupIndex,
         onGroupClick: (index) => {
           const isOpening = this.activeGroupIndex !== index;
           this.activeGroupIndex = isOpening ? index : null;
           this.renderCanvas();
-
           if (isOpening) {
-            setTimeout(() => {
-              const scrollContainer = this.domCache.canvas;
-              const header = scrollContainer?.querySelector(
-                `.timeline-group-header[data-group-idx="${index}"]`
-              );
-              if (scrollContainer && header) {
-                scrollContainer.scrollTo({
-                  top: header.offsetTop - 110,
-                  behavior: "smooth",
-                });
-              }
-            }, 0);
+              setTimeout(() => {
+                  const scrollContainer = this.domCache.canvas;
+                  const header = scrollContainer?.querySelector(`.timeline-group-header[data-group-idx="${index}"]`);
+                  if (scrollContainer && header) {
+                      scrollContainer.scrollTo({ top: header.offsetTop - 110, behavior: 'smooth' });
+                  }
+              }, 0);
           }
         },
         renderItemFn: renderSingleCard,
-        groupSize: groupSize,
+        groupSize,
       });
     } else {
       DOMUtils.clearElement(canvas);
       const fragment = document.createDocumentFragment();
       actions.forEach((action) => {
-        fragment.appendChild(renderSingleCard(action));
+        const renderedCard = renderSingleCard(action);
+        if (renderedCard) fragment.appendChild(renderedCard);
       });
       canvas.appendChild(fragment);
     }
