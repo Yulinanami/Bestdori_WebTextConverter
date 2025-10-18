@@ -16,7 +16,7 @@ const baseEditor = new BaseEditor({
     speakerEditor._reattachSelection(); // 重新绑定选择功能
   },
   afterCommandCallback: () => {
-    // 撤销/重做后清除缓存
+    // 撤销/恢复后清除缓存
     speakerEditor._invalidateCache();
   },
   groupSize: 50,
@@ -214,7 +214,7 @@ export const speakerEditor = {
     const newText = prompt("编辑对话内容:", action.text);
     if (newText !== null && newText.trim() !== action.text.trim()) {
       const trimmedText = newText.trim();
-      // 使用 _executeCommand 来执行修改，以便支持撤销/重做
+      // 使用 _executeCommand 来执行修改，以便支持撤销/恢复
       this._executeCommand((currentState) => {
         const actionToUpdate = currentState.actions.find(
           (a) => a.id === actionId

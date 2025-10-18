@@ -23,7 +23,7 @@ export class BaseEditor {
   }
 
   /**
-   * 执行命令并支持撤销/重做
+   * 执行命令并支持撤销/恢复
    * @param {Function} changeFn - 修改状态的函数
    * @param {Object} options - 可选配置
    * @param {boolean} options.skipIfNoChange - 如果状态未改变则跳过执行

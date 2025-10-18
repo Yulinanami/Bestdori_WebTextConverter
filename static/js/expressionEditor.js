@@ -217,7 +217,7 @@ export const expressionEditor = {
     this.scrollSpeed = 0;
   },
 
-  // 执行角色状态属性变更命令（支持撤销/重做）
+  // 执行角色状态属性变更命令（支持撤销/恢复）
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
     const stagedCharacters = this.stagedCharacters;
 

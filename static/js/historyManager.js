@@ -29,7 +29,7 @@ export const historyManager = {
     this.triggerUpdate();
   },
 
-  // 重做上一步被撤销的操作。
+  // 恢复上一步被撤销的操作。
   redo() {
     if (!this.canRedo()) return;
 
@@ -48,7 +48,7 @@ export const historyManager = {
   },
 
   /**
-   * 检查是否可以执行重做。
+   * 检查是否可以执行恢复。
    * @returns {boolean}
    */
   canRedo() {
@@ -62,7 +62,7 @@ export const historyManager = {
     this.triggerUpdate();
   },
 
-  // 触发一个自定义事件，通知UI更新撤销/重做按钮的状态。
+  // 触发一个自定义事件，通知UI更新撤销/恢复按钮的状态。
   triggerUpdate() {
     document.dispatchEvent(
       new CustomEvent("historychange", {
