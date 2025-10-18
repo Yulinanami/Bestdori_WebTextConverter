@@ -231,6 +231,17 @@ export const speakerEditor = {
    * @param {MouseEvent} e - 点击事件对象
    */
   _handleCardClick(e) {
+    // 优先处理编辑按钮的点击
+    const editBtn = e.target.closest(".edit-text-btn");
+    if (editBtn) {
+      e.stopPropagation(); // 阻止事件冒泡，避免触发后续的卡片选择逻辑
+      const card = editBtn.closest(".dialogue-item");
+      if (card && card.dataset.id) {
+        this._handleTextEdit(card.dataset.id);
+      }
+      return; 
+    }
+
     const deleteButton = e.target.closest(".layout-remove-btn");
     if (deleteButton) {
       const layoutCard = deleteButton.closest(".layout-item");
@@ -505,18 +516,6 @@ export const speakerEditor = {
               card.classList.remove("is-selected");
             }
           });
-        });
-
-        // 添加新的事件监听来处理编辑按钮
-        canvas.addEventListener("click", (e) => {
-          const editBtn = e.target.closest(".edit-text-btn");
-          if (editBtn) {
-            e.stopPropagation(); // 阻止触发卡片选择
-            const card = editBtn.closest(".dialogue-item");
-            if (card && card.dataset.id) {
-              this._handleTextEdit(card.dataset.id);
-            }
-          }
         });
 
         canvas.addEventListener("change", (e) => {
