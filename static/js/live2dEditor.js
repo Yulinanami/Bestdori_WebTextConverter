@@ -440,36 +440,6 @@ export const live2dEditor = {
     });
   },
 
-  // 更新布局动作（旧版方法，已被 _updateLayoutActionProperty 替代）
-  _updateLayoutAction(actionId, controlClassName, value) {
-    const oldState = JSON.stringify(this.projectFileState);
-    const command = {
-      execute: () => {
-        const action = this.projectFileState.actions.find(
-          (a) => a.id === actionId
-        );
-        if (!action) return;
-        if (controlClassName.includes("layout-type-select")) {
-          action.layoutType = value;
-        } else if (controlClassName.includes("layout-costume-select")) {
-          action.costume = value;
-        } else if (controlClassName.includes("layout-position-select")) {
-          action.position.from.side = value;
-          action.position.to.side = value;
-        } else if (controlClassName.includes("layout-offset-input")) {
-          action.position.from.offsetX = value;
-          action.position.to.offsetX = value;
-        }
-        this.renderTimeline();
-      },
-      undo: () => {
-        this.projectFileState = JSON.parse(oldState);
-        this.renderTimeline();
-      },
-    };
-    historyManager.do(command);
-  },
-
   // 删除布局动作
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
