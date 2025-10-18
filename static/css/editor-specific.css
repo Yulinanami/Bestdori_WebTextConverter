@@ -392,7 +392,7 @@
   justify-content: center;
   cursor: pointer;
   opacity: 0.6;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.2s ease; /* 优化 transition 属性 */
   z-index: 6;
   color: var(--text-muted);
 }
@@ -400,7 +400,7 @@
 .edit-text-btn:hover {
   opacity: 1;
   background: var(--bg-tertiary);
-  transform: scale(1.1);
+  /* transform: scale(1.1);  <-- 已移除此行 */
 }
 
 /* 当编辑模式激活时，才显示编辑按钮 */

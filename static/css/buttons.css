@@ -268,3 +268,34 @@
   line-height: 1;
   padding: 0 4px;
 }
+
+/* Action Icon Buttons (for lists etc.) */
+.btn-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-icon-action:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-icon-action .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Danger variant for icon actions */
+.btn-icon-action.btn-icon-danger:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}

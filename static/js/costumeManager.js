@@ -293,14 +293,18 @@ export const costumeManager = {
     return costumes
       .map(
         (costume, index) => `
-            <div class="costume-list-item">
-                <span>${costume}</span>
-                <div class="costume-item-actions">
-                    <button class="btn btn-sm edit-costume-btn" data-character-key="${characterKey}" data-index="${index}" data-costume="${costume}" data-safe-dom-id="${safeDomId}">编辑</button>
-                    <button class="btn btn-sm btn-danger delete-costume-btn" data-character-key="${characterKey}" data-index="${index}" data-safe-dom-id="${safeDomId}">删除</button>
-                </div>
+        <div class="costume-list-item">
+            <span>${costume}</span>
+            <div class="costume-item-actions">
+                <button class="btn btn-icon-action edit-costume-btn" title="编辑服装ID" data-character-key="${characterKey}" data-index="${index}" data-costume="${costume}" data-safe-dom-id="${safeDomId}">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="btn btn-icon-action btn-icon-danger delete-costume-btn" title="删除此服装" data-character-key="${characterKey}" data-index="${index}" data-safe-dom-id="${safeDomId}">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
             </div>
-        `
+        </div>
+    `
       )
       .join("");
   },
