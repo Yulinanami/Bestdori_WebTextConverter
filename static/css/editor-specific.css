@@ -379,21 +379,21 @@
 
 /* 按钮容器的样式和定位 */
 .card-action-buttons {
-    position: absolute;
-    top: 8px;
-    right: 45px; /* 定位在编号的左侧 */
-    display: none; /* 默认隐藏 */
-    align-items: center;
-    gap: 4px; /* 按钮之间的间距 */
-    z-index: 6;
+  position: absolute;
+  top: 8px;
+  right: 45px; /* 定位在编号的左侧 */
+  display: none; /* 默认隐藏 */
+  align-items: center;
+  gap: 4px; /* 按钮之间的间距 */
+  z-index: 6;
 }
 
 /* 当编辑模式激活时，才显示按钮容器 */
 .text-edit-mode-active .card-action-buttons {
-    display: flex;
+  display: flex;
 }
 
 /* 调整图标大小 (复用现有样式) */
 .card-action-buttons .btn-icon-action .material-symbols-outlined {
-    font-size: 20px;
+  font-size: 20px;
 }

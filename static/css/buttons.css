@@ -5,7 +5,7 @@
    =================================== */
 
 .btn-icon .material-symbols-outlined {
-  font-size: 24px; 
+  font-size: 24px;
   line-height: 1;
 }
 
@@ -282,7 +282,8 @@
   background-color: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .btn-icon-action:hover {
