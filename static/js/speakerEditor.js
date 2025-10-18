@@ -7,6 +7,7 @@ import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { modalService } from "./services/ModalService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -243,15 +244,30 @@ export const speakerEditor = {
    * @param {MouseEvent} e - 点击事件对象
    */
   _handleCardClick(e) {
-    // 优先处理编辑按钮的点击
     const editBtn = e.target.closest(".edit-text-btn");
     if (editBtn) {
-      e.stopPropagation(); // 阻止事件冒泡，避免触发后续的卡片选择逻辑
+      e.stopPropagation();
       const card = editBtn.closest(".dialogue-item");
-      if (card && card.dataset.id) {
-        this._handleTextEdit(card.dataset.id);
-      }
-      return; 
+      if (card && card.dataset.id) this._handleTextEdit(card.dataset.id);
+      return;
+    }
+
+    // 处理添加按钮点击
+    const addBtn = e.target.closest(".add-text-btn");
+    if (addBtn) {
+      e.stopPropagation();
+      const card = addBtn.closest(".dialogue-item");
+      if (card && card.dataset.id) this._handleCardAdd(card.dataset.id);
+      return;
+    }
+
+    // 处理删除按钮点击
+    const deleteBtn = e.target.closest(".delete-text-btn");
+    if (deleteBtn) {
+      e.stopPropagation();
+      const card = deleteBtn.closest(".dialogue-item");
+      if (card && card.dataset.id) this._handleCardDelete(card.dataset.id);
+      return;
     }
 
     const deleteButton = e.target.closest(".layout-remove-btn");
@@ -297,6 +313,53 @@ export const speakerEditor = {
         },
       })
     );
+  },
+
+  /**
+   * 处理删除对话卡片的逻辑
+   * @param {string} actionId - 被点击卡片对应的动作ID
+   */
+  async _handleCardDelete(actionId) {
+    const action = this.projectFileState.actions.find((a) => a.id === actionId);
+    if (!action) return;
+
+    const confirmed = await modalService.confirm(
+      `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`
+    );
+    if (confirmed) {
+      this._executeCommand((currentState) => {
+        const index = currentState.actions.findIndex((a) => a.id === actionId);
+        if (index > -1) {
+          currentState.actions.splice(index, 1);
+        }
+      });
+    }
+  },
+
+  /**
+   * 处理在当前卡片下方添加新对话卡片的逻辑
+   * @param {string} actionId - 被点击卡片对应的动作ID
+   */
+  async _handleCardAdd(actionId) {
+    const newText = await modalService.prompt("请输入新对话的内容：");
+    if (newText && newText.trim()) {
+      const trimmedText = newText.trim();
+      this._executeCommand((currentState) => {
+        const currentIndex = currentState.actions.findIndex(
+          (a) => a.id === actionId
+        );
+        if (currentIndex > -1) {
+          const newAction = {
+            id: `action-id-${Date.now()}-${Math.random()}`,
+            type: "talk",
+            text: trimmedText,
+            speakers: [],
+            characterStates: {},
+          };
+          currentState.actions.splice(currentIndex + 1, 0, newAction);
+        }
+      });
+    }
   },
 
   _deleteLayoutAction(actionId) {
@@ -498,9 +561,9 @@ export const speakerEditor = {
 
         // 根据加载的状态更新“编辑文本”按钮的UI
         if (this.domCache.toggleTextEditBtn) {
-            this.domCache.toggleTextEditBtn.textContent = this.isTextEditMode
-                ? "编辑文本: 开"
-                : "编辑文本: 关";
+          this.domCache.toggleTextEditBtn.textContent = this.isTextEditMode
+            ? "编辑文本: 开"
+            : "编辑文本: 关";
         }
 
         this.domCache.canvas.classList.toggle(

@@ -972,9 +972,24 @@
           <div class="speaker-name hidden"></div>
           <div class="dialogue-text"></div>
         </div>
-        <button class="edit-text-btn" title="编辑文本">
-          <span class="material-symbols-outlined">edit</span>
-        </button>
+        <!-- 替换为按钮容器 -->
+        <div class="card-action-buttons">
+          <button
+            class="btn btn-icon-action add-text-btn"
+            title="在下方添加新卡片"
+          >
+            <span class="material-symbols-outlined">add_circle</span>
+          </button>
+          <button class="btn btn-icon-action edit-text-btn" title="编辑文本">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button
+            class="btn btn-icon-action btn-icon-danger delete-text-btn"
+            title="删除此卡片"
+          >
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
       </div>
     </template>
 

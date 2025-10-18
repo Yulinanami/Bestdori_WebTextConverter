@@ -375,40 +375,25 @@
   margin-bottom: 10px;
 }
 
-/* -- 对话编辑模式下的文本编辑功能 -- */
+/* -- 说话人编辑模式下的文本编辑功能 -- */
 
-/* 编辑按钮的样式和定位 */
-.edit-text-btn {
-  position: absolute;
-  top: 8px; /* 定位在卡片顶部 */
-  right: 45px; /* 定位在编号的左侧 */
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: none; /* 默认隐藏 */
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s ease, background-color 0.2s ease; /* 优化 transition 属性 */
-  z-index: 6;
-  color: var(--text-muted);
+/* 按钮容器的样式和定位 */
+.card-action-buttons {
+    position: absolute;
+    top: 8px;
+    right: 45px; /* 定位在编号的左侧 */
+    display: none; /* 默认隐藏 */
+    align-items: center;
+    gap: 4px; /* 按钮之间的间距 */
+    z-index: 6;
 }
 
-.edit-text-btn:hover {
-  opacity: 1;
-  background: var(--bg-tertiary);
-  /* transform: scale(1.1);  <-- 已移除此行 */
+/* 当编辑模式激活时，才显示按钮容器 */
+.text-edit-mode-active .card-action-buttons {
+    display: flex;
 }
 
-/* 当编辑模式激活时，才显示编辑按钮 */
-.text-edit-mode-active .edit-text-btn {
-  display: flex;
-}
-
-/* 调整图标大小 */
-.edit-text-btn .material-symbols-outlined {
-  font-size: 18px;
+/* 调整图标大小 (复用现有样式) */
+.card-action-buttons .btn-icon-action .material-symbols-outlined {
+    font-size: 20px;
 }
