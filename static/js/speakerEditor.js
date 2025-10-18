@@ -443,7 +443,7 @@ export const speakerEditor = {
     }
   },
 
-  // 打开说话人编辑器模态框
+  // 打开对话编辑器模态框
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,

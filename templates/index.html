@@ -220,17 +220,17 @@
                 </div>
               </div>
 
-              <!-- 说话人编辑 -->
+              <!-- 对话编辑 -->
               <div class="card">
                 <div class="card-header">
-                  <h3 class="card-title">说话人编辑器</h3>
+                  <h3 class="card-title">对话编辑器</h3>
                 </div>
                 <div class="card-body">
                   <p class="text-hint">
-                    使用拖拽的方式为对话指派一个或多个说话人。
+                    使用拖拽的方式为对话指派一个或多个说话人，或者编辑对话内容。
                   </p>
                   <button class="btn btn-primary" id="openSpeakerEditorBtn">
-                    打开说话人编辑器
+                    打开对话编辑器
                   </button>
                 </div>
               </div>
@@ -689,7 +689,7 @@
               </li>
               <li>
                 <strong>编辑器</strong
-                >：提供三个编辑模式——<strong>说话人编辑器</strong>、<strong
+                >：提供三个编辑模式——<strong>对话编辑器</strong>、<strong
                   >Live2D 布局编辑器</strong
                 >和<strong>动作/表情编辑器</strong>，通过拖拽方式配置剧情。
               </li>
@@ -737,7 +737,7 @@
             </p>
             <ul>
               <li>
-                <strong>说话人编辑器</strong
+                <strong>对话编辑器</strong
                 >：当文本的角色名和对话没有按照“角色名：内容”的格式时，使用此编辑器，从右侧角色列表将角色拖拽到对应的文本卡片上，即可快速指派说话人，支持Ctrl多选和Shift批量指派。
               </li>
               <li>
@@ -884,7 +884,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title" id="speakerEditorModalTitle">
-            说话人编辑模式
+            对话编辑模式
           </div>
           <button
             class="modal-close"
@@ -958,7 +958,7 @@
       </div>
     </div>
 
-    <!-- 说话人编辑器：文本片段卡片模板 -->
+    <!-- 对话编辑器：文本片段卡片模板 -->
     <template id="text-snippet-card-template">
       <div class="dialogue-item" data-id="">
         <div class="card-sequence-number"></div>
