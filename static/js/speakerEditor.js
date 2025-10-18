@@ -46,6 +46,7 @@ export const speakerEditor = {
 
   // 多选模式切换按钮
   isMultiSelectMode: false,
+  isTextEditMode: false,
   // DOM 缓存
   domCache: {},
   // 计算结果缓存
@@ -67,6 +68,7 @@ export const speakerEditor = {
       undoBtn: document.getElementById("undoBtn"),
       redoBtn: document.getElementById("redoBtn"),
       toggleMultiSelectBtn: document.getElementById("toggleMultiSelectBtn"),
+      toggleTextEditBtn: document.getElementById("toggleTextEditBtn"),
     };
 
     // 从本地存储加载多选模式配置
@@ -98,6 +100,9 @@ export const speakerEditor = {
     );
     this.domCache.toggleMultiSelectBtn?.addEventListener("click", () =>
       this._toggleMultiSelectMode()
+    );
+    this.domCache.toggleTextEditBtn?.addEventListener("click", () =>
+      this._toggleTextEditMode()
     );
     const characterList = this.domCache.characterList;
     if (characterList) {
@@ -180,6 +185,45 @@ export const speakerEditor = {
     this.domCache.canvas?.dispatchEvent(
       new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
     );
+  },
+
+  /**
+   * 切换文本编辑模式的状态和UI
+   */
+  _toggleTextEditMode() {
+    this.isTextEditMode = !this.isTextEditMode;
+    const btn = this.domCache.toggleTextEditBtn;
+    if (btn) {
+      btn.textContent = this.isTextEditMode ? "编辑文本: 开" : "编辑文本: 关";
+    }
+
+    // 在画布容器上切换一个CSS类，用于控制所有编辑按钮的显隐
+    this.domCache.canvas.classList.toggle(
+      "text-edit-mode-active",
+      this.isTextEditMode
+    );
+  },
+
+  /**
+   * 处理点击编辑按钮后的逻辑
+   * @param {string} actionId - 被点击卡片对应的动作ID
+   */
+  _handleTextEdit(actionId) {
+    const action = this.projectFileState.actions.find((a) => a.id === actionId);
+    if (!action) return;
+    const newText = prompt("编辑对话内容:", action.text);
+    if (newText !== null && newText.trim() !== action.text.trim()) {
+      const trimmedText = newText.trim();
+      // 使用 _executeCommand 来执行修改，以便支持撤销/重做
+      this._executeCommand((currentState) => {
+        const actionToUpdate = currentState.actions.find(
+          (a) => a.id === actionId
+        );
+        if (actionToUpdate) {
+          actionToUpdate.text = trimmedText;
+        }
+      });
+    }
   },
 
   /**
@@ -429,6 +473,11 @@ export const speakerEditor = {
             : "多选: 关";
         }
 
+        this.domCache.canvas.classList.toggle(
+          "text-edit-mode-active",
+          this.isTextEditMode
+        );
+
         const usedCharacterIds = this.renderCanvas();
         this.renderCharacterList(usedCharacterIds);
         this.initDragAndDrop();
@@ -456,6 +505,18 @@ export const speakerEditor = {
               card.classList.remove("is-selected");
             }
           });
+        });
+
+        // 添加新的事件监听来处理编辑按钮
+        canvas.addEventListener("click", (e) => {
+          const editBtn = e.target.closest(".edit-text-btn");
+          if (editBtn) {
+            e.stopPropagation(); // 阻止触发卡片选择
+            const card = editBtn.closest(".dialogue-item");
+            if (card && card.dataset.id) {
+              this._handleTextEdit(card.dataset.id);
+            }
+          }
         });
 
         canvas.addEventListener("change", (e) => {
