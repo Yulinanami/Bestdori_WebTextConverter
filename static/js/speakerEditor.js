@@ -77,6 +77,12 @@ export const speakerEditor = {
     );
     this.isMultiSelectMode = savedMode === true;
 
+    // 从本地存储加载文本编辑模式配置
+    const savedTextEditMode = storageService.get(
+      STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE
+    );
+    this.isTextEditMode = savedTextEditMode === true;
+
     document
       .getElementById("openSpeakerEditorBtn")
       ?.addEventListener("click", () => this.open());
@@ -192,6 +198,12 @@ export const speakerEditor = {
    */
   _toggleTextEditMode() {
     this.isTextEditMode = !this.isTextEditMode;
+    // 将新状态保存到本地存储
+    storageService.set(
+      STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
+      this.isTextEditMode
+    );
+
     const btn = this.domCache.toggleTextEditBtn;
     if (btn) {
       btn.textContent = this.isTextEditMode ? "编辑文本: 开" : "编辑文本: 关";
@@ -482,6 +494,13 @@ export const speakerEditor = {
             .isMultiSelectMode
             ? "多选: 开"
             : "多选: 关";
+        }
+
+        // 根据加载的状态更新“编辑文本”按钮的UI
+        if (this.domCache.toggleTextEditBtn) {
+            this.domCache.toggleTextEditBtn.textContent = this.isTextEditMode
+                ? "编辑文本: 开"
+                : "编辑文本: 关";
         }
 
         this.domCache.canvas.classList.toggle(
