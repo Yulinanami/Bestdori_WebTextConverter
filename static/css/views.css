@@ -1,17 +1,5 @@
 /* views.css - 视图特定样式 */
 
-/* 预览内容 */
-.preview-content {
-  height: 100%;
-  overflow-y: auto;
-}
-
-/* 对话预览 */
-.dialogue-preview {
-  padding: var(--spacing-lg);
-  background: var(--color-neutral-light);
-}
-
 /* 对话项动画增强 */
 .dialogue-item {
   margin-bottom: var(--spacing-lg);

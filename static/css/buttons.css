@@ -170,28 +170,8 @@
   background: #feb2b2;
 }
 
-/* 特定按钮样式 */
-.help-btn {
-  position: absolute;
-  top: 20px;
-  right: 25px;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  padding: 0;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--text-white);
-  border: 2px solid white;
-}
-
 /* Bestdori 跳转按钮样式 */
-#gotoBestdoriBtn,
-#splitGotoBestdoriBtn {
+#gotoBestdoriBtn {
   background: var(--color-neutral);
 }
 
@@ -212,11 +192,6 @@
 .btn-sm .loading {
   width: 14px;
   height: 14px;
-}
-
-/* 转换按钮图标 - 默认隐藏 */
-#convertIcon:empty {
-  display: none;
 }
 
 /* 置顶按钮样式 */

@@ -31,37 +31,6 @@
     padding: var(--spacing-sm);
   }
 
-  .main-content {
-    padding: var(--spacing-lg);
-  }
-
-  /* 容器调整 */
-  .container {
-    border-radius: var(--radius-lg);
-  }
-
-  /* 头部调整 */
-  .header {
-    padding: var(--spacing-lg);
-  }
-
-  .header h1 {
-    font-size: var(--text-3xl);
-  }
-
-  .header p {
-    font-size: var(--text-base);
-  }
-
-  /* 帮助按钮调整 */
-  #helpBtn {
-    top: 15px;
-    right: 15px;
-    width: 36px;
-    height: 36px;
-    font-size: var(--text-lg);
-  }
-
   /* 按钮组调整 */
   .btn-group {
     flex-direction: column;
@@ -82,30 +51,8 @@
     padding: 10px 14px;
   }
 
-  /* 分区调整 */
-  .section {
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-lg);
-  }
-
-  .section-title {
-    font-size: var(--text-lg);
-  }
-
   .input-sm {
     width: 100%;
-  }
-
-  /* 对话预览调整 */
-  .dialogue-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: var(--text-base);
-  }
-
-  .dialogue-text {
-    padding: 10px 14px;
-    font-size: var(--text-sm);
   }
 
   /* 模态框内容调整 */
@@ -130,24 +77,6 @@
 
 /* 小屏幕设备 (480px 以下) */
 @media (max-width: 480px) {
-  /* 更紧凑的布局 */
-  .header {
-    padding: var(--spacing-md);
-  }
-
-  .header h1 {
-    font-size: var(--text-2xl);
-  }
-
-  .main-content {
-    padding: var(--spacing-md);
-  }
-
-  .section {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-  }
-
   /* 文件上传调整 */
   .file-upload-label {
     padding: var(--spacing-md);
@@ -208,13 +137,12 @@
     background: white;
   }
 
-  .container {
+  .app-container {
     box-shadow: none;
     border: 1px solid var(--border-secondary);
   }
 
   .btn,
-  #helpBtn,
   .file-upload,
   .modal {
     display: none !important;
