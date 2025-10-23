@@ -57,32 +57,6 @@ export const selectionManager = {
   },
 
   /**
-   * 初始化管理器，为列表容器添加事件委托。
-   * @param {HTMLElement} container - 列表项所在的父容器元素 (例如 #speakerEditorCanvas)。
-   * @param {string} itemSelector - 用于识别可选项目的CSS选择器 (例如 '.dialogue-item')。
-   */
-  init(container, itemSelector) {
-    container.addEventListener("click", (e) => {
-      const item = e.target.closest(itemSelector);
-      if (!item || !item.dataset.id) return;
-      const id = item.dataset.id;
-      if (e.ctrlKey || e.metaKey) {
-        this.toggle(id);
-      } else if (e.shiftKey) {
-        this.selectRange(id, container, itemSelector);
-      } else {
-        this.selectSingle(id);
-      }
-      this.lastSelectedId = id;
-      container.dispatchEvent(
-        new CustomEvent("selectionchange", {
-          detail: { selectedIds: this.getSelectedIds() },
-        })
-      );
-    });
-  },
-
-  /**
    * 切换单个项目的选中状态。
    * @param {string} id - 项目的ID。
    */

@@ -332,7 +332,6 @@ export const configManager = {
       console.error("配置验证失败：不是有效的对象");
       return false;
     }
-    console.log("配置格式有效");
     return true;
   },
 
@@ -350,7 +349,6 @@ export const configManager = {
     reader.onload = (e) => {
       try {
         const config = JSON.parse(e.target.result);
-        console.log("导入的配置:", config);
 
         // 验证配置安全性
         if (!this.validateConfig(config)) {
@@ -363,7 +361,6 @@ export const configManager = {
         if (config.character_mapping) {
           state.set("currentConfig", config.character_mapping);
           this.saveLocalConfig(config.character_mapping);
-          console.log("角色映射已导入");
           if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
             state.set("customQuotes", config.custom_quotes);
             if (
@@ -371,7 +368,6 @@ export const configManager = {
               quoteManager.saveCustomQuotes
             ) {
               quoteManager.saveCustomQuotes();
-              console.log("自定义引号已导入");
             }
           }
           if (
@@ -384,7 +380,6 @@ export const configManager = {
               typeof config.enable_live2d === "boolean"
             ) {
               costumeManager.importCostumes(config);
-              console.log("服装配置已导入");
             }
           }
           if (
@@ -393,14 +388,12 @@ export const configManager = {
             positionManager.importPositions
           ) {
             positionManager.importPositions(config.position_config);
-            console.log("位置配置已导入");
           }
           // 导入自定义动作/表情
           if (config.custom_motions && Array.isArray(config.custom_motions)) {
             if (typeof motionManager !== "undefined") {
               motionManager.customItems = [...config.custom_motions];
               motionManager.saveCustomItems();
-              console.log("自定义动作已导入");
             }
           }
           if (
@@ -410,7 +403,6 @@ export const configManager = {
             if (typeof expressionManager !== "undefined") {
               expressionManager.customItems = [...config.custom_expressions];
               expressionManager.saveCustomItems();
-              console.log("自定义表情已导入");
             }
           }
         } else {

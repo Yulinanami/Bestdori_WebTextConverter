@@ -17,9 +17,6 @@ export const viewManager = {
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
     if (state.get("projectFile")) {
-      console.log(
-        "Formatted text (classic view), resetting project file state."
-      );
       state.set("projectFile", null);
     }
     ui.showStatus("文本已成功格式化！", "success");

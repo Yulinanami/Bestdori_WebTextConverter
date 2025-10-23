@@ -239,10 +239,6 @@ export const positionManager = {
       this.manualPositions = positionConfig.manualPositions;
     }
     this.savePositionConfig();
-    console.log("位置配置已导入:", {
-      autoMode: this.autoPositionMode,
-      manualPositions: this.manualPositions,
-    });
   },
 
   // 重置位置计数器
