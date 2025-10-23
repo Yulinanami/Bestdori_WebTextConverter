@@ -118,39 +118,6 @@ export const quoteManager = {
         checkbox.checked = currentStates[key];
       }
     });
-    const splitModal = document.getElementById("splitQuoteModal");
-    if (splitModal && splitModal.style.display !== "none") {
-      const mainContainer = document.getElementById("quoteOptionsContainer");
-      const splitContainer = document.getElementById(
-        "splitQuoteOptionsContainer"
-      );
-      DOMUtils.clearElement(splitContainer);
-      mainContainer
-        .querySelectorAll(".quote-option-checkbox")
-        .forEach((mainCheckbox, index) => {
-          const wrapper = mainCheckbox.parentElement.cloneNode(true);
-          const checkbox = wrapper.querySelector(".quote-option-checkbox");
-          const label = wrapper.querySelector("label");
-          const newId = `split-${checkbox.id}`;
-          checkbox.id = newId;
-          label.htmlFor = newId;
-          checkbox.checked = mainCheckbox.checked;
-          checkbox.addEventListener("change", () => {
-            mainCheckbox.checked = checkbox.checked;
-            if (state.get("autoPreviewEnabled")) {
-              converter.updateSplitPreview();
-            }
-          });
-          const deleteBtn = wrapper.querySelector("button");
-          if (deleteBtn && deleteBtn.textContent === "删除") {
-            const btnQuoteName = label.textContent;
-            deleteBtn.onclick = () => {
-              this.removeCustomQuote(btnQuoteName);
-            };
-          }
-          splitContainer.appendChild(wrapper);
-        });
-    }
     ui.showStatus("自定义引号已删除", "success");
   },
 

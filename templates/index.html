@@ -129,49 +129,48 @@
 
       <!-- 右侧工作区 -->
       <main class="app-workspace">
-        <div id="classicView">
-          <!-- 步骤1: 输入文本 -->
-          <div class="workspace-step active" data-step="1">
-            <div class="step-header">
-              <h2 class="step-title">步骤 1: 输入文本</h2>
-              <p class="step-description">上传文件或直接粘贴你的剧本内容</p>
-            </div>
+        <!-- 步骤1: 输入文本 -->
+        <div class="workspace-step active" data-step="1">
+          <div class="step-header">
+            <h2 class="step-title">步骤 1: 输入文本</h2>
+            <p class="step-description">上传文件或直接粘贴你的剧本内容</p>
+          </div>
 
-            <div class="step-content">
-              <!-- 文件上传 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">文件上传</h3>
-                </div>
-                <div class="card-body">
-                  <div class="file-upload" id="fileUpload">
-                    <input type="file" accept=".txt,.docx,.md" id="fileInput" />
-                    <div class="file-upload-label">
-                      <div>
-                        <div class="file-upload-title">点击或拖拽上传文件</div>
-                        <div class="file-upload-subtitle">
-                          支持 .txt, .docx, .md 格式（最大16MB）
-                        </div>
+          <div class="step-content">
+            <!-- 文件上传 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">文件上传</h3>
+              </div>
+              <div class="card-body">
+                <div class="file-upload" id="fileUpload">
+                  <input type="file" accept=".txt,.docx,.md" id="fileInput" />
+                  <div class="file-upload-label">
+                    <div>
+                      <div class="file-upload-title">点击或拖拽上传文件</div>
+                      <div class="file-upload-subtitle">
+                        支持 .txt, .docx, .md 格式（最大16MB）
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- 文本输入 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">文本输入</h3>
-                  <button class="btn btn-secondary btn-sm" id="formatTextBtn">
-                    格式化文本
-                  </button>
-                </div>
-                <div class="card-body">
-                  <div class="form-group">
-                    <textarea
-                      class="form-input textarea"
-                      id="inputText"
-                      placeholder='请输入需要转换的对话文本...
+            <!-- 文本输入 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">文本输入</h3>
+                <button class="btn btn-secondary btn-sm" id="formatTextBtn">
+                  格式化文本
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <textarea
+                    class="form-input textarea"
+                    id="inputText"
+                    placeholder='请输入需要转换的对话文本...
 
 支持格式：
 角色名：对话内容
@@ -180,474 +179,468 @@
 也可以使用你自己的引号格式（自定义引号）
 其余部分为旁白内容
 最好每段话之间用一个空行分隔'
-                    ></textarea>
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-footer">
+            <button
+              class="btn btn-primary btn-lg"
+              onclick="document.querySelector('[data-step=&quot;2&quot;]').click()"
+            >
+              下一步：编辑器 →
+            </button>
+          </div>
+        </div>
+
+        <!-- 步骤2: 编辑器 -->
+        <div class="workspace-step" data-step="2">
+          <div class="step-header">
+            <h2 class="step-title">步骤 2: 编辑器</h2>
+            <p class="step-description">使用编辑器完善剧情细节</p>
+          </div>
+
+          <div class="step-content">
+            <!-- 性能优化 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">编辑器性能优化</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint">
+                  当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
+                </p>
+                <label class="auto-preview-label">
+                  <input type="checkbox" id="groupCardsCheckbox" />
+                  <span class="font-medium">启用编辑器卡片分组</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 对话编辑 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">对话编辑器</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint">
+                  使用拖拽的方式为对话指派一个或多个说话人，或者编辑对话内容。
+                </p>
+                <button class="btn btn-primary" id="openSpeakerEditorBtn">
+                  打开对话编辑器
+                </button>
+              </div>
+            </div>
+
+            <!-- Live2D 布局编辑器 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Live2D 布局编辑器</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint">
+                  使用拖拽的方式为Live2D添加入场、退场和移动布局。
+                </p>
+                <button class="btn btn-primary btn-lg" id="openLive2dEditorBtn">
+                  打开 Live2D 布局编辑器
+                </button>
+              </div>
+            </div>
+
+            <!-- 动作与表情编辑器 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">动作/表情编辑器</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint">
+                  使用拖拽的方式为登场的Live2D设置对话时的动作和表情。
+                </p>
+                <button
+                  class="btn btn-primary btn-lg"
+                  id="openExpressionEditorBtn"
+                >
+                  打开动作/表情编辑器
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-footer">
+            <button
+              class="btn btn-secondary"
+              onclick="document.querySelector('[data-step=&quot;1&quot;]').click()"
+            >
+              ← 上一步
+            </button>
+            <button
+              class="btn btn-primary btn-lg"
+              onclick="document.querySelector('[data-step=&quot;3&quot;]').click()"
+            >
+              下一步：处理选项 →
+            </button>
+          </div>
+        </div>
+
+        <!-- 步骤3: 处理选项 -->
+        <div class="workspace-step" data-step="3">
+          <div class="step-header">
+            <h2 class="step-title">步骤 3: 处理选项</h2>
+            <p class="step-description">配置文本处理的其它选项</p>
+          </div>
+
+          <div class="step-content">
+            <!-- 基础设置 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">基础设置</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="narratorName" class="form-label"
+                    >旁白名称（默认为空白）：</label
+                  >
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="narratorName"
+                    value=" "
+                    placeholder="设置旁白的名称"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 引号处理 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">引号处理</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint mb-15">
+                  选择或添加需要自动移除首尾引号的种类
+                </p>
+
+                <!-- 预设引号选项 -->
+                <div id="quoteOptionsContainer" class="btn-group mb-20">
+                  <!-- JS将在这里动态填充复选框 -->
+                </div>
+
+                <!-- 自定义引号选项 -->
+                <div class="pt-15 border-dashed">
+                  <p class="font-medium text-gray mb-10">添加自定义引号对：</p>
+                  <div class="flex flex-center flex-gap-sm flex-wrap">
+                    <input
+                      type="text"
+                      id="customQuoteOpen"
+                      class="form-input w-100 flex-grow-0"
+                      placeholder="起始符号"
+                    />
+                    <input
+                      type="text"
+                      id="customQuoteClose"
+                      class="form-input w-100 flex-grow-0"
+                      placeholder="结束符号"
+                    />
+                    <button
+                      id="addCustomQuoteBtn"
+                      class="btn btn-secondary flex-shrink-0"
+                    >
+                      添加
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-footer">
+            <button
+              class="btn btn-secondary"
+              onclick="document.querySelector('[data-step=&quot;2&quot;]').click()"
+            >
+              ← 上一步
+            </button>
+            <button
+              class="btn btn-primary btn-lg"
+              onclick="document.querySelector('[data-step=&quot;4&quot;]').click()"
+            >
+              下一步：转换导出 →
+            </button>
+          </div>
+        </div>
+
+        <!-- 步骤4: 转换导出 -->
+        <div class="workspace-step" data-step="4">
+          <div class="step-header">
+            <h2 class="step-title">步骤 4: 转换导出</h2>
+            <p class="step-description">转换为JSON并导出到Bestdori</p>
+          </div>
+
+          <div class="step-content">
+            <!-- 转换操作 -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">开始转换</h3>
+              </div>
+              <div class="card-body">
+                <button
+                  class="btn btn-primary btn-lg btn-block"
+                  id="convertBtn"
+                >
+                  <span id="convertIcon"></span>
+                  <span id="convertText">开始转换</span>
+                </button>
+
+                <!-- 进度条容器 -->
+                <div class="progress-container hidden" id="progressContainer">
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="step-footer">
-              <button
-                class="btn btn-primary btn-lg"
-                onclick="document.querySelector('[data-step=&quot;2&quot;]').click()"
-              >
-                下一步：编辑器 →
-              </button>
+            <!-- 转换结果 -->
+            <div class="card hidden" id="resultSection">
+              <div class="card-header">
+                <h3 class="card-title">转换结果</h3>
+                <div class="flex flex-gap-sm">
+                  <button class="btn btn-success" id="downloadBtn">
+                    下载JSON
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    id="gotoBestdoriBtn"
+                    title="在新标签页打开 Bestdori 故事编辑器"
+                  >
+                    跳转到 Bestdori
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="result-content">
+                  <pre><code class="language-json" id="resultContent"></code></pre>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- 步骤2: 编辑器 -->
-          <div class="workspace-step" data-step="2">
-            <div class="step-header">
-              <h2 class="step-title">步骤 2: 编辑器</h2>
-              <p class="step-description">使用编辑器完善剧情细节</p>
-            </div>
+          <div class="step-footer">
+            <button
+              class="btn btn-secondary"
+              onclick="document.querySelector('[data-step=&quot;3&quot;]').click()"
+            >
+              ← 上一步
+            </button>
+          </div>
+        </div>
 
-            <div class="step-content">
-              <!-- 性能优化 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">编辑器性能优化</h3>
-                </div>
-                <div class="card-body">
-                  <p class="text-hint">
-                    当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
-                  </p>
-                  <label class="auto-preview-label">
-                    <input type="checkbox" id="groupCardsCheckbox" />
-                    <span class="font-medium">启用编辑器卡片分组</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- 对话编辑 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">对话编辑器</h3>
-                </div>
-                <div class="card-body">
-                  <p class="text-hint">
-                    使用拖拽的方式为对话指派一个或多个说话人，或者编辑对话内容。
-                  </p>
-                  <button class="btn btn-primary" id="openSpeakerEditorBtn">
-                    打开对话编辑器
-                  </button>
-                </div>
-              </div>
-
-              <!-- Live2D 布局编辑器 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Live2D 布局编辑器</h3>
-                </div>
-                <div class="card-body">
-                  <p class="text-hint">
-                    使用拖拽的方式为Live2D添加入场、退场和移动布局。
-                  </p>
-                  <button
-                    class="btn btn-primary btn-lg"
-                    id="openLive2dEditorBtn"
-                  >
-                    打开 Live2D 布局编辑器
-                  </button>
-                </div>
-              </div>
-
-              <!-- 动作与表情编辑器 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">动作/表情编辑器</h3>
-                </div>
-                <div class="card-body">
-                  <p class="text-hint">
-                    使用拖拽的方式为登场的Live2D设置对话时的动作和表情。
-                  </p>
-                  <button
-                    class="btn btn-primary btn-lg"
-                    id="openExpressionEditorBtn"
-                  >
-                    打开动作/表情编辑器
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="step-footer">
-              <button
-                class="btn btn-secondary"
-                onclick="document.querySelector('[data-step=&quot;1&quot;]').click()"
-              >
-                ← 上一步
-              </button>
-              <button
-                class="btn btn-primary btn-lg"
-                onclick="document.querySelector('[data-step=&quot;3&quot;]').click()"
-              >
-                下一步：处理选项 →
-              </button>
-            </div>
+        <!-- 步骤5: 配置管理 -->
+        <div class="workspace-step" data-step="5">
+          <div class="step-header">
+            <h2 class="step-title">配置管理</h2>
+            <p class="step-description">配置角色名称与ID的映射关系</p>
           </div>
 
-          <!-- 步骤3: 处理选项 -->
-          <div class="workspace-step" data-step="3">
-            <div class="step-header">
-              <h2 class="step-title">步骤 3: 处理选项</h2>
-              <p class="step-description">配置文本处理的其它选项</p>
+          <div class="step-content">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
+                你可以根据自己的习惯来给角色取别名。
+              </p>
+              <p class="text-warning">
+                <strong>提示：</strong
+                >自定义添加的角色ID应该是默认角色列表里已有的角色ID，否则会导致你自定义的角色无法自动添加Live2D。
+              </p>
             </div>
 
-            <div class="step-content">
-              <!-- 基础设置 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">基础设置</h3>
-                </div>
-                <div class="card-body">
-                  <div class="form-group">
-                    <label for="narratorName" class="form-label"
-                      >旁白名称（默认为空白）：</label
-                    >
+            <div
+              class="flex-between mb-25 pt-20 pb-20 border-top flex-wrap flex-gap-sm"
+            >
+              <div class="flex flex-gap-sm flex-wrap">
+                <button class="btn btn-secondary" id="addConfigBtn">
+                  添加角色
+                </button>
+                <button class="btn btn-secondary" id="resetConfigBtn">
+                  恢复默认
+                </button>
+                <button class="btn btn-secondary" id="exportConfigBtn">
+                  导出配置
+                </button>
+                <input
+                  type="file"
+                  id="importConfigInput"
+                  accept=".json"
+                  class="hidden"
+                />
+                <button class="btn btn-secondary" id="importConfigBtn">
+                  导入配置
+                </button>
+                <button
+                  class="btn btn-danger"
+                  id="clearCacheBtn"
+                  title="清除所有保存在浏览器中的用户数据，包括角色、服装和引号配置，并将应用重置为初始状态。"
+                >
+                  清除缓存
+                </button>
+              </div>
+              <button class="btn btn-primary" id="saveConfigBtn">
+                保存配置
+              </button>
+            </div>
+
+            <div id="configList"></div>
+          </div>
+        </div>
+
+        <!-- 步骤6: 服装配置 -->
+        <div class="workspace-step" data-step="6">
+          <div class="step-header">
+            <h2 class="step-title">服装配置</h2>
+            <p class="step-description">为每个角色配置默认服装</p>
+          </div>
+
+          <div class="step-content">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
+                为每个角色配置服装。你可以从预设服装中选择，也可以添加额外的服装ID。
+              </p>
+              <p class="text-info">
+                提示：点击"浏览数据库"可以查看 Bestdori 的所有可用服装ID。
+              </p>
+            </div>
+
+            <div class="flex-between mb-20 pt-20 border-top">
+              <button class="btn btn-secondary" id="resetCostumesBtn">
+                恢复默认
+              </button>
+              <button class="btn btn-primary" id="saveCostumesBtn">
+                保存配置
+              </button>
+            </div>
+
+            <div id="costumeList"></div>
+          </div>
+        </div>
+
+        <!-- 步骤7: 位置配置 -->
+        <div class="workspace-step" data-step="7">
+          <div class="step-header">
+            <h2 class="step-title">位置配置</h2>
+            <p class="step-description">配置角色的默认出现位置</p>
+          </div>
+
+          <div class="step-content">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
+                你可以为每个角色单独设置默认的位置，或使用自动分配模式。
+              </p>
+              <p class="text-info">
+                提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
+              </p>
+            </div>
+
+            <div class="flex-between mb-25 pt-20 pb-20 border-top">
+              <button class="btn btn-secondary" id="resetPositionsBtn">
+                恢复默认
+              </button>
+              <button class="btn btn-primary" id="savePositionsBtn">
+                保存配置
+              </button>
+            </div>
+
+            <div class="p-15 bg-light rounded-lg mb-20">
+              <label class="auto-preview-label">
+                <input type="checkbox" id="autoPositionCheckbox" checked />
+                <span class="font-medium">自动分配位置模式</span>
+              </label>
+              <p class="text-hint mt-8 mb-0">
+                启用后，角色将按出场顺序自动分配到不同位置（左、中、右循环）
+              </p>
+            </div>
+
+            <div id="manualPositionConfig" class="hidden">
+              <div id="positionList"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤8: 动作/表情配置 -->
+        <div class="workspace-step" data-step="8">
+          <div class="step-header">
+            <h2 class="step-title">动作/表情配置</h2>
+            <p class="step-description">管理全局可用的动作和表情列表</p>
+          </div>
+
+          <div class="step-content">
+            <div class="mb-20">
+              <p class="text-muted mb-10">
+                管理可用的 Live2D
+                动作和表情列表。你可以添加缺漏的动作/表情ID配置。
+              </p>
+              <p class="text-info">
+                提示：在动作/表情编辑器中，动作/表情列表会根据出场的Live2D自动显示对应的动作/表情选项。
+              </p>
+            </div>
+
+            <div class="flex-between mb-25 pt-20 pb-20 border-top">
+              <button class="btn btn-secondary" id="resetMotionExpressionBtn">
+                恢复默认
+              </button>
+              <button class="btn btn-primary" id="saveMotionExpressionBtn">
+                保存配置
+              </button>
+            </div>
+
+            <div class="grid-2col">
+              <div class="config-column">
+                <h4 class="config-column-title">动作 (Motions)</h4>
+                <div class="form-group">
+                  <label for="customMotionInput" class="form-label"
+                    >添加额外的动作ID:</label
+                  >
+                  <div class="input-group">
                     <input
                       type="text"
                       class="form-input"
-                      id="narratorName"
-                      value=" "
-                      placeholder="设置旁白的名称"
+                      id="customMotionInput"
+                      placeholder="例如: special_wave_01"
                     />
-                  </div>
-                </div>
-              </div>
-
-              <!-- 引号处理 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">引号处理</h3>
-                </div>
-                <div class="card-body">
-                  <p class="text-hint mb-15">
-                    选择或添加需要自动移除首尾引号的种类
-                  </p>
-
-                  <!-- 预设引号选项 -->
-                  <div id="quoteOptionsContainer" class="btn-group mb-20">
-                    <!-- JS将在这里动态填充复选框 -->
-                  </div>
-
-                  <!-- 自定义引号选项 -->
-                  <div class="pt-15 border-dashed">
-                    <p class="font-medium text-gray mb-10">
-                      添加自定义引号对：
-                    </p>
-                    <div class="flex flex-center flex-gap-sm flex-wrap">
-                      <input
-                        type="text"
-                        id="customQuoteOpen"
-                        class="form-input w-100 flex-grow-0"
-                        placeholder="起始符号"
-                      />
-                      <input
-                        type="text"
-                        id="customQuoteClose"
-                        class="form-input w-100 flex-grow-0"
-                        placeholder="结束符号"
-                      />
-                      <button
-                        id="addCustomQuoteBtn"
-                        class="btn btn-secondary flex-shrink-0"
-                      >
-                        添加
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="step-footer">
-              <button
-                class="btn btn-secondary"
-                onclick="document.querySelector('[data-step=&quot;2&quot;]').click()"
-              >
-                ← 上一步
-              </button>
-              <button
-                class="btn btn-primary btn-lg"
-                onclick="document.querySelector('[data-step=&quot;4&quot;]').click()"
-              >
-                下一步：转换导出 →
-              </button>
-            </div>
-          </div>
-
-          <!-- 步骤4: 转换导出 -->
-          <div class="workspace-step" data-step="4">
-            <div class="step-header">
-              <h2 class="step-title">步骤 4: 转换导出</h2>
-              <p class="step-description">转换为JSON并导出到Bestdori</p>
-            </div>
-
-            <div class="step-content">
-              <!-- 转换操作 -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">开始转换</h3>
-                </div>
-                <div class="card-body">
-                  <button
-                    class="btn btn-primary btn-lg btn-block"
-                    id="convertBtn"
-                  >
-                    <span id="convertIcon"></span>
-                    <span id="convertText">开始转换</span>
-                  </button>
-
-                  <!-- 进度条容器 -->
-                  <div class="progress-container hidden" id="progressContainer">
-                    <div class="progress-bar">
-                      <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 转换结果 -->
-              <div class="card hidden" id="resultSection">
-                <div class="card-header">
-                  <h3 class="card-title">转换结果</h3>
-                  <div class="flex flex-gap-sm">
-                    <button class="btn btn-success" id="downloadBtn">
-                      下载JSON
+                    <button class="btn btn-secondary" id="addCustomMotionBtn">
+                      添加
                     </button>
+                  </div>
+                </div>
+                <div class="item-list-container">
+                  <div id="motionList"></div>
+                </div>
+              </div>
+
+              <div class="config-column">
+                <h4 class="config-column-title">表情 (Expressions)</h4>
+                <div class="form-group">
+                  <label for="customExpressionInput" class="form-label"
+                    >添加额外的表情ID:</label
+                  >
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-input"
+                      id="customExpressionInput"
+                      placeholder="例如: extra_blush_01"
+                    />
                     <button
-                      class="btn btn-primary"
-                      id="gotoBestdoriBtn"
-                      title="在新标签页打开 Bestdori 故事编辑器"
+                      class="btn btn-secondary"
+                      id="addCustomExpressionBtn"
                     >
-                      跳转到 Bestdori
+                      添加
                     </button>
                   </div>
                 </div>
-                <div class="card-body">
-                  <div class="result-content">
-                    <pre><code class="language-json" id="resultContent"></code></pre>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="step-footer">
-              <button
-                class="btn btn-secondary"
-                onclick="document.querySelector('[data-step=&quot;3&quot;]').click()"
-              >
-                ← 上一步
-              </button>
-            </div>
-          </div>
-
-          <!-- 步骤5: 配置管理 -->
-          <div class="workspace-step" data-step="5">
-            <div class="step-header">
-              <h2 class="step-title">配置管理</h2>
-              <p class="step-description">配置角色名称与ID的映射关系</p>
-            </div>
-
-            <div class="step-content">
-              <div class="mb-20">
-                <p class="text-muted mb-10">
-                  你可以根据自己的习惯来给角色取别名。
-                </p>
-                <p class="text-warning">
-                  <strong>提示：</strong
-                  >自定义添加的角色ID应该是默认角色列表里已有的角色ID，否则会导致你自定义的角色无法自动添加Live2D。
-                </p>
-              </div>
-
-              <div
-                class="flex-between mb-25 pt-20 pb-20 border-top flex-wrap flex-gap-sm"
-              >
-                <div class="flex flex-gap-sm flex-wrap">
-                  <button class="btn btn-secondary" id="addConfigBtn">
-                    添加角色
-                  </button>
-                  <button class="btn btn-secondary" id="resetConfigBtn">
-                    恢复默认
-                  </button>
-                  <button class="btn btn-secondary" id="exportConfigBtn">
-                    导出配置
-                  </button>
-                  <input
-                    type="file"
-                    id="importConfigInput"
-                    accept=".json"
-                    class="hidden"
-                  />
-                  <button class="btn btn-secondary" id="importConfigBtn">
-                    导入配置
-                  </button>
-                  <button
-                    class="btn btn-danger"
-                    id="clearCacheBtn"
-                    title="清除所有保存在浏览器中的用户数据，包括角色、服装和引号配置，并将应用重置为初始状态。"
-                  >
-                    清除缓存
-                  </button>
-                </div>
-                <button class="btn btn-primary" id="saveConfigBtn">
-                  保存配置
-                </button>
-              </div>
-
-              <div id="configList"></div>
-            </div>
-          </div>
-
-          <!-- 步骤6: 服装配置 -->
-          <div class="workspace-step" data-step="6">
-            <div class="step-header">
-              <h2 class="step-title">服装配置</h2>
-              <p class="step-description">为每个角色配置默认服装</p>
-            </div>
-
-            <div class="step-content">
-              <div class="mb-20">
-                <p class="text-muted mb-10">
-                  为每个角色配置服装。你可以从预设服装中选择，也可以添加额外的服装ID。
-                </p>
-                <p class="text-info">
-                  提示：点击"浏览数据库"可以查看 Bestdori 的所有可用服装ID。
-                </p>
-              </div>
-
-              <div class="flex-between mb-20 pt-20 border-top">
-                <button class="btn btn-secondary" id="resetCostumesBtn">
-                  恢复默认
-                </button>
-                <button class="btn btn-primary" id="saveCostumesBtn">
-                  保存配置
-                </button>
-              </div>
-
-              <div id="costumeList"></div>
-            </div>
-          </div>
-
-          <!-- 步骤7: 位置配置 -->
-          <div class="workspace-step" data-step="7">
-            <div class="step-header">
-              <h2 class="step-title">位置配置</h2>
-              <p class="step-description">配置角色的默认出现位置</p>
-            </div>
-
-            <div class="step-content">
-              <div class="mb-20">
-                <p class="text-muted mb-10">
-                  你可以为每个角色单独设置默认的位置，或使用自动分配模式。
-                </p>
-                <p class="text-info">
-                  提示：偏移值用于微调角色位置，正值向右偏移，负值向左偏移。
-                </p>
-              </div>
-
-              <div class="flex-between mb-25 pt-20 pb-20 border-top">
-                <button class="btn btn-secondary" id="resetPositionsBtn">
-                  恢复默认
-                </button>
-                <button class="btn btn-primary" id="savePositionsBtn">
-                  保存配置
-                </button>
-              </div>
-
-              <div class="p-15 bg-light rounded-lg mb-20">
-                <label class="auto-preview-label">
-                  <input type="checkbox" id="autoPositionCheckbox" checked />
-                  <span class="font-medium">自动分配位置模式</span>
-                </label>
-                <p class="text-hint mt-8 mb-0">
-                  启用后，角色将按出场顺序自动分配到不同位置（左、中、右循环）
-                </p>
-              </div>
-
-              <div id="manualPositionConfig" class="hidden">
-                <div id="positionList"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 步骤8: 动作/表情配置 -->
-          <div class="workspace-step" data-step="8">
-            <div class="step-header">
-              <h2 class="step-title">动作/表情配置</h2>
-              <p class="step-description">管理全局可用的动作和表情列表</p>
-            </div>
-
-            <div class="step-content">
-              <div class="mb-20">
-                <p class="text-muted mb-10">
-                  管理可用的 Live2D
-                  动作和表情列表。你可以添加缺漏的动作/表情ID配置。
-                </p>
-                <p class="text-info">
-                  提示：在动作/表情编辑器中，动作/表情列表会根据出场的Live2D自动显示对应的动作/表情选项。
-                </p>
-              </div>
-
-              <div class="flex-between mb-25 pt-20 pb-20 border-top">
-                <button class="btn btn-secondary" id="resetMotionExpressionBtn">
-                  恢复默认
-                </button>
-                <button class="btn btn-primary" id="saveMotionExpressionBtn">
-                  保存配置
-                </button>
-              </div>
-
-              <div class="grid-2col">
-                <div class="config-column">
-                  <h4 class="config-column-title">动作 (Motions)</h4>
-                  <div class="form-group">
-                    <label for="customMotionInput" class="form-label"
-                      >添加额外的动作ID:</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        class="form-input"
-                        id="customMotionInput"
-                        placeholder="例如: special_wave_01"
-                      />
-                      <button class="btn btn-secondary" id="addCustomMotionBtn">
-                        添加
-                      </button>
-                    </div>
-                  </div>
-                  <div class="item-list-container">
-                    <div id="motionList"></div>
-                  </div>
-                </div>
-
-                <div class="config-column">
-                  <h4 class="config-column-title">表情 (Expressions)</h4>
-                  <div class="form-group">
-                    <label for="customExpressionInput" class="form-label"
-                      >添加额外的表情ID:</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        class="form-input"
-                        id="customExpressionInput"
-                        placeholder="例如: extra_blush_01"
-                      />
-                      <button
-                        class="btn btn-secondary"
-                        id="addCustomExpressionBtn"
-                      >
-                        添加
-                      </button>
-                    </div>
-                  </div>
-                  <div class="item-list-container">
-                    <div id="expressionList"></div>
-                  </div>
+                <div class="item-list-container">
+                  <div id="expressionList"></div>
                 </div>
               </div>
             </div>
@@ -804,70 +797,6 @@
                 >：点击后可以安全退出程序，用来解决Linux版本不能完全退出程序的问题。
               </li>
             </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 分屏引号设置模态框 -->
-    <div
-      class="modal"
-      id="splitQuoteModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="splitQuoteModalTitle"
-    >
-      <div class="modal-content modal-sm">
-        <div class="modal-header">
-          <div class="modal-title" id="splitQuoteModalTitle">引号处理设置</div>
-          <button
-            class="modal-close"
-            data-modal-id="splitQuoteModal"
-            aria-label="关闭对话框"
-          >
-            ×
-          </button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted mb-15">选择需要自动移除首尾引号的种类</p>
-
-          <!-- 预设引号选项（复用主界面的） -->
-          <div id="splitQuoteOptionsContainer" class="btn-group mb-20">
-            <!-- JS将在这里动态填充复选框 -->
-          </div>
-
-          <!-- 自定义引号选项 -->
-          <div class="pt-15 border-dashed">
-            <p class="font-medium text-gray mb-10">添加自定义引号对：</p>
-            <div class="flex flex-center flex-gap-sm flex-wrap">
-              <input
-                type="text"
-                id="splitCustomQuoteOpen"
-                class="form-input w-100 flex-grow-0"
-                placeholder="起始符号"
-              />
-              <input
-                type="text"
-                id="splitCustomQuoteClose"
-                class="form-input w-100 flex-grow-0"
-                placeholder="结束符号"
-              />
-              <button
-                id="addSplitCustomQuoteBtn"
-                class="btn btn-secondary flex-shrink-0"
-              >
-                添加
-              </button>
-            </div>
-          </div>
-
-          <div class="text-right mt-20">
-            <button
-              class="btn btn-primary btn-modal-close"
-              data-modal-id="splitQuoteModal"
-            >
-              确定
-            </button>
           </div>
         </div>
       </div>
