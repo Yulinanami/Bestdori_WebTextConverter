@@ -105,37 +105,6 @@ class StorageService {
   }
 
   /**
-   * 清空所有存储
-   * @returns {boolean} 是否成功
-   */
-  clear() {
-    try {
-      localStorage.clear();
-      return true;
-    } catch (error) {
-      console.error("[StorageService] 清空失败:", error);
-      return false;
-    }
-  }
-
-  /**
-   * 检查键是否存在
-   * @param {string} key - 存储键
-   * @returns {boolean} 是否存在
-   */
-  has(key) {
-    return localStorage.getItem(key) !== null;
-  }
-
-  /**
-   * 获取所有存储的键
-   * @returns {string[]} 所有键的数组
-   */
-  getAllKeys() {
-    return Object.keys(localStorage);
-  }
-
-  /**
    * 获取存储大小（近似值，单位：字节）
    * @returns {number} 存储大小
    */
@@ -160,45 +129,6 @@ class StorageService {
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  }
-
-  /**
-   * 导出所有数据
-   * @param {string[]} keys - 要导出的键（可选，默认导出所有）
-   * @returns {object} 导出的数据对象
-   */
-  exportData(keys = null) {
-    const data = {};
-    const keysToExport = keys || this.getAllKeys();
-    keysToExport.forEach((key) => {
-      data[key] = this.get(key);
-    });
-    return data;
-  }
-
-  /**
-   * 导入数据
-   * @param {object} data - 要导入的数据对象
-   * @param {boolean} overwrite - 是否覆盖现有数据
-   * @returns {object} { success: boolean, imported: number, failed: number }
-   */
-  importData(data, overwrite = false) {
-    let imported = 0;
-    let failed = 0;
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (!overwrite && this.has(key)) {
-        console.warn(`[StorageService] 跳过已存在的键: ${key}`);
-        return;
-      }
-      if (this.set(key, value)) {
-        imported++;
-      } else {
-        failed++;
-      }
-    });
-
-    return { success: failed === 0, imported, failed };
   }
 }
 

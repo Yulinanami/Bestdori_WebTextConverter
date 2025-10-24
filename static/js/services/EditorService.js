@@ -105,68 +105,6 @@ class EditorService {
     return this.pinnedCharacterManager.toggle(characterName);
   }
 
-  // ==================== 服装管理 ====================
-
-  /**
-   * 获取角色的服装列表
-   */
-  getCharacterCostumes(characterId) {
-    return this.costumeManager.getCharacterCostumes?.(characterId) || [];
-  }
-
-  // ==================== 位置管理 ====================
-
-  /**
-   * 获取位置预设
-   */
-  getPositionPresets() {
-    return this.positionManager.getPresets?.() || [];
-  }
-
-  // ==================== 动作/表情管理 ====================
-
-  /**
-   * 获取动作列表
-   */
-  getMotions() {
-    return this.motionManager?.getItems?.() || [];
-  }
-
-  /**
-   * 获取表情列表
-   */
-  getExpressions() {
-    return this.expressionManager?.getItems?.() || [];
-  }
-
-  /**
-   * 添加动作
-   */
-  addMotion(motionName) {
-    return this.motionManager?.addItem?.(motionName);
-  }
-
-  /**
-   * 添加表情
-   */
-  addExpression(expressionName) {
-    return this.expressionManager?.addItem?.(expressionName);
-  }
-
-  /**
-   * 删除动作
-   */
-  removeMotion(motionName) {
-    return this.motionManager?.removeItem?.(motionName);
-  }
-
-  /**
-   * 删除表情
-   */
-  removeExpression(expressionName) {
-    return this.expressionManager?.removeItem?.(expressionName);
-  }
-
   // ==================== 选择管理 ====================
 
   /**

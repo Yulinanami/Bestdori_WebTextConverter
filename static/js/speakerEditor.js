@@ -507,17 +507,6 @@ export const speakerEditor = {
     });
   },
 
-  // 尝试关闭编辑器（有未保存更改时弹出确认）
-  initiateClose() {
-    if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
-      if (confirm("您有未保存的更改，确定要关闭吗？")) {
-        this._closeEditor();
-      }
-    } else {
-      this._closeEditor();
-    }
-  },
-
   // 打开对话编辑器模态框
   async open() {
     await EditorHelper.openEditor({

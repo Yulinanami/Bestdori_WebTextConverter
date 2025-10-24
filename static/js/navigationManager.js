@@ -121,18 +121,6 @@ class NavigationManager {
         break;
     }
   }
-
-  goToNextStep() {
-    if (this.currentStep < 8) {
-      this.navigateToStep(this.currentStep + 1);
-    }
-  }
-
-  goToPreviousStep() {
-    if (this.currentStep > 1) {
-      this.navigateToStep(this.currentStep - 1);
-    }
-  }
 }
 
 // 创建全局实例

@@ -240,9 +240,4 @@ export const positionManager = {
     }
     this.savePositionConfig();
   },
-
-  // 重置位置计数器
-  resetPositionCounter() {
-    this.positionCounter = 0;
-  },
 };

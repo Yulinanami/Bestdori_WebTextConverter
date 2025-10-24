@@ -71,26 +71,6 @@ export class ThemeManager {
       document.documentElement.removeAttribute("data-theme");
     }
   }
-
-  /**
-   * 获取当前主题
-   * @returns {string} 当前主题名称
-   */
-  getCurrentTheme() {
-    return document.documentElement.getAttribute("data-theme") || "light";
-  }
-
-  /**
-   * 切换主题
-   */
-  toggleTheme() {
-    const currentTheme = this.getCurrentTheme();
-    const newTheme = currentTheme === "light" ? "dark" : "light";
-    this.setTheme(newTheme);
-    if (this.themeSelector) {
-      this.themeSelector.value = newTheme;
-    }
-  }
 }
 
 // 导出单例实例

@@ -42,15 +42,6 @@ export const pinnedCharacterManager = {
   },
 
   /**
-   * 检查一个角色是否被置顶
-   * @param {string} characterName - 角色的名称
-   * @returns {boolean}
-   */
-  isPinned(characterName) {
-    return pinnedCharacters.has(characterName);
-  },
-
-  /**
    * 获取所有已置顶角色的 Set 集合
    * @returns {Set<string>}
    */

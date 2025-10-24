@@ -485,15 +485,6 @@ export const costumeManager = {
     }
   },
 
-  // 导出配置时包含服装配置
-  exportWithCostumes(config) {
-    return {
-      ...config,
-      costume_mapping: state.get("currentCostumes"),
-      available_costumes: this.availableCostumes,
-    };
-  },
-
   // 导入配置时处理服装配置
   importCostumes(config) {
     if (config.costume_mapping) {
@@ -512,20 +503,6 @@ export const costumeManager = {
     }
   },
 
-  // 转换导入的基于ID的可用服装为基于名称的格式
-  convertImportedAvailableCostumes(idBasedCostumes) {
-    const nameBased = {};
-    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
-      if (ids && ids.length > 0) {
-        const primaryId = ids[0];
-        const characterKey = this.getCharacterKey(name);
-        if (idBasedCostumes[primaryId]) {
-          nameBased[characterKey] = [...idBasedCostumes[primaryId]];
-        }
-      }
-    });
-    return nameBased;
-  },
   getCostumeForCharacter(characterId) {
     const characterName = configManager.getCharacterNameById(characterId);
     return state.get("currentCostumes")[characterName] || "";

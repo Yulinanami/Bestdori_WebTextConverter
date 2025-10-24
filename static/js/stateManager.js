@@ -19,7 +19,4 @@ export const state = {
   set(key, value) {
     _state[key] = value;
   },
-  getAll() {
-    return { ..._state };
-  },
 };
