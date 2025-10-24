@@ -446,9 +446,10 @@ export const configManager = {
       "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
         "  - 自定义角色映射\n" +
         "  - 所有角色的服装配置\n" +
-        "  - 自定义引号\n" +
+        "  - 引号选项状态（预设和自定义）\n" +
         "  - 自定义动作和表情\n" +
-        "  - Live2D 布局和位置设置\n\n" +
+        "  - Live2D 布局和位置设置\n" +
+        "  - 编辑器偏好设置\n\n" +
         "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
     );
 
@@ -462,12 +463,17 @@ export const configManager = {
         const keysToRemove = [
           STORAGE_KEYS.CHARACTER_MAPPING,
           STORAGE_KEYS.CUSTOM_QUOTES,
+          STORAGE_KEYS.PRESET_QUOTES_STATE,
           STORAGE_KEYS.COSTUME_MAPPING_V2,
           STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
           STORAGE_KEYS.POSITION_CONFIG,
           STORAGE_KEYS.CARD_GROUPING,
+          STORAGE_KEYS.PINNED_CHARACTERS,
           STORAGE_KEYS.CUSTOM_MOTIONS,
           STORAGE_KEYS.CUSTOM_EXPRESSIONS,
+          STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
+          STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
+          STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
         ];
 
         console.log("正在清除以下本地缓存:", keysToRemove);

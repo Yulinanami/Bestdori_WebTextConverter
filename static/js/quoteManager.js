@@ -73,8 +73,6 @@ export const quoteManager = {
       fragment.appendChild(element);
     });
     container.appendChild(fragment);
-
-    // 添加 change 事件监听器，当复选框状态改变时立即保存
     this.attachCheckboxListeners();
   },
 
@@ -90,13 +88,11 @@ export const quoteManager = {
   // 保存所有引号的状态
   saveQuoteStates() {
     const presetStates = {};
-
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       const openChar = checkbox.dataset.open;
       const closeChar = checkbox.dataset.close;
       const stateKey = `${openChar}_${closeChar}`;
 
-      // 如果是自定义引号，更新其 checked 状态
       if (checkbox.id.includes("custom-saved")) {
         const quoteName = `${openChar}...${closeChar}`;
         const customQuote = state
@@ -106,12 +102,9 @@ export const quoteManager = {
           customQuote.checked = checkbox.checked;
         }
       } else {
-        // 如果是预设引号，记录其状态
         presetStates[stateKey] = checkbox.checked;
       }
     });
-
-    // 保存自定义引号和预设引号的状态
     this.saveCustomQuotes();
     this.savePresetQuotesState(presetStates);
   },
