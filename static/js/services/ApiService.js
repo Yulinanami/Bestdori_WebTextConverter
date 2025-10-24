@@ -79,34 +79,6 @@ class ApiService {
     }
   }
 
-  async put(url, data = {}, config = {}) {
-    try {
-      const response = await axios.put(url, data, {
-        timeout: this.timeout,
-        headers: this.defaultHeaders,
-        ...config,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMsg = this._handleError(error);
-      console.error(`[ApiService] PUT ${url} 失败:`, errorMsg);
-      throw new Error(errorMsg);
-    }
-  }
-
-  async delete(url, config = {}) {
-    try {
-      const response = await axios.delete(url, {
-        timeout: this.timeout,
-        ...config,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMsg = this._handleError(error);
-      console.error(`[ApiService] DELETE ${url} 失败:`, errorMsg);
-      throw new Error(errorMsg);
-    }
-  }
 
   // ==================== 业务 API ====================
 
@@ -163,14 +135,6 @@ class ApiService {
     } catch (error) {
       console.warn("Shutdown request sent. Server is closing.");
     }
-  }
-
-  async batchConvert(files, quoteConfig = [], narratorName = " ") {
-    return await this.post("/api/batch-convert", {
-      files,
-      quoteConfig,
-      narratorName,
-    });
   }
 }
 

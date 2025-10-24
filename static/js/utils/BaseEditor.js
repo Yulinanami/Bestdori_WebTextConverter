@@ -88,26 +88,6 @@ export class BaseEditor {
     this.originalStateOnOpen = JSON.stringify(this.projectFileState);
   }
 
-  /**
-   * 恢复到备份的状态（用于取消编辑）
-   */
-  restoreState() {
-    if (this.originalStateOnOpen) {
-      this.projectFileState = JSON.parse(this.originalStateOnOpen);
-      this.originalStateOnOpen = null;
-    }
-  }
-
-  /**
-   * 检查状态是否有更改
-   * @returns {boolean} 是否有更改
-   */
-  hasChanges() {
-    if (!this.originalStateOnOpen) {
-      return false;
-    }
-    return JSON.stringify(this.projectFileState) !== this.originalStateOnOpen;
-  }
 
   /**
    * 清理备份状态（用于保存后）
@@ -116,25 +96,6 @@ export class BaseEditor {
     this.originalStateOnOpen = null;
   }
 
-  /**
-   * 计算本地索引（从 DOM 索引减去标题偏移）
-   * @param {number} domIndex - DOM 中的索引
-   * @param {boolean} isGroupingEnabled - 是否启用分组
-   * @returns {number} 本地索引
-   */
-  calculateLocalIndex(domIndex, isGroupingEnabled = false) {
-    if (
-      !isGroupingEnabled ||
-      this.activeGroupIndex === null ||
-      this.activeGroupIndex < 0
-    ) {
-      return domIndex;
-    }
-
-    // 减去前面所有分组标题（包括当前分组）占据的位置
-    const headerOffset = this.activeGroupIndex + 1;
-    return Math.max(0, domIndex - headerOffset);
-  }
 
   /**
    * 获取标题偏移量

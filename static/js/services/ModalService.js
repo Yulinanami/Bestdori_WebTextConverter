@@ -10,14 +10,6 @@ class ModalService {
     this.specialHandlers = {}; // 特殊模态框的处理器
   }
 
-  /**
-   * 注册特殊模态框的关闭处理器
-   * @param {string} modalId - 模态框 ID
-   * @param {Function} handler - 关闭处理器
-   */
-  registerCloseHandler(modalId, handler) {
-    this.specialHandlers[modalId] = handler;
-  }
 
   /**
    * 初始化模态框服务
@@ -144,31 +136,6 @@ class ModalService {
     console.log(`[ModalService] 关闭模态框: ${modalId}`);
   }
 
-  /**
-   * 关闭所有模态框
-   */
-  closeAll() {
-    this.openModals.forEach((modalId) => {
-      this.close(modalId);
-    });
-  }
-
-  /**
-   * 检查模态框是否打开
-   * @param {string} modalId - 模态框 ID
-   * @returns {boolean} 是否打开
-   */
-  isOpen(modalId) {
-    return this.openModals.has(modalId);
-  }
-
-  /**
-   * 获取当前打开的模态框数量
-   * @returns {number} 打开的模态框数量
-   */
-  getOpenCount() {
-    return this.openModals.size;
-  }
 
   /**
    * 确认对话框
