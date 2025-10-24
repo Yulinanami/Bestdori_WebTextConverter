@@ -21,24 +21,41 @@ export const quoteManager = {
     );
   },
 
+  // 加载预设引号的选中状态
+  loadPresetQuotesState() {
+    return storageService.get(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
+  },
+
+  // 保存预设引号的选中状态
+  savePresetQuotesState(stateMap) {
+    return storageService.set(STORAGE_KEYS.PRESET_QUOTES_STATE, stateMap);
+  },
+
   // 渲染引号选项
   renderQuoteOptions() {
     const container = document.getElementById("quoteOptionsContainer");
     if (!container) return;
     DOMUtils.clearElement(container);
     this.loadCustomQuotes();
+
+    // 加载预设引号的保存状态
+    const presetStates = this.loadPresetQuotesState();
+
     const fragment = document.createDocumentFragment();
     const quotesConfig = state.get("configData")?.quotes_config;
     if (quotesConfig && quotesConfig.quote_categories) {
       Object.entries(quotesConfig.quote_categories).forEach(
         ([categoryName, chars]) => {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
+          // 使用保存的状态，如果没有保存则默认为选中
+          const stateKey = `${chars[0]}_${chars[1]}`;
+          const isChecked = presetStates[stateKey] !== undefined ? presetStates[stateKey] : true;
           const element = this.createQuoteOptionElement(
             checkboxId,
             categoryName,
             chars[0],
             chars[1],
-            true
+            isChecked
           );
           fragment.appendChild(element);
         }
@@ -56,6 +73,47 @@ export const quoteManager = {
       fragment.appendChild(element);
     });
     container.appendChild(fragment);
+
+    // 添加 change 事件监听器，当复选框状态改变时立即保存
+    this.attachCheckboxListeners();
+  },
+
+  // 为所有引号复选框添加事件监听器
+  attachCheckboxListeners() {
+    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        this.saveQuoteStates();
+      });
+    });
+  },
+
+  // 保存所有引号的状态
+  saveQuoteStates() {
+    const presetStates = {};
+
+    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
+      const openChar = checkbox.dataset.open;
+      const closeChar = checkbox.dataset.close;
+      const stateKey = `${openChar}_${closeChar}`;
+
+      // 如果是自定义引号，更新其 checked 状态
+      if (checkbox.id.includes("custom-saved")) {
+        const quoteName = `${openChar}...${closeChar}`;
+        const customQuote = state
+          .get("customQuotes")
+          .find((q) => q.name === quoteName);
+        if (customQuote) {
+          customQuote.checked = checkbox.checked;
+        }
+      } else {
+        // 如果是预设引号，记录其状态
+        presetStates[stateKey] = checkbox.checked;
+      }
+    });
+
+    // 保存自定义引号和预设引号的状态
+    this.saveCustomQuotes();
+    this.savePresetQuotesState(presetStates);
   },
 
   // 辅助函数：创建引号选项元素
@@ -102,16 +160,25 @@ export const quoteManager = {
   // 删除自定义引号
   removeCustomQuote(quoteName) {
     const currentStates = {};
+    const presetStates = {};
+
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
       currentStates[key] = checkbox.checked;
+      // 同时记录预设引号的状态
+      if (!checkbox.id.includes("custom-saved")) {
+        presetStates[key] = checkbox.checked;
+      }
     });
+
     state.set(
       "customQuotes",
       state.get("customQuotes").filter((q) => q.name !== quoteName)
     );
     this.saveCustomQuotes();
+    this.savePresetQuotesState(presetStates);
     this.renderQuoteOptions();
+
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
       if (key in currentStates) {
@@ -124,23 +191,16 @@ export const quoteManager = {
   // 获取选中的引号对
   getSelectedQuotes() {
     const selectedPairs = [];
+
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       const openChar = checkbox.dataset.open;
       const closeChar = checkbox.dataset.close;
-      if (checkbox.id.includes("custom-saved")) {
-        const quoteName = `${openChar}...${closeChar}`;
-        const customQuote = state
-          .get("customQuotes")
-          .find((q) => q.name === quoteName);
-        if (customQuote) {
-          customQuote.checked = checkbox.checked;
-        }
-      }
+
       if (checkbox.checked && openChar && closeChar) {
         selectedPairs.push([openChar, closeChar]);
       }
     });
-    this.saveCustomQuotes();
+
     return selectedPairs;
   },
 
@@ -160,12 +220,17 @@ export const quoteManager = {
       return;
     }
     const currentStates = {};
+    const presetStates = {};
     document
       .querySelector(stateContainerSelector)
       .querySelectorAll(".quote-option-checkbox")
       .forEach((checkbox) => {
         const key = `${checkbox.dataset.open}_${checkbox.dataset.close}`;
         currentStates[key] = checkbox.checked;
+        // 同时记录预设引号的状态
+        if (!checkbox.id.includes("custom-saved")) {
+          presetStates[key] = checkbox.checked;
+        }
       });
     const quotes = state.get("customQuotes");
     quotes.push({
@@ -176,6 +241,7 @@ export const quoteManager = {
     });
     state.set("customQuotes", quotes);
     this.saveCustomQuotes();
+    this.savePresetQuotesState(presetStates);
     this.renderQuoteOptions();
     document
       .querySelectorAll("#quoteOptionsContainer .quote-option-checkbox")

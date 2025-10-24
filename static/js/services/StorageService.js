@@ -6,6 +6,7 @@
 export const STORAGE_KEYS = {
   CHARACTER_MAPPING: "bestdori_character_mapping",
   CUSTOM_QUOTES: "bestdori_custom_quotes",
+  PRESET_QUOTES_STATE: "bestdori_preset_quotes_state",
   COSTUME_MAPPING_V2: "bestdori_costume_mapping_v2",
   AVAILABLE_COSTUMES_V2: "bestdori_available_costumes_v2",
   POSITION_CONFIG: "bestdori_position_config",
@@ -15,7 +16,7 @@ export const STORAGE_KEYS = {
   CUSTOM_EXPRESSIONS: "bestdori_custom_expressions",
   LIVE2D_SUBSEQUENT_MODE: "bestdori_live2d_subsequent_mode",
   SPEAKER_MULTI_SELECT_MODE: "bestdori_speaker_multi_select_mode",
-  SPEAKER_TEXT_EDIT_MODE: "bestdori_speaker_text_edit_mode", 
+  SPEAKER_TEXT_EDIT_MODE: "bestdori_speaker_text_edit_mode",
 };
 
 class StorageService {
