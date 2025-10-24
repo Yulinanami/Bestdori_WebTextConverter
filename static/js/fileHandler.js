@@ -1,9 +1,11 @@
 // 文件处理相关功能
 import { state } from "./stateManager.js";
-import { VALID_EXTENSIONS } from "./constants.js";
 import { ui } from "./uiUtils.js";
 import { apiService } from "./services/ApiService.js";
 import { eventBus, EVENTS } from "./services/EventBus.js";
+
+// 支持的文件扩展名
+const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
 
 export const fileHandler = {
   // 设置文件拖拽功能

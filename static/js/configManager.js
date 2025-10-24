@@ -10,8 +10,21 @@ import { apiService } from "./services/ApiService.js";
 import { modalService } from "./services/ModalService.js";
 import { eventBus, EVENTS } from "./services/EventBus.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
-import { StringUtils } from "./utils/StringUtils.js";
 import { DataUtils } from "./utils/DataUtils.js";
+
+/**
+ * 生成带时间戳的文件名
+ * @param {string} prefix - 文件名前缀
+ * @param {string} extension - 文件扩展名
+ * @returns {string}
+ */
+function generateFilename(prefix = "file", extension = "json") {
+  const timestamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace(/[:-]/g, "");
+  return `${prefix}_${timestamp}.${extension}`;
+}
 
 export const configManager = {
   defaultConfig: null,
@@ -309,8 +322,8 @@ export const configManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         const a = document.createElement("a");
         a.href = url;
-        // 使用 StringUtils.generateFilename 生成文件名
-        a.download = StringUtils.generateFilename("bestdori_config", "json");
+        // 生成带时间戳的文件名
+        a.download = generateFilename("bestdori_config", "json");
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
