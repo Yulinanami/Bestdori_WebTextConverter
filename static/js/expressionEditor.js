@@ -658,18 +658,8 @@ export const expressionEditor = {
         const item = card.querySelector(".timeline-item");
         item.dataset.id = action.id;
         item.dataset.layoutType = action.layoutType;
-        item.classList.remove(
-          "layout-type-appear",
-          "layout-type-move",
-          "layout-type-hide"
-        );
-        if (action.layoutType === "appear") {
-          item.classList.add("layout-type-appear");
-        } else if (action.layoutType === "move") {
-          item.classList.add("layout-type-move");
-        } else if (action.layoutType === "hide") {
-          item.classList.add("layout-type-hide");
-        }
+        // 应用布局类型 CSS 类名
+        DOMUtils.applyLayoutTypeClass(item, action.layoutType);
         const characterId = action.characterId;
         const characterName =
           action.characterName ||
@@ -985,6 +975,57 @@ export const expressionEditor = {
     });
   },
 
+  /**
+   * 布局属性更新策略处理器映射
+   * 每个处理器负责更新特定控件类型对应的 action 属性
+   * @private
+   */
+  _layoutPropertyHandlers: {
+    "layout-type-select": (action, value) => {
+      action.layoutType = value;
+    },
+
+    "layout-costume-select": (action, value) => {
+      action.costume = value;
+    },
+
+    "layout-position-select-to": (action, value) => {
+      if (!action.position) action.position = {};
+      if (!action.position.to) action.position.to = {};
+      action.position.to.side = value;
+    },
+
+    "layout-offset-input-to": (action, value) => {
+      if (!action.position) action.position = {};
+      if (!action.position.to) action.position.to = {};
+      action.position.to.offsetX = value;
+    },
+
+    "layout-position-select": (action, value) => {
+      if (!action.position) action.position = {};
+      if (!action.position.from) action.position.from = {};
+      action.position.from.side = value;
+
+      // 非移动类型时同时设置 to
+      if (action.layoutType !== "move") {
+        if (!action.position.to) action.position.to = {};
+        action.position.to.side = value;
+      }
+    },
+
+    "layout-offset-input": (action, value) => {
+      if (!action.position) action.position = {};
+      if (!action.position.from) action.position.from = {};
+      action.position.from.offsetX = value;
+
+      // 非移动类型时同时设置 to
+      if (action.layoutType !== "move") {
+        if (!action.position.to) action.position.to = {};
+        action.position.to.offsetX = value;
+      }
+    },
+  },
+
   // 更新 layout 动作的属性（类型、位置、偏移、服装）
   _updateLayoutActionProperty(actionId, targetElement) {
     const value =
@@ -992,37 +1033,18 @@ export const expressionEditor = {
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const controlClassName = targetElement.className;
+
     this._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
       if (!action) return;
-      if (controlClassName.includes("layout-type-select")) {
-        action.layoutType = value;
-      } else if (controlClassName.includes("layout-costume-select")) {
-        action.costume = value;
-      } else if (controlClassName.includes("layout-position-select-to")) {
-        if (!action.position) action.position = {};
-        if (!action.position.to) action.position.to = {};
-        action.position.to.side = value;
-      } else if (controlClassName.includes("layout-offset-input-to")) {
-        if (!action.position) action.position = {};
-        if (!action.position.to) action.position.to = {};
-        action.position.to.offsetX = value;
-      } else if (controlClassName.includes("layout-position-select")) {
-        if (!action.position) action.position = {};
-        if (!action.position.from) action.position.from = {};
-        action.position.from.side = value;
-        if (action.layoutType !== "move") {
-          if (!action.position.to) action.position.to = {};
-          action.position.to.side = value;
-        }
-      } else if (controlClassName.includes("layout-offset-input")) {
-        if (!action.position) action.position = {};
-        if (!action.position.from) action.position.from = {};
-        action.position.from.offsetX = value;
-        if (action.layoutType !== "move") {
-          if (!action.position.to) action.position.to = {};
-          action.position.to.offsetX = value;
-        }
+
+      // 查找匹配的处理器并执行
+      const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
+        controlClassName.includes(key)
+      );
+
+      if (handlerKey) {
+        this._layoutPropertyHandlers[handlerKey](action, value);
       }
     });
   },

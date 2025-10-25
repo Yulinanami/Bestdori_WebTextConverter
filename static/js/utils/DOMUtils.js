@@ -120,4 +120,28 @@ export const DOMUtils = {
     }
     return button;
   },
+
+  /**
+   * 应用布局类型 CSS 类名
+   * 移除所有布局类型类名，然后根据 layoutType 添加对应的类名
+   * @param {HTMLElement} element - 目标元素
+   * @param {string} layoutType - 布局类型 ("appear" | "move" | "hide")
+   */
+  applyLayoutTypeClass(element, layoutType) {
+    // 移除所有布局类型类名
+    element.classList.remove(
+      "layout-type-appear",
+      "layout-type-move",
+      "layout-type-hide"
+    );
+
+    // 根据类型添加对应的类名
+    if (layoutType === "appear") {
+      element.classList.add("layout-type-appear");
+    } else if (layoutType === "move") {
+      element.classList.add("layout-type-move");
+    } else if (layoutType === "hide") {
+      element.classList.add("layout-type-hide");
+    }
+  },
 };

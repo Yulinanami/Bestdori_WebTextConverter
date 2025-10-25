@@ -744,17 +744,7 @@ export const speakerEditor = {
         item.classList.add("layout-item");
 
         // 根据类型添加样式
-        item.classList.remove(
-          "layout-type-appear",
-          "layout-type-move",
-          "layout-type-hide"
-        );
-        if (action.layoutType === "appear")
-          item.classList.add("layout-type-appear");
-        else if (action.layoutType === "move")
-          item.classList.add("layout-type-move");
-        else if (action.layoutType === "hide")
-          item.classList.add("layout-type-hide");
+        DOMUtils.applyLayoutTypeClass(item, action.layoutType);
 
         const characterId = action.characterId;
         const characterName =
