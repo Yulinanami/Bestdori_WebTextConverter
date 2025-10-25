@@ -222,38 +222,39 @@ export const expressionEditor = {
     this.scrollSpeed = 0;
   },
 
-  // 执行角色状态属性变更命令（支持撤销/恢复）
+  // 注意：此方法仅用于layout动作的initialState更新
+  // talk动作现在使用motions数组，通过_updateMotionAssignment更新
   _executePropertyChangeCommand(actionId, characterName, type, newValue) {
-    const stagedCharacters = this.stagedCharacters;
+    const valueToStore = newValue === "--" ? "" : newValue;
 
-    // 使用 baseEditor 的标准命令执行器，它能保证在数据更新后进行完整的UI重绘
-    this._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
-      if (!action) return;
+    // 使用命令模式支持撤销/恢复，但不触发完整重绘
+    const beforeState = JSON.stringify(this.projectFileState);
 
-      const valueToStore = newValue === "--" ? "" : newValue;
+    const command = {
+      execute: () => {
+        const newState = JSON.parse(beforeState);
+        const action = newState.actions.find((a) => a.id === actionId);
+        if (!action) return;
 
-      if (action.type === "talk") {
-        if (!action.characterStates) action.characterStates = {};
-        const character = stagedCharacters.find(
-          (c) => c.name === characterName
-        );
-        if (!character) {
-          console.error(`无法为角色 "${characterName}" 找到ID，状态未更新。`);
-          return;
+        // 只处理layout动作的initialState
+        if (
+          action.type === "layout" &&
+          action.characterName === characterName
+        ) {
+          if (!action.initialState) action.initialState = {};
+          action.initialState[type] = valueToStore;
         }
-        const characterId = character.id;
-        if (!action.characterStates[characterId])
-          action.characterStates[characterId] = {};
-        action.characterStates[characterId][type] = valueToStore;
-      } else if (
-        action.type === "layout" &&
-        action.characterName === characterName
-      ) {
-        if (!action.initialState) action.initialState = {};
-        action.initialState[type] = valueToStore;
-      }
-    });
+
+        this.projectFileState = newState;
+        // 不调用 renderTimeline()，避免拖放区消失
+      },
+      undo: () => {
+        this.projectFileState = JSON.parse(beforeState);
+        this.renderTimeline(); // 撤销时需要重新渲染
+      },
+    };
+
+    historyManager.do(command);
   },
 
   // 保存表情动作配置到全局状态
@@ -307,7 +308,7 @@ export const expressionEditor = {
     try {
       this._executeCommand((currentState) => {
         currentState.actions.forEach((action) => {
-          if (action.type === "talk") action.characterStates = {};
+          if (action.type === "talk") action.motions = [];
           else if (action.type === "layout") action.initialState = {};
         });
       });
@@ -369,13 +370,113 @@ export const expressionEditor = {
         timeline.onclick = (e) => {
           const card = e.target.closest(".timeline-item");
           if (!card) return;
+
+          // 处理"设置动作/表情"按钮点击
           if (e.target.matches(".setup-expressions-btn")) {
-            this.showExpressionSetupUI(card);
+            const actionId = card.dataset.id;
+            const action = this.projectFileState.actions.find(
+              (a) => a.id === actionId
+            );
+
+            const footer = card.querySelector(".timeline-item-footer");
+
+            // 布局动作：直接显示拖放区（调用showExpressionSetupUI会处理）
+            if (action && action.type === "layout") {
+              this.showExpressionSetupUI(card);
+              return;
+            }
+
+            // Talk动作：显示/隐藏角色选择器
+            const characterSelector = footer?.querySelector(
+              ".motion-character-selector"
+            );
+            if (characterSelector) {
+              // 切换角色选择器的显示状态
+              const isHidden = characterSelector.style.display === "none";
+              characterSelector.style.display = isHidden ? "block" : "none";
+            } else {
+              // 首次点击，初始化UI并显示选择器
+              this.showExpressionSetupUI(card);
+              // 立即显示选择器（只对talk动作）
+              const newSelector = footer?.querySelector(
+                ".motion-character-selector"
+              );
+              if (newSelector) {
+                newSelector.style.display = "block";
+              }
+            }
+            return;
+          }
+
+          // 处理角色选择器中的角色点击
+          if (e.target.matches(".character-selector-item") ||
+              e.target.closest(".character-selector-item")) {
+            const characterItem = e.target.closest(".character-selector-item");
+            if (characterItem) {
+              const characterId = parseInt(characterItem.dataset.characterId);
+              const characterName = characterItem.dataset.characterName;
+              const actionId = card.dataset.id;
+              const action = this.projectFileState.actions.find(
+                (a) => a.id === actionId
+              );
+              if (action) {
+                this._addMotionAssignment(action, {
+                  id: characterId,
+                  name: characterName,
+                });
+                // 点击后关闭选择器
+                const footer = card.querySelector(".timeline-item-footer");
+                const characterSelector = footer?.querySelector(
+                  ".motion-character-selector"
+                );
+                if (characterSelector) {
+                  characterSelector.style.display = "none";
+                }
+              }
+            }
+            return;
+          }
+
+          // 处理删除动作/表情分配按钮
+          if (e.target.matches(".assignment-remove-btn")) {
+            const assignmentItem = e.target.closest(".motion-assignment-item");
+            if (assignmentItem) {
+              const assignmentIndex = parseInt(
+                assignmentItem.dataset.assignmentIndex
+              );
+              const actionId = card.dataset.id;
+              this._removeMotionAssignment(actionId, assignmentIndex);
+            }
             return;
           }
 
           if (e.target.matches(".clear-state-btn")) {
             const dropZone = e.target.closest(".drop-zone");
+
+            // 处理动作/表情分配项的清除按钮
+            const assignmentItem = e.target.closest(".motion-assignment-item");
+            if (assignmentItem && dropZone) {
+              const actionId = assignmentItem.dataset.actionId;
+              const assignmentIndex = parseInt(
+                assignmentItem.dataset.assignmentIndex
+              );
+              const type = dropZone.dataset.type;
+
+              // 更新UI
+              const valueElement = dropZone.querySelector(".drop-zone-value");
+              if (valueElement) {
+                valueElement.textContent = "--";
+              }
+              DOMUtils.toggleDisplay(e.target, false);
+
+              // 更新数据
+              const updates = {};
+              updates[type] = "";
+              this._updateMotionAssignment(actionId, assignmentIndex, updates);
+              return;
+            }
+
+            // 处理layout动作的清除按钮
             const statusTag = e.target.closest(".character-status-tag");
             if (dropZone && statusTag) {
               const actionId = card.dataset.id;
@@ -398,6 +499,20 @@ export const expressionEditor = {
         };
 
         timeline.onchange = (e) => {
+          // 处理动作/表情分配项的延时输入变化
+          const assignmentItem = e.target.closest(".motion-assignment-item");
+          if (assignmentItem && e.target.matches(".assignment-delay-input")) {
+            const actionId = assignmentItem.dataset.actionId;
+            const assignmentIndex = parseInt(
+              assignmentItem.dataset.assignmentIndex
+            );
+            this._updateMotionAssignment(actionId, assignmentIndex, {
+              delay: parseFloat(e.target.value) || 0,
+            });
+            return;
+          }
+
+          // 处理布局动作的属性变化
           const card = e.target.closest(".layout-item");
           if (card && e.target.matches("select, input")) {
             this._updateLayoutActionProperty(card.dataset.id, e.target);
@@ -490,18 +605,343 @@ export const expressionEditor = {
     const footer = cardElement.querySelector(".timeline-item-footer");
     if (!footer) return;
 
-    const statusBar = this._renderStatusBarForAction(action);
     DOMUtils.clearElement(footer);
-    footer.appendChild(statusBar);
-    this._initSortableForZones(statusBar);
+
+    // 布局动作使用简单的拖放区系统
+    if (action.type === "layout") {
+      // 初始化initialState
+      if (!action.initialState) {
+        action.initialState = {};
+      }
+
+      // 直接显示拖放区，不显示按钮
+      const statusBar = this._renderStatusBarForAction(action);
+      footer.appendChild(statusBar);
+      this._initSortableForZones(statusBar);
+      return;
+    }
+
+    // Talk动作使用新的分配系统
+    // 创建动作分配容器（用于显示已添加的分配）
+    const assignmentsContainer = DOMUtils.createElement("div", {
+      className: "motion-assignments-container",
+    });
+    assignmentsContainer.dataset.actionId = actionId;
+
+    // 渲染已有的动作/表情分配
+    if (action.motions && action.motions.length > 0) {
+      action.motions.forEach((motionData, index) => {
+        const assignmentItem = this._createAssignmentItem(
+          action,
+          motionData,
+          index
+        );
+        assignmentsContainer.appendChild(assignmentItem);
+      });
+    }
+
+    // 创建角色选择器
+    const characterSelector = this._createCharacterSelector(action);
+
+    // 创建"设置动作/表情"按钮（始终显示）
+    const setupButton = DOMUtils.createButton(
+      "设置动作/表情",
+      "btn btn-secondary btn-sm setup-expressions-btn"
+    );
+    // 事件处理通过timeline的事件委托完成，不需要在这里绑定
+
+    // 添加到footer
+    footer.appendChild(assignmentsContainer);
+    footer.appendChild(characterSelector);
+    footer.appendChild(setupButton);
+
+    // 默认隐藏角色选择器
+    characterSelector.style.display = "none";
   },
 
-  // 检查动作是否包含表情数据（characterStates 或 initialState）
+  // 创建角色选择器UI
+  _createCharacterSelector(action) {
+    const template = document.getElementById(
+      "motion-character-selector-template"
+    );
+    const selectorFragment = template.content.cloneNode(true);
+
+    // 将DocumentFragment转换为实际的DOM元素
+    const selectorContainer = DOMUtils.createElement("div");
+    selectorContainer.appendChild(selectorFragment);
+    const selector = selectorContainer.firstElementChild;
+
+    const listContainer = selector.querySelector(".character-selector-list");
+
+    // 根据action类型确定可选择的角色
+    let availableCharacters = [];
+    if (action.type === "talk") {
+      // talk动作：显示所有登场的角色
+      availableCharacters = this.stagedCharacters;
+    } else if (action.type === "layout") {
+      // layout动作：只显示该布局涉及的角色
+      const char = {
+        id: action.characterId,
+        name:
+          action.characterName ||
+          editorService.getCharacterNameById(action.characterId),
+      };
+      if (char.name) {
+        availableCharacters = [char];
+      }
+    }
+
+    // 创建角色选项
+    availableCharacters.forEach((char) => {
+      const optionTemplate = document.getElementById(
+        "motion-character-option-template"
+      );
+      const option = optionTemplate.content.cloneNode(true);
+      const optionElement = option.querySelector(".character-selector-item");
+
+      optionElement.dataset.characterId = char.id;
+      optionElement.dataset.characterName = char.name;
+
+      const avatarDiv = option.querySelector(".dialogue-avatar");
+      editorService.updateCharacterAvatar(
+        { querySelector: () => avatarDiv },
+        char.id,
+        char.name
+      );
+
+      option.querySelector(".character-name").textContent = char.name;
+
+      // 事件处理通过timeline的事件委托完成，不需要在这里绑定
+
+      listContainer.appendChild(option);
+    });
+
+    return selector;
+  },
+
+  // 添加新的动作/表情分配
+  _addMotionAssignment(action, character) {
+    let newIndex = -1;
+
+    this._executeCommand((currentState) => {
+      const currentAction = currentState.actions.find(
+        (a) => a.id === action.id
+      );
+      if (!currentAction) return;
+
+      // 确保motions数组存在
+      if (!currentAction.motions) {
+        currentAction.motions = [];
+      }
+
+      // 添加新的分配
+      currentAction.motions.push({
+        character: character.id,
+        motion: "",
+        expression: "",
+        delay: 0,
+      });
+
+      newIndex = currentAction.motions.length - 1;
+    });
+
+    // 增量渲染：只添加新的分配项，而不是重新渲染整个footer
+    const cardElement = document.querySelector(
+      `.timeline-item[data-id="${action.id}"]`
+    );
+    if (cardElement && newIndex >= 0) {
+      const footer = cardElement.querySelector(".timeline-item-footer");
+      const assignmentsContainer = footer?.querySelector(
+        ".motion-assignments-container"
+      );
+
+      if (assignmentsContainer) {
+        // 获取更新后的action数据
+        const updatedAction = this.projectFileState.actions.find(
+          (a) => a.id === action.id
+        );
+        if (updatedAction && updatedAction.motions) {
+          const newMotionData = updatedAction.motions[newIndex];
+          const assignmentItem = this._createAssignmentItem(
+            updatedAction,
+            newMotionData,
+            newIndex
+          );
+          assignmentsContainer.appendChild(assignmentItem);
+        }
+      }
+    }
+  },
+
+  // 创建单个动作/表情分配项UI
+  _createAssignmentItem(action, motionData, index) {
+    const template = document.getElementById("motion-assignment-item-template");
+    const itemFragment = template.content.cloneNode(true);
+
+    // 将DocumentFragment转换为实际的DOM元素
+    const itemContainer = DOMUtils.createElement("div");
+    itemContainer.appendChild(itemFragment);
+    const itemElement = itemContainer.firstElementChild;
+
+    // 获取角色信息
+    const character = this.stagedCharacters.find(
+      (c) => c.id === motionData.character
+    );
+    const characterName =
+      character?.name || editorService.getCharacterNameById(motionData.character);
+
+    itemElement.dataset.characterId = motionData.character;
+    itemElement.dataset.characterName = characterName;
+    itemElement.dataset.assignmentIndex = index;
+    itemElement.dataset.actionId = action.id;
+
+    // 设置角色头像和名称
+    const avatarDiv = itemElement.querySelector(".dialogue-avatar");
+    editorService.updateCharacterAvatar(
+      { querySelector: () => avatarDiv },
+      motionData.character,
+      characterName
+    );
+    itemElement.querySelector(".character-name").textContent = characterName;
+
+    // 设置拖放区的值
+    const motionValue = itemElement.querySelector(
+      ".motion-drop-zone .drop-zone-value"
+    );
+    const motionClearBtn = itemElement.querySelector(
+      ".motion-drop-zone .clear-state-btn"
+    );
+    motionValue.textContent = motionData.motion || "--";
+    if (motionClearBtn) {
+      DOMUtils.toggleDisplay(motionClearBtn, !!motionData.motion);
+    }
+
+    const expressionValue = itemElement.querySelector(
+      ".expression-drop-zone .drop-zone-value"
+    );
+    const expressionClearBtn = itemElement.querySelector(
+      ".expression-drop-zone .clear-state-btn"
+    );
+    expressionValue.textContent = motionData.expression || "--";
+    if (expressionClearBtn) {
+      DOMUtils.toggleDisplay(expressionClearBtn, !!motionData.expression);
+    }
+
+    // 设置延时值
+    const delayInput = itemElement.querySelector(".assignment-delay-input");
+    delayInput.value = motionData.delay || 0;
+
+    // 初始化拖放区
+    this._initSortableForAssignmentZones(itemElement);
+
+    // 事件处理通过timeline的事件委托完成，不需要在这里绑定
+
+    return itemElement;
+  },
+
+  // 为动作/表情分配项的拖放区初始化 Sortable
+  _initSortableForAssignmentZones(assignmentElement) {
+    assignmentElement.querySelectorAll(".drop-zone").forEach((zone) => {
+      new Sortable(zone, {
+        group: {
+          name: zone.dataset.type,
+          put: function (_to, _from, dragEl) {
+            return dragEl.classList.contains("draggable-item");
+          },
+        },
+        animation: 150,
+
+        onAdd: (evt) => {
+          const value = evt.item ? evt.item.textContent.trim() : null;
+          const dropZone = evt.to;
+          const assignmentItem = dropZone.closest(".motion-assignment-item");
+
+          // 立即移除拖拽的元素
+          evt.item.remove();
+
+          if (value && assignmentItem) {
+            const actionId = assignmentItem.dataset.actionId;
+            const assignmentIndex = parseInt(
+              assignmentItem.dataset.assignmentIndex
+            );
+            const type = dropZone.dataset.type;
+
+            // 先立即更新UI显示
+            const valueElement = dropZone.querySelector(".drop-zone-value");
+            if (valueElement) {
+              valueElement.textContent = value;
+            }
+
+            const clearBtn = dropZone.querySelector(".clear-state-btn");
+            if (clearBtn) {
+              DOMUtils.toggleDisplay(clearBtn, true);
+            }
+
+            // 然后更新数据
+            const updates = {};
+            updates[type] = value;
+            this._updateMotionAssignment(actionId, assignmentIndex, updates);
+          }
+        },
+      });
+    });
+  },
+
+  // 更新动作/表情分配
+  _updateMotionAssignment(actionId, assignmentIndex, updates) {
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (!action || !action.motions || !action.motions[assignmentIndex]) return;
+
+      Object.assign(action.motions[assignmentIndex], updates);
+    });
+  },
+
+  // 删除动作/表情分配
+  _removeMotionAssignment(actionId, assignmentIndex) {
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (!action || !action.motions) return;
+
+      action.motions.splice(assignmentIndex, 1);
+    });
+
+    // 增量更新：重新渲染所有分配项以更新索引
+    // （因为删除会影响后续项的索引，所以需要全部重新渲染）
+    const cardElement = document.querySelector(
+      `.timeline-item[data-id="${actionId}"]`
+    );
+    if (cardElement) {
+      const footer = cardElement.querySelector(".timeline-item-footer");
+      const assignmentsContainer = footer?.querySelector(
+        ".motion-assignments-container"
+      );
+
+      if (assignmentsContainer) {
+        DOMUtils.clearElement(assignmentsContainer);
+
+        // 获取更新后的action数据
+        const updatedAction = this.projectFileState.actions.find(
+          (a) => a.id === actionId
+        );
+        if (updatedAction && updatedAction.motions) {
+          updatedAction.motions.forEach((motionData, index) => {
+            const assignmentItem = this._createAssignmentItem(
+              updatedAction,
+              motionData,
+              index
+            );
+            assignmentsContainer.appendChild(assignmentItem);
+          });
+        }
+      }
+    }
+  },
+
+  // 检查动作是否包含表情数据（motions 数组或 initialState）
   _actionHasExpressionData(action) {
     if (action.type === "talk") {
-      return (
-        action.characterStates && Object.keys(action.characterStates).length > 0
-      );
+      return action.motions && action.motions.length > 0;
     }
 
     if (action.type === "layout") {
@@ -510,7 +950,8 @@ export const expressionEditor = {
     return false;
   },
 
-  // 为状态栏的拖放区域初始化 Sortable（接受动作/表情拖放）
+  // 注意：此方法已弃用，仅保留用于layout动作的拖放功能
+  // talk动作现在使用下拉框选择，不再使用拖放
   _initSortableForZones(parentElement) {
     parentElement.querySelectorAll(".drop-zone").forEach((zone) => {
       new Sortable(zone, {
@@ -521,7 +962,7 @@ export const expressionEditor = {
           },
         },
         animation: 150,
-        
+
         onAdd: (evt) => {
           const value = evt.item ? evt.item.textContent.trim() : null;
           const dropZone = evt.to;
@@ -751,15 +1192,61 @@ export const expressionEditor = {
 
       const footer = card.querySelector(".timeline-item-footer");
       if (this._actionHasExpressionData(action)) {
-        const statusBar = this._renderStatusBarForAction(action);
-        footer.appendChild(statusBar);
-        this._initSortableForZones(statusBar);
+        // 对于talk动作，使用新的分配系统渲染
+        if (action.type === "talk") {
+          // 创建动作分配容器
+          const assignmentsContainer = DOMUtils.createElement("div", {
+            className: "motion-assignments-container",
+          });
+          assignmentsContainer.dataset.actionId = action.id;
+
+          // 渲染已有的动作/表情分配
+          if (action.motions && action.motions.length > 0) {
+            action.motions.forEach((motionData, index) => {
+              const assignmentItem = this._createAssignmentItem(
+                action,
+                motionData,
+                index
+              );
+              assignmentsContainer.appendChild(assignmentItem);
+            });
+          }
+
+          // 创建角色选择器
+          const characterSelector = this._createCharacterSelector(action);
+          characterSelector.style.display = "none"; // 默认隐藏
+
+          // 创建"设置动作/表情"按钮
+          const setupButton = DOMUtils.createButton(
+            "设置动作/表情",
+            "btn btn-secondary btn-sm setup-expressions-btn"
+          );
+
+          footer.appendChild(assignmentsContainer);
+          footer.appendChild(characterSelector);
+          footer.appendChild(setupButton);
+        } else if (action.type === "layout") {
+          // layout动作使用旧的拖放系统，直接显示拖放区，无按钮
+          const statusBar = this._renderStatusBarForAction(action);
+          footer.appendChild(statusBar);
+          this._initSortableForZones(statusBar);
+        }
       } else {
-        const setupButton = DOMUtils.createButton(
-          "设置动作/表情",
-          "btn btn-secondary btn-sm setup-expressions-btn"
-        );
-        footer.appendChild(setupButton);
+        // 没有表情数据时显示"设置动作/表情"按钮
+        // 但layout动作点击后会直接显示拖放区而不是按钮
+        if (action.type === "talk") {
+          const setupButton = DOMUtils.createButton(
+            "设置动作/表情",
+            "btn btn-secondary btn-sm setup-expressions-btn"
+          );
+          footer.appendChild(setupButton);
+        } else if (action.type === "layout") {
+          const setupButton = DOMUtils.createButton(
+            "设置动作/表情",
+            "btn btn-secondary btn-sm setup-expressions-btn"
+          );
+          footer.appendChild(setupButton);
+        }
       }
 
       return card;
@@ -807,9 +1294,9 @@ export const expressionEditor = {
 
   /**
    * 为动作渲染角色状态栏
-   * 根据动作类型渲染:
-   * - talk动作: 为所有登场角色创建状态标签
-   * - layout动作: 为该布局涉及的角色创建状态标签
+   * 注意：此方法已弃用用于talk动作，仅保留用于layout动作
+   * - talk动作: 现在使用新的角色选择器和分配项系统（见_createCharacterSelector）
+   * - layout动作: 为该布局涉及的角色创建状态标签（拖放区）
    * 每个状态标签包含角色头像、名称、动作/表情拖放区和清除按钮
    * @param {Object} action - 动作对象
    * @returns {HTMLElement} 状态栏DOM元素
@@ -991,7 +1478,7 @@ export const expressionEditor = {
           type: "talk",
           text: cleanText,
           speakers: speakers,
-          characterStates: {},
+          motions: [],
         };
       }),
     };

@@ -1273,6 +1273,55 @@
       </div>
     </template>
 
+    <!-- 动作/表情分配：角色选择列表模板 -->
+    <template id="motion-character-selector-template">
+      <div class="motion-character-selector">
+        <div class="character-selector-header">
+          <span>选择角色以添加动作/表情：</span>
+        </div>
+        <div class="character-selector-list">
+          <!-- 角色列表将由JS动态填充 -->
+        </div>
+      </div>
+    </template>
+
+    <!-- 动作/表情分配：单个角色选项模板 -->
+    <template id="motion-character-option-template">
+      <div class="character-selector-item" data-character-id="" data-character-name="">
+        <div class="dialogue-avatar micro-avatar"></div>
+        <span class="character-name"></span>
+      </div>
+    </template>
+
+    <!-- 动作/表情分配：单个分配项模板 -->
+    <template id="motion-assignment-item-template">
+      <div class="motion-assignment-item" data-character-id="" data-character-name="">
+        <div class="assignment-header">
+          <div class="character-info">
+            <div class="dialogue-avatar micro-avatar"></div>
+            <span class="character-name"></span>
+          </div>
+          <button class="remove-btn assignment-remove-btn" title="删除此动作/表情配置">×</button>
+        </div>
+        <div class="assignment-drop-zones">
+          <div class="drop-zone motion-drop-zone" data-type="motion">
+            <span class="drop-zone-label">动作</span>
+            <span class="drop-zone-value">--</span>
+            <button class="clear-state-btn hidden">×</button>
+          </div>
+          <div class="drop-zone expression-drop-zone" data-type="expression">
+            <span class="drop-zone-label">表情</span>
+            <span class="drop-zone-value">--</span>
+            <button class="clear-state-btn hidden">×</button>
+          </div>
+        </div>
+        <div class="assignment-delay">
+          <label>延时(秒):</label>
+          <input type="number" class="form-input input-sm assignment-delay-input" value="0" min="0" step="0.5" />
+        </div>
+      </div>
+    </template>
+
     <!-- Templates for JS -->
     <template id="config-item-template">
       <div class="config-item">

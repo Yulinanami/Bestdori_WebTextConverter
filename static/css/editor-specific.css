@@ -397,3 +397,132 @@
 .card-action-buttons .btn-icon-action .material-symbols-outlined {
   font-size: 20px;
 }
+
+/* -- 动作/表情分配UI样式 -- */
+
+/* 角色选择器容器 */
+.motion-character-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.character-selector-header {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.character-selector-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.character-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.character-selector-item:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.character-selector-item .character-name {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+/* 动作/表情分配项容器 - 水平排布 */
+.motion-assignments-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.motion-assignment-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.assignment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.assignment-header .character-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+.assignment-remove-btn {
+  padding: 2px 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+
+/* 拖放区域 */
+.assignment-drop-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.motion-assignment-item .drop-zone {
+  min-width: auto;
+  width: 100%;
+}
+
+/* 延时输入 */
+.assignment-delay {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px dashed var(--border-secondary);
+}
+
+.assignment-delay label {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.assignment-delay .assignment-delay-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85em;
+  padding: 4px 6px;
+  max-width: 80px;
+}
+
+/* 保持"设置动作/表情"按钮在分配列表下方 */
+.timeline-item-footer .setup-expressions-btn {
+  margin-top: 10px;
+}

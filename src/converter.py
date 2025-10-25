@@ -113,24 +113,49 @@ class ProjectConverter:
         processed_body = self.quote_handler.remove_quotes(
             original_text, active_quote_pairs
         )
+        # 支持新的motions数组格式（优先）和旧的characterStates格式（向后兼容）
         motions = []
-        character_states = talk_action.get("characterStates", {})
-        for char_id_str, state in character_states.items():
-            char_id = int(char_id_str)
-            motion = state.get("motion", "")
-            expression = state.get("expression", "")
-            delay = state.get("delay", 0)
-            motions.append(
-                {
-                    "character": self._get_output_id(char_id),
-                    "motion": motion,
-                    "expression": expression,
-                    "delay": delay,
-                }
-            )
-            # 记录动作详情
-            if motion or expression:
-                logger.info(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}ms")
+
+        # 新格式：motions数组
+        if "motions" in talk_action and talk_action["motions"]:
+            for motion_data in talk_action["motions"]:
+                char_id = int(motion_data.get("character", 0))
+                motion = motion_data.get("motion", "")
+                expression = motion_data.get("expression", "")
+                delay = motion_data.get("delay", 0)
+
+                if motion or expression:  # 只添加有实际内容的动作
+                    motions.append(
+                        {
+                            "character": self._get_output_id(char_id),
+                            "motion": motion,
+                            "expression": expression,
+                            "delay": delay,
+                        }
+                    )
+                    # 记录动作详情
+                    logger.info(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}秒")
+
+        # 旧格式：characterStates对象（向后兼容）
+        elif "characterStates" in talk_action:
+            character_states = talk_action.get("characterStates", {})
+            for char_id_str, state in character_states.items():
+                char_id = int(char_id_str)
+                motion = state.get("motion", "")
+                expression = state.get("expression", "")
+                delay = state.get("delay", 0)
+
+                if motion or expression:
+                    motions.append(
+                        {
+                            "character": self._get_output_id(char_id),
+                            "motion": motion,
+                            "expression": expression,
+                            "delay": delay,
+                        }
+                    )
+                    # 记录动作详情
+                    logger.info(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}秒")
 
         if speakers:
             action_name = " & ".join(names)
