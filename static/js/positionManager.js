@@ -94,6 +94,179 @@ export const positionManager = {
     }
   },
 
+  /**
+   * 创建位置配置项元素
+   * @private
+   * @param {string} name - 角色名称
+   * @param {number} primaryId - 主要角色ID
+   * @param {number} avatarId - 头像ID
+   * @param {string} avatarPath - 头像路径
+   * @param {string} currentPosition - 当前位置
+   * @param {number} currentOffset - 当前偏移值
+   * @returns {HTMLElement} 位置配置项DOM元素
+   */
+  _createPositionItem(
+    name,
+    primaryId,
+    avatarId,
+    avatarPath,
+    currentPosition,
+    currentOffset
+  ) {
+    // 创建主容器
+    const item = DOMUtils.createElement("div", {
+      class: "position-config-item",
+    });
+
+    // 创建角色信息区域
+    const infoDiv = this._createCharacterInfo(
+      name,
+      primaryId,
+      avatarId,
+      avatarPath
+    );
+
+    // 创建控制区域
+    const controlsDiv = this._createPositionControls(
+      name,
+      currentPosition,
+      currentOffset
+    );
+
+    // 组装完整项目
+    DOMUtils.appendChildren(item, [infoDiv, controlsDiv]);
+
+    return item;
+  },
+
+  /**
+   * 创建角色信息区域
+   * @private
+   */
+  _createCharacterInfo(name, primaryId, avatarId, avatarPath) {
+    const infoDiv = DOMUtils.createElement("div", {
+      class: "position-character-info",
+    });
+
+    // 创建头像区域
+    const avatarWrapper = DOMUtils.createElement("div", {
+      class: "config-avatar-wrapper",
+    });
+
+    const avatarDiv = DOMUtils.createElement("div", {
+      class: "config-avatar",
+      "data-id": primaryId,
+    });
+
+    // 创建头像内容
+    if (avatarId > 0) {
+      const img = DOMUtils.createElement("img", {
+        src: avatarPath,
+        alt: name,
+        class: "config-avatar-img",
+      });
+
+      // 设置图片加载失败的回退处理
+      img.addEventListener("error", function () {
+        this.style.display = "none";
+        this.parentElement.textContent = name.charAt(0);
+        this.parentElement.classList.add("fallback");
+      });
+
+      avatarDiv.appendChild(img);
+    } else {
+      // 没有头像时显示首字母
+      avatarDiv.textContent = name.charAt(0);
+      avatarDiv.classList.add("fallback");
+    }
+
+    avatarWrapper.appendChild(avatarDiv);
+    infoDiv.appendChild(avatarWrapper);
+
+    // 创建角色名称标签
+    const nameSpan = DOMUtils.createElement("span", {
+      class: "position-character-name",
+    });
+    nameSpan.textContent = `${name} (ID: ${primaryId})`;
+    infoDiv.appendChild(nameSpan);
+
+    return infoDiv;
+  },
+
+  /**
+   * 创建位置控制区域
+   * @private
+   */
+  _createPositionControls(name, currentPosition, currentOffset) {
+    const controlsDiv = DOMUtils.createElement("div", {
+      class: "position-controls",
+    });
+
+    // 创建位置选择器
+    const select = DOMUtils.createElement("select", {
+      class: "form-input position-select",
+      "data-character": name,
+    });
+
+    // 添加位置选项
+    this.positions.forEach((pos) => {
+      const option = DOMUtils.createElement("option", { value: pos });
+      option.textContent = this.positionNames[pos];
+      if (pos === currentPosition) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+
+    controlsDiv.appendChild(select);
+
+    // 创建偏移输入组
+    const offsetGroup = this._createOffsetInputGroup(name, currentOffset);
+    controlsDiv.appendChild(offsetGroup);
+
+    return controlsDiv;
+  },
+
+  /**
+   * 创建偏移输入组
+   * @private
+   */
+  _createOffsetInputGroup(name, currentOffset) {
+    const offsetGroup = DOMUtils.createElement("div", {
+      class: "position-offset-group",
+    });
+
+    // 创建标签
+    const label = DOMUtils.createElement("label", {
+      class: "position-offset-label",
+      for: `offset-${name}`,
+    });
+    label.textContent = "偏移:";
+
+    // 创建输入框
+    const input = DOMUtils.createElement("input", {
+      type: "number",
+      id: `offset-${name}`,
+      class: "form-input position-offset-input",
+      "data-character": name,
+      value: currentOffset,
+      step: "10",
+      placeholder: "0",
+      title: "设置水平偏移量，正值向右，负值向左",
+    });
+
+    // 创建单位提示
+    const hint = DOMUtils.createElement("span", {
+      class: "position-offset-hint",
+    });
+    hint.textContent = "px";
+
+    // 组装偏移输入组
+    DOMUtils.appendChildren(offsetGroup, [label, input, hint]);
+
+    return offsetGroup;
+  },
+
   // 渲染位置列表
   renderPositionList() {
     const positionList = document.getElementById("positionList");
@@ -118,48 +291,15 @@ export const positionManager = {
       };
       const currentPosition = currentConfig.position || "center";
       const currentOffset = currentConfig.offset || 0;
-      const item = document.createElement("div");
-      item.className = "position-config-item";
-      item.innerHTML = `
-                <div class="position-character-info">
-                    <div class="config-avatar-wrapper">
-                        <div class="config-avatar" data-id="${primaryId}">
-                            ${
-                              avatarId > 0
-                                ? `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
-                                    0
-                                  )}'; this.parentElement.classList.add('fallback');">`
-                                : name.charAt(0)
-                            }
-                        </div>
-                    </div>
-                    <span class="position-character-name">${name} (ID: ${primaryId})</span>
-                </div>
-                <div class="position-controls">
-                    <select class="form-input position-select" data-character="${name}">
-                        ${this.positions
-                          .map(
-                            (pos) =>
-                              `<option value="${pos}" ${
-                                pos === currentPosition ? "selected" : ""
-                              }>${this.positionNames[pos]}</option>`
-                          )
-                          .join("")}
-                    </select>
-                    <div class="position-offset-group">
-                        <label class="position-offset-label" for="offset-${name}">偏移:</label>
-                        <input type="number"
-                            id="offset-${name}"
-                            class="form-input position-offset-input"
-                            data-character="${name}"
-                            value="${currentOffset}"
-                            step="10"
-                            placeholder="0"
-                            title="设置水平偏移量，正值向右，负值向左">
-                        <span class="position-offset-hint">px</span>
-                    </div>
-                </div>
-            `;
+
+      const item = this._createPositionItem(
+        name,
+        primaryId,
+        avatarId,
+        avatarPath,
+        currentPosition,
+        currentOffset
+      );
       fragment.appendChild(item);
     });
     DOMUtils.clearElement(positionList);
