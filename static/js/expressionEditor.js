@@ -512,6 +512,20 @@ export const expressionEditor = {
             return;
           }
 
+          // 处理布局卡片的延时输入变化
+          if (e.target.matches(".layout-delay-input")) {
+            const actionId = e.target.dataset.actionId;
+            const delayValue = parseFloat(e.target.value) || 0;
+
+            this._executeCommand((currentState) => {
+              const action = currentState.actions.find((a) => a.id === actionId);
+              if (action) {
+                action.delay = delayValue;
+              }
+            });
+            return;
+          }
+
           // 处理布局动作的属性变化
           const card = e.target.closest(".layout-item");
           if (card && e.target.matches("select, input")) {
@@ -1395,6 +1409,18 @@ export const expressionEditor = {
 
       if (expClearBtn)
         DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
+
+      // 显示延时输入框（布局卡片专用）
+      const delayWrapper = tag.querySelector(".layout-delay-input-wrapper");
+      if (delayWrapper) {
+        DOMUtils.toggleDisplay(delayWrapper, true); // 显示延时输入框
+        const delayInput = delayWrapper.querySelector(".layout-delay-input");
+        if (delayInput) {
+          delayInput.value = action.delay || 0;
+          delayInput.dataset.actionId = action.id;
+        }
+      }
+
       statusBar.appendChild(tag);
     }
 

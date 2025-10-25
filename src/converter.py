@@ -158,6 +158,7 @@ class ProjectConverter:
         costume = layout_action.get("costume", "")
         motion = initial_state.get("motion", "")
         expression = initial_state.get("expression", "")
+        delay = layout_action.get("delay", 0)
         from_pos = position.get("from", {})
         to_pos = position.get("to", {})
         side_from = from_pos.get("side", "center")
@@ -166,7 +167,7 @@ class ProjectConverter:
         offset_to = to_pos.get("offsetX", 0)
 
         # 记录布局动作详情
-        logger.info(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}")
+        logger.info(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}, 延迟: {delay}秒")
         logger.info(f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})")
         logger.info(f"  初始状态 - 动作: {motion or '无'}, 表情: {expression or '无'}")
 
@@ -176,6 +177,7 @@ class ProjectConverter:
             costume=costume,
             motion=motion,
             expression=expression,
+            delay=delay,
             sideFrom=side_from,
             sideFromOffsetX=offset_from,
             sideTo=side_to,

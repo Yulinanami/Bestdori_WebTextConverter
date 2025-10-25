@@ -223,6 +223,30 @@
   gap: 8px;
 }
 
+/* 布局卡片延时输入框 */
+.layout-delay-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px dashed var(--border-secondary);
+}
+
+.layout-delay-input-wrapper label {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.layout-delay-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85em;
+  padding: 4px 6px;
+  max-width: 80px;
+}
+
 .drop-zone {
   background: var(--bg-primary);
   border: 1px dashed var(--border-secondary);
