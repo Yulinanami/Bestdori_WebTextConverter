@@ -169,6 +169,7 @@ export const configManager = {
     Object.entries(this.defaultConfig).forEach(([name, ids]) => {
       const characterKey = costumeManager.getCharacterKey(name);
       const primaryId = ids[0];
+      
       if (previousCostumes.hasOwnProperty(characterKey)) {
         newCostumes[characterKey] = previousCostumes[characterKey];
         newAvailableCostumes[characterKey] =

@@ -523,7 +523,7 @@ export const expressionEditor = {
       new Sortable(zone, {
         group: {
           name: zone.dataset.type,
-          put: function (to, from, dragEl) {
+          put: function (_to, _from, dragEl) {
             return dragEl.classList.contains("draggable-item");
           },
         },
