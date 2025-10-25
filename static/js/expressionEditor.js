@@ -222,40 +222,6 @@ export const expressionEditor = {
     this.scrollSpeed = 0;
   },
 
-  // 注意：此方法仅用于layout动作的initialState更新
-  // talk动作现在使用motions数组，通过_updateMotionAssignment更新
-  _executePropertyChangeCommand(actionId, characterName, type, newValue) {
-    const valueToStore = newValue === "--" ? "" : newValue;
-
-    // 使用命令模式支持撤销/恢复，但不触发完整重绘
-    const beforeState = JSON.stringify(this.projectFileState);
-
-    const command = {
-      execute: () => {
-        const newState = JSON.parse(beforeState);
-        const action = newState.actions.find((a) => a.id === actionId);
-        if (!action) return;
-
-        // 只处理layout动作的initialState
-        if (
-          action.type === "layout" &&
-          action.characterName === characterName
-        ) {
-          if (!action.initialState) action.initialState = {};
-          action.initialState[type] = valueToStore;
-        }
-
-        this.projectFileState = newState;
-        // 不调用 renderTimeline()，避免拖放区消失
-      },
-      undo: () => {
-        this.projectFileState = JSON.parse(beforeState);
-        this.renderTimeline(); // 撤销时需要重新渲染
-      },
-    };
-
-    historyManager.do(command);
-  },
 
   // 保存表情动作配置到全局状态
   async save() {
@@ -482,20 +448,6 @@ export const expressionEditor = {
                 this._updateMotionAssignment(actionId, assignmentIndex, updates);
               }
               return;
-            }
-
-            // 处理旧的layout动作清除按钮（向后兼容，虽然现在不会使用这个分支）
-            const statusTag = e.target.closest(".character-status-tag");
-            if (dropZone && statusTag) {
-              const actionId = card.dataset.id;
-              const characterName = statusTag.dataset.characterName;
-              const type = dropZone.dataset.type;
-              this._executePropertyChangeCommand(
-                actionId,
-                characterName,
-                type,
-                "--"
-              );
             }
             return;
           }
@@ -1039,56 +991,6 @@ export const expressionEditor = {
     return false;
   },
 
-  // 注意：此方法已弃用，仅保留用于layout动作的拖放功能
-  // talk动作现在使用下拉框选择，不再使用拖放
-  _initSortableForZones(parentElement) {
-    parentElement.querySelectorAll(".drop-zone").forEach((zone) => {
-      new Sortable(zone, {
-        group: {
-          name: zone.dataset.type,
-          put: function (_to, _from, dragEl) {
-            return dragEl.classList.contains("draggable-item");
-          },
-        },
-        animation: 150,
-
-        onAdd: (evt) => {
-          const value = evt.item ? evt.item.textContent.trim() : null;
-          const dropZone = evt.to;
-          const statusTag = dropZone.closest(".character-status-tag");
-          const timelineItem = dropZone.closest(".timeline-item");
-
-          // 立即移除拖拽的元素
-          evt.item.remove();
-
-          if (value && statusTag && timelineItem) {
-            const characterName = statusTag.dataset.characterName;
-            const actionId = timelineItem.dataset.id;
-            const type = dropZone.dataset.type;
-
-            // 先立即更新UI显示
-            const valueElement = dropZone.querySelector(".drop-zone-value");
-            if (valueElement) {
-              valueElement.textContent = value;
-            }
-
-            const clearBtn = dropZone.querySelector(".clear-state-btn");
-            if (clearBtn) {
-              DOMUtils.toggleDisplay(clearBtn, true);
-            }
-
-            // 然后更新数据（这会触发历史记录）
-            this._executePropertyChangeCommand(
-              actionId,
-              characterName,
-              type,
-              value
-            );
-          }
-        },
-      });
-    });
-  },
 
   // 初始化动作和表情资源库的拖放功能
   initDragAndDropForLibraries() {
@@ -1403,126 +1305,6 @@ export const expressionEditor = {
     }
   },
 
-  /**
-   * 为动作渲染角色状态栏
-   * 注意：此方法已弃用用于talk动作，仅保留用于layout动作
-   * - talk动作: 现在使用新的角色选择器和分配项系统（见_createCharacterSelector）
-   * - layout动作: 为该布局涉及的角色创建状态标签（拖放区）
-   * 每个状态标签包含角色头像、名称、动作/表情拖放区和清除按钮
-   * @param {Object} action - 动作对象
-   * @returns {HTMLElement} 状态栏DOM元素
-   */
-  _renderStatusBarForAction(action) {
-    const statusTagTemplate = document.getElementById(
-      "character-status-tag-template"
-    );
-    const statusBar = DOMUtils.createElement("div", {
-      className: "character-status-bar",
-    });
-    if (action.type === "talk") {
-      this.stagedCharacters.forEach((char) => {
-        const tag = statusTagTemplate.content.cloneNode(true);
-        const statusTagElement = tag.querySelector(".character-status-tag");
-        statusTagElement.dataset.characterId = char.id;
-        statusTagElement.dataset.characterName = char.name;
-
-        const avatarDiv = tag.querySelector(".dialogue-avatar");
-        editorService.updateCharacterAvatar(
-          { querySelector: () => avatarDiv },
-          char.id,
-          char.name
-        );
-        tag.querySelector(".character-name").textContent = char.name;
-        const currentState = action.characterStates?.[char.id] || {};
-        const currentMotion = currentState.motion || "--";
-        const currentExpression = currentState.expression || "--";
-        const motionValue = tag.querySelector(
-          ".motion-drop-zone .drop-zone-value"
-        );
-
-        const motionClearBtn = tag.querySelector(
-          ".motion-drop-zone .clear-state-btn"
-        );
-
-        motionValue.textContent = currentMotion;
-        if (motionClearBtn)
-          DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
-        const expValue = tag.querySelector(
-          ".expression-drop-zone .drop-zone-value"
-        );
-
-        const expClearBtn = tag.querySelector(
-          ".expression-drop-zone .clear-state-btn"
-        );
-
-        expValue.textContent = currentExpression;
-        if (expClearBtn)
-          DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
-        statusBar.appendChild(tag);
-      });
-    } else if (action.type === "layout") {
-      const char = {
-        id: action.characterId,
-        name:
-          action.characterName ||
-          editorService.getCharacterNameById(action.characterId),
-      };
-
-      if (!char.name) return statusBar;
-      const tag = statusTagTemplate.content.cloneNode(true);
-      const statusTagElement = tag.querySelector(".character-status-tag");
-      statusTagElement.dataset.characterId = char.id;
-      statusTagElement.dataset.characterName = char.name;
-      const avatarDiv = tag.querySelector(".dialogue-avatar");
-
-      editorService.updateCharacterAvatar(
-        { querySelector: () => avatarDiv },
-        char.id,
-        char.name
-      );
-
-      tag.querySelector(".character-name").textContent = char.name;
-      const currentState = action.initialState || {};
-      const currentMotion = currentState.motion || "--";
-      const currentExpression = currentState.expression || "--";
-      const motionValue = tag.querySelector(
-        ".motion-drop-zone .drop-zone-value"
-      );
-
-      const motionClearBtn = tag.querySelector(
-        ".motion-drop-zone .clear-state-btn"
-      );
-
-      motionValue.textContent = currentMotion;
-      if (motionClearBtn)
-        DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
-      const expValue = tag.querySelector(
-        ".expression-drop-zone .drop-zone-value"
-      );
-      const expClearBtn = tag.querySelector(
-        ".expression-drop-zone .clear-state-btn"
-      );
-      expValue.textContent = currentExpression;
-
-      if (expClearBtn)
-        DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
-
-      // 显示延时输入框（布局卡片专用）
-      const delayWrapper = tag.querySelector(".layout-delay-input-wrapper");
-      if (delayWrapper) {
-        DOMUtils.toggleDisplay(delayWrapper, true); // 显示延时输入框
-        const delayInput = delayWrapper.querySelector(".layout-delay-input");
-        if (delayInput) {
-          delayInput.value = action.delay || 0;
-          delayInput.dataset.actionId = action.id;
-        }
-      }
-
-      statusBar.appendChild(tag);
-    }
-
-    return statusBar;
-  },
 
   // 渲染动作和表情资源库（根据在场角色动态生成可用列表）
   renderLibraries() {
