@@ -230,9 +230,22 @@ export const costumeManager = {
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
       if (avatarId > 0) {
-        avatarDiv.innerHTML = `<img src="${avatarPath}" alt="${name}" class="config-avatar-img" onerror="this.style.display='none'; this.parentElement.innerHTML='${name.charAt(
-          0
-        )}'; this.parentElement.classList.add('fallback');">`;
+        // 使用 createElement 创建图片元素，避免 XSS 风险
+        const img = DOMUtils.createElement("img", {
+          src: avatarPath,
+          alt: name,
+          class: "config-avatar-img",
+        });
+
+        // 使用 addEventListener 设置错误处理
+        img.addEventListener("error", function () {
+          this.style.display = "none";
+          this.parentElement.textContent = name.charAt(0);
+          this.parentElement.classList.add("fallback");
+        });
+
+        DOMUtils.clearElement(avatarDiv);
+        avatarDiv.appendChild(img);
       } else {
         avatarDiv.textContent = name.charAt(0);
         avatarDiv.classList.add("fallback");
@@ -400,18 +413,24 @@ export const costumeManager = {
         const currentValue = this.tempCostumeChanges[characterKey] || "";
         const availableForCharacter =
           this.tempAvailableCostumes[characterKey] || [];
-        select.innerHTML = `
-                    <option value="">无服装</option>
-                    ${availableForCharacter
-                      .map(
-                        (costume) =>
-                          `<option value="${costume}" ${
-                            costume === currentValue ? "selected" : ""
-                          }>${costume}</option>`
-                      )
-                      .join("")}
-                `;
-        select.value = currentValue;
+
+        // 使用 createElement 创建选项，避免字符串拼接
+        DOMUtils.clearElement(select);
+
+        // 添加"无服装"选项
+        const emptyOption = DOMUtils.createElement("option", { value: "" });
+        emptyOption.textContent = "无服装";
+        select.appendChild(emptyOption);
+
+        // 添加可用服装选项
+        availableForCharacter.forEach((costume) => {
+          const option = DOMUtils.createElement("option", { value: costume });
+          option.textContent = costume;
+          if (costume === currentValue) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
       }
     }
   },

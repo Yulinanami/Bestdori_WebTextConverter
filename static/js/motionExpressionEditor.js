@@ -57,15 +57,29 @@ export const motionExpressionEditor = {
         itemEl.classList.add("is-custom");
       }
       const isDeletable = tempCustomItems.includes(item);
-      let deleteButtonHtml = "";
+
+      // 使用 createElement 创建元素，避免字符串拼接
+      const nameSpan = DOMUtils.createElement("span", {
+        class: "item-name",
+      });
+      nameSpan.textContent = item;
+      itemEl.appendChild(nameSpan);
+
+      // 如果可删除，添加删除按钮
       if (isDeletable) {
-        deleteButtonHtml = `
-            <div class="item-actions">
-                <button class="remove-btn" data-id="${item}" title="删除此项">&times;</button>
-            </div>
-        `;
+        const actionsDiv = DOMUtils.createElement("div", {
+          class: "item-actions",
+        });
+        const removeBtn = DOMUtils.createElement("button", {
+          class: "remove-btn",
+          "data-id": item,
+          title: "删除此项",
+        });
+        removeBtn.textContent = "×";
+        actionsDiv.appendChild(removeBtn);
+        itemEl.appendChild(actionsDiv);
       }
-      itemEl.innerHTML = `<span class="item-name">${item}</span> ${deleteButtonHtml}`;
+
       fragment.appendChild(itemEl);
     });
     listContainer.appendChild(fragment);
