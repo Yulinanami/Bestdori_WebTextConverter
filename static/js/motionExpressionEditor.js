@@ -53,6 +53,7 @@ export const motionExpressionEditor = {
         !allDefaultItems.has(item) && tempCustomItems.includes(item);
       const itemEl = document.createElement("div");
       itemEl.className = "config-list-item";
+      
       if (isCustom) {
         itemEl.classList.add("is-custom");
       }
@@ -96,15 +97,18 @@ export const motionExpressionEditor = {
       ? this.tempCustomMotions
       : this.tempCustomExpressions;
     const trimmedId = input.value.trim();
+
     if (!trimmedId) {
       ui.showStatus(`${manager.name}ID不能为空！`, "error");
       return;
     }
+
     const allKnownItems = new Set(manager.getAllKnownItems());
     if (allKnownItems.has(trimmedId) || tempList.includes(trimmedId)) {
       ui.showStatus(`该${manager.name}ID已存在！`, "error");
       return;
     }
+
     tempList.push(trimmedId);
     input.value = "";
     this.renderList(type);

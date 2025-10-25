@@ -20,6 +20,7 @@ export const ui = {
 
   showStatus(message, type) {
     const statusElement = document.getElementById("statusMessage");
+    
     if (!statusElement) return;
     clearTimeout(statusTimer);
     statusElement.textContent = message;
@@ -40,10 +41,12 @@ export const ui = {
 
   setButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
     const button = document.getElementById(buttonId);
+
     if (!button) return;
     if (isLoading && !button.dataset.originalContent) {
       button.dataset.originalContent = button.innerHTML;
     }
+
     if (isLoading) {
       button.disabled = true;
       button.classList.add("btn-loading");
@@ -156,10 +159,12 @@ export function renderGroupedView({
   const totalActions = actions.length;
   const numGroups = Math.ceil(totalActions / groupSize);
   const fragment = document.createDocumentFragment();
+
   for (let i = 0; i < numGroups; i++) {
     const startNum = i * groupSize + 1;
     const endNum = Math.min((i + 1) * groupSize, totalActions);
     const groupHeader = document.createElement("div");
+
     groupHeader.className = "timeline-group-header";
     groupHeader.textContent = `▶ 对话 ${startNum} - ${endNum} (${
       endNum - startNum + 1
@@ -175,6 +180,7 @@ export function renderGroupedView({
     groupHeader.style.transition = "all 0.2s ease";
     groupHeader.addEventListener("click", () => onGroupClick(i));
     fragment.appendChild(groupHeader);
+    
     if (i === activeGroupIndex) {
       groupHeader.classList.add("active");
       groupHeader.textContent = `▼ 对话 ${startNum} - ${endNum} (${

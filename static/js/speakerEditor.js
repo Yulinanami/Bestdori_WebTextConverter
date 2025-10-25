@@ -28,19 +28,24 @@ export const speakerEditor = {
   get projectFileState() {
     return baseEditor.projectFileState;
   },
+
   set projectFileState(value) {
     baseEditor.projectFileState = value;
     this._invalidateCache(); // 清除缓存
   },
+
   get originalStateOnOpen() {
     return baseEditor.originalStateOnOpen;
   },
+
   set originalStateOnOpen(value) {
     baseEditor.originalStateOnOpen = value;
   },
+
   get activeGroupIndex() {
     return baseEditor.activeGroupIndex;
   },
+
   set activeGroupIndex(value) {
     baseEditor.activeGroupIndex = value;
   },
@@ -111,6 +116,7 @@ export const speakerEditor = {
     this.domCache.toggleTextEditBtn?.addEventListener("click", () =>
       this._toggleTextEditMode()
     );
+
     const characterList = this.domCache.characterList;
     if (characterList) {
       characterList.addEventListener("click", (e) => {
@@ -128,9 +134,11 @@ export const speakerEditor = {
         }
       });
     }
+
     if (this.domCache.modal) {
       this.domCache.modal.focus();
     }
+
     const handleCloseAttempt = (e) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
         if (!confirm("您有未保存的更改，确定要关闭吗？")) {
@@ -139,6 +147,7 @@ export const speakerEditor = {
           return;
         }
       }
+
       const canvas = document.getElementById("speakerEditorCanvas");
       editorService.detachSelection(canvas);
       ui.closeModal("speakerEditorModal");
@@ -152,6 +161,7 @@ export const speakerEditor = {
       if (this.domCache.redoBtn)
         this.domCache.redoBtn.disabled = !e.detail.canRedo;
     });
+
     this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
         return;
@@ -225,6 +235,7 @@ export const speakerEditor = {
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
     const newText = prompt("编辑对话内容:", action.text);
+
     if (newText !== null && newText.trim() !== action.text.trim()) {
       const trimmedText = newText.trim();
       // 使用 _executeCommand 来执行修改，以便支持撤销/恢复
@@ -232,6 +243,7 @@ export const speakerEditor = {
         const actionToUpdate = currentState.actions.find(
           (a) => a.id === actionId
         );
+
         if (actionToUpdate) {
           actionToUpdate.text = trimmedText;
         }
@@ -281,6 +293,7 @@ export const speakerEditor = {
     const item = e.target.closest(".dialogue-item, .layout-item");
     if (!item || !item.dataset.id) return;
     const id = item.dataset.id;
+
     if (this.isMultiSelectMode) {
       editorService.selectionManager.toggle(id);
     } else {
@@ -550,6 +563,7 @@ export const speakerEditor = {
           let initialState;
           const rawText = document.getElementById("inputText").value;
           const projectState = editorService.getProjectState();
+
           if (projectState) {
             initialState = projectState;
             ui.showStatus("已加载现有项目进度。", "info");
@@ -571,6 +585,7 @@ export const speakerEditor = {
           throw error;
         }
       },
+
       afterOpen: async () => {
         if (this.domCache.toggleMultiSelectBtn) {
           this.domCache.toggleMultiSelectBtn.textContent = this
@@ -649,6 +664,7 @@ export const speakerEditor = {
         let speakers = [];
         let cleanText = text;
         const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+
         if (match) {
           const potentialSpeakerName = match[1].trim();
           if (characterMap.has(potentialSpeakerName)) {
@@ -656,6 +672,7 @@ export const speakerEditor = {
             cleanText = match[2].trim();
           }
         }
+
         return {
           id: `action-id-${Date.now()}-${index}`,
           type: "talk",
@@ -665,6 +682,7 @@ export const speakerEditor = {
         };
       }),
     };
+
     return newProjectFile;
   },
 
@@ -716,6 +734,7 @@ export const speakerEditor = {
           );
           const allNames = action.speakers.map((s) => s.name).join(" & ");
           speakerNameDiv.textContent = allNames;
+
           if (action.speakers.length > 1) {
             multiSpeakerBadge.style.display = "flex";
             multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
@@ -728,12 +747,14 @@ export const speakerEditor = {
             multiSpeakerBadge.style.display = "none";
             avatarContainer.style.cursor = "default";
           }
+
         } else {
           avatarContainer.style.display = "none";
           speakerNameDiv.style.display = "none";
           multiSpeakerBadge.style.display = "none";
           dialogueItem.classList.add("narrator");
         }
+
         card.querySelector(".dialogue-text").textContent = action.text;
       } else if (action.type === "layout") {
         card = layoutTemplate.content.cloneNode(true);
@@ -769,6 +790,7 @@ export const speakerEditor = {
         availableCostumes.forEach((costumeId) => {
           costumeSelect.add(new Option(costumeId, costumeId));
         });
+
         if (action.costume && !availableCostumes.includes(action.costume)) {
           costumeSelect.add(
             new Option(`${action.costume} (自定义)`, action.costume),
@@ -797,6 +819,7 @@ export const speakerEditor = {
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+
         if (action.layoutType === "move") {
           toPositionContainer.style.display = "grid";
           toPositionSelect.value = action.position?.to?.side || "center";
@@ -867,6 +890,7 @@ export const speakerEditor = {
     const fragment = document.createDocumentFragment();
     const characters = editorService.getAllCharacters();
     const pinned = editorService.getPinnedCharacters();
+
     characters.sort(([nameA, idsA], [nameB, idsB]) => {
       const isAPinned = pinned.has(nameA);
       const isBPinned = pinned.has(nameB);
@@ -874,6 +898,7 @@ export const speakerEditor = {
       if (!isAPinned && isBPinned) return 1;
       return idsA[0] - idsB[0];
     });
+    
     characters.forEach(([name, ids]) => {
       const item = template.content.cloneNode(true);
       const characterItem = item.querySelector(".character-item");

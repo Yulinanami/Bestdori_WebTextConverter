@@ -35,6 +35,7 @@ export const selectionManager = {
     const item = e.target.closest(itemSelector);
     if (!item || !item.dataset.id) return;
     const id = item.dataset.id;
+
     if (e.ctrlKey || e.metaKey) {
       this.toggle(id);
     } else if (e.shiftKey) {
@@ -48,6 +49,7 @@ export const selectionManager = {
         this.selectSingle(id);
       }
     }
+
     this.lastSelectedId = this.selectedIds.has(id) ? id : null;
     container.dispatchEvent(
       new CustomEvent("selectionchange", {
@@ -88,10 +90,12 @@ export const selectionManager = {
       this.selectSingle(endId);
       return;
     }
+
     const items = Array.from(container.querySelectorAll(itemSelector));
     const ids = items.map((item) => item.dataset.id);
     const startIndex = ids.indexOf(this.lastSelectedId);
     const endIndex = ids.indexOf(endId);
+    
     if (startIndex === -1 || endIndex === -1) return;
     const [start, end] = [startIndex, endIndex].sort((a, b) => a - b);
     const rangeIds = ids.slice(start, end + 1);

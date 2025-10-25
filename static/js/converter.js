@@ -29,6 +29,7 @@ function createProjectFileFromText(text) {
       let speakers = [];
       let cleanText = segmentText;
       const match = segmentText.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+
       if (match) {
         const potentialSpeakerName = match[1].trim();
         if (characterMap.has(potentialSpeakerName)) {
@@ -36,6 +37,7 @@ function createProjectFileFromText(text) {
           cleanText = match[2].trim();
         }
       }
+      
       return {
         id: `action-id-${Date.now()}-${index}`,
         type: "talk",

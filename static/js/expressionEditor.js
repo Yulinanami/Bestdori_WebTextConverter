@@ -21,18 +21,23 @@ export const expressionEditor = {
   get projectFileState() {
     return baseEditor.projectFileState;
   },
+
   set projectFileState(value) {
     baseEditor.projectFileState = value;
   },
+
   get originalStateOnOpen() {
     return baseEditor.originalStateOnOpen;
   },
+
   set originalStateOnOpen(value) {
     baseEditor.originalStateOnOpen = value;
   },
+
   get activeGroupIndex() {
     return baseEditor.activeGroupIndex;
   },
+  
   set activeGroupIndex(value) {
     baseEditor.activeGroupIndex = value;
   },
@@ -257,6 +262,7 @@ export const expressionEditor = {
       editor: baseEditor,
       modalId: "expressionEditorModal",
       buttonId: "saveExpressionsBtn",
+
       applyChanges: () => {
         editorService.projectManager.save(
           this.projectFileState,
@@ -324,6 +330,7 @@ export const expressionEditor = {
           let initialState;
           const rawText = document.getElementById("inputText").value;
           const projectState = editorService.getProjectState();
+
           if (projectState) {
             initialState = projectState;
           } else {
@@ -366,6 +373,7 @@ export const expressionEditor = {
             this.showExpressionSetupUI(card);
             return;
           }
+
           if (e.target.matches(".clear-state-btn")) {
             const dropZone = e.target.closest(".drop-zone");
             const statusTag = e.target.closest(".character-status-tag");
@@ -382,6 +390,7 @@ export const expressionEditor = {
             }
             return;
           }
+
           if (e.target.matches(".layout-remove-btn")) {
             this._deleteLayoutAction(card.dataset.id);
             return;
@@ -468,6 +477,7 @@ export const expressionEditor = {
     const items = listContainer.querySelectorAll(
       ".config-list-item.draggable-item"
     );
+
     items.forEach((item) => {
       const itemName = item.textContent.toLowerCase();
       if (itemName.startsWith(searchTerm)) {
@@ -483,8 +493,10 @@ export const expressionEditor = {
     const actionId = cardElement.dataset.id;
     const action = this.projectFileState.actions.find((a) => a.id === actionId);
     if (!action) return;
+
     const footer = cardElement.querySelector(".timeline-item-footer");
     if (!footer) return;
+
     const statusBar = this._renderStatusBarForAction(action);
     DOMUtils.clearElement(footer);
     footer.appendChild(statusBar);
@@ -498,6 +510,7 @@ export const expressionEditor = {
         action.characterStates && Object.keys(action.characterStates).length > 0
       );
     }
+
     if (action.type === "layout") {
       return action.initialState && Object.keys(action.initialState).length > 0;
     }
@@ -515,6 +528,7 @@ export const expressionEditor = {
           },
         },
         animation: 150,
+        
         onAdd: (evt) => {
           const value = evt.item ? evt.item.textContent.trim() : null;
           const dropZone = evt.to;
@@ -534,6 +548,7 @@ export const expressionEditor = {
             if (valueElement) {
               valueElement.textContent = value;
             }
+
             const clearBtn = dropZone.querySelector(".clear-state-btn");
             if (clearBtn) {
               DOMUtils.toggleDisplay(clearBtn, true);
@@ -564,6 +579,7 @@ export const expressionEditor = {
         type === "motion"
           ? this.domCache.motionList
           : this.domCache.expressionList;
+
       if (libraryList) {
         this.sortableInstances.push(
           new Sortable(libraryList, {
@@ -589,6 +605,7 @@ export const expressionEditor = {
   _calculateStagedCharacters(projectFile) {
     const appearedCharacterNames = new Set();
     const characters = [];
+
     projectFile.actions.forEach((action) => {
       if (action.type === "layout" && action.layoutType === "appear") {
         const charName =
@@ -633,12 +650,14 @@ export const expressionEditor = {
     const renderSingleCard = (action) => {
       const globalIndex = actionIndexMap.get(action.id) ?? -1;
       let card;
+
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
         const item = card.querySelector(".timeline-item");
         item.dataset.id = action.id;
         const nameDiv = card.querySelector(".speaker-name");
         const avatarDiv = card.querySelector(".dialogue-avatar");
+
         if (action.speakers && action.speakers.length > 0) {
           const firstSpeaker = action.speakers[0];
           nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
@@ -647,11 +666,13 @@ export const expressionEditor = {
             firstSpeaker.characterId,
             firstSpeaker.name
           );
+
         } else {
           nameDiv.textContent = "旁白";
           avatarDiv.classList.add("fallback");
           avatarDiv.textContent = "N";
         }
+
         card.querySelector(".dialogue-preview-text").textContent = action.text;
       } else if (action.type === "layout") {
         card = layoutTemplate.content.cloneNode(true);
@@ -672,6 +693,7 @@ export const expressionEditor = {
           characterId,
           characterName
         );
+
         const typeSelect = card.querySelector(".layout-type-select");
         typeSelect.value = action.layoutType;
         const positionSelect = card.querySelector(".layout-position-select");
@@ -679,6 +701,7 @@ export const expressionEditor = {
         const toPositionSelect = card.querySelector(
           ".layout-position-select-to"
         );
+
         const currentPosition = action.position?.from?.side || "center";
         const currentOffset = action.position?.from?.offsetX || 0;
         const costumeSelect = card.querySelector(".layout-costume-select");
@@ -689,11 +712,13 @@ export const expressionEditor = {
           const option = new Option(costumeId, costumeId);
           costumeSelect.add(option);
         });
+
         if (action.costume && !availableCostumes.includes(action.costume)) {
           const option = new Option(
             `${action.costume} (自定义)`,
             action.costume
           );
+
           costumeSelect.add(option, 0);
         }
         costumeSelect.value = action.costume;
@@ -707,11 +732,13 @@ export const expressionEditor = {
             toPositionSelect.add(optionTo);
           }
         );
+
         positionSelect.value = currentPosition;
         offsetInput.value = currentOffset;
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+
         if (action.layoutType === "move") {
           toPositionContainer.style.display = "grid";
           card.querySelector(".layout-position-select-to").value =
@@ -728,6 +755,7 @@ export const expressionEditor = {
       if (numberDiv && globalIndex !== -1) {
         numberDiv.textContent = `#${globalIndex + 1}`;
       }
+
       const footer = card.querySelector(".timeline-item-footer");
       if (this._actionHasExpressionData(action)) {
         const statusBar = this._renderStatusBarForAction(action);
@@ -740,6 +768,7 @@ export const expressionEditor = {
         );
         footer.appendChild(setupButton);
       }
+
       return card;
     };
 
@@ -771,6 +800,7 @@ export const expressionEditor = {
         renderItemFn: renderSingleCard,
         groupSize: groupSize,
       });
+
     } else {
       DOMUtils.clearElement(timeline);
       const fragment = document.createDocumentFragment();
@@ -818,18 +848,22 @@ export const expressionEditor = {
         const motionValue = tag.querySelector(
           ".motion-drop-zone .drop-zone-value"
         );
+
         const motionClearBtn = tag.querySelector(
           ".motion-drop-zone .clear-state-btn"
         );
+
         motionValue.textContent = currentMotion;
         if (motionClearBtn)
           DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
         const expValue = tag.querySelector(
           ".expression-drop-zone .drop-zone-value"
         );
+
         const expClearBtn = tag.querySelector(
           ".expression-drop-zone .clear-state-btn"
         );
+
         expValue.textContent = currentExpression;
         if (expClearBtn)
           DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
@@ -842,17 +876,20 @@ export const expressionEditor = {
           action.characterName ||
           editorService.getCharacterNameById(action.characterId),
       };
+
       if (!char.name) return statusBar;
       const tag = statusTagTemplate.content.cloneNode(true);
       const statusTagElement = tag.querySelector(".character-status-tag");
       statusTagElement.dataset.characterId = char.id;
       statusTagElement.dataset.characterName = char.name;
       const avatarDiv = tag.querySelector(".dialogue-avatar");
+
       editorService.updateCharacterAvatar(
         { querySelector: () => avatarDiv },
         char.id,
         char.name
       );
+
       tag.querySelector(".character-name").textContent = char.name;
       const currentState = action.initialState || {};
       const currentMotion = currentState.motion || "--";
@@ -860,9 +897,11 @@ export const expressionEditor = {
       const motionValue = tag.querySelector(
         ".motion-drop-zone .drop-zone-value"
       );
+
       const motionClearBtn = tag.querySelector(
         ".motion-drop-zone .clear-state-btn"
       );
+
       motionValue.textContent = currentMotion;
       if (motionClearBtn)
         DOMUtils.toggleDisplay(motionClearBtn, currentMotion !== "--");
@@ -873,6 +912,7 @@ export const expressionEditor = {
         ".expression-drop-zone .clear-state-btn"
       );
       expValue.textContent = currentExpression;
+
       if (expClearBtn)
         DOMUtils.toggleDisplay(expClearBtn, currentExpression !== "--");
       statusBar.appendChild(tag);
@@ -894,6 +934,7 @@ export const expressionEditor = {
         .getAvailableItemsForCharacter(id)
         .forEach((item) => expressionItems.add(item));
     });
+
     if (stagedCharacterIds.size === 0) {
       editorService.motionManager
         .getAllKnownItems()
@@ -936,12 +977,14 @@ export const expressionEditor = {
         { characterId: ids[0], name: name },
       ])
     );
+
     const newProjectFile = {
       version: "1.0",
       actions: segments.map((text, index) => {
         let speakers = [];
         let cleanText = text;
         const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+
         if (match) {
           const potentialSpeakerName = match[1].trim();
           if (characterMap.has(potentialSpeakerName)) {
@@ -949,6 +992,7 @@ export const expressionEditor = {
             cleanText = match[2].trim();
           }
         }
+
         return {
           id: `action-id-${Date.now()}-${index}`,
           type: "talk",
@@ -1060,15 +1104,18 @@ export const expressionEditor = {
       : editorService.expressionManager;
     const tempList = this.tempLibraryItems[type];
     const trimmedId = input.value.trim();
+
     if (!trimmedId) {
       ui.showStatus(`${manager.name}ID不能为空！`, "error");
       return;
     }
+
     const allItems = new Set([...manager.getAllKnownItems(), ...tempList]);
     if (allItems.has(trimmedId)) {
       ui.showStatus(`该${manager.name}ID已存在！`, "error");
       return;
     }
+
     tempList.push(trimmedId);
     input.value = "";
     this.renderLibraries();
@@ -1086,12 +1133,14 @@ export const expressionEditor = {
       window.open("https://bestdori.com/tool/live2d", "_blank");
       return;
     }
+
     const costumeIds = new Set();
     this.projectFileState.actions.forEach((action) => {
       if (action.type === "layout" && action.costume) {
         costumeIds.add(action.costume);
       }
     });
+
     if (costumeIds.size === 0) {
       ui.showStatus(
         "当前时间线中未找到任何服装配置，将打开 Live2D 浏览器首页。",
@@ -1100,6 +1149,7 @@ export const expressionEditor = {
       window.open("https://bestdori.com/tool/live2d", "_blank");
       return;
     }
+
     const costumeArray = Array.from(costumeIds);
     if (costumeArray.length > 5) {
       if (
@@ -1110,10 +1160,12 @@ export const expressionEditor = {
         return;
       }
     }
+
     ui.showStatus(
       `正在为 ${costumeArray.length} 个服装打开 Live2D 浏览器...`,
       "success"
     );
+
     costumeArray.forEach((costumeId) => {
       const url = `https://bestdori.com/tool/live2d/asset/jp/live2d/chara/${costumeId}`;
       window.open(url, "_blank");

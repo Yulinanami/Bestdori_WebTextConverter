@@ -15,6 +15,7 @@ export const positionManager = {
     center: "中间",
     rightInside: "右侧",
   },
+  
   manualPositions: {},
   positionCounter: 0,
   tempManualPositions: {},
@@ -337,10 +338,12 @@ export const positionManager = {
           this.tempAutoPositionMode = true;
           this.tempManualPositions = {};
           this.renderPositionList();
+
           const autoCheckbox = document.getElementById("autoPositionCheckbox");
           if (autoCheckbox) {
             autoCheckbox.checked = true;
           }
+
           this.toggleManualConfig();
           await new Promise((resolve) => setTimeout(resolve, 300));
           ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");

@@ -1,7 +1,6 @@
 // 引号管理相关功能
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
-import { converter } from "./converter.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
 
@@ -121,6 +120,7 @@ export const quoteManager = {
     wrapper.style.display = "flex";
     wrapper.style.alignItems = "center";
     wrapper.style.marginBottom = "8px";
+
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = checkboxId;
@@ -128,12 +128,14 @@ export const quoteManager = {
     checkbox.dataset.close = closeChar;
     checkbox.className = "quote-option-checkbox";
     checkbox.checked = checked;
+
     const label = document.createElement("label");
     label.htmlFor = checkboxId;
     label.textContent = categoryName;
     label.style.marginLeft = "8px";
     label.style.cursor = "pointer";
     label.style.flex = "1";
+
     if (checkboxId.includes("custom")) {
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "btn btn-sm btn-danger delete-quote-btn";
@@ -147,6 +149,7 @@ export const quoteManager = {
       wrapper.appendChild(checkbox);
       wrapper.appendChild(label);
     }
+
     return wrapper;
   },
 
@@ -203,15 +206,18 @@ export const quoteManager = {
       options;
     const openChar = document.getElementById(openInputId).value;
     const closeChar = document.getElementById(closeInputId).value;
+
     if (!openChar || !closeChar) {
       ui.showStatus("起始和结束符号都不能为空！", "error");
       return;
     }
+
     const categoryName = `${openChar}...${closeChar}`;
     if (state.get("customQuotes").some((q) => q.name === categoryName)) {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }
+
     const currentStates = {};
     const presetStates = {};
     document
@@ -225,6 +231,7 @@ export const quoteManager = {
           presetStates[key] = checkbox.checked;
         }
       });
+
     const quotes = state.get("customQuotes");
     quotes.push({
       name: categoryName,
@@ -232,10 +239,12 @@ export const quoteManager = {
       close: closeChar,
       checked: true,
     });
+
     state.set("customQuotes", quotes);
     this.saveCustomQuotes();
     this.savePresetQuotesState(presetStates);
     this.renderQuoteOptions();
+
     document
       .querySelectorAll("#quoteOptionsContainer .quote-option-checkbox")
       .forEach((checkbox) => {
@@ -244,6 +253,7 @@ export const quoteManager = {
           checkbox.checked = currentStates[key];
         }
       });
+      
     document.getElementById(openInputId).value = "";
     document.getElementById(closeInputId).value = "";
     ui.showStatus("自定义引号已添加", "success");

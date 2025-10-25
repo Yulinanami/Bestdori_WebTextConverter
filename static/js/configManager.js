@@ -45,8 +45,10 @@ export const configManager = {
         const avatarWrapper = configItem.querySelector(
           ".config-avatar-wrapper"
         );
+
         const nameInput = configItem.querySelector(".config-name");
         const name = nameInput.value || "?";
+        
         if (event.target.classList.contains("config-ids")) {
           const newIds = event.target.value
             .split(",")
@@ -371,6 +373,7 @@ export const configManager = {
         if (!config || typeof config !== "object") {
           throw new Error("无效的配置文件格式");
         }
+
         if (config.character_mapping) {
           state.set("currentConfig", config.character_mapping);
           this.saveLocalConfig(config.character_mapping);

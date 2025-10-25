@@ -24,18 +24,23 @@ export const live2dEditor = {
   get projectFileState() {
     return baseEditor.projectFileState;
   },
+
   set projectFileState(value) {
     baseEditor.projectFileState = value;
   },
+
   get originalStateOnOpen() {
     return baseEditor.originalStateOnOpen;
   },
+
   set originalStateOnOpen(value) {
     baseEditor.originalStateOnOpen = value;
   },
+
   get activeGroupIndex() {
     return baseEditor.activeGroupIndex;
   },
+  
   set activeGroupIndex(value) {
     baseEditor.activeGroupIndex = value;
   },
@@ -105,6 +110,7 @@ export const live2dEditor = {
         if (pinBtn) {
           e.stopPropagation();
           e.preventDefault();
+
           const characterItem = pinBtn.closest(".character-item");
           if (characterItem && characterItem.dataset.characterName) {
             const characterName = characterItem.dataset.characterName;
@@ -135,6 +141,7 @@ export const live2dEditor = {
           this.domCache.redoBtn.disabled = !e.detail.canRedo;
       }
     });
+
     this.domCache.modal?.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
       if (e.ctrlKey || e.metaKey) {
@@ -177,6 +184,7 @@ export const live2dEditor = {
               ui.showStatus("已根据当前文本创建新项目。", "info");
             }
           }
+
           this.projectFileState = DataUtils.deepClone(initialState);
           this.originalStateOnOpen = JSON.stringify(initialState);
           historyManager.clear();
@@ -194,6 +202,7 @@ export const live2dEditor = {
         this.renderCharacterList(usedCharacterNames);
         this.initDragAndDrop();
         this._updateSubsequentModeButton();
+
         if (this.domCache.modal) this.domCache.modal.focus();
         const timeline = this.domCache.timeline;
         timeline.onclick = (e) => {
@@ -203,6 +212,7 @@ export const live2dEditor = {
             this._deleteLayoutAction(card.dataset.id);
           }
         };
+
         timeline.onchange = (e) => {
           const card = e.target.closest(".layout-item");
           if (!card || !e.target.matches("select, input")) return;
@@ -233,6 +243,7 @@ export const live2dEditor = {
             cleanText = match[2].trim();
           }
         }
+
         return {
           id: `action-id-${Date.now()}-${index}`,
           type: "talk",
@@ -251,6 +262,7 @@ export const live2dEditor = {
       editor: baseEditor,
       modalId: "live2dEditorModal",
       buttonId: "saveLayoutsBtn",
+
       applyChanges: () => {
         editorService.projectManager.save(
           this.projectFileState,
@@ -334,6 +346,7 @@ export const live2dEditor = {
                   speaker.name,
                   appearedCharacterNames.size - 1
                 );
+
               const newLayoutAction = {
                 id: `layout-action-${Date.now()}-${speaker.characterId}`,
                 type: "layout",
@@ -353,6 +366,7 @@ export const live2dEditor = {
                 },
                 initialState: {},
               };
+
               newActions.push(newLayoutAction);
             }
           });
@@ -760,11 +774,13 @@ export const live2dEditor = {
     const renderSingleCard = (action) => {
       const globalIndex = actionIndexMap.get(action.id) ?? -1;
       let card;
+
       if (action.type === "talk") {
         card = talkTemplate.content.cloneNode(true);
         card.querySelector(".timeline-item").dataset.id = action.id;
         const nameDiv = card.querySelector(".speaker-name");
         const avatarDiv = card.querySelector(".dialogue-avatar");
+
         if (action.speakers && action.speakers.length > 0) {
           const firstSpeaker = action.speakers[0];
           nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
@@ -778,6 +794,7 @@ export const live2dEditor = {
           avatarDiv.classList.add("fallback");
           avatarDiv.textContent = "N";
         }
+
         card.querySelector(".dialogue-preview-text").textContent = action.text;
       } else if (action.type === "layout") {
         card = layoutTemplate.content.cloneNode(true);
@@ -798,6 +815,7 @@ export const live2dEditor = {
           characterId,
           characterName
         );
+
         const typeSelect = card.querySelector(".layout-type-select");
         typeSelect.value = action.layoutType;
         const positionSelect = card.querySelector(".layout-position-select");
@@ -805,6 +823,7 @@ export const live2dEditor = {
         const toPositionSelect = card.querySelector(
           ".layout-position-select-to"
         );
+
         const currentPosition = action.position?.from?.side || "center";
         const currentOffset = action.position?.from?.offsetX || 0;
         const costumeSelect = card.querySelector(".layout-costume-select");
@@ -815,6 +834,7 @@ export const live2dEditor = {
           const option = new Option(costumeId, costumeId);
           costumeSelect.add(option);
         });
+
         if (action.costume && !availableCostumes.includes(action.costume)) {
           const option = new Option(
             `${action.costume} (自定义)`,
@@ -822,6 +842,7 @@ export const live2dEditor = {
           );
           costumeSelect.add(option, 0);
         }
+
         costumeSelect.value = action.costume;
         DOMUtils.clearElement(positionSelect);
         DOMUtils.clearElement(toPositionSelect);
@@ -838,6 +859,7 @@ export const live2dEditor = {
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+
         if (action.layoutType === "move") {
           DOMUtils.toggleDisplay(toPositionContainer, true);
           toPositionContainer.style.display = "grid"; // 保持 grid 布局
@@ -906,6 +928,7 @@ export const live2dEditor = {
     // 使用 DataUtils.sortBy 替代手动排序，处理置顶逻辑
     const characters = DataUtils.sortBy(
       Object.entries(editorService.getCurrentConfig()),
+      
       ([name, ids]) => {
         const isPinned = pinned.has(name);
         // 置顶的角色返回负数（排在前面），使用 ID 作为次要排序
@@ -918,16 +941,20 @@ export const live2dEditor = {
       const characterItem = item.querySelector(".character-item");
       characterItem.dataset.characterId = ids[0];
       characterItem.dataset.characterName = name;
+
       if (usedCharacterNames && usedCharacterNames.has(name)) {
         characterItem.classList.add("is-used");
       }
+
       const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
       editorService.updateCharacterAvatar(avatarWrapper, ids[0], name);
       item.querySelector(".character-name").textContent = name;
       const pinBtn = item.querySelector(".pin-btn");
+
       if (pinned.has(name)) {
         pinBtn.classList.add("is-pinned");
       }
+
       fragment.appendChild(item);
     });
     listContainer.appendChild(fragment);

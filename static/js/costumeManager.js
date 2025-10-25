@@ -24,6 +24,7 @@ export const costumeManager = {
   init() {
     const costumeList = document.getElementById("costumeList");
     if (!costumeList) return;
+    
     costumeList.addEventListener("click", (e) => {
       const target = e.target;
       const toggleBtn = target.closest(".toggle-costume-details-btn");
@@ -32,23 +33,27 @@ export const costumeManager = {
         this.toggleCostumeDetails(safeDomId);
         return;
       }
+
       const addBtn = target.closest(".add-costume-btn");
       if (addBtn) {
         const { characterKey, safeDomId } = addBtn.dataset;
         this.addNewCostume(characterKey, safeDomId);
         return;
       }
+      
       const dbBtn = target.closest(".open-live2d-db-btn");
       if (dbBtn) {
         this.openLive2DDatabase();
         return;
       }
+
       const editBtn = target.closest(".edit-costume-btn");
       if (editBtn) {
         const { characterKey, index, costume, safeDomId } = editBtn.dataset;
         this.editCostume(characterKey, parseInt(index), costume, safeDomId);
         return;
       }
+
       const deleteBtn = target.closest(".delete-costume-btn");
       if (deleteBtn) {
         const { characterKey, index, safeDomId } = deleteBtn.dataset;
@@ -86,6 +91,7 @@ export const costumeManager = {
       if (ids && ids.length > 0) {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
+
         if (this.defaultAvailableCostumes[primaryId]) {
           nameBased[characterKey] = [
             ...this.defaultAvailableCostumes[primaryId],
@@ -94,6 +100,7 @@ export const costumeManager = {
           nameBased[characterKey] = [];
         }
         const defaultCostume = this.defaultCostumes[primaryId];
+
         if (
           defaultCostume &&
           !nameBased[characterKey].includes(defaultCostume)
@@ -114,6 +121,7 @@ export const costumeManager = {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
         const defaultCostume = this.defaultCostumes[primaryId];
+
         if (defaultCostume) {
           const availableList = this.defaultAvailableCostumes[primaryId] || [];
           if (availableList.includes(defaultCostume)) {
@@ -155,6 +163,7 @@ export const costumeManager = {
       } else {
         this.availableCostumes = this.convertAvailableCostumesToNameBased();
       }
+
     } catch (error) {
       console.error("加载服装配置失败:", error);
       ui.showStatus(error.message || "无法加载服装配置", "error");
@@ -214,6 +223,7 @@ export const costumeManager = {
 
     characterEntries.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
+
       const clone = template.content.cloneNode(true);
       const costumeItem = clone.querySelector(".costume-config-item");
       const primaryId = ids[0];
@@ -229,6 +239,7 @@ export const costumeManager = {
       avatarDiv.dataset.id = primaryId;
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
+
       if (avatarId > 0) {
         // 使用 createElement 创建图片元素，避免 XSS 风险
         const img = DOMUtils.createElement("img", {
@@ -250,6 +261,7 @@ export const costumeManager = {
         avatarDiv.textContent = name.charAt(0);
         avatarDiv.classList.add("fallback");
       }
+
       costumeItem.querySelector(
         ".costume-character-name"
       ).textContent = `${name} (ID: ${primaryId})`;
@@ -257,12 +269,14 @@ export const costumeManager = {
       const toggleBtn = costumeItem.querySelector(
         ".toggle-costume-details-btn"
       );
+
       toggleBtn.dataset.safeDomId = safeDomId;
       toggleBtn.querySelector("span").id = `toggle-${safeDomId}`;
       const detailsDiv = costumeItem.querySelector(".costume-details");
       detailsDiv.id = `costume-details-${safeDomId}`;
       const select = costumeItem.querySelector(".costume-select");
       select.dataset.characterKey = characterKey;
+
       select.innerHTML =
         `<option value="">无服装</option>` +
         availableForCharacter
@@ -273,16 +287,19 @@ export const costumeManager = {
               }>${costume}</option>`
           )
           .join("");
+
       const addBtn = costumeItem.querySelector(".add-costume-btn");
       addBtn.dataset.characterKey = characterKey;
       addBtn.dataset.safeDomId = safeDomId;
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
+
       listItems.innerHTML = this.renderCostumeListItems(
         characterKey,
         availableForCharacter,
         safeDomId
       );
+
       fragment.appendChild(costumeItem);
     });
     DOMUtils.clearElement(costumeList);
@@ -348,13 +365,16 @@ export const costumeManager = {
     const costumeId = await modalService.prompt("请输入新的服装ID：");
     if (costumeId && costumeId.trim()) {
       const trimmedId = costumeId.trim();
+
       if (!this.tempAvailableCostumes[characterKey]) {
         this.tempAvailableCostumes[characterKey] = [];
       }
+
       if (this.tempAvailableCostumes[characterKey].includes(trimmedId)) {
         ui.showStatus("该服装ID已存在", "error");
         return;
       }
+
       this.tempAvailableCostumes[characterKey].push(trimmedId);
       this.updateCostumeListUI(characterKey, safeDomId);
       ui.showStatus(`已在临时列表添加服装: ${trimmedId}`, "info");
@@ -366,14 +386,17 @@ export const costumeManager = {
     const newCostume = await modalService.prompt("编辑服装ID：", oldCostume);
     if (newCostume && newCostume.trim() && newCostume !== oldCostume) {
       const trimmedId = newCostume.trim();
+
       if (this.tempAvailableCostumes[characterKey].includes(trimmedId)) {
         ui.showStatus("该服装ID已存在", "error");
         return;
       }
+
       this.tempAvailableCostumes[characterKey][index] = trimmedId;
       if (this.tempCostumeChanges[characterKey] === oldCostume) {
         this.tempCostumeChanges[characterKey] = trimmedId;
       }
+
       this.updateCostumeListUI(characterKey, safeDomId);
     }
   },
@@ -384,6 +407,7 @@ export const costumeManager = {
     const confirmed = await modalService.confirm(
       `确定要删除服装 "${costume}" 吗？`
     );
+
     if (confirmed) {
       this.tempAvailableCostumes[characterKey].splice(index, 1);
       if (this.tempCostumeChanges[characterKey] === costume) {
@@ -426,6 +450,7 @@ export const costumeManager = {
         availableForCharacter.forEach((costume) => {
           const option = DOMUtils.createElement("option", { value: costume });
           option.textContent = costume;
+
           if (costume === currentValue) {
             option.selected = true;
           }
@@ -444,11 +469,14 @@ export const costumeManager = {
           "currentCostumes",
           DataUtils.deepClone(this.tempCostumeChanges)
         );
+
         this.availableCostumes = DataUtils.deepClone(
           this.tempAvailableCostumes
         );
+
         this.saveLocalCostumes(state.get("currentCostumes"));
         this.saveLocalAvailableCostumes();
+
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("服装配置已保存！", "success");
         eventBus.emit(EVENTS.COSTUME_SAVED, state.get("currentCostumes"));
@@ -473,10 +501,12 @@ export const costumeManager = {
           Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
             if (!this.builtInCharacters.has(name)) {
               const characterKey = this.getCharacterKey(name);
+
               if (this.tempCostumeChanges[characterKey] !== undefined) {
                 customCharacterCostumes[characterKey] =
                   this.tempCostumeChanges[characterKey];
               }
+
               if (this.tempAvailableCostumes[characterKey]) {
                 customCharacterAvailableCostumes[characterKey] = [
                   ...this.tempAvailableCostumes[characterKey],
@@ -484,6 +514,7 @@ export const costumeManager = {
               }
             }
           });
+
           const defaultCostumesNameBased =
             this.convertDefaultCostumesToNameBased();
           const defaultAvailableCostumesNameBased =
@@ -510,9 +541,11 @@ export const costumeManager = {
       state.set("currentCostumes", config.costume_mapping);
       this.saveLocalCostumes(config.costume_mapping);
     }
+
     if (config.built_in_characters) {
       this.builtInCharacters = new Set(config.built_in_characters);
     }
+
     if (config.available_costumes) {
       this.availableCostumes = config.available_costumes;
       this.saveLocalAvailableCostumes();
