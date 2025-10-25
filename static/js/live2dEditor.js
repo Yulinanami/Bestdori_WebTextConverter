@@ -412,20 +412,6 @@ export const live2dEditor = {
     }
   },
 
-  // 处理时间轴卡片的交互事件（选择框和输入框变更）
-  _handleTimelineEvent(e) {
-    const target = e.target;
-    const card = target.closest(".layout-item");
-    if (!card || !card.dataset.id) return;
-
-    if (target.matches("select, input")) {
-      const actionId = card.dataset.id;
-      const value =
-        target.type === "number" ? parseInt(target.value) || 0 : target.value;
-      this._updateLayoutActionProperty(actionId, target, value);
-    }
-  },
-
   /**
    * 布局属性更新策略处理器映射
    * 每个处理器负责更新特定控件类型对应的 action 属性
@@ -569,13 +555,6 @@ export const live2dEditor = {
     }
     this.scrollSpeed = 0;
   },
-
-  // 使用 BaseEditor 的 getGlobalIndex 方法
-  _getGlobalIndex(localIndex) {
-    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
-    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
-  },
-
   // 初始化拖放功能（角色列表拖入时间轴创建布局动作）
   initDragAndDrop() {
     const characterList = this.domCache.characterList;

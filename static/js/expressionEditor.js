@@ -456,13 +456,6 @@ export const expressionEditor = {
       },
     });
   },
-
-  // 使用 BaseEditor 的 getGlobalIndex 方法
-  _getGlobalIndex(localIndex) {
-    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
-    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
-  },
-
   /**
    * 根据输入内容过滤资源库列表
    * @param {'motion' | 'expression'} type - 要过滤的列表类型

@@ -147,11 +147,9 @@ export const speakerEditor = {
           return;
         }
       }
-
-      const canvas = document.getElementById("speakerEditorCanvas");
-      editorService.detachSelection(canvas);
-      ui.closeModal("speakerEditorModal");
+      this._closeEditor();
     };
+
     this.domCache.modal
       ?.querySelector(".modal-close")
       ?.addEventListener("click", handleCloseAttempt, true);
@@ -546,6 +544,7 @@ export const speakerEditor = {
           this.scrollAnimationFrame = null;
         }
 
+        // 解除选择绑定（speakerEditor 特有的逻辑）
         editorService.detachSelection(this.domCache.canvas);
       },
     });
@@ -1029,13 +1028,6 @@ export const speakerEditor = {
       )
     );
   },
-
-  // 使用 BaseEditor 的 getGlobalIndex 方法
-  _getGlobalIndex(localIndex) {
-    const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
-    return baseEditor.getGlobalIndex(localIndex, isGroupingEnabled);
-  },
-
   handleDragScrolling: (e) => {
     const canvas = speakerEditor.domCache.canvas;
     const characterList = speakerEditor.domCache.characterList;

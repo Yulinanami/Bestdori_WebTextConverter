@@ -2,7 +2,6 @@
 
 class NavigationManager {
   constructor() {
-    this.currentStep = 1;
     this.init();
   }
 
@@ -21,9 +20,6 @@ class NavigationManager {
   }
 
   navigateToStep(stepNum) {
-    // 更新当前步骤
-    this.currentStep = stepNum;
-
     // 更新导航栏激活状态
     const navSteps = document.querySelectorAll(".nav-step");
     navSteps.forEach((step) => {
