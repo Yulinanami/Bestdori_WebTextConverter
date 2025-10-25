@@ -231,6 +231,8 @@
 
 .position-select {
   width: 120px;
+  padding: 6px 10px;
+  font-size: var(--text-sm);
 }
 
 .position-offset-group {
