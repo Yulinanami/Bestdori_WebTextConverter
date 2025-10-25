@@ -189,7 +189,6 @@ export const configManager = {
 
   // 渲染配置列表
   renderConfigList() {
-    const configList = document.getElementById("configList");
     // 使用 DataUtils.sortBy 替代手动排序
     const sortedConfig = DataUtils.sortBy(
       Object.entries(state.get("currentConfig")),
