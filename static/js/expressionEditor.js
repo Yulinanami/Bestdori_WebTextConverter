@@ -469,14 +469,22 @@ export const expressionEditor = {
               }
               DOMUtils.toggleDisplay(e.target, false);
 
-              // 更新数据
+              // 更新数据：检查是布局卡片还是对话卡片
+              const action = this.projectFileState.actions.find((a) => a.id === actionId);
               const updates = {};
               updates[type] = "";
-              this._updateMotionAssignment(actionId, assignmentIndex, updates);
+
+              if (action && action.type === "layout") {
+                // 布局卡片：更新 initialState
+                this._updateLayoutInitialState(actionId, updates);
+              } else {
+                // 对话卡片：更新 motions 数组
+                this._updateMotionAssignment(actionId, assignmentIndex, updates);
+              }
               return;
             }
 
-            // 处理layout动作的清除按钮
+            // 处理旧的layout动作清除按钮（向后兼容，虽然现在不会使用这个分支）
             const statusTag = e.target.closest(".character-status-tag");
             if (dropZone && statusTag) {
               const actionId = card.dataset.id;
@@ -506,13 +514,29 @@ export const expressionEditor = {
             const assignmentIndex = parseInt(
               assignmentItem.dataset.assignmentIndex
             );
-            this._updateMotionAssignment(actionId, assignmentIndex, {
-              delay: parseFloat(e.target.value) || 0,
-            });
+            const delayValue = parseFloat(e.target.value) || 0;
+
+            // 检查是布局卡片还是对话卡片
+            const action = this.projectFileState.actions.find((a) => a.id === actionId);
+
+            if (action && action.type === "layout") {
+              // 布局卡片：更新 action.delay
+              this._executeCommand((currentState) => {
+                const layoutAction = currentState.actions.find((a) => a.id === actionId);
+                if (layoutAction) {
+                  layoutAction.delay = delayValue;
+                }
+              });
+            } else {
+              // 对话卡片：更新 motions 数组中的 delay
+              this._updateMotionAssignment(actionId, assignmentIndex, {
+                delay: delayValue,
+              });
+            }
             return;
           }
 
-          // 处理布局卡片的延时输入变化
+          // 处理布局卡片的延时输入变化（旧的 layout-delay-input，向后兼容）
           if (e.target.matches(".layout-delay-input")) {
             const actionId = e.target.dataset.actionId;
             const delayValue = parseFloat(e.target.value) || 0;
@@ -621,17 +645,39 @@ export const expressionEditor = {
 
     DOMUtils.clearElement(footer);
 
-    // 布局动作使用简单的拖放区系统
+    // 布局动作使用与对话卡片相同的分配系统
     if (action.type === "layout") {
       // 初始化initialState
       if (!action.initialState) {
         action.initialState = {};
       }
 
-      // 直接显示拖放区，不显示按钮
-      const statusBar = this._renderStatusBarForAction(action);
-      footer.appendChild(statusBar);
-      this._initSortableForZones(statusBar);
+      // 创建动作分配容器
+      const assignmentsContainer = DOMUtils.createElement("div", {
+        className: "motion-assignments-container",
+      });
+      assignmentsContainer.dataset.actionId = action.id;
+
+      // 为布局卡片创建一个分配项（只有一个角色）
+      const char = {
+        id: action.characterId,
+        name: action.characterName || editorService.getCharacterNameById(action.characterId),
+      };
+
+      if (char.name) {
+        // 将 initialState 转换为 motionData 格式
+        const motionData = {
+          character: char.id,
+          motion: action.initialState.motion || "",
+          expression: action.initialState.expression || "",
+          delay: action.delay || 0,
+        };
+
+        const assignmentItem = this._createAssignmentItem(action, motionData, 0, true);
+        assignmentsContainer.appendChild(assignmentItem);
+      }
+
+      footer.appendChild(assignmentsContainer);
       return;
     }
 
@@ -788,7 +834,7 @@ export const expressionEditor = {
   },
 
   // 创建单个动作/表情分配项UI
-  _createAssignmentItem(action, motionData, index) {
+  _createAssignmentItem(action, motionData, index, isLayoutCard = false) {
     const template = document.getElementById("motion-assignment-item-template");
     const itemFragment = template.content.cloneNode(true);
 
@@ -808,6 +854,14 @@ export const expressionEditor = {
     itemElement.dataset.characterName = characterName;
     itemElement.dataset.assignmentIndex = index;
     itemElement.dataset.actionId = action.id;
+
+    // 如果是布局卡片，隐藏删除按钮
+    if (isLayoutCard) {
+      const removeBtn = itemElement.querySelector(".assignment-remove-btn");
+      if (removeBtn) {
+        DOMUtils.toggleDisplay(removeBtn, false);
+      }
+    }
 
     // 设置角色头像和名称
     const avatarDiv = itemElement.querySelector(".dialogue-avatar");
@@ -846,7 +900,7 @@ export const expressionEditor = {
     delayInput.value = motionData.delay || 0;
 
     // 初始化拖放区
-    this._initSortableForAssignmentZones(itemElement);
+    this._initSortableForAssignmentZones(itemElement, isLayoutCard);
 
     // 事件处理通过timeline的事件委托完成，不需要在这里绑定
 
@@ -854,7 +908,7 @@ export const expressionEditor = {
   },
 
   // 为动作/表情分配项的拖放区初始化 Sortable
-  _initSortableForAssignmentZones(assignmentElement) {
+  _initSortableForAssignmentZones(assignmentElement, isLayoutCard = false) {
     assignmentElement.querySelectorAll(".drop-zone").forEach((zone) => {
       new Sortable(zone, {
         group: {
@@ -894,10 +948,31 @@ export const expressionEditor = {
             // 然后更新数据
             const updates = {};
             updates[type] = value;
-            this._updateMotionAssignment(actionId, assignmentIndex, updates);
+
+            if (isLayoutCard) {
+              // 布局卡片：更新 initialState
+              this._updateLayoutInitialState(actionId, updates);
+            } else {
+              // 对话卡片：更新 motions 数组
+              this._updateMotionAssignment(actionId, assignmentIndex, updates);
+            }
           }
         },
       });
+    });
+  },
+
+  // 更新布局卡片的 initialState
+  _updateLayoutInitialState(actionId, updates) {
+    this._executeCommand((currentState) => {
+      const action = currentState.actions.find((a) => a.id === actionId);
+      if (!action || action.type !== "layout") return;
+
+      if (!action.initialState) {
+        action.initialState = {};
+      }
+
+      Object.assign(action.initialState, updates);
     });
   },
 
@@ -1240,10 +1315,32 @@ export const expressionEditor = {
           footer.appendChild(characterSelector);
           footer.appendChild(setupButton);
         } else if (action.type === "layout") {
-          // layout动作使用旧的拖放系统，直接显示拖放区，无按钮
-          const statusBar = this._renderStatusBarForAction(action);
-          footer.appendChild(statusBar);
-          this._initSortableForZones(statusBar);
+          // layout动作使用与talk相同的分配系统
+          const assignmentsContainer = DOMUtils.createElement("div", {
+            className: "motion-assignments-container",
+          });
+          assignmentsContainer.dataset.actionId = action.id;
+
+          // 为布局卡片创建一个分配项（只有一个角色）
+          const char = {
+            id: action.characterId,
+            name: action.characterName || editorService.getCharacterNameById(action.characterId),
+          };
+
+          if (char.name) {
+            // 将 initialState 转换为 motionData 格式
+            const motionData = {
+              character: char.id,
+              motion: action.initialState?.motion || "",
+              expression: action.initialState?.expression || "",
+              delay: action.delay || 0,
+            };
+
+            const assignmentItem = this._createAssignmentItem(action, motionData, 0, true);
+            assignmentsContainer.appendChild(assignmentItem);
+          }
+
+          footer.appendChild(assignmentsContainer);
         }
       } else {
         // 没有表情数据时显示"设置动作/表情"按钮
