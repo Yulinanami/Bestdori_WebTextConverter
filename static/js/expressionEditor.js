@@ -125,7 +125,7 @@ export const expressionEditor = {
     };
     this.domCache.modal
       ?.querySelector(".modal-close")
-      ?.addEventListener("click", handleCloseAttempt);
+      ?.addEventListener("click", handleCloseAttempt, true);
     document.addEventListener("historychange", (e) => {
       if (this.domCache.modal?.style.display === "flex") {
         if (this.domCache.undoBtn)

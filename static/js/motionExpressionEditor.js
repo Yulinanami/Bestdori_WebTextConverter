@@ -31,7 +31,7 @@ export const motionExpressionEditor = {
       ?.addEventListener("click", (e) => this.handleDelete(e, "expression"));
     const modal = document.getElementById("motionExpressionModal");
     const closeBtn = modal?.querySelector(".modal-close");
-    closeBtn?.addEventListener("click", () => this.handleCloseAttempt());
+    closeBtn?.addEventListener("click", (e) => this.handleCloseAttempt(e), true);
   },
 
   // 打开动作表情编辑器模态框
@@ -176,18 +176,19 @@ export const motionExpressionEditor = {
   },
 
   // 处理关闭编辑器的尝试（检查未保存的更改）
-  handleCloseAttempt() {
+  handleCloseAttempt(e) {
     const isDirty =
       JSON.stringify(this.tempCustomMotions) !==
         JSON.stringify(motionManager.customItems) ||
       JSON.stringify(this.tempCustomExpressions) !==
         JSON.stringify(expressionManager.customItems);
     if (isDirty) {
-      if (confirm("您有未保存的更改，确定要关闭吗？")) {
-        ui.closeModal("motionExpressionModal");
+      if (!confirm("您有未保存的更改，确定要关闭吗？")) {
+        e.stopPropagation();
+        e.preventDefault();
+        return;
       }
-    } else {
-      ui.closeModal("motionExpressionModal");
     }
+    ui.closeModal("motionExpressionModal");
   },
 };
