@@ -590,7 +590,20 @@ export const live2dEditor = {
       groupSize: 50,
       executeFn: (globalOldIndex, globalNewIndex) => {
         this._executeCommand((currentState) => {
+          // 验证索引有效性
+          if (globalOldIndex < 0 || globalOldIndex >= currentState.actions.length) {
+            console.error(`Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`);
+            return;
+          }
+
           const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+
+          // 验证 movedItem 存在
+          if (!movedItem) {
+            console.error(`movedItem is undefined at index ${globalOldIndex}`);
+            return;
+          }
+
           currentState.actions.splice(globalNewIndex, 0, movedItem);
         });
       },

@@ -516,7 +516,8 @@ export const speakerEditor = {
     const usedNames = new Set();
     if (this.projectFileState && this.projectFileState.actions) {
       this.projectFileState.actions.forEach((action) => {
-        if (action.type === "talk" && action.speakers) {
+        // 添加 action 存在性检查，防止数组中有 undefined 元素
+        if (action && action.type === "talk" && action.speakers) {
           action.speakers.forEach((speaker) => {
             if (speaker.name) {
               usedNames.add(speaker.name);
@@ -978,7 +979,20 @@ export const speakerEditor = {
       groupSize: 50,
       executeFn: (globalOldIndex, globalNewIndex) => {
         this._executeCommand((currentState) => {
+          // 验证索引有效性
+          if (globalOldIndex < 0 || globalOldIndex >= currentState.actions.length) {
+            console.error(`Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`);
+            return;
+          }
+
           const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
+
+          // 验证 movedItem 存在
+          if (!movedItem) {
+            console.error(`movedItem is undefined at index ${globalOldIndex}`);
+            return;
+          }
+
           currentState.actions.splice(globalNewIndex, 0, movedItem);
         });
       },
