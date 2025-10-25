@@ -498,7 +498,7 @@ export const costumeManager = {
           await new Promise((resolve) => setTimeout(resolve, 300));
           const customCharacterCostumes = {};
           const customCharacterAvailableCostumes = {};
-          Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
+          Object.entries(state.get("currentConfig")).forEach(([name, _ids]) => {
             if (!this.builtInCharacters.has(name)) {
               const characterKey = this.getCharacterKey(name);
 
@@ -553,10 +553,5 @@ export const costumeManager = {
       this.availableCostumes = this.convertAvailableCostumesToNameBased();
       this.saveLocalAvailableCostumes();
     }
-  },
-
-  getCostumeForCharacter(characterId) {
-    const characterName = configManager.getCharacterNameById(characterId);
-    return state.get("currentCostumes")[characterName] || "";
   },
 };

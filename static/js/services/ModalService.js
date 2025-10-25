@@ -143,15 +143,9 @@ class ModalService {
    * @param {object} options - 选项
    * @returns {Promise<boolean>} 是否确认
    */
-  async confirm(message, options = {}) {
-    const {
-      title = "确认",
-      confirmText = "确定",
-      cancelText = "取消",
-    } = options;
-
+  async confirm(message, _options = {}) {
     return new Promise((resolve) => {
-      // 使用原生 confirm（后续可以改为自定义模态框）
+      // 使用原生 confirm（后续可以改为自定义模态框时使用 options.title、confirmText、cancelText）
       const result = window.confirm(message);
       resolve(result);
     });
@@ -162,11 +156,9 @@ class ModalService {
    * @param {string} message - 警告消息
    * @param {object} options - 选项
    */
-  async alert(message, options = {}) {
-    const { title = "提示" } = options;
-
+  async alert(message, _options = {}) {
     return new Promise((resolve) => {
-      // 使用原生 alert（后续可以改为自定义模态框）
+      // 使用原生 alert（后续可以改为自定义模态框时使用 options.title）
       window.alert(message);
       resolve();
     });

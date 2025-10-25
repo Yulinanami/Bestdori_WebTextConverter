@@ -16,15 +16,6 @@ export const DataUtils = {
   },
 
   /**
-   * 检查是否为对象
-   * @param {any} item - 要检查的项
-   * @returns {boolean}
-   */
-  isObject(item) {
-    return item && typeof item === "object" && !Array.isArray(item);
-  },
-
-  /**
    * 数组排序（支持多字段）
    * @param {Array} arr - 输入数组
    * @param {string|Array} keys - 排序键
