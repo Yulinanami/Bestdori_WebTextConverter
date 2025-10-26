@@ -9,11 +9,15 @@ import { modalService } from "./services/ModalService.js";
 import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const positionManager = {
-  positions: ["leftInside", "center", "rightInside"],
+  positions: ["leftOver", "left", "leftInside", "center", "rightInside", "right", "rightOver"],
   positionNames: {
-    leftInside: "左侧",
+    leftOver: "左外",
+    left: "左",
+    leftInside: "左内",
     center: "中间",
-    rightInside: "右侧",
+    rightInside: "右内",
+    right: "右",
+    rightOver: "右外",
   },
   
   manualPositions: {},
