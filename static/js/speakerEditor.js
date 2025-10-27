@@ -615,84 +615,8 @@ export const speakerEditor = {
           characterId,
           characterName
         );
-        const typeSelect = card.querySelector(".layout-type-select");
-        typeSelect.value = action.layoutType;
-
-        const costumeSelect = card.querySelector(".layout-costume-select");
-        DOMUtils.clearElement(costumeSelect);
-        const availableCostumes =
-          editorService.costumeManager.availableCostumes[characterName] || [];
-        availableCostumes.forEach((costumeId) => {
-          costumeSelect.add(new Option(costumeId, costumeId));
-        });
-
-        if (action.costume && !availableCostumes.includes(action.costume)) {
-          costumeSelect.add(
-            new Option(`${action.costume} (自定义)`, action.costume),
-            0
-          );
-        }
-        costumeSelect.value = action.costume;
-
-        const positionSelect = card.querySelector(".layout-position-select");
-        const toPositionSelect = card.querySelector(
-          ".layout-position-select-to"
-        );
-        DOMUtils.clearElement(positionSelect);
-        DOMUtils.clearElement(toPositionSelect);
-        Object.entries(editorService.positionManager.positionNames).forEach(
-          ([value, name]) => {
-            positionSelect.add(new Option(name, value));
-            toPositionSelect.add(new Option(name, value));
-          }
-        );
-
-        // 主位置显示逻辑：与 live2dEditor 保持一致
-        // - 展开时：所有类型都显示起点（from）
-        // - 未展开时：移动显示终点（to），登场/退场显示起点（from）
-        const isExpanded = action._independentToPosition;
-        const isMove = action.layoutType === "move";
-        const currentPosition = (isExpanded || !isMove)
-          ? (action.position?.from?.side || "center")
-          : (action.position?.to?.side || "center");
-        const currentOffset = (isExpanded || !isMove)
-          ? (action.position?.from?.offsetX || 0)
-          : (action.position?.to?.offsetX || 0);
-
-        positionSelect.value = currentPosition;
-        card.querySelector(".layout-offset-input").value = currentOffset;
-
-        const toPositionContainer = card.querySelector(
-          ".to-position-container"
-        );
-        const toggleBtn = card.querySelector(".toggle-position-btn");
-        const mainPositionLabel = card.querySelector(".main-position-label");
-        const mainOffsetLabel = card.querySelector(".main-offset-label");
-
-        // 根据 _independentToPosition 标记决定是否显示第二个位置行
-        // 与 live2dEditor 保持一致
-        if (action._independentToPosition) {
-          // 展开模式：修改标签为"起点"，显示终点配置
-          toPositionContainer.style.display = "grid";
-          if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
-          if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
-
-          // 填充终点的值
-          const toSide = action.position?.to?.side || "center";
-          const toOffsetX = action.position?.to?.offsetX || 0;
-          toPositionSelect.value = toSide;
-          card.querySelector(".layout-offset-input-to").value = toOffsetX;
-        } else {
-          // 收起模式：标签显示"位置"，隐藏终点配置
-          toPositionContainer.style.display = "none";
-          if (mainPositionLabel) mainPositionLabel.textContent = "位置:";
-          if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
-        }
-
-        // 隐藏切换按钮（此功能仅在 live2d 编辑器中使用）
-        if (toggleBtn) {
-          toggleBtn.classList.add("hidden");
-        }
+        // 使用共享的渲染函数（在对话编辑器中隐藏切换按钮）
+        this.renderLayoutCardControls(card, action, characterName, { showToggleButton: false });
       } else {
         return null;
       }
