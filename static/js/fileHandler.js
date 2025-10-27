@@ -14,6 +14,7 @@ export const fileHandler = {
     ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(eventName, this.preventDefaults, false);
     });
+    
     ["dragenter", "dragover"].forEach((eventName) => {
       fileUpload.addEventListener(
         eventName,
@@ -21,6 +22,7 @@ export const fileHandler = {
         false
       );
     });
+
     ["dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(
         eventName,
@@ -30,10 +32,12 @@ export const fileHandler = {
     });
     fileUpload.addEventListener("drop", this.handleDrop.bind(this), false);
   },
+
   preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
   },
+
   handleDrop(e) {
     e.preventDefault();
     e.stopPropagation();

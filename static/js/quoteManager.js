@@ -48,7 +48,10 @@ export const quoteManager = {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
           // 使用保存的状态，如果没有保存则默认为选中
           const stateKey = `${chars[0]}_${chars[1]}`;
-          const isChecked = presetStates[stateKey] !== undefined ? presetStates[stateKey] : true;
+          const isChecked =
+            presetStates[stateKey] !== undefined
+              ? presetStates[stateKey]
+              : true;
           const element = this.createQuoteOptionElement(
             checkboxId,
             categoryName,
@@ -253,7 +256,7 @@ export const quoteManager = {
           checkbox.checked = currentStates[key];
         }
       });
-      
+
     document.getElementById(openInputId).value = "";
     document.getElementById(closeInputId).value = "";
     ui.showStatus("自定义引号已添加", "success");

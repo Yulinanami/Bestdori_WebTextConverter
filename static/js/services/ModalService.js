@@ -10,7 +10,6 @@ class ModalService {
     this.specialHandlers = {}; // 特殊模态框的处理器
   }
 
-
   /**
    * 初始化模态框服务
    * 绑定全局事件监听器
@@ -135,7 +134,6 @@ class ModalService {
 
     console.log(`[ModalService] 关闭模态框: ${modalId}`);
   }
-
 
   /**
    * 确认对话框

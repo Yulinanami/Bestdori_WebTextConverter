@@ -53,7 +53,7 @@ export const motionExpressionEditor = {
         !allDefaultItems.has(item) && tempCustomItems.includes(item);
       const itemEl = document.createElement("div");
       itemEl.className = "config-list-item";
-      
+
       if (isCustom) {
         itemEl.classList.add("is-custom");
       }

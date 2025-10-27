@@ -18,7 +18,7 @@ export const viewManager = {
       .filter((line) => line.length > 0);
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
-    
+
     if (state.get("projectFile")) {
       state.set("projectFile", null);
     }

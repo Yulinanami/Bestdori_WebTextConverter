@@ -88,14 +88,12 @@ export class BaseEditor {
     this.originalStateOnOpen = JSON.stringify(this.projectFileState);
   }
 
-
   /**
    * 清理备份状态（用于保存后）
    */
   clearBackup() {
     this.originalStateOnOpen = null;
   }
-
 
   /**
    * 获取标题偏移量

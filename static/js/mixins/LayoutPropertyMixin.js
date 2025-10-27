@@ -130,12 +130,14 @@ export const LayoutPropertyMixin = {
     // - 未展开时：移动显示终点（to），登场/退场显示起点（from）
     const isExpanded = action._independentToPosition;
     const isMove = action.layoutType === "move";
-    const currentPosition = (isExpanded || !isMove)
-      ? (action.position?.from?.side || "center")
-      : (action.position?.to?.side || "center");
-    const currentOffset = (isExpanded || !isMove)
-      ? (action.position?.from?.offsetX || 0)
-      : (action.position?.to?.offsetX || 0);
+    const currentPosition =
+      isExpanded || !isMove
+        ? action.position?.from?.side || "center"
+        : action.position?.to?.side || "center";
+    const currentOffset =
+      isExpanded || !isMove
+        ? action.position?.from?.offsetX || 0
+        : action.position?.to?.offsetX || 0;
 
     // 渲染服装选择器
     const costumeSelect = card.querySelector(".layout-costume-select");
@@ -149,10 +151,7 @@ export const LayoutPropertyMixin = {
       });
 
       if (action.costume && !availableCostumes.includes(action.costume)) {
-        const option = new Option(
-          `${action.costume} (自定义)`,
-          action.costume
-        );
+        const option = new Option(`${action.costume} (自定义)`, action.costume);
         costumeSelect.add(option, 0);
       }
 

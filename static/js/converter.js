@@ -37,7 +37,7 @@ function createProjectFileFromText(text) {
           cleanText = match[2].trim();
         }
       }
-      
+
       return {
         id: `action-id-${Date.now()}-${index}`,
         type: "talk",

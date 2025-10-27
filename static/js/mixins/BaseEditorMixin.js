@@ -28,9 +28,12 @@ export const BaseEditorMixin = {
       modalId: this.modalId,
       buttonId: this.saveButtonId,
       applyChanges: () => {
-        editorService.projectManager.save(this.projectFileState, (savedState) => {
-          this.baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-        });
+        editorService.projectManager.save(
+          this.projectFileState,
+          (savedState) => {
+            this.baseEditor.originalStateOnOpen = JSON.stringify(savedState);
+          }
+        );
       },
     });
   },
@@ -91,7 +94,9 @@ export const BaseEditorMixin = {
    */
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
-      currentState.actions = currentState.actions.filter((a) => a.id !== actionId);
+      currentState.actions = currentState.actions.filter(
+        (a) => a.id !== actionId
+      );
     });
   },
 

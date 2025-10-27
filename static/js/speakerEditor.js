@@ -226,7 +226,10 @@ export const speakerEditor = {
     if (deleteButton) {
       const layoutCard = deleteButton.closest(".layout-item");
       if (layoutCard && layoutCard.dataset.id) {
-        LayoutPropertyMixin._deleteLayoutAction.call(this, layoutCard.dataset.id);
+        LayoutPropertyMixin._deleteLayoutAction.call(
+          this,
+          layoutCard.dataset.id
+        );
         return;
       }
     }
@@ -478,7 +481,11 @@ export const speakerEditor = {
         canvas.addEventListener("change", (e) => {
           const card = e.target.closest(".layout-item");
           if (card && e.target.matches("select, input")) {
-            LayoutPropertyMixin._updateLayoutActionProperty.call(this, card.dataset.id, e.target);
+            LayoutPropertyMixin._updateLayoutActionProperty.call(
+              this,
+              card.dataset.id,
+              e.target
+            );
           }
         });
       },
@@ -582,7 +589,6 @@ export const speakerEditor = {
             multiSpeakerBadge.style.display = "none";
             avatarContainer.style.cursor = "default";
           }
-
         } else {
           avatarContainer.style.display = "none";
           speakerNameDiv.style.display = "none";
@@ -616,7 +622,9 @@ export const speakerEditor = {
           characterName
         );
         // 使用共享的渲染函数（在对话编辑器中隐藏切换按钮）
-        this.renderLayoutCardControls(card, action, characterName, { showToggleButton: false });
+        this.renderLayoutCardControls(card, action, characterName, {
+          showToggleButton: false,
+        });
       } else {
         return null;
       }
@@ -727,8 +735,13 @@ export const speakerEditor = {
       executeFn: (globalOldIndex, globalNewIndex) => {
         baseEditor.executeCommand((currentState) => {
           // 验证索引有效性
-          if (globalOldIndex < 0 || globalOldIndex >= currentState.actions.length) {
-            console.error(`Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`);
+          if (
+            globalOldIndex < 0 ||
+            globalOldIndex >= currentState.actions.length
+          ) {
+            console.error(
+              `Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`
+            );
             return;
           }
 
@@ -1015,4 +1028,11 @@ export const speakerEditor = {
 };
 
 // 使用 Object.assign 继承 mixins
-Object.assign(speakerEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin, CharacterListMixin);
+Object.assign(
+  speakerEditor,
+  BaseEditorMixin,
+  EventHandlerMixin,
+  LayoutPropertyMixin,
+  ScrollAnimationMixin,
+  CharacterListMixin
+);

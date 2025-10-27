@@ -19,10 +19,7 @@ import { DataUtils } from "./utils/DataUtils.js";
  * @returns {string}
  */
 function generateFilename(prefix = "file", extension = "json") {
-  const timestamp = new Date()
-    .toISOString()
-    .slice(0, 19)
-    .replace(/[:-]/g, "");
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
   return `${prefix}_${timestamp}.${extension}`;
 }
 
@@ -48,7 +45,7 @@ export const configManager = {
 
         const nameInput = configItem.querySelector(".config-name");
         const name = nameInput.value || "?";
-        
+
         if (event.target.classList.contains("config-ids")) {
           const newIds = event.target.value
             .split(",")
@@ -169,7 +166,7 @@ export const configManager = {
     Object.entries(this.defaultConfig).forEach(([name, ids]) => {
       const characterKey = costumeManager.getCharacterKey(name);
       const primaryId = ids[0];
-      
+
       if (previousCostumes.hasOwnProperty(characterKey)) {
         newCostumes[characterKey] = previousCostumes[characterKey];
         newAvailableCostumes[characterKey] =

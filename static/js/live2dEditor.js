@@ -162,8 +162,12 @@ export const live2dEditor = {
           // 处理切换位置配置按钮
           if (e.target.closest(".toggle-position-btn")) {
             const toggleBtn = card.querySelector(".toggle-position-btn");
-            const toPositionContainer = card.querySelector(".to-position-container");
-            const mainPositionLabel = card.querySelector(".main-position-label");
+            const toPositionContainer = card.querySelector(
+              ".to-position-container"
+            );
+            const mainPositionLabel = card.querySelector(
+              ".main-position-label"
+            );
             const mainOffsetLabel = card.querySelector(".main-offset-label");
             const isExpanded = toggleBtn.classList.contains("expanded");
             const actionId = card.dataset.id;
@@ -177,29 +181,38 @@ export const live2dEditor = {
 
               // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
               this._executeCommand((currentState) => {
-                const currentAction = currentState.actions.find(a => a.id === actionId);
+                const currentAction = currentState.actions.find(
+                  (a) => a.id === actionId
+                );
                 if (currentAction && currentAction.position) {
                   delete currentAction._independentToPosition;
-                  if (!currentAction.position.to) currentAction.position.to = {};
-                  currentAction.position.to.side = currentAction.position.from?.side || "center";
-                  currentAction.position.to.offsetX = currentAction.position.from?.offsetX || 0;
+                  if (!currentAction.position.to)
+                    currentAction.position.to = {};
+                  currentAction.position.to.side =
+                    currentAction.position.from?.side || "center";
+                  currentAction.position.to.offsetX =
+                    currentAction.position.from?.offsetX || 0;
                 }
               });
 
               // 更新主位置UI显示（根据卡片类型决定显示 from 还是 to）
-              const action = this.projectFileState.actions.find(a => a.id === actionId);
+              const action = this.projectFileState.actions.find(
+                (a) => a.id === actionId
+              );
               if (action) {
                 const isMove = action.layoutType === "move";
                 // 移动卡片显示终点，其他卡片显示起点
                 const displaySide = isMove
-                  ? (action.position?.to?.side || "center")
-                  : (action.position?.from?.side || "center");
+                  ? action.position?.to?.side || "center"
+                  : action.position?.from?.side || "center";
                 const displayOffsetX = isMove
-                  ? (action.position?.to?.offsetX || 0)
-                  : (action.position?.from?.offsetX || 0);
+                  ? action.position?.to?.offsetX || 0
+                  : action.position?.from?.offsetX || 0;
 
-                card.querySelector(".layout-position-select").value = displaySide;
-                card.querySelector(".layout-offset-input").value = displayOffsetX;
+                card.querySelector(".layout-position-select").value =
+                  displaySide;
+                card.querySelector(".layout-offset-input").value =
+                  displayOffsetX;
               }
             } else {
               // 展开：修改标签为"起点"，显示终点容器，设置独立标记
@@ -210,14 +223,18 @@ export const live2dEditor = {
 
               // 设置独立配置标记，阻止自动同步
               this._executeCommand((currentState) => {
-                const currentAction = currentState.actions.find(a => a.id === actionId);
+                const currentAction = currentState.actions.find(
+                  (a) => a.id === actionId
+                );
                 if (currentAction) {
                   currentAction._independentToPosition = true;
                 }
               });
 
               // 初始化位置UI显示
-              const action = this.projectFileState.actions.find(a => a.id === actionId);
+              const action = this.projectFileState.actions.find(
+                (a) => a.id === actionId
+              );
               if (action) {
                 // 主位置（起点）显示 from 的值
                 const fromSide = action.position?.from?.side || "center";
@@ -226,8 +243,14 @@ export const live2dEditor = {
                 card.querySelector(".layout-offset-input").value = fromOffsetX;
 
                 // 终点位置显示 to 的值
-                const toSide = action.position?.to?.side || action.position?.from?.side || "center";
-                const toOffsetX = action.position?.to?.offsetX ?? action.position?.from?.offsetX ?? 0;
+                const toSide =
+                  action.position?.to?.side ||
+                  action.position?.from?.side ||
+                  "center";
+                const toOffsetX =
+                  action.position?.to?.offsetX ??
+                  action.position?.from?.offsetX ??
+                  0;
                 card.querySelector(".layout-position-select-to").value = toSide;
                 card.querySelector(".layout-offset-input-to").value = toOffsetX;
               }
@@ -351,8 +374,13 @@ export const live2dEditor = {
       executeFn: (globalOldIndex, globalNewIndex) => {
         this._executeCommand((currentState) => {
           // 验证索引有效性
-          if (globalOldIndex < 0 || globalOldIndex >= currentState.actions.length) {
-            console.error(`Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`);
+          if (
+            globalOldIndex < 0 ||
+            globalOldIndex >= currentState.actions.length
+          ) {
+            console.error(
+              `Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`
+            );
             return;
           }
 
@@ -636,7 +664,9 @@ export const live2dEditor = {
         );
 
         // 使用共享的渲染函数（在 live2d 编辑器中显示切换按钮）
-        this.renderLayoutCardControls(card, action, characterName, { showToggleButton: true });
+        this.renderLayoutCardControls(card, action, characterName, {
+          showToggleButton: true,
+        });
       } else {
         return null;
       }
@@ -751,4 +781,11 @@ export const live2dEditor = {
 };
 
 // 继承 mixins
-Object.assign(live2dEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin, CharacterListMixin);
+Object.assign(
+  live2dEditor,
+  BaseEditorMixin,
+  EventHandlerMixin,
+  LayoutPropertyMixin,
+  ScrollAnimationMixin,
+  CharacterListMixin
+);

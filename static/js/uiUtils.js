@@ -20,7 +20,7 @@ export const ui = {
 
   showStatus(message, type) {
     const statusElement = document.getElementById("statusMessage");
-    
+
     if (!statusElement) return;
     clearTimeout(statusTimer);
     statusElement.textContent = message;
@@ -180,7 +180,7 @@ export function renderGroupedView({
     groupHeader.style.transition = "all 0.2s ease";
     groupHeader.addEventListener("click", () => onGroupClick(i));
     fragment.appendChild(groupHeader);
-    
+
     if (i === activeGroupIndex) {
       groupHeader.classList.add("active");
       groupHeader.textContent = `▼ 对话 ${startNum} - ${endNum} (${

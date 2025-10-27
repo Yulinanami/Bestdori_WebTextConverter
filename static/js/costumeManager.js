@@ -24,7 +24,7 @@ export const costumeManager = {
   init() {
     const costumeList = document.getElementById("costumeList");
     if (!costumeList) return;
-    
+
     costumeList.addEventListener("click", (e) => {
       const target = e.target;
       const toggleBtn = target.closest(".toggle-costume-details-btn");
@@ -40,7 +40,7 @@ export const costumeManager = {
         this.addNewCostume(characterKey, safeDomId);
         return;
       }
-      
+
       const dbBtn = target.closest(".open-live2d-db-btn");
       if (dbBtn) {
         this.openLive2DDatabase();
@@ -94,7 +94,8 @@ export const costumeManager = {
         const characterKey = this.getCharacterKey(name);
 
         // 检查是否为自定义角色（不在内置角色列表中）
-        const isCustomCharacter = !this.builtInCharacters || !this.builtInCharacters.has(name);
+        const isCustomCharacter =
+          !this.builtInCharacters || !this.builtInCharacters.has(name);
 
         // 自定义角色初始化为空数组，内置角色使用默认服装列表
         if (isCustomCharacter) {
@@ -134,7 +135,8 @@ export const costumeManager = {
         const characterKey = this.getCharacterKey(name);
 
         // 检查是否为自定义角色
-        const isCustomCharacter = !this.builtInCharacters || !this.builtInCharacters.has(name);
+        const isCustomCharacter =
+          !this.builtInCharacters || !this.builtInCharacters.has(name);
 
         // 自定义角色默认为空，内置角色使用默认服装
         if (isCustomCharacter) {
@@ -143,7 +145,8 @@ export const costumeManager = {
           const defaultCostume = this.defaultCostumes[primaryId];
 
           if (defaultCostume) {
-            const availableList = this.defaultAvailableCostumes[primaryId] || [];
+            const availableList =
+              this.defaultAvailableCostumes[primaryId] || [];
             if (availableList.includes(defaultCostume)) {
               nameBased[characterKey] = defaultCostume;
             } else {
@@ -184,7 +187,6 @@ export const costumeManager = {
       } else {
         this.availableCostumes = this.convertAvailableCostumesToNameBased();
       }
-
     } catch (error) {
       console.error("加载服装配置失败:", error);
       ui.showStatus(error.message || "无法加载服装配置", "error");

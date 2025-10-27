@@ -119,11 +119,17 @@ export const expressionEditor = {
       expressionEditor.domCache.motionList,
       expressionEditor.domCache.expressionList,
     ];
-    ScrollAnimationMixin.handleDragScrolling.call(expressionEditor, e, containers);
+    ScrollAnimationMixin.handleDragScrolling.call(
+      expressionEditor,
+      e,
+      containers
+    );
   },
 
   afterImport() {
-    this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
+    this.stagedCharacters = this._calculateStagedCharacters(
+      this.projectFileState
+    );
     this.renderTimeline();
   },
 
@@ -251,8 +257,10 @@ export const expressionEditor = {
           }
 
           // 处理角色选择器中的角色点击
-          if (e.target.matches(".character-selector-item") ||
-              e.target.closest(".character-selector-item")) {
+          if (
+            e.target.matches(".character-selector-item") ||
+            e.target.closest(".character-selector-item")
+          ) {
             const characterItem = e.target.closest(".character-selector-item");
             if (characterItem) {
               const characterId = parseInt(characterItem.dataset.characterId);
@@ -312,7 +320,9 @@ export const expressionEditor = {
               DOMUtils.toggleDisplay(e.target, false);
 
               // 更新数据：检查是布局卡片还是对话卡片
-              const action = this.projectFileState.actions.find((a) => a.id === actionId);
+              const action = this.projectFileState.actions.find(
+                (a) => a.id === actionId
+              );
               const updates = {};
               updates[type] = "";
 
@@ -321,7 +331,11 @@ export const expressionEditor = {
                 this._updateLayoutInitialState(actionId, updates);
               } else {
                 // 对话卡片：更新 motions 数组
-                this._updateMotionAssignment(actionId, assignmentIndex, updates);
+                this._updateMotionAssignment(
+                  actionId,
+                  assignmentIndex,
+                  updates
+                );
               }
               return;
             }
@@ -345,12 +359,16 @@ export const expressionEditor = {
             const delayValue = parseFloat(e.target.value) || 0;
 
             // 检查是布局卡片还是对话卡片
-            const action = this.projectFileState.actions.find((a) => a.id === actionId);
+            const action = this.projectFileState.actions.find(
+              (a) => a.id === actionId
+            );
 
             if (action && action.type === "layout") {
               // 布局卡片：更新 action.delay
               this._executeCommand((currentState) => {
-                const layoutAction = currentState.actions.find((a) => a.id === actionId);
+                const layoutAction = currentState.actions.find(
+                  (a) => a.id === actionId
+                );
                 if (layoutAction) {
                   layoutAction.delay = delayValue;
                 }
@@ -370,7 +388,9 @@ export const expressionEditor = {
             const delayValue = parseFloat(e.target.value) || 0;
 
             this._executeCommand((currentState) => {
-              const action = currentState.actions.find((a) => a.id === actionId);
+              const action = currentState.actions.find(
+                (a) => a.id === actionId
+              );
               if (action) {
                 action.delay = delayValue;
               }
@@ -489,7 +509,9 @@ export const expressionEditor = {
       // 为布局卡片创建一个分配项（只有一个角色）
       const char = {
         id: action.characterId,
-        name: action.characterName || editorService.getCharacterNameById(action.characterId),
+        name:
+          action.characterName ||
+          editorService.getCharacterNameById(action.characterId),
       };
 
       if (char.name) {
@@ -501,7 +523,12 @@ export const expressionEditor = {
           delay: action.delay || 0,
         };
 
-        const assignmentItem = this._createAssignmentItem(action, motionData, 0, true);
+        const assignmentItem = this._createAssignmentItem(
+          action,
+          motionData,
+          0,
+          true
+        );
         assignmentsContainer.appendChild(assignmentItem);
       }
 
@@ -676,7 +703,8 @@ export const expressionEditor = {
       (c) => c.id === motionData.character
     );
     const characterName =
-      character?.name || editorService.getCharacterNameById(motionData.character);
+      character?.name ||
+      editorService.getCharacterNameById(motionData.character);
 
     itemElement.dataset.characterId = motionData.character;
     itemElement.dataset.characterName = characterName;
@@ -808,7 +836,8 @@ export const expressionEditor = {
   _updateMotionAssignment(actionId, assignmentIndex, updates) {
     this._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
-      if (!action || !action.motions || !action.motions[assignmentIndex]) return;
+      if (!action || !action.motions || !action.motions[assignmentIndex])
+        return;
 
       Object.assign(action.motions[assignmentIndex], updates);
     });
@@ -866,7 +895,6 @@ export const expressionEditor = {
     }
     return false;
   },
-
 
   // 初始化动作和表情资源库的拖放功能
   initDragAndDropForLibraries() {
@@ -967,7 +995,6 @@ export const expressionEditor = {
             firstSpeaker.characterId,
             firstSpeaker.name
           );
-
         } else {
           nameDiv.textContent = "旁白";
           avatarDiv.classList.add("fallback");
@@ -996,7 +1023,9 @@ export const expressionEditor = {
         );
 
         // 使用共享的渲染函数（在动作/表情编辑器中隐藏切换按钮）
-        this.renderLayoutCardControls(card, action, characterName, { showToggleButton: false });
+        this.renderLayoutCardControls(card, action, characterName, {
+          showToggleButton: false,
+        });
       } else {
         return null;
       }
@@ -1051,7 +1080,9 @@ export const expressionEditor = {
           // 为布局卡片创建一个分配项（只有一个角色）
           const char = {
             id: action.characterId,
-            name: action.characterName || editorService.getCharacterNameById(action.characterId),
+            name:
+              action.characterName ||
+              editorService.getCharacterNameById(action.characterId),
           };
 
           if (char.name) {
@@ -1063,7 +1094,12 @@ export const expressionEditor = {
               delay: action.delay || 0,
             };
 
-            const assignmentItem = this._createAssignmentItem(action, motionData, 0, true);
+            const assignmentItem = this._createAssignmentItem(
+              action,
+              motionData,
+              0,
+              true
+            );
             assignmentsContainer.appendChild(assignmentItem);
           }
 
@@ -1120,7 +1156,6 @@ export const expressionEditor = {
         renderItemFn: renderSingleCard,
         groupSize: groupSize,
       });
-
     } else {
       DOMUtils.clearElement(timeline);
       const fragment = document.createDocumentFragment();
@@ -1131,7 +1166,6 @@ export const expressionEditor = {
       timeline.appendChild(fragment);
     }
   },
-
 
   // 渲染动作和表情资源库（根据在场角色动态生成可用列表）
   renderLibraries() {
@@ -1297,4 +1331,10 @@ export const expressionEditor = {
 };
 
 // 应用 mixins
-Object.assign(expressionEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin);
+Object.assign(
+  expressionEditor,
+  BaseEditorMixin,
+  EventHandlerMixin,
+  LayoutPropertyMixin,
+  ScrollAnimationMixin
+);

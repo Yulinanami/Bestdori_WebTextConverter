@@ -29,7 +29,7 @@ export const projectManager = {
     const dataStr = JSON.stringify(currentState, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
+
     const filename =
       currentState.projectName || `bestdori_project_${Date.now()}.json`;
     const a = document.createElement("a");

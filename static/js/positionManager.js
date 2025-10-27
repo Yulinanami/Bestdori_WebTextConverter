@@ -19,7 +19,7 @@ export const positionManager = {
     rightInside: "右内",
     rightOver: "右外",
   },
-  
+
   manualPositions: {},
   positionCounter: 0,
   tempManualPositions: {},
@@ -361,7 +361,10 @@ export const positionManager = {
   getCharacterPositionConfig(characterName, appearanceOrder) {
     if (this.autoPositionMode) {
       return {
-        position: this.autoLayoutPositions[appearanceOrder % this.autoLayoutPositions.length],
+        position:
+          this.autoLayoutPositions[
+            appearanceOrder % this.autoLayoutPositions.length
+          ],
         offset: 0,
       };
     } else {

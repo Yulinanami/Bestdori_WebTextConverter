@@ -39,10 +39,7 @@ export const ScrollAnimationMixin = {
 
     // 启动或更新滚动
     if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== this.scrollSpeed ||
-        !this.scrollAnimationFrame
-      ) {
+      if (newScrollSpeed !== this.scrollSpeed || !this.scrollAnimationFrame) {
         this.scrollSpeed = newScrollSpeed;
         this.startScrolling(scrollTarget);
       }
