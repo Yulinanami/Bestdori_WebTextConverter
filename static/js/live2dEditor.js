@@ -163,13 +163,17 @@ export const live2dEditor = {
           if (e.target.closest(".toggle-position-btn")) {
             const toggleBtn = card.querySelector(".toggle-position-btn");
             const toPositionContainer = card.querySelector(".to-position-container");
+            const mainPositionLabel = card.querySelector(".main-position-label");
+            const mainOffsetLabel = card.querySelector(".main-offset-label");
             const isExpanded = toggleBtn.classList.contains("expanded");
             const actionId = card.dataset.id;
 
             if (isExpanded) {
-              // 收起：隐藏终点位置容器，并清除独立的终点位置配置
+              // 收起：修改标签为"位置"，隐藏终点容器，清除独立配置标记
               toggleBtn.classList.remove("expanded");
-              DOMUtils.toggleDisplay(toPositionContainer, false);
+              if (mainPositionLabel) mainPositionLabel.textContent = "位置:";
+              if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
+              toPositionContainer.style.display = "none";
 
               // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
               this._executeCommand((currentState) => {
@@ -181,10 +185,27 @@ export const live2dEditor = {
                   currentAction.position.to.offsetX = currentAction.position.from?.offsetX || 0;
                 }
               });
+
+              // 更新主位置UI显示（根据卡片类型决定显示 from 还是 to）
+              const action = this.projectFileState.actions.find(a => a.id === actionId);
+              if (action) {
+                const isMove = action.layoutType === "move";
+                // 移动卡片显示终点，其他卡片显示起点
+                const displaySide = isMove
+                  ? (action.position?.to?.side || "center")
+                  : (action.position?.from?.side || "center");
+                const displayOffsetX = isMove
+                  ? (action.position?.to?.offsetX || 0)
+                  : (action.position?.from?.offsetX || 0);
+
+                card.querySelector(".layout-position-select").value = displaySide;
+                card.querySelector(".layout-offset-input").value = displayOffsetX;
+              }
             } else {
-              // 展开：显示终点位置容器，设置独立标记
+              // 展开：修改标签为"起点"，显示终点容器，设置独立标记
               toggleBtn.classList.add("expanded");
-              DOMUtils.toggleDisplay(toPositionContainer, true);
+              if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
+              if (mainOffsetLabel) mainOffsetLabel.textContent = "起偏移:";
               toPositionContainer.style.display = "grid";
 
               // 设置独立配置标记，阻止自动同步
@@ -195,14 +216,18 @@ export const live2dEditor = {
                 }
               });
 
-              // 初始化终点位置UI显示（使用当前 to 值，如果没有则使用 from 值）
+              // 初始化位置UI显示
               const action = this.projectFileState.actions.find(a => a.id === actionId);
               if (action) {
+                // 主位置（起点）显示 from 的值
                 const fromSide = action.position?.from?.side || "center";
                 const fromOffsetX = action.position?.from?.offsetX || 0;
-                const toSide = action.position?.to?.side || fromSide;
-                const toOffsetX = action.position?.to?.offsetX ?? fromOffsetX;
+                card.querySelector(".layout-position-select").value = fromSide;
+                card.querySelector(".layout-offset-input").value = fromOffsetX;
 
+                // 终点位置显示 to 的值
+                const toSide = action.position?.to?.side || action.position?.from?.side || "center";
+                const toOffsetX = action.position?.to?.offsetX ?? action.position?.from?.offsetX ?? 0;
                 card.querySelector(".layout-position-select-to").value = toSide;
                 card.querySelector(".layout-offset-input-to").value = toOffsetX;
               }
@@ -614,12 +639,19 @@ export const live2dEditor = {
         typeSelect.value = action.layoutType;
         const positionSelect = card.querySelector(".layout-position-select");
         const offsetInput = card.querySelector(".layout-offset-input");
-        const toPositionSelect = card.querySelector(
-          ".layout-position-select-to"
-        );
 
-        const currentPosition = action.position?.from?.side || "center";
-        const currentOffset = action.position?.from?.offsetX || 0;
+        // 主位置显示逻辑：
+        // - 展开时：所有类型都显示起点（from）
+        // - 未展开时：移动显示终点（to），登场/退场显示起点（from）
+        const isExpanded = action._independentToPosition;
+        const isMove = action.layoutType === "move";
+        const currentPosition = (isExpanded || !isMove)
+          ? (action.position?.from?.side || "center")
+          : (action.position?.to?.side || "center");
+        const currentOffset = (isExpanded || !isMove)
+          ? (action.position?.from?.offsetX || 0)
+          : (action.position?.to?.offsetX || 0);
+
         const costumeSelect = card.querySelector(".layout-costume-select");
         DOMUtils.clearElement(costumeSelect);
         const availableCostumes =
@@ -638,57 +670,57 @@ export const live2dEditor = {
         }
 
         costumeSelect.value = action.costume;
+
+        // 填充主位置下拉选项
         DOMUtils.clearElement(positionSelect);
-        DOMUtils.clearElement(toPositionSelect);
         Object.entries(editorService.positionManager.positionNames).forEach(
           ([value, name]) => {
-            const optionFrom = new Option(name, value);
-            const optionTo = new Option(name, value);
-            positionSelect.add(optionFrom);
-            toPositionSelect.add(optionTo);
+            positionSelect.add(new Option(name, value));
           }
         );
         positionSelect.value = currentPosition;
         offsetInput.value = currentOffset;
-        const toPositionContainer = card.querySelector(
-          ".to-position-container"
-        );
+
+        const toPositionContainer = card.querySelector(".to-position-container");
+        const toPositionSelect = card.querySelector(".layout-position-select-to");
         const toggleBtn = card.querySelector(".toggle-position-btn");
+        const mainPositionLabel = card.querySelector(".main-position-label");
+        const mainOffsetLabel = card.querySelector(".main-offset-label");
 
-        if (action.layoutType === "move") {
-          // 移动类型：始终显示终点位置，隐藏切换按钮
-          DOMUtils.toggleDisplay(toPositionContainer, true);
-          toPositionContainer.style.display = "grid"; // 保持 grid 布局
-          card.querySelector(".layout-position-select-to").value =
-            action.position?.to?.side || "center";
-          card.querySelector(".layout-offset-input-to").value =
-            action.position?.to?.offsetX || 0;
-          if (toggleBtn) toggleBtn.classList.add("hidden");
-        } else if (action.layoutType === "appear" || action.layoutType === "hide") {
-          // 登场/退场类型：显示切换按钮，根据展开状态控制终点位置容器
-          if (toggleBtn) {
-            toggleBtn.classList.remove("hidden");
-
-            // 检查是否设置了独立配置标记
-            if (action._independentToPosition) {
-              // 有独立的终点位置配置，展开显示
-              toggleBtn.classList.add("expanded");
-              DOMUtils.toggleDisplay(toPositionContainer, true);
-              toPositionContainer.style.display = "grid";
-              const toSide = action.position?.to?.side || action.position?.from?.side || "center";
-              const toOffsetX = action.position?.to?.offsetX ?? action.position?.from?.offsetX ?? 0;
-              card.querySelector(".layout-position-select-to").value = toSide;
-              card.querySelector(".layout-offset-input-to").value = toOffsetX;
-            } else {
-              // 没有独立配置，收起
-              toggleBtn.classList.remove("expanded");
-              DOMUtils.toggleDisplay(toPositionContainer, false);
+        // 填充终点的下拉选项
+        if (toPositionSelect) {
+          DOMUtils.clearElement(toPositionSelect);
+          Object.entries(editorService.positionManager.positionNames).forEach(
+            ([value, name]) => {
+              toPositionSelect.add(new Option(name, value));
             }
+          );
+        }
+
+        // 显示切换按钮（所有布局类型都显示）
+        if (toggleBtn) {
+          toggleBtn.classList.remove("hidden");
+
+          // 检查是否设置了独立配置标记
+          if (action._independentToPosition) {
+            // 展开模式：修改标签为"起点"，显示终点配置
+            toggleBtn.classList.add("expanded");
+            if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
+            if (mainOffsetLabel) mainOffsetLabel.textContent = "起偏移:";
+            toPositionContainer.style.display = "grid";
+
+            // 填充终点的值
+            const toSide = action.position?.to?.side || "center";
+            const toOffsetX = action.position?.to?.offsetX || 0;
+            card.querySelector(".layout-position-select-to").value = toSide;
+            card.querySelector(".layout-offset-input-to").value = toOffsetX;
+          } else {
+            // 收起模式：标签显示"位置"，隐藏终点配置
+            toggleBtn.classList.remove("expanded");
+            if (mainPositionLabel) mainPositionLabel.textContent = "位置:";
+            if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
+            toPositionContainer.style.display = "none";
           }
-        } else {
-          // 其他类型：隐藏终点位置和切换按钮
-          DOMUtils.toggleDisplay(toPositionContainer, false);
-          if (toggleBtn) toggleBtn.classList.add("hidden");
         }
       } else {
         return null;

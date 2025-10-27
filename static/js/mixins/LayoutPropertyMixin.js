@@ -29,25 +29,47 @@ export const LayoutPropertyMixin = {
 
     "layout-position-select": (action, value) => {
       if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.side = value;
 
-      // 非移动类型时同时设置 to（除非用户手动展开了独立配置）
-      if (action.layoutType !== "move" && !action._independentToPosition) {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.side = value;
+      // 未展开时的行为
+      if (!action._independentToPosition) {
+        // 移动类型：主位置是终点，修改 to，from 保持不变
+        if (action.layoutType === "move") {
+          if (!action.position.to) action.position.to = {};
+          action.position.to.side = value;
+        } else {
+          // 登场/退场：主位置是起点，同时修改 from 和 to
+          if (!action.position.from) action.position.from = {};
+          action.position.from.side = value;
+          if (!action.position.to) action.position.to = {};
+          action.position.to.side = value;
+        }
+      } else {
+        // 展开时：主位置是起点，只修改 from
+        if (!action.position.from) action.position.from = {};
+        action.position.from.side = value;
       }
     },
 
     "layout-offset-input": (action, value) => {
       if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.offsetX = value;
 
-      // 非移动类型时同时设置 to（除非用户手动展开了独立配置）
-      if (action.layoutType !== "move" && !action._independentToPosition) {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.offsetX = value;
+      // 未展开时的行为
+      if (!action._independentToPosition) {
+        // 移动类型：主位置是终点，修改 to，from 保持不变
+        if (action.layoutType === "move") {
+          if (!action.position.to) action.position.to = {};
+          action.position.to.offsetX = value;
+        } else {
+          // 登场/退场：主位置是起点，同时修改 from 和 to
+          if (!action.position.from) action.position.from = {};
+          action.position.from.offsetX = value;
+          if (!action.position.to) action.position.to = {};
+          action.position.to.offsetX = value;
+        }
+      } else {
+        // 展开时：主位置是起点，只修改 from
+        if (!action.position.from) action.position.from = {};
+        action.position.from.offsetX = value;
       }
     },
   },
