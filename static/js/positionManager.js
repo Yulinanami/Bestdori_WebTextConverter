@@ -10,6 +10,8 @@ import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const positionManager = {
   positions: ["leftOver", "leftInside", "center", "rightInside", "rightOver"],
+  // 快速布局时使用的位置循环顺序（左内 → 中间 → 右内）
+  autoLayoutPositions: ["leftInside", "center", "rightInside"],
   positionNames: {
     leftOver: "左外",
     leftInside: "左内",
@@ -359,7 +361,7 @@ export const positionManager = {
   getCharacterPositionConfig(characterName, appearanceOrder) {
     if (this.autoPositionMode) {
       return {
-        position: this.positions[appearanceOrder % this.positions.length],
+        position: this.autoLayoutPositions[appearanceOrder % this.autoLayoutPositions.length],
         offset: 0,
       };
     } else {
