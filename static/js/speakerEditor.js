@@ -647,22 +647,46 @@ export const speakerEditor = {
           }
         );
 
-        positionSelect.value = action.position?.from?.side || "center";
-        card.querySelector(".layout-offset-input").value =
-          action.position?.from?.offsetX || 0;
+        // 主位置显示逻辑：与 live2dEditor 保持一致
+        // - 展开时：所有类型都显示起点（from）
+        // - 未展开时：移动显示终点（to），登场/退场显示起点（from）
+        const isExpanded = action._independentToPosition;
+        const isMove = action.layoutType === "move";
+        const currentPosition = (isExpanded || !isMove)
+          ? (action.position?.from?.side || "center")
+          : (action.position?.to?.side || "center");
+        const currentOffset = (isExpanded || !isMove)
+          ? (action.position?.from?.offsetX || 0)
+          : (action.position?.to?.offsetX || 0);
+
+        positionSelect.value = currentPosition;
+        card.querySelector(".layout-offset-input").value = currentOffset;
 
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
         const toggleBtn = card.querySelector(".toggle-position-btn");
+        const mainPositionLabel = card.querySelector(".main-position-label");
+        const mainOffsetLabel = card.querySelector(".main-offset-label");
 
-        if (action.layoutType === "move") {
+        // 根据 _independentToPosition 标记决定是否显示第二个位置行
+        // 与 live2dEditor 保持一致
+        if (action._independentToPosition) {
+          // 展开模式：修改标签为"起点"，显示终点配置
           toPositionContainer.style.display = "grid";
-          toPositionSelect.value = action.position?.to?.side || "center";
-          card.querySelector(".layout-offset-input-to").value =
-            action.position?.to?.offsetX || 0;
+          if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
+          if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
+
+          // 填充终点的值
+          const toSide = action.position?.to?.side || "center";
+          const toOffsetX = action.position?.to?.offsetX || 0;
+          toPositionSelect.value = toSide;
+          card.querySelector(".layout-offset-input-to").value = toOffsetX;
         } else {
+          // 收起模式：标签显示"位置"，隐藏终点配置
           toPositionContainer.style.display = "none";
+          if (mainPositionLabel) mainPositionLabel.textContent = "位置:";
+          if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
         }
 
         // 隐藏切换按钮（此功能仅在 live2d 编辑器中使用）

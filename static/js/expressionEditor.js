@@ -1058,7 +1058,7 @@ export const expressionEditor = {
           // 展开模式：修改标签为"起点"，显示终点配置
           toPositionContainer.style.display = "grid";
           if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
-          if (mainOffsetLabel) mainOffsetLabel.textContent = "起偏移:";
+          if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
 
           // 填充终点的值
           const toSide = action.position?.to?.side || "center";
