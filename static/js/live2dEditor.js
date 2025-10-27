@@ -205,7 +205,7 @@ export const live2dEditor = {
               // 展开：修改标签为"起点"，显示终点容器，设置独立标记
               toggleBtn.classList.add("expanded");
               if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
-              if (mainOffsetLabel) mainOffsetLabel.textContent = "起偏移:";
+              if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
               toPositionContainer.style.display = "grid";
 
               // 设置独立配置标记，阻止自动同步
@@ -706,7 +706,7 @@ export const live2dEditor = {
             // 展开模式：修改标签为"起点"，显示终点配置
             toggleBtn.classList.add("expanded");
             if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
-            if (mainOffsetLabel) mainOffsetLabel.textContent = "起偏移:";
+            if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
             toPositionContainer.style.display = "grid";
 
             // 填充终点的值
