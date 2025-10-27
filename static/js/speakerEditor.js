@@ -8,6 +8,11 @@ import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { modalService } from "./services/ModalService.js";
+import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
+import { CharacterListMixin } from "./mixins/CharacterListMixin.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -24,6 +29,13 @@ const baseEditor = new BaseEditor({
 });
 
 export const speakerEditor = {
+  baseEditor,
+  modalId: "speakerEditorModal",
+  saveButtonId: "saveSpeakersBtn",
+  importButtonId: "importProjectBtn",
+  exportButtonId: "exportProjectBtn",
+  characterListId: "speakerEditorCharacterList",
+
   // 使用 baseEditor 代理状态管理
   get projectFileState() {
     return baseEditor.projectFileState;
@@ -57,11 +69,6 @@ export const speakerEditor = {
   domCache: {},
   // 计算结果缓存
   _usedCharacterIdsCache: null,
-  // Sortable 实例管理
-  sortableInstances: [],
-  // 滚动动画
-  scrollAnimationFrame: null,
-  scrollSpeed: 0,
 
   // 初始化编辑器，绑定事件监听器和快捷键
   init() {
@@ -93,23 +100,8 @@ export const speakerEditor = {
       .getElementById("openSpeakerEditorBtn")
       ?.addEventListener("click", () => this.open());
     document
-      .getElementById("saveSpeakersBtn")
-      ?.addEventListener("click", () => this.save());
-    document
-      .getElementById("exportProjectBtn")
-      ?.addEventListener("click", () => this.exportProject());
-    document
-      .getElementById("importProjectBtn")
-      ?.addEventListener("click", () => this.importProject());
-    document
       .getElementById("resetSpeakersBtn")
       ?.addEventListener("click", () => this.reset());
-    this.domCache.undoBtn?.addEventListener("click", () =>
-      historyManager.undo()
-    );
-    this.domCache.redoBtn?.addEventListener("click", () =>
-      historyManager.redo()
-    );
     this.domCache.toggleMultiSelectBtn?.addEventListener("click", () =>
       this._toggleMultiSelectMode()
     );
@@ -117,65 +109,15 @@ export const speakerEditor = {
       this._toggleTextEditMode()
     );
 
-    const characterList = this.domCache.characterList;
-    if (characterList) {
-      characterList.addEventListener("click", (e) => {
-        const pinBtn = e.target.closest(".pin-btn");
-        if (pinBtn) {
-          e.stopPropagation();
-          e.preventDefault();
-          const characterItem = pinBtn.closest(".character-item");
-          if (characterItem && characterItem.dataset.characterName) {
-            const characterName = characterItem.dataset.characterName;
-            editorService.togglePinCharacter(characterName);
-            const usedIds = this._getUsedCharacterIds();
-            this.renderCharacterList(usedIds);
-          }
-        }
-      });
-    }
+    // 初始化通用事件
+    this.initCommonEvents();
+
+    // 初始化置顶按钮处理
+    this.initPinButtonHandler();
 
     if (this.domCache.modal) {
       this.domCache.modal.focus();
     }
-
-    const handleCloseAttempt = (e) => {
-      if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
-        if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-          e.stopPropagation();
-          e.preventDefault();
-          return;
-        }
-      }
-      this._closeEditor();
-    };
-
-    this.domCache.modal
-      ?.querySelector(".modal-close")
-      ?.addEventListener("click", handleCloseAttempt, true);
-    document.addEventListener("historychange", (e) => {
-      if (this.domCache.undoBtn)
-        this.domCache.undoBtn.disabled = !e.detail.canUndo;
-      if (this.domCache.redoBtn)
-        this.domCache.redoBtn.disabled = !e.detail.canRedo;
-    });
-
-    this.domCache.modal?.addEventListener("keydown", (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
-        return;
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "z") {
-          e.preventDefault();
-          historyManager.undo();
-        } else if (
-          e.key === "y" ||
-          (e.shiftKey && (e.key === "z" || e.key === "Z"))
-        ) {
-          e.preventDefault();
-          historyManager.redo();
-        }
-      }
-    });
   },
 
   /**
@@ -237,7 +179,7 @@ export const speakerEditor = {
     if (newText !== null && newText.trim() !== action.text.trim()) {
       const trimmedText = newText.trim();
       // 使用 _executeCommand 来执行修改，以便支持撤销/恢复
-      this._executeCommand((currentState) => {
+      baseEditor.executeCommand((currentState) => {
         const actionToUpdate = currentState.actions.find(
           (a) => a.id === actionId
         );
@@ -284,7 +226,7 @@ export const speakerEditor = {
     if (deleteButton) {
       const layoutCard = deleteButton.closest(".layout-item");
       if (layoutCard && layoutCard.dataset.id) {
-        this._deleteLayoutAction(layoutCard.dataset.id);
+        LayoutPropertyMixin._deleteLayoutAction.call(this, layoutCard.dataset.id);
         return;
       }
     }
@@ -338,7 +280,7 @@ export const speakerEditor = {
       `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`
     );
     if (confirmed) {
-      this._executeCommand((currentState) => {
+      baseEditor.executeCommand((currentState) => {
         const index = currentState.actions.findIndex((a) => a.id === actionId);
         if (index > -1) {
           currentState.actions.splice(index, 1);
@@ -355,7 +297,7 @@ export const speakerEditor = {
     const newText = await modalService.prompt("请输入新对话的内容：");
     if (newText && newText.trim()) {
       const trimmedText = newText.trim();
-      this._executeCommand((currentState) => {
+      baseEditor.executeCommand((currentState) => {
         const currentIndex = currentState.actions.findIndex(
           (a) => a.id === actionId
         );
@@ -371,87 +313,6 @@ export const speakerEditor = {
         }
       });
     }
-  },
-
-  _deleteLayoutAction(actionId) {
-    this._executeCommand((currentState) => {
-      currentState.actions = currentState.actions.filter(
-        (a) => a.id !== actionId
-      );
-    });
-  },
-
-  /**
-   * 布局属性更新策略处理器映射
-   * 每个处理器负责更新特定控件类型对应的 action 属性
-   * @private
-   */
-  _layoutPropertyHandlers: {
-    "layout-type-select": (action, value) => {
-      action.layoutType = value;
-    },
-
-    "layout-costume-select": (action, value) => {
-      action.costume = value;
-    },
-
-    "layout-position-select-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.side = value;
-    },
-
-    "layout-offset-input-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.offsetX = value;
-    },
-
-    "layout-position-select": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.side = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.side = value;
-      }
-    },
-
-    "layout-offset-input": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.offsetX = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.offsetX = value;
-      }
-    },
-  },
-
-  _updateLayoutActionProperty(actionId, targetElement) {
-    const value =
-      targetElement.type === "number"
-        ? parseInt(targetElement.value) || 0
-        : targetElement.value;
-    const controlClassName = targetElement.className;
-
-    this._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
-      if (!action) return;
-
-      // 查找匹配的处理器并执行
-      const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
-        controlClassName.includes(key)
-      );
-
-      if (handlerKey) {
-        this._layoutPropertyHandlers[handlerKey](action, value);
-      }
-    });
   },
 
   // 根据 Y 坐标查找最接近的对话卡片（用于拖拽插入位置计算）
@@ -530,27 +391,6 @@ export const speakerEditor = {
     return usedNames;
   },
 
-  // 关闭编辑器并清理资源
-  _closeEditor() {
-    EditorHelper.closeEditor({
-      modalId: "speakerEditorModal",
-      beforeClose: () => {
-        // 销毁 Sortable 实例
-        this.sortableInstances.forEach((instance) => instance?.destroy());
-        this.sortableInstances = [];
-
-        // 停止滚动动画
-        if (this.scrollAnimationFrame) {
-          cancelAnimationFrame(this.scrollAnimationFrame);
-          this.scrollAnimationFrame = null;
-        }
-
-        // 解除选择绑定（speakerEditor 特有的逻辑）
-        editorService.detachSelection(this.domCache.canvas);
-      },
-    });
-  },
-
   // 打开对话编辑器模态框
   async open() {
     await EditorHelper.openEditor({
@@ -594,7 +434,7 @@ export const speakerEditor = {
             : "多选: 关";
         }
 
-        // 根据加载的状态更新“编辑文本”按钮的UI
+        // 根据加载的状态更新"编辑文本"按钮的UI
         if (this.domCache.toggleTextEditBtn) {
           this.domCache.toggleTextEditBtn.textContent = this.isTextEditMode
             ? "编辑文本: 开"
@@ -638,16 +478,11 @@ export const speakerEditor = {
         canvas.addEventListener("change", (e) => {
           const card = e.target.closest(".layout-item");
           if (card && e.target.matches("select, input")) {
-            this._updateLayoutActionProperty(card.dataset.id, e.target);
+            LayoutPropertyMixin._updateLayoutActionProperty.call(this, card.dataset.id, e.target);
           }
         });
       },
     });
-  },
-
-  // 使用 BaseEditor 的 executeCommand 方法
-  _executeCommand(changeFn) {
-    baseEditor.executeCommand(changeFn);
   },
 
   // 从文本片段创建项目文件（解析说话人并创建对话动作）
@@ -880,48 +715,6 @@ export const speakerEditor = {
   },
 
   /**
-   * 渲染右侧的可拖拽角色列表，并高亮已使用的角色。
-   * @param {Set<string>} usedCharacterNames - 包含所有已使用角色名称的Set集合。
-   */
-  renderCharacterList(usedCharacterNames) {
-    const listContainer = document.getElementById("speakerEditorCharacterList");
-    const template = document.getElementById("draggable-character-template");
-    DOMUtils.clearElement(listContainer);
-    const fragment = document.createDocumentFragment();
-    const characters = editorService.getAllCharacters();
-    const pinned = editorService.getPinnedCharacters();
-
-    characters.sort(([nameA, idsA], [nameB, idsB]) => {
-      const isAPinned = pinned.has(nameA);
-      const isBPinned = pinned.has(nameB);
-      if (isAPinned && !isBPinned) return -1;
-      if (!isAPinned && isBPinned) return 1;
-      return idsA[0] - idsB[0];
-    });
-    
-    characters.forEach(([name, ids]) => {
-      const item = template.content.cloneNode(true);
-      const characterItem = item.querySelector(".character-item");
-      const characterId = ids[0];
-      characterItem.dataset.characterId = characterId;
-      characterItem.dataset.characterName = name;
-      // 使用角色名称精确匹配，而不是ID匹配
-      if (usedCharacterNames && usedCharacterNames.has(name)) {
-        characterItem.classList.add("is-used");
-      }
-      const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      editorService.updateCharacterAvatar(avatarWrapper, characterId, name);
-      item.querySelector(".character-name").textContent = name;
-      const pinBtn = item.querySelector(".pin-btn");
-      if (pinned.has(name)) {
-        pinBtn.classList.add("is-pinned");
-      }
-      fragment.appendChild(item);
-    });
-    listContainer.appendChild(fragment);
-  },
-
-  /**
    * 初始化拖拽功能
    * 设置两个Sortable实例:
    * 1. 角色列表 - 可拖出(clone模式),拖回时清除说话人
@@ -964,7 +757,7 @@ export const speakerEditor = {
             if (cardItem.classList.contains("dialogue-item")) {
               this.removeAllSpeakersFromAction(actionId);
             } else if (cardItem.classList.contains("layout-item")) {
-              this._deleteLayoutAction(actionId);
+              LayoutPropertyMixin._deleteLayoutAction.call(this, actionId);
             }
           }
 
@@ -978,7 +771,7 @@ export const speakerEditor = {
       getGroupingEnabled: () => this.domCache.groupCheckbox?.checked || false,
       groupSize: 50,
       executeFn: (globalOldIndex, globalNewIndex) => {
-        this._executeCommand((currentState) => {
+        baseEditor.executeCommand((currentState) => {
           // 验证索引有效性
           if (globalOldIndex < 0 || globalOldIndex >= currentState.actions.length) {
             console.error(`Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`);
@@ -1042,72 +835,20 @@ export const speakerEditor = {
       )
     );
   },
+
   handleDragScrolling: (e) => {
-    const canvas = speakerEditor.domCache.canvas;
-    const characterList = speakerEditor.domCache.characterList;
-    if (!canvas || !characterList) return;
-
-    let scrollTarget = null;
-    if (e.target.closest("#speakerEditorCanvas")) {
-      scrollTarget = canvas;
-    } else if (e.target.closest("#speakerEditorCharacterList")) {
-      scrollTarget = characterList;
-    } else {
-      speakerEditor.stopScrolling();
-      return;
-    }
-
-    const rect = scrollTarget.getBoundingClientRect();
-    const mouseY = e.clientY;
-    const hotZone = 75;
-    let newScrollSpeed = 0;
-
-    if (mouseY < rect.top + hotZone) {
-      newScrollSpeed = -10;
-    } else if (mouseY > rect.bottom - hotZone) {
-      newScrollSpeed = 10;
-    }
-
-    if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== speakerEditor.scrollSpeed ||
-        !speakerEditor.scrollAnimationFrame
-      ) {
-        speakerEditor.scrollSpeed = newScrollSpeed;
-        speakerEditor.startScrolling(scrollTarget);
-      }
-    } else {
-      speakerEditor.stopScrolling();
-    }
-  },
-
-  // 开始自动滚动动画（使用 requestAnimationFrame 优化性能）
-  startScrolling(elementToScroll) {
-    this.stopScrolling(); // 先停止之前的动画
-
-    const scroll = () => {
-      if (elementToScroll && this.scrollSpeed !== 0) {
-        elementToScroll.scrollTop += this.scrollSpeed;
-        this.scrollAnimationFrame = requestAnimationFrame(scroll);
-      }
-    };
-    scroll();
-  },
-
-  // 停止自动滚动动画
-  stopScrolling() {
-    if (this.scrollAnimationFrame) {
-      cancelAnimationFrame(this.scrollAnimationFrame);
-      this.scrollAnimationFrame = null;
-    }
-    this.scrollSpeed = 0;
+    const containers = [
+      speakerEditor.domCache.canvas,
+      speakerEditor.domCache.characterList,
+    ];
+    ScrollAnimationMixin.handleDragScrolling.call(speakerEditor, e, containers);
   },
 
   // 更新对话的说话人分配（支持多选批量分配）
   updateSpeakerAssignment(actionId, newSpeaker) {
     const selectedIds = editorService.selectionManager.getSelectedIds();
     const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
-    this._executeCommand((currentState) => {
+    baseEditor.executeCommand((currentState) => {
       targetIds.forEach((id) => {
         const actionToUpdate = currentState.actions.find((a) => a.id === id);
         if (actionToUpdate) {
@@ -1133,7 +874,7 @@ export const speakerEditor = {
 
   // 从对话中移除指定说话人
   removeSpeakerFromAction(actionId, characterIdToRemove) {
-    this._executeCommand((currentState) => {
+    baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
       if (action) {
         action.speakers = action.speakers.filter(
@@ -1150,7 +891,7 @@ export const speakerEditor = {
 
   // 清空对话的所有说话人
   removeAllSpeakersFromAction(actionId) {
-    this._executeCommand((currentState) => {
+    baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
       if (action) {
         action.speakers = [];
@@ -1264,41 +1005,6 @@ export const speakerEditor = {
     }, 0);
   },
 
-  // 保存说话人配置到全局状态
-  async save() {
-    await EditorHelper.saveEditor({
-      editor: baseEditor,
-      modalId: "speakerEditorModal",
-      buttonId: "saveSpeakersBtn",
-      applyChanges: () => {
-        editorService.projectManager.save(
-          this.projectFileState,
-          (savedState) => {
-            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-          }
-        );
-      },
-    });
-  },
-
-  // 导出项目文件
-  exportProject() {
-    editorService.projectManager.export(this.projectFileState);
-  },
-
-  // 导入项目文件
-  async importProject() {
-    const importedProject = await editorService.projectManager.import();
-    if (importedProject) {
-      this.projectFileState = importedProject;
-      this.originalStateOnOpen = JSON.stringify(importedProject);
-      editorService.setProjectState(DataUtils.deepClone(importedProject));
-      historyManager.clear();
-      const usedIds = this.renderCanvas();
-      this.renderCharacterList(usedIds);
-    }
-  },
-
   // 恢复默认说话人（重新解析文本自动分配说话人）
   async reset() {
     if (!confirm("确定要恢复默认说话人吗？此操作可以撤销。")) {
@@ -1315,7 +1021,7 @@ export const speakerEditor = {
       const defaultState = this.createProjectFileFromSegments(
         response.data.segments
       );
-      this._executeCommand((currentState) => {
+      baseEditor.executeCommand((currentState) => {
         Object.assign(currentState, defaultState);
       });
 
@@ -1326,4 +1032,33 @@ export const speakerEditor = {
       if (resetBtn && originalText) resetBtn.textContent = originalText;
     }
   },
+
+  // 钩子方法
+  afterImport() {
+    this._invalidateCache();
+    this.renderCanvas();
+    const usedCharacterNames = this._getUsedCharacterIds();
+    this.renderCharacterList(usedCharacterNames);
+  },
+
+  afterPinToggle() {
+    const usedCharacterNames = this._getUsedCharacterIds();
+    this.renderCharacterList(usedCharacterNames);
+  },
+
+  onBeforeClose() {
+    editorService.selectionManager.detach();
+  },
+
+  _createActionFromSegment(index, text, speakers) {
+    return {
+      id: `action-id-${Date.now()}-${index}`,
+      type: "talk",
+      text: text,
+      speakers: speakers,
+    };
+  },
 };
+
+// 使用 Object.assign 继承 mixins
+Object.assign(speakerEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin, CharacterListMixin);

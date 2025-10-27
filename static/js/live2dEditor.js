@@ -8,6 +8,11 @@ import { ui, renderGroupedView } from "./uiUtils.js";
 import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
+import { CharacterListMixin } from "./mixins/CharacterListMixin.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -20,6 +25,13 @@ const baseEditor = new BaseEditor({
 });
 
 export const live2dEditor = {
+  baseEditor,
+  modalId: "live2dEditorModal",
+  saveButtonId: "saveLayoutsBtn",
+  importButtonId: "importLayoutsBtn",
+  exportButtonId: "exportLayoutsBtn",
+  characterListId: "live2dEditorCharacterList",
+
   // 使用 baseEditor 代理状态管理
   get projectFileState() {
     return baseEditor.projectFileState;
@@ -40,18 +52,13 @@ export const live2dEditor = {
   get activeGroupIndex() {
     return baseEditor.activeGroupIndex;
   },
-  
+
   set activeGroupIndex(value) {
     baseEditor.activeGroupIndex = value;
   },
 
   // DOM 缓存
   domCache: {},
-  // Sortable 实例管理
-  sortableInstances: [],
-  // 滚动动画
-  scrollAnimationFrame: null,
-  scrollSpeed: 0,
   // 后续布局模式: 'move' 或 'hide'
   subsequentLayoutMode: "move",
 
@@ -85,78 +92,15 @@ export const live2dEditor = {
     document
       .getElementById("resetLayoutsBtn")
       ?.addEventListener("click", () => this._clearAllLayouts());
-    this.domCache.undoBtn?.addEventListener("click", () =>
-      historyManager.undo()
-    );
-    this.domCache.redoBtn?.addEventListener("click", () =>
-      historyManager.redo()
-    );
-    document
-      .getElementById("saveLayoutsBtn")
-      ?.addEventListener("click", () => this.save());
-    document
-      .getElementById("importLayoutsBtn")
-      ?.addEventListener("click", () => this.importProject());
-    document
-      .getElementById("exportLayoutsBtn")
-      ?.addEventListener("click", () => this.exportProject());
     this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () =>
       this._toggleSubsequentLayoutMode()
     );
-    const characterList = this.domCache.characterList;
-    if (characterList) {
-      characterList.addEventListener("click", (e) => {
-        const pinBtn = e.target.closest(".pin-btn");
-        if (pinBtn) {
-          e.stopPropagation();
-          e.preventDefault();
 
-          const characterItem = pinBtn.closest(".character-item");
-          if (characterItem && characterItem.dataset.characterName) {
-            const characterName = characterItem.dataset.characterName;
-            editorService.togglePinCharacter(characterName);
-            this.renderCharacterList();
-          }
-        }
-      });
-    }
-    const handleCloseAttempt = (e) => {
-      if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
-        if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-          e.stopPropagation();
-          e.preventDefault();
-          return;
-        }
-      }
-      this._closeEditor();
-    };
-    this.domCache.modal
-      ?.querySelector(".modal-close")
-      ?.addEventListener("click", handleCloseAttempt, true);
-    document.addEventListener("historychange", (e) => {
-      if (this.domCache.modal?.style.display === "flex") {
-        if (this.domCache.undoBtn)
-          this.domCache.undoBtn.disabled = !e.detail.canUndo;
-        if (this.domCache.redoBtn)
-          this.domCache.redoBtn.disabled = !e.detail.canRedo;
-      }
-    });
+    // 初始化通用事件
+    this.initCommonEvents();
 
-    this.domCache.modal?.addEventListener("keydown", (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "z") {
-          e.preventDefault();
-          historyManager.undo();
-        } else if (
-          e.key === "y" ||
-          (e.shiftKey && (e.key === "z" || e.key === "Z"))
-        ) {
-          e.preventDefault();
-          historyManager.redo();
-        }
-      }
-    });
+    // 初始化置顶按钮处理
+    this.initPinButtonHandler();
   },
 
   // 打开 Live2D 布局编辑器模态框
@@ -236,6 +180,7 @@ export const live2dEditor = {
         let speakers = [];
         let cleanText = text;
         const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
+
         if (match) {
           const potentialSpeakerName = match[1].trim();
           if (characterMap.has(potentialSpeakerName)) {
@@ -244,138 +189,10 @@ export const live2dEditor = {
           }
         }
 
-        return {
-          id: `action-id-${Date.now()}-${index}`,
-          type: "talk",
-          text: cleanText,
-          speakers: speakers,
-          characterStates: {},
-        };
+        return this._createActionFromSegment(index, cleanText, speakers);
       }),
     };
     return newProjectFile;
-  },
-
-  // 保存 Live2D 布局到全局状态
-  async save() {
-    await EditorHelper.saveEditor({
-      editor: baseEditor,
-      modalId: "live2dEditorModal",
-      buttonId: "saveLayoutsBtn",
-
-      applyChanges: () => {
-        editorService.projectManager.save(
-          this.projectFileState,
-          (savedState) => {
-            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-          }
-        );
-      },
-    });
-  },
-
-  // 导出项目文件
-  exportProject() {
-    editorService.projectManager.export(this.projectFileState);
-  },
-
-  // 导入项目文件
-  async importProject() {
-    const importedProject = await editorService.projectManager.import();
-    if (importedProject) {
-      this.projectFileState = importedProject;
-      this.originalStateOnOpen = JSON.stringify(importedProject);
-      editorService.setProjectState(DataUtils.deepClone(importedProject));
-      historyManager.clear();
-      this.renderTimeline();
-      const usedCharacterNames = this._getUsedCharacterIds();
-      this.renderCharacterList(usedCharacterNames);
-    }
-  },
-
-  // 关闭编辑器并清理资源
-  _closeEditor() {
-    EditorHelper.closeEditor({
-      modalId: "live2dEditorModal",
-      beforeClose: () => {
-        // 销毁 Sortable 实例
-        this.sortableInstances.forEach((instance) => instance?.destroy());
-        this.sortableInstances = [];
-
-        // 停止滚动动画
-        if (this.scrollAnimationFrame) {
-          cancelAnimationFrame(this.scrollAnimationFrame);
-          this.scrollAnimationFrame = null;
-        }
-      },
-    });
-  },
-
-  /**
-   * 快速布局
-   * 1. 清空所有现有布局动作
-   * 2. 遍历对话动作,找到每个角色的首次发言
-   * 3. 在首次发言前插入登场动作(appear)
-   * 4. 根据配置自动设置位置和服装
-   */
-  _applyAutoLayout() {
-    if (
-      !confirm(
-        "这将清空所有现有的Live2D布局，并根据角色的首次发言自动生成新的登场布局。确定要继续吗？"
-      )
-    ) {
-      return;
-    }
-    this._executeCommand((currentState) => {
-      // 清空现有布局
-      currentState.actions = currentState.actions.filter(
-        (a) => a.type !== "layout"
-      );
-      const appearedCharacterNames = new Set();
-      const newActions = [];
-
-      // 遍历对话,为首次发言的角色创建登场动作
-      currentState.actions.forEach((action) => {
-        if (action.type === "talk" && action.speakers.length > 0) {
-          action.speakers.forEach((speaker) => {
-            if (!appearedCharacterNames.has(speaker.name)) {
-              appearedCharacterNames.add(speaker.name);
-              const defaultCostume = this._getDefaultCostume(speaker.name);
-              const positionConfig =
-                editorService.positionManager.getCharacterPositionConfig(
-                  speaker.name,
-                  appearedCharacterNames.size - 1
-                );
-
-              const newLayoutAction = {
-                id: `layout-action-${Date.now()}-${speaker.characterId}`,
-                type: "layout",
-                characterId: speaker.characterId,
-                characterName: speaker.name,
-                layoutType: "appear",
-                costume: defaultCostume,
-                position: {
-                  from: {
-                    side: positionConfig.position,
-                    offsetX: positionConfig.offset,
-                  },
-                  to: {
-                    side: positionConfig.position,
-                    offsetX: positionConfig.offset,
-                  },
-                },
-                initialState: {},
-              };
-
-              newActions.push(newLayoutAction);
-            }
-          });
-        }
-        newActions.push(action);
-      });
-      currentState.actions = newActions;
-    });
-    ui.showStatus("已应用智能布局！", "success");
   },
 
   // 获取所有已使用的角色名称集合（在布局中出现的角色）
@@ -412,149 +229,14 @@ export const live2dEditor = {
     }
   },
 
-  /**
-   * 布局属性更新策略处理器映射
-   * 每个处理器负责更新特定控件类型对应的 action 属性
-   * @private
-   */
-  _layoutPropertyHandlers: {
-    "layout-type-select": (action, value) => {
-      action.layoutType = value;
-    },
-
-    "layout-costume-select": (action, value) => {
-      action.costume = value;
-    },
-
-    "layout-position-select-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.side = value;
-    },
-
-    "layout-offset-input-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.offsetX = value;
-    },
-
-    "layout-position-select": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.side = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.side = value;
-      }
-    },
-
-    "layout-offset-input": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.offsetX = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.offsetX = value;
-      }
-    },
-  },
-
-  // 更新布局动作的属性（类型、服装、位置、偏移）
-  _updateLayoutActionProperty(actionId, targetElement) {
-    const value =
-      targetElement.type === "number"
-        ? parseInt(targetElement.value) || 0
-        : targetElement.value;
-    const controlClassName = targetElement.className;
-
-    this._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
-      if (!action) return;
-
-      // 查找匹配的处理器并执行
-      const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
-        controlClassName.includes(key)
-      );
-
-      if (handlerKey) {
-        this._layoutPropertyHandlers[handlerKey](action, value);
-      }
-    });
-  },
-
-  // 删除布局动作
-  _deleteLayoutAction(actionId) {
-    this._executeCommand((currentState) => {
-      currentState.actions = currentState.actions.filter(
-        (a) => a.id !== actionId
-      );
-    });
-  },
-
   handleDragScrolling: (e) => {
-    const timeline = live2dEditor.domCache.timeline;
-    const characterList = live2dEditor.domCache.characterList;
-    if (!timeline || !characterList) return;
-
-    let scrollTarget = null;
-    if (e.target.closest("#live2dEditorTimeline")) {
-      scrollTarget = timeline;
-    } else if (e.target.closest("#live2dEditorCharacterList")) {
-      scrollTarget = characterList;
-    } else {
-      live2dEditor.stopScrolling();
-      return;
-    }
-
-    const rect = scrollTarget.getBoundingClientRect();
-    const mouseY = e.clientY;
-    const hotZone = 75;
-    let newScrollSpeed = 0;
-
-    if (mouseY < rect.top + hotZone) {
-      newScrollSpeed = -10;
-    } else if (mouseY > rect.bottom - hotZone) {
-      newScrollSpeed = 10;
-    }
-
-    if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== live2dEditor.scrollSpeed ||
-        !live2dEditor.scrollAnimationFrame
-      ) {
-        live2dEditor.scrollSpeed = newScrollSpeed;
-        live2dEditor.startScrolling(scrollTarget);
-      }
-    } else {
-      live2dEditor.stopScrolling();
-    }
+    const containers = [
+      live2dEditor.domCache.timeline,
+      live2dEditor.domCache.characterList,
+    ];
+    ScrollAnimationMixin.handleDragScrolling.call(live2dEditor, e, containers);
   },
 
-  // 开始自动滚动动画（使用 requestAnimationFrame 优化性能）
-  startScrolling(elementToScroll) {
-    this.stopScrolling();
-
-    const scroll = () => {
-      if (elementToScroll && this.scrollSpeed !== 0) {
-        elementToScroll.scrollTop += this.scrollSpeed;
-        this.scrollAnimationFrame = requestAnimationFrame(scroll);
-      }
-    };
-    scroll();
-  },
-
-  // 停止自动滚动动画
-  stopScrolling() {
-    if (this.scrollAnimationFrame) {
-      cancelAnimationFrame(this.scrollAnimationFrame);
-      this.scrollAnimationFrame = null;
-    }
-    this.scrollSpeed = 0;
-  },
   // 初始化拖放功能（角色列表拖入时间轴创建布局动作）
   initDragAndDrop() {
     const characterList = this.domCache.characterList;
@@ -674,6 +356,73 @@ export const live2dEditor = {
       const modeText = this.subsequentLayoutMode === "move" ? "移动" : "退场";
       this.domCache.subsequentModeText.textContent = `后续: ${modeText}`;
     }
+  },
+
+  /**
+   * 快速布局
+   * 1. 清空所有现有布局动作
+   * 2. 遍历对话动作,找到每个角色的首次发言
+   * 3. 在首次发言前插入登场动作(appear)
+   * 4. 根据配置自动设置位置和服装
+   */
+  _applyAutoLayout() {
+    if (
+      !confirm(
+        "这将清空所有现有的Live2D布局，并根据角色的首次发言自动生成新的登场布局。确定要继续吗？"
+      )
+    ) {
+      return;
+    }
+    this._executeCommand((currentState) => {
+      // 清空现有布局
+      currentState.actions = currentState.actions.filter(
+        (a) => a.type !== "layout"
+      );
+      const appearedCharacterNames = new Set();
+      const newActions = [];
+
+      // 遍历对话,为首次发言的角色创建登场动作
+      currentState.actions.forEach((action) => {
+        if (action.type === "talk" && action.speakers.length > 0) {
+          action.speakers.forEach((speaker) => {
+            if (!appearedCharacterNames.has(speaker.name)) {
+              appearedCharacterNames.add(speaker.name);
+              const defaultCostume = this._getDefaultCostume(speaker.name);
+              const positionConfig =
+                editorService.positionManager.getCharacterPositionConfig(
+                  speaker.name,
+                  appearedCharacterNames.size - 1
+                );
+
+              const newLayoutAction = {
+                id: `layout-action-${Date.now()}-${speaker.characterId}`,
+                type: "layout",
+                characterId: speaker.characterId,
+                characterName: speaker.name,
+                layoutType: "appear",
+                costume: defaultCostume,
+                position: {
+                  from: {
+                    side: positionConfig.position,
+                    offsetX: positionConfig.offset,
+                  },
+                  to: {
+                    side: positionConfig.position,
+                    offsetX: positionConfig.offset,
+                  },
+                },
+                initialState: {},
+              };
+
+              newActions.push(newLayoutAction);
+            }
+          });
+        }
+        newActions.push(action);
+      });
+      currentState.actions = newActions;
+    });
+    ui.showStatus("已应用智能布局！", "success");
   },
 
   /**
@@ -910,48 +659,6 @@ export const live2dEditor = {
     }
   },
 
-  // 渲染右侧可拖拽角色列表（高亮已使用的角色）
-  renderCharacterList(usedCharacterNames) {
-    const listContainer = document.getElementById("live2dEditorCharacterList");
-    const template = document.getElementById("draggable-character-template");
-    DOMUtils.clearElement(listContainer);
-    const fragment = document.createDocumentFragment();
-    const pinned = editorService.getPinnedCharacters();
-    // 使用 DataUtils.sortBy 替代手动排序，处理置顶逻辑
-    const characters = DataUtils.sortBy(
-      Object.entries(editorService.getCurrentConfig()),
-      
-      ([name, ids]) => {
-        const isPinned = pinned.has(name);
-        // 置顶的角色返回负数（排在前面），使用 ID 作为次要排序
-        return isPinned ? -1000000 + (ids[0] || 0) : ids[0] || 0;
-      },
-      "asc"
-    );
-    characters.forEach(([name, ids]) => {
-      const item = template.content.cloneNode(true);
-      const characterItem = item.querySelector(".character-item");
-      characterItem.dataset.characterId = ids[0];
-      characterItem.dataset.characterName = name;
-
-      if (usedCharacterNames && usedCharacterNames.has(name)) {
-        characterItem.classList.add("is-used");
-      }
-
-      const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      editorService.updateCharacterAvatar(avatarWrapper, ids[0], name);
-      item.querySelector(".character-name").textContent = name;
-      const pinBtn = item.querySelector(".pin-btn");
-
-      if (pinned.has(name)) {
-        pinBtn.classList.add("is-pinned");
-      }
-
-      fragment.appendChild(item);
-    });
-    listContainer.appendChild(fragment);
-  },
-
   /**
    * 获取角色在指定索引位置的状态
    * 通过回溯历史布局动作,追踪角色的登场状态、位置和服装
@@ -992,4 +699,30 @@ export const live2dEditor = {
     }
     return { onStage, lastPosition, lastCostume };
   },
+
+  // 钩子方法：导入后刷新视图
+  afterImport() {
+    this.renderTimeline();
+    const usedCharacterNames = this._getUsedCharacterIds();
+    this.renderCharacterList(usedCharacterNames);
+  },
+
+  // 钩子方法：置顶切换后刷新角色列表
+  afterPinToggle() {
+    const usedCharacterNames = this._getUsedCharacterIds();
+    this.renderCharacterList(usedCharacterNames);
+  },
+
+  // 从文本片段创建动作对象
+  _createActionFromSegment(index, text, speakers) {
+    return {
+      id: `action-id-${Date.now()}-${index}`,
+      type: "talk",
+      text: text,
+      speakers: speakers,
+    };
+  },
 };
+
+// 继承 mixins
+Object.assign(live2dEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin, CharacterListMixin);

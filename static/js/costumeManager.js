@@ -83,6 +83,7 @@ export const costumeManager = {
    * 转换可用服装列表为基于角色名称的映射
    * 原始数据按角色ID存储,转换为按角色名称存储
    * 自动包含默认服装(如果不在列表中会自动添加)
+   * 自定义角色不会继承官方角色的服装列表
    * @returns {Object} 角色名称到服装ID数组的映射
    */
   convertAvailableCostumesToNameBased() {
@@ -92,20 +93,30 @@ export const costumeManager = {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
 
-        if (this.defaultAvailableCostumes[primaryId]) {
+        // 检查是否为自定义角色（不在内置角色列表中）
+        const isCustomCharacter = !this.builtInCharacters || !this.builtInCharacters.has(name);
+
+        // 自定义角色初始化为空数组，内置角色使用默认服装列表
+        if (isCustomCharacter) {
+          nameBased[characterKey] = [];
+        } else if (this.defaultAvailableCostumes[primaryId]) {
           nameBased[characterKey] = [
             ...this.defaultAvailableCostumes[primaryId],
           ];
         } else {
           nameBased[characterKey] = [];
         }
-        const defaultCostume = this.defaultCostumes[primaryId];
 
-        if (
-          defaultCostume &&
-          !nameBased[characterKey].includes(defaultCostume)
-        ) {
-          nameBased[characterKey].push(defaultCostume);
+        // 只为内置角色添加默认服装
+        if (!isCustomCharacter) {
+          const defaultCostume = this.defaultCostumes[primaryId];
+
+          if (
+            defaultCostume &&
+            !nameBased[characterKey].includes(defaultCostume)
+          ) {
+            nameBased[characterKey].push(defaultCostume);
+          }
         }
       }
     });
@@ -114,23 +125,33 @@ export const costumeManager = {
   },
 
   // 转换默认服装配置为基于角色名称的映射
+  // 自定义角色不会继承官方角色的默认服装
   convertDefaultCostumesToNameBased() {
     const nameBased = {};
     Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
       if (ids && ids.length > 0) {
         const primaryId = ids[0];
         const characterKey = this.getCharacterKey(name);
-        const defaultCostume = this.defaultCostumes[primaryId];
 
-        if (defaultCostume) {
-          const availableList = this.defaultAvailableCostumes[primaryId] || [];
-          if (availableList.includes(defaultCostume)) {
-            nameBased[characterKey] = defaultCostume;
-          } else {
-            nameBased[characterKey] = availableList[0] || "";
-          }
-        } else {
+        // 检查是否为自定义角色
+        const isCustomCharacter = !this.builtInCharacters || !this.builtInCharacters.has(name);
+
+        // 自定义角色默认为空，内置角色使用默认服装
+        if (isCustomCharacter) {
           nameBased[characterKey] = "";
+        } else {
+          const defaultCostume = this.defaultCostumes[primaryId];
+
+          if (defaultCostume) {
+            const availableList = this.defaultAvailableCostumes[primaryId] || [];
+            if (availableList.includes(defaultCostume)) {
+              nameBased[characterKey] = defaultCostume;
+            } else {
+              nameBased[characterKey] = availableList[0] || "";
+            }
+          } else {
+            nameBased[characterKey] = "";
+          }
         }
       }
     });

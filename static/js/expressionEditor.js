@@ -7,6 +7,10 @@ import { EditorHelper } from "./utils/EditorHelper.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
 import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
+import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -17,6 +21,12 @@ const baseEditor = new BaseEditor({
 });
 
 export const expressionEditor = {
+  baseEditor,
+  modalId: "expressionEditorModal",
+  saveButtonId: "saveExpressionsBtn",
+  importButtonId: "importExpressionsBtn",
+  exportButtonId: "exportExpressionsBtn",
+
   // 使用 baseEditor 代理状态管理
   get projectFileState() {
     return baseEditor.projectFileState;
@@ -37,18 +47,13 @@ export const expressionEditor = {
   get activeGroupIndex() {
     return baseEditor.activeGroupIndex;
   },
-  
+
   set activeGroupIndex(value) {
     baseEditor.activeGroupIndex = value;
   },
 
   // DOM 缓存
   domCache: {},
-  // Sortable 实例管理
-  sortableInstances: [],
-  // 滚动动画
-  scrollAnimationFrame: null,
-  scrollSpeed: 0,
 
   stagedCharacters: [],
   tempLibraryItems: { motion: [], expression: [] },
@@ -69,23 +74,8 @@ export const expressionEditor = {
       .getElementById("openExpressionEditorBtn")
       ?.addEventListener("click", () => this.open());
     document
-      .getElementById("saveExpressionsBtn")
-      ?.addEventListener("click", () => this.save());
-    document
-      .getElementById("importExpressionsBtn")
-      ?.addEventListener("click", () => this.importProject());
-    document
-      .getElementById("exportExpressionsBtn")
-      ?.addEventListener("click", () => this.exportProject());
-    document
       .getElementById("resetExpressionsBtn")
       ?.addEventListener("click", () => this.reset());
-    this.domCache.undoBtn?.addEventListener("click", () =>
-      historyManager.undo()
-    );
-    this.domCache.redoBtn?.addEventListener("click", () =>
-      historyManager.redo()
-    );
     document
       .getElementById("addTempMotionBtn")
       ?.addEventListener("click", () => this._addTempItem("motion"));
@@ -118,147 +108,33 @@ export const expressionEditor = {
       ?.addEventListener("input", (e) =>
         this._filterLibraryList("expression", e)
       );
-    const handleCloseAttempt = (e) => {
-      if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
-        if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-          e.stopPropagation();
-          e.preventDefault();
-          return;
-        }
-      }
-      this._closeEditor();
-    };
-    this.domCache.modal
-      ?.querySelector(".modal-close")
-      ?.addEventListener("click", handleCloseAttempt, true);
-    document.addEventListener("historychange", (e) => {
-      if (this.domCache.modal?.style.display === "flex") {
-        if (this.domCache.undoBtn)
-          this.domCache.undoBtn.disabled = !e.detail.canUndo;
-        if (this.domCache.redoBtn)
-          this.domCache.redoBtn.disabled = !e.detail.canRedo;
-      }
-    });
-    this.domCache.modal?.addEventListener("keydown", (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "z") {
-          e.preventDefault();
-          historyManager.undo();
-        } else if (
-          e.key === "y" ||
-          (e.shiftKey && (e.key === "z" || e.key === "Z"))
-        ) {
-          e.preventDefault();
-          historyManager.redo();
-        }
-      }
-    });
+
+    // 初始化通用事件
+    this.initCommonEvents();
   },
 
   handleDragScrolling: (e) => {
-    const timeline = expressionEditor.domCache.timeline;
-    const motionList = expressionEditor.domCache.motionList;
-    const expressionList = expressionEditor.domCache.expressionList;
-    if (!timeline || !motionList || !expressionList) return;
-
-    let scrollTarget = null;
-    if (timeline.contains(e.target)) {
-      scrollTarget = timeline;
-    } else if (motionList.contains(e.target)) {
-      scrollTarget = motionList;
-    } else if (expressionList.contains(e.target)) {
-      scrollTarget = expressionList;
-    }
-
-    if (!scrollTarget) {
-      expressionEditor.stopScrolling();
-      return;
-    }
-
-    const rect = scrollTarget.getBoundingClientRect();
-    const mouseY = e.clientY;
-    const hotZone = 75;
-    let newScrollSpeed = 0;
-
-    if (mouseY < rect.top + hotZone) {
-      newScrollSpeed = -10;
-    } else if (mouseY > rect.bottom - hotZone) {
-      newScrollSpeed = 10;
-    }
-
-    if (newScrollSpeed !== 0) {
-      if (
-        newScrollSpeed !== expressionEditor.scrollSpeed ||
-        !expressionEditor.scrollAnimationFrame
-      ) {
-        expressionEditor.scrollSpeed = newScrollSpeed;
-        expressionEditor.startScrolling(scrollTarget);
-      }
-    } else {
-      expressionEditor.stopScrolling();
-    }
+    const containers = [
+      expressionEditor.domCache.timeline,
+      expressionEditor.domCache.motionList,
+      expressionEditor.domCache.expressionList,
+    ];
+    ScrollAnimationMixin.handleDragScrolling.call(expressionEditor, e, containers);
   },
 
-  // 使用 requestAnimationFrame 优化滚动性能
-  startScrolling(elementToScroll) {
-    this.stopScrolling();
+  afterImport() {
+    this.stagedCharacters = this._calculateStagedCharacters(this.projectFileState);
+    this.renderTimeline();
+  },
 
-    const scroll = () => {
-      if (elementToScroll && this.scrollSpeed !== 0) {
-        elementToScroll.scrollTop += this.scrollSpeed;
-        this.scrollAnimationFrame = requestAnimationFrame(scroll);
-      }
+  _createActionFromSegment(index, text, speakers) {
+    return {
+      id: `action-id-${Date.now()}-${index}`,
+      type: "talk",
+      text: text,
+      speakers: speakers,
+      motions: [],
     };
-    scroll();
-  },
-
-  // 停止自动滚动动画
-  stopScrolling() {
-    if (this.scrollAnimationFrame) {
-      cancelAnimationFrame(this.scrollAnimationFrame);
-      this.scrollAnimationFrame = null;
-    }
-    this.scrollSpeed = 0;
-  },
-
-
-  // 保存表情动作配置到全局状态
-  async save() {
-    await EditorHelper.saveEditor({
-      editor: baseEditor,
-      modalId: "expressionEditorModal",
-      buttonId: "saveExpressionsBtn",
-
-      applyChanges: () => {
-        editorService.projectManager.save(
-          this.projectFileState,
-          (savedState) => {
-            baseEditor.originalStateOnOpen = JSON.stringify(savedState);
-          }
-        );
-      },
-    });
-  },
-
-  // 导出项目文件
-  exportProject() {
-    editorService.projectManager.export(this.projectFileState);
-  },
-
-  // 导入项目文件
-  async importProject() {
-    const importedProject = await editorService.projectManager.import();
-    if (importedProject) {
-      this.projectFileState = importedProject;
-      this.originalStateOnOpen = JSON.stringify(importedProject);
-      editorService.setProjectState(DataUtils.deepClone(importedProject));
-      historyManager.clear();
-      this.stagedCharacters = this._calculateStagedCharacters(
-        this.projectFileState
-      );
-      this.renderTimeline();
-    }
   },
 
   // 恢复默认表情动作（清空所有角色状态配置）
@@ -1378,13 +1254,7 @@ export const expressionEditor = {
           }
         }
 
-        return {
-          id: `action-id-${Date.now()}-${index}`,
-          type: "talk",
-          text: cleanText,
-          speakers: speakers,
-          motions: [],
-        };
+        return this._createActionFromSegment(index, cleanText, speakers);
       }),
     };
     return newProjectFile;
@@ -1393,89 +1263,6 @@ export const expressionEditor = {
   // 使用 BaseEditor 的 executeCommand 方法
   _executeCommand(changeFn) {
     baseEditor.executeCommand(changeFn);
-  },
-
-  // 删除 layout 动作
-  _deleteLayoutAction(actionId) {
-    this._executeCommand((currentState) => {
-      currentState.actions = currentState.actions.filter(
-        (a) => a.id !== actionId
-      );
-    });
-  },
-
-  /**
-   * 布局属性更新策略处理器映射
-   * 每个处理器负责更新特定控件类型对应的 action 属性
-   * @private
-   */
-  _layoutPropertyHandlers: {
-    "layout-type-select": (action, value) => {
-      action.layoutType = value;
-    },
-
-    "layout-costume-select": (action, value) => {
-      action.costume = value;
-    },
-
-    "layout-position-select-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.side = value;
-    },
-
-    "layout-offset-input-to": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.to) action.position.to = {};
-      action.position.to.offsetX = value;
-    },
-
-    "layout-position-select": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.side = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.side = value;
-      }
-    },
-
-    "layout-offset-input": (action, value) => {
-      if (!action.position) action.position = {};
-      if (!action.position.from) action.position.from = {};
-      action.position.from.offsetX = value;
-
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
-        if (!action.position.to) action.position.to = {};
-        action.position.to.offsetX = value;
-      }
-    },
-  },
-
-  // 更新 layout 动作的属性（类型、位置、偏移、服装）
-  _updateLayoutActionProperty(actionId, targetElement) {
-    const value =
-      targetElement.type === "number"
-        ? parseInt(targetElement.value) || 0
-        : targetElement.value;
-    const controlClassName = targetElement.className;
-
-    this._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
-      if (!action) return;
-
-      // 查找匹配的处理器并执行
-      const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
-        controlClassName.includes(key)
-      );
-
-      if (handlerKey) {
-        this._layoutPropertyHandlers[handlerKey](action, value);
-      }
-    });
   },
 
   // 添加临时动作或表情项（用户自定义未在配置中的项）
@@ -1556,22 +1343,7 @@ export const expressionEditor = {
       window.open(url, "_blank");
     });
   },
-
-  // 关闭编辑器并清理资源
-  _closeEditor() {
-    EditorHelper.closeEditor({
-      modalId: "expressionEditorModal",
-      beforeClose: () => {
-        // 销毁 Sortable 实例
-        this.sortableInstances.forEach((instance) => instance?.destroy());
-        this.sortableInstances = [];
-
-        // 停止滚动动画
-        if (this.scrollAnimationFrame) {
-          cancelAnimationFrame(this.scrollAnimationFrame);
-          this.scrollAnimationFrame = null;
-        }
-      },
-    });
-  },
 };
+
+// 应用 mixins
+Object.assign(expressionEditor, BaseEditorMixin, EventHandlerMixin, LayoutPropertyMixin, ScrollAnimationMixin);
