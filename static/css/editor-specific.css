@@ -328,8 +328,17 @@
   border-top: none;
 }
 
-#speakerEditorModal .timeline-item-footer,
-#live2dEditorModal .timeline-item-footer {
+#speakerEditorModal .timeline-item-footer {
+  display: none;
+}
+
+/* Live2D 编辑器中的 footer 需要显示（用于切换按钮） */
+#live2dEditorModal .layout-item .timeline-item-footer {
+  display: flex !important;
+}
+
+/* Live2D 编辑器中的 talk-item footer 保持隐藏 */
+#live2dEditorModal .talk-item .timeline-item-footer {
   display: none;
 }
 
@@ -337,8 +346,13 @@
   flex-wrap: nowrap;
 }
 
+#live2dEditorModal .talk-item {
+  flex-wrap: wrap;
+}
+
 #live2dEditorModal .talk-item .timeline-content {
-  min-width: 0;
+  flex: 1;
+  min-width: 200px;
 }
 
 #expressionEditorLibrary .form-group {
@@ -548,4 +562,29 @@
 /* 保持"设置动作/表情"按钮在分配列表下方 */
 .timeline-item-footer .setup-expressions-btn {
   margin-top: 10px;
+}
+
+/* 切换起终点位置按钮样式 */
+.toggle-position-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+.toggle-position-btn .toggle-position-icon {
+  font-size: 1em;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.toggle-position-btn.expanded .toggle-position-icon {
+  transform: rotate(45deg);
+}
+
+.toggle-position-btn .toggle-position-text {
+  font-size: 0.9em;
 }

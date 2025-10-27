@@ -654,6 +654,7 @@ export const speakerEditor = {
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+        const toggleBtn = card.querySelector(".toggle-position-btn");
 
         if (action.layoutType === "move") {
           toPositionContainer.style.display = "grid";
@@ -662,6 +663,11 @@ export const speakerEditor = {
             action.position?.to?.offsetX || 0;
         } else {
           toPositionContainer.style.display = "none";
+        }
+
+        // 隐藏切换按钮（此功能仅在 live2d 编辑器中使用）
+        if (toggleBtn) {
+          toggleBtn.classList.add("hidden");
         }
       } else {
         return null;

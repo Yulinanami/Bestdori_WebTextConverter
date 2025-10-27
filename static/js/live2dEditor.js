@@ -152,8 +152,61 @@ export const live2dEditor = {
         timeline.onclick = (e) => {
           const card = e.target.closest(".layout-item");
           if (!card) return;
+
+          // 处理删除按钮
           if (e.target.matches(".layout-remove-btn")) {
             this._deleteLayoutAction(card.dataset.id);
+            return;
+          }
+
+          // 处理切换位置配置按钮
+          if (e.target.closest(".toggle-position-btn")) {
+            const toggleBtn = card.querySelector(".toggle-position-btn");
+            const toPositionContainer = card.querySelector(".to-position-container");
+            const isExpanded = toggleBtn.classList.contains("expanded");
+            const actionId = card.dataset.id;
+
+            if (isExpanded) {
+              // 收起：隐藏终点位置容器，并清除独立的终点位置配置
+              toggleBtn.classList.remove("expanded");
+              DOMUtils.toggleDisplay(toPositionContainer, false);
+
+              // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
+              this._executeCommand((currentState) => {
+                const currentAction = currentState.actions.find(a => a.id === actionId);
+                if (currentAction && currentAction.position) {
+                  delete currentAction._independentToPosition;
+                  if (!currentAction.position.to) currentAction.position.to = {};
+                  currentAction.position.to.side = currentAction.position.from?.side || "center";
+                  currentAction.position.to.offsetX = currentAction.position.from?.offsetX || 0;
+                }
+              });
+            } else {
+              // 展开：显示终点位置容器，设置独立标记
+              toggleBtn.classList.add("expanded");
+              DOMUtils.toggleDisplay(toPositionContainer, true);
+              toPositionContainer.style.display = "grid";
+
+              // 设置独立配置标记，阻止自动同步
+              this._executeCommand((currentState) => {
+                const currentAction = currentState.actions.find(a => a.id === actionId);
+                if (currentAction) {
+                  currentAction._independentToPosition = true;
+                }
+              });
+
+              // 初始化终点位置UI显示（使用当前 to 值，如果没有则使用 from 值）
+              const action = this.projectFileState.actions.find(a => a.id === actionId);
+              if (action) {
+                const fromSide = action.position?.from?.side || "center";
+                const fromOffsetX = action.position?.from?.offsetX || 0;
+                const toSide = action.position?.to?.side || fromSide;
+                const toOffsetX = action.position?.to?.offsetX ?? fromOffsetX;
+
+                card.querySelector(".layout-position-select-to").value = toSide;
+                card.querySelector(".layout-offset-input-to").value = toOffsetX;
+              }
+            }
           }
         };
 
@@ -600,16 +653,42 @@ export const live2dEditor = {
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+        const toggleBtn = card.querySelector(".toggle-position-btn");
 
         if (action.layoutType === "move") {
+          // 移动类型：始终显示终点位置，隐藏切换按钮
           DOMUtils.toggleDisplay(toPositionContainer, true);
           toPositionContainer.style.display = "grid"; // 保持 grid 布局
           card.querySelector(".layout-position-select-to").value =
             action.position?.to?.side || "center";
           card.querySelector(".layout-offset-input-to").value =
             action.position?.to?.offsetX || 0;
+          if (toggleBtn) toggleBtn.classList.add("hidden");
+        } else if (action.layoutType === "appear" || action.layoutType === "hide") {
+          // 登场/退场类型：显示切换按钮，根据展开状态控制终点位置容器
+          if (toggleBtn) {
+            toggleBtn.classList.remove("hidden");
+
+            // 检查是否设置了独立配置标记
+            if (action._independentToPosition) {
+              // 有独立的终点位置配置，展开显示
+              toggleBtn.classList.add("expanded");
+              DOMUtils.toggleDisplay(toPositionContainer, true);
+              toPositionContainer.style.display = "grid";
+              const toSide = action.position?.to?.side || action.position?.from?.side || "center";
+              const toOffsetX = action.position?.to?.offsetX ?? action.position?.from?.offsetX ?? 0;
+              card.querySelector(".layout-position-select-to").value = toSide;
+              card.querySelector(".layout-offset-input-to").value = toOffsetX;
+            } else {
+              // 没有独立配置，收起
+              toggleBtn.classList.remove("expanded");
+              DOMUtils.toggleDisplay(toPositionContainer, false);
+            }
+          }
         } else {
+          // 其他类型：隐藏终点位置和切换按钮
           DOMUtils.toggleDisplay(toPositionContainer, false);
+          if (toggleBtn) toggleBtn.classList.add("hidden");
         }
       } else {
         return null;

@@ -32,8 +32,8 @@ export const LayoutPropertyMixin = {
       if (!action.position.from) action.position.from = {};
       action.position.from.side = value;
 
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
+      // 非移动类型时同时设置 to（除非用户手动展开了独立配置）
+      if (action.layoutType !== "move" && !action._independentToPosition) {
         if (!action.position.to) action.position.to = {};
         action.position.to.side = value;
       }
@@ -44,8 +44,8 @@ export const LayoutPropertyMixin = {
       if (!action.position.from) action.position.from = {};
       action.position.from.offsetX = value;
 
-      // 非移动类型时同时设置 to
-      if (action.layoutType !== "move") {
+      // 非移动类型时同时设置 to（除非用户手动展开了独立配置）
+      if (action.layoutType !== "move" && !action._independentToPosition) {
         if (!action.position.to) action.position.to = {};
         action.position.to.offsetX = value;
       }

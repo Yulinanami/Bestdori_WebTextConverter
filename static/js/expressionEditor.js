@@ -1039,6 +1039,7 @@ export const expressionEditor = {
         const toPositionContainer = card.querySelector(
           ".to-position-container"
         );
+        const toggleBtn = card.querySelector(".toggle-position-btn");
 
         if (action.layoutType === "move") {
           toPositionContainer.style.display = "grid";
@@ -1048,6 +1049,11 @@ export const expressionEditor = {
             action.position?.to?.offsetX || 0;
         } else {
           toPositionContainer.style.display = "none";
+        }
+
+        // 隐藏切换按钮（此功能仅在 live2d 编辑器中使用）
+        if (toggleBtn) {
+          toggleBtn.classList.add("hidden");
         }
       } else {
         return null;
@@ -1089,6 +1095,7 @@ export const expressionEditor = {
             "btn btn-secondary btn-sm setup-expressions-btn"
           );
 
+          DOMUtils.clearElement(footer);
           footer.appendChild(assignmentsContainer);
           footer.appendChild(characterSelector);
           footer.appendChild(setupButton);
@@ -1118,11 +1125,13 @@ export const expressionEditor = {
             assignmentsContainer.appendChild(assignmentItem);
           }
 
+          DOMUtils.clearElement(footer);
           footer.appendChild(assignmentsContainer);
         }
       } else {
         // 没有表情数据时显示"设置动作/表情"按钮
         // 但layout动作点击后会直接显示拖放区而不是按钮
+        DOMUtils.clearElement(footer);
         if (action.type === "talk") {
           const setupButton = DOMUtils.createButton(
             "设置动作/表情",
