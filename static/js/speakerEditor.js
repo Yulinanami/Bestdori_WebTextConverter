@@ -1014,7 +1014,7 @@ export const speakerEditor = {
   },
 
   onBeforeClose() {
-    editorService.selectionManager.detach();
+    editorService.detachSelection(this.domCache.canvas);
   },
 
   _createActionFromSegment(index, text, speakers) {
