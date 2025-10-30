@@ -225,17 +225,32 @@ export const configManager = {
     const avatar = avatarWrapper.querySelector(".config-avatar");
     avatar.dataset.id = id;
     const avatarId = this.getAvatarId(id);
+
+    // 使用 DOMUtils 或清空内容
+    DOMUtils.clearElement(avatar);
+
     if (avatarId > 0) {
       avatar.className = "config-avatar";
-      avatar.innerHTML = `<img src="/static/images/avatars/${avatarId}.png" alt="${name}" class="config-avatar-img">`;
-      const img = avatar.querySelector("img");
-      img.onerror = () => {
-        avatar.innerHTML = name.charAt(0);
+
+      // 使用标准 DOM API 创建元素
+      const img = DOMUtils.createElement("img", {
+        src: `/static/images/avatars/${avatarId}.png`,
+        alt: name,
+        className: "config-avatar-img",
+        loading: "lazy" // 结合方式一
+      });
+
+      // 设置错误处理
+      img.addEventListener("error", () => {
+        DOMUtils.clearElement(avatar);
+        avatar.textContent = name.charAt(0);
         avatar.classList.add("fallback");
-      };
+      });
+
+      avatar.appendChild(img);
     } else {
       avatar.className = "config-avatar fallback";
-      avatar.innerHTML = name.charAt(0);
+      avatar.textContent = name.charAt(0);
     }
   },
 

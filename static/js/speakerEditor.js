@@ -157,7 +157,7 @@ export const speakerEditor = {
 
     const btn = this.domCache.toggleTextEditBtn;
     if (btn) {
-      btn.textContent = this.isTextEditMode ? "编辑(关闭可减少卡顿): 开" : "编辑(关闭可减少卡顿): 关";
+      btn.textContent = this.isTextEditMode ? "编辑: 开" : "编辑: 关";
     }
 
     // 在画布容器上切换一个CSS类，用于控制所有编辑按钮的显隐
@@ -440,8 +440,8 @@ export const speakerEditor = {
         // 根据加载的状态更新"编辑模式"按钮的UI
         if (this.domCache.toggleTextEditBtn) {
           this.domCache.toggleTextEditBtn.textContent = this.isTextEditMode
-            ? "编辑(关闭可减少卡顿): 开"
-            : "编辑(关闭可减少卡顿): 关";
+            ? "编辑: 开"
+            : "编辑: 关";
         }
 
         this.domCache.canvas.classList.toggle(
