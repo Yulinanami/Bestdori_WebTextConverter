@@ -21,10 +21,6 @@ const baseEditor = new BaseEditor({
     speakerEditor.renderCharacterList(usedIds);
     speakerEditor._reattachSelection(); // 重新绑定选择功能
   },
-  afterCommandCallback: () => {
-    // 撤销/恢复后清除缓存
-    speakerEditor._invalidateCache();
-  },
   groupSize: 50,
 });
 
@@ -43,7 +39,6 @@ export const speakerEditor = {
 
   set projectFileState(value) {
     baseEditor.projectFileState = value;
-    this._invalidateCache(); // 清除缓存
   },
 
   get originalStateOnOpen() {
@@ -67,8 +62,6 @@ export const speakerEditor = {
   isTextEditMode: false,
   // DOM 缓存
   domCache: {},
-  // 计算结果缓存
-  _usedCharacterIdsCache: null,
 
   // 初始化编辑器，绑定事件监听器和快捷键
   init() {
@@ -347,11 +340,6 @@ export const speakerEditor = {
     return closestCard;
   },
 
-  // 清除已使用角色ID的缓存（状态变更时调用）
-  _invalidateCache() {
-    this._usedCharacterIdsCache = null;
-  },
-
   // 重新附加卡片选择功能
   _reattachSelection() {
     const canvas = this.domCache.canvas;
@@ -368,15 +356,10 @@ export const speakerEditor = {
   },
 
   /**
-   * 获取所有已使用的角色名称(带缓存优化)
-   * 缓存在状态改变时由_invalidateCache()清除
+   * 获取所有已使用的角色名称
    * @returns {Set<string>} 角色名称集合
    */
   _getUsedCharacterIds() {
-    if (this._usedCharacterIdsCache) {
-      return this._usedCharacterIdsCache;
-    }
-
     const usedNames = new Set();
     if (this.projectFileState && this.projectFileState.actions) {
       this.projectFileState.actions.forEach((action) => {
@@ -390,7 +373,6 @@ export const speakerEditor = {
         }
       });
     }
-    this._usedCharacterIdsCache = usedNames;
     return usedNames;
   },
 
@@ -829,8 +811,7 @@ export const speakerEditor = {
       });
     });
 
-    // 清除缓存并更新右侧角色列表
-    this._invalidateCache();
+    // 更新右侧角色列表
     const usedIds = this._getUsedCharacterIds();
     this.renderCharacterList(usedIds);
     editorService.clearSelection();
@@ -850,8 +831,7 @@ export const speakerEditor = {
       }
     });
 
-    // 清除缓存并更新右侧角色列表
-    this._invalidateCache();
+    // 更新右侧角色列表
     const usedIds = this._getUsedCharacterIds();
     this.renderCharacterList(usedIds);
   },
@@ -865,8 +845,7 @@ export const speakerEditor = {
       }
     });
 
-    // 清除缓存并更新右侧角色列表
-    this._invalidateCache();
+    // 更新右侧角色列表
     const usedIds = this._getUsedCharacterIds();
     this.renderCharacterList(usedIds);
   },
@@ -1002,7 +981,6 @@ export const speakerEditor = {
 
   // 钩子方法
   afterImport() {
-    this._invalidateCache();
     this.renderCanvas();
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);

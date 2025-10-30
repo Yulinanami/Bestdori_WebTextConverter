@@ -55,7 +55,6 @@ export const expressionEditor = {
   // DOM 缓存
   domCache: {},
 
-  stagedCharacters: [],
   tempLibraryItems: { motion: [], expression: [] },
 
   init() {
@@ -127,9 +126,6 @@ export const expressionEditor = {
   },
 
   afterImport() {
-    this.stagedCharacters = this._calculateStagedCharacters(
-      this.projectFileState
-    );
     this.renderTimeline();
   },
 
@@ -192,9 +188,6 @@ export const expressionEditor = {
           }
           this.projectFileState = DataUtils.deepClone(initialState);
           this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-          this.stagedCharacters = this._calculateStagedCharacters(
-            this.projectFileState
-          );
           historyManager.clear();
         } catch (error) {
           ui.showStatus(
@@ -592,7 +585,7 @@ export const expressionEditor = {
     let availableCharacters = [];
     if (action.type === "talk") {
       // talk动作：显示所有登场的角色
-      availableCharacters = this.stagedCharacters;
+      availableCharacters = this._getStagedCharacters();
     } else if (action.type === "layout") {
       // layout动作：只显示该布局涉及的角色
       const char = {
@@ -699,12 +692,7 @@ export const expressionEditor = {
     const itemElement = itemContainer.firstElementChild;
 
     // 获取角色信息
-    const character = this.stagedCharacters.find(
-      (c) => c.id === motionData.character
-    );
-    const characterName =
-      character?.name ||
-      editorService.getCharacterNameById(motionData.character);
+    const characterName = editorService.getCharacterNameById(motionData.character);
 
     itemElement.dataset.characterId = motionData.character;
     itemElement.dataset.characterName = characterName;
@@ -930,25 +918,30 @@ export const expressionEditor = {
     });
   },
 
-  // 计算当前在场的角色列表（根据 layout 动作的 appear 事件）
-  _calculateStagedCharacters(projectFile) {
+  /**
+   * 获取当前在场的角色列表（根据 layout 动作的 appear 事件）
+   * @returns {Array<{id: number, name: string}>} 在场角色列表
+   */
+  _getStagedCharacters() {
     const appearedCharacterNames = new Set();
     const characters = [];
 
-    projectFile.actions.forEach((action) => {
-      if (action.type === "layout" && action.layoutType === "appear") {
-        const charName =
-          action.characterName ||
-          editorService.getCharacterNameById(action.characterId);
-        if (charName && !appearedCharacterNames.has(charName)) {
-          appearedCharacterNames.add(charName);
-          characters.push({
-            id: action.characterId,
-            name: charName,
-          });
+    if (this.projectFileState && this.projectFileState.actions) {
+      this.projectFileState.actions.forEach((action) => {
+        if (action.type === "layout" && action.layoutType === "appear") {
+          const charName =
+            action.characterName ||
+            editorService.getCharacterNameById(action.characterId);
+          if (charName && !appearedCharacterNames.has(charName)) {
+            appearedCharacterNames.add(charName);
+            characters.push({
+              id: action.characterId,
+              name: charName,
+            });
+          }
         }
-      }
-    });
+      });
+    }
     return characters;
   },
 
@@ -1169,7 +1162,8 @@ export const expressionEditor = {
 
   // 渲染动作和表情资源库（根据在场角色动态生成可用列表）
   renderLibraries() {
-    const stagedCharacterIds = new Set(this.stagedCharacters.map((c) => c.id));
+    const stagedCharacters = this._getStagedCharacters();
+    const stagedCharacterIds = new Set(stagedCharacters.map((c) => c.id));
     const motionItems = new Set(this.tempLibraryItems.motion);
     const expressionItems = new Set(this.tempLibraryItems.expression);
     stagedCharacterIds.forEach((id) => {
