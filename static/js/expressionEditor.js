@@ -629,8 +629,6 @@ export const expressionEditor = {
 
   // 添加新的动作/表情分配
   _addMotionAssignment(action, character) {
-    let newIndex = -1;
-
     this._executeCommand((currentState) => {
       const currentAction = currentState.actions.find(
         (a) => a.id === action.id
@@ -649,36 +647,8 @@ export const expressionEditor = {
         expression: "",
         delay: 0,
       });
-
-      newIndex = currentAction.motions.length - 1;
     });
-
-    // 增量渲染：只添加新的分配项，而不是重新渲染整个footer
-    const cardElement = document.querySelector(
-      `.timeline-item[data-id="${action.id}"]`
-    );
-    if (cardElement && newIndex >= 0) {
-      const footer = cardElement.querySelector(".timeline-item-footer");
-      const assignmentsContainer = footer?.querySelector(
-        ".motion-assignments-container"
-      );
-
-      if (assignmentsContainer) {
-        // 获取更新后的action数据
-        const updatedAction = this.projectFileState.actions.find(
-          (a) => a.id === action.id
-        );
-        if (updatedAction && updatedAction.motions) {
-          const newMotionData = updatedAction.motions[newIndex];
-          const assignmentItem = this._createAssignmentItem(
-            updatedAction,
-            newMotionData,
-            newIndex
-          );
-          assignmentsContainer.appendChild(assignmentItem);
-        }
-      }
-    }
+    // executeCommand 会自动触发全局渲染，不需要手动追加 DOM
   },
 
   // 创建单个动作/表情分配项UI
@@ -839,37 +809,7 @@ export const expressionEditor = {
 
       action.motions.splice(assignmentIndex, 1);
     });
-
-    // 增量更新：重新渲染所有分配项以更新索引
-    // （因为删除会影响后续项的索引，所以需要全部重新渲染）
-    const cardElement = document.querySelector(
-      `.timeline-item[data-id="${actionId}"]`
-    );
-    if (cardElement) {
-      const footer = cardElement.querySelector(".timeline-item-footer");
-      const assignmentsContainer = footer?.querySelector(
-        ".motion-assignments-container"
-      );
-
-      if (assignmentsContainer) {
-        DOMUtils.clearElement(assignmentsContainer);
-
-        // 获取更新后的action数据
-        const updatedAction = this.projectFileState.actions.find(
-          (a) => a.id === actionId
-        );
-        if (updatedAction && updatedAction.motions) {
-          updatedAction.motions.forEach((motionData, index) => {
-            const assignmentItem = this._createAssignmentItem(
-              updatedAction,
-              motionData,
-              index
-            );
-            assignmentsContainer.appendChild(assignmentItem);
-          });
-        }
-      }
-    }
+    // executeCommand 会自动触发全局渲染，重新生成所有分配项并更新索引
   },
 
   // 检查动作是否包含表情数据（motions 数组或 initialState）

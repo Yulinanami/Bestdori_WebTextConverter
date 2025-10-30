@@ -318,7 +318,8 @@
   padding-top: 10px;
   border-top: 1px dashed var(--border-secondary);
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* 确保状态栏在新容器中正确显示 */
@@ -443,6 +444,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .character-selector-header {
@@ -485,7 +487,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  width: 100%;
 }
 
 .motion-assignment-item {
@@ -559,9 +561,12 @@
   max-width: 80px;
 }
 
-/* 保持"设置动作/表情"按钮在分配列表下方 */
+/* 保持"设置动作/表情"按钮在分配列表下方，固定尺寸 */
 .timeline-item-footer .setup-expressions-btn {
-  margin-top: 10px;
+  align-self: flex-start;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 /* 切换起终点位置按钮样式 */
@@ -570,9 +575,12 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 6px 12px;
-  margin-top: 10px;
   transition: all 0.2s ease;
+  /* 与 setup-expressions-btn 保持一致的样式 */
+  align-self: flex-start;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .toggle-position-btn .toggle-position-icon {
@@ -586,5 +594,5 @@
 }
 
 .toggle-position-btn .toggle-position-text {
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
