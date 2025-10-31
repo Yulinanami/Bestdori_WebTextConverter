@@ -120,15 +120,25 @@ export const expressionEditor = {
     const libraryContainer = document.getElementById("expressionEditorLibrary");
     if (libraryContainer) {
       libraryContainer.addEventListener("click", (e) => {
-        // 处理下拉按钮点击
-        if (e.target.classList.contains("quick-fill-btn")) {
-          this._toggleQuickFillDropdown(e.target.dataset.type);
+        const quickFillBtn = e.target.closest(".quick-fill-btn");
+        const quickFillItem = e.target.closest(".quick-fill-item");
+        const deleteBtn = e.target.closest(".quick-fill-delete-btn");
+
+        if (deleteBtn) {
+          // 优先处理删除按钮
+          e.stopPropagation(); // 阻止事件冒泡到 quickFillItem
+          this._deleteCustomQuickFillOption(deleteBtn.dataset.value);
+          return;
         }
-        // 处理下拉项点击
-        if (e.target.classList.contains("quick-fill-item")) {
+
+        if (quickFillBtn) {
+          this._toggleQuickFillDropdown(quickFillBtn.dataset.type);
+        }
+
+        if (quickFillItem) {
           e.preventDefault();
-          const type = e.target.dataset.type;
-          const value = e.target.dataset.value;
+          const type = quickFillItem.dataset.type;
+          const value = quickFillItem.dataset.value;
           if (type === "add-custom") {
             this._addCustomQuickFillOption();
           } else {
@@ -1328,9 +1338,10 @@ export const expressionEditor = {
     DOMUtils.clearElement(dropdown);
 
     // 合并并排序所有选项
+    const defaultOptions = new Set(this.quickFillOptions.default); 
     const allOptions = [
       ...new Set([
-        ...this.quickFillOptions.default,
+        ...this.quickFillOptions.default, 
         ...this.quickFillOptions.custom,
       ]),
     ].sort();
@@ -1339,6 +1350,29 @@ export const expressionEditor = {
       const item = DOMUtils.createButton(option, "quick-fill-item");
       item.dataset.type = type;
       item.dataset.value = option;
+
+      // 如果是自定义选项，且不是默认选项，则添加删除按钮
+      if (
+        this.quickFillOptions.custom.includes(option) &&
+        !defaultOptions.has(option)
+      ) {
+        const deleteBtn = DOMUtils.createElement("button", {
+          className: "quick-fill-delete-btn",
+          title: "删除此项",
+        });
+        deleteBtn.dataset.value = option;
+
+        // 使用 Google Icon Font (需要确保 material-symbols.css 已加载)
+        const icon = DOMUtils.createElement(
+          "span",
+          { className: "material-symbols-outlined" },
+          "delete"
+        );
+        deleteBtn.appendChild(icon);
+
+        item.appendChild(deleteBtn);
+      }
+
       dropdown.appendChild(item);
     });
 
@@ -1423,6 +1457,27 @@ export const expressionEditor = {
       } else {
         ui.showStatus("该填充项已存在！", "error");
       }
+    }
+  },
+
+  /**
+   * 删除一个自定义快速填充选项
+   * @param {string} valueToDelete
+   */
+  async _deleteCustomQuickFillOption(valueToDelete) {
+    const confirmed = await modalService.confirm(
+      `确定要删除自定义填充项 "${valueToDelete}" 吗？`
+    );
+    if (confirmed) {
+      this.quickFillOptions.custom = this.quickFillOptions.custom.filter(
+        (option) => option !== valueToDelete
+      );
+      storageService.set(
+        STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+        this.quickFillOptions.custom
+      );
+      this._renderQuickFillDropdowns(); // 重新渲染以反映删除
+      ui.showStatus(`已删除填充项: ${valueToDelete}`, "success");
     }
   },
 };

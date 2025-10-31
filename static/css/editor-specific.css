@@ -632,7 +632,9 @@
 }
 
 .quick-fill-item {
-  display: block;
+  display: flex; /* 改为 flex */
+  justify-content: space-between; /* 左右对齐 */
+  align-items: center; /* 垂直居中 */
   width: 100%;
   padding: 8px 12px;
   text-align: left;
@@ -643,6 +645,23 @@
   font-size: 0.9em;
   color: var(--text-secondary);
 }
+
+.quick-fill-delete-btn {
+  opacity: 0;
+  pointer-events: none; 
+  transition: opacity 0.2s ease; 
+  padding: 2px;
+  margin-left: 8px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+
 
 .quick-fill-item:hover {
   background-color: var(--bg-secondary);
@@ -658,4 +677,18 @@
 .quick-fill-add-btn {
   color: var(--color-primary);
   font-weight: 500;
+}
+
+.quick-fill-item:hover .quick-fill-delete-btn {
+  opacity: 1; 
+  pointer-events: auto; 
+}
+
+.quick-fill-delete-btn:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.quick-fill-delete-btn .material-symbols-outlined {
+  font-size: 16px; /* 调整图标大小 */
 }
