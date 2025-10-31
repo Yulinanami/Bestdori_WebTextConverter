@@ -596,3 +596,66 @@
 .toggle-position-btn .toggle-position-text {
   font-size: 0.85em;
 }
+
+.search-group {
+  display: flex;
+  gap: 8px;
+}
+
+.search-group .search-input-container {
+  flex-grow: 1;
+}
+
+.quick-fill-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.quick-fill-btn {
+  padding: 6px 10px;
+}
+
+.quick-fill-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  min-width: 150px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.quick-fill-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.quick-fill-item:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.quick-fill-divider {
+  height: 1px;
+  background-color: var(--border-primary);
+  margin: 5px 0;
+}
+
+.quick-fill-add-btn {
+  color: var(--color-primary);
+  font-weight: 500;
+}

@@ -237,7 +237,7 @@ export const configManager = {
         src: `/static/images/avatars/${avatarId}.png`,
         alt: name,
         className: "config-avatar-img",
-        loading: "lazy" // 结合方式一
+        loading: "lazy", // 结合方式一
       });
 
       // 设置错误处理
@@ -327,8 +327,10 @@ export const configManager = {
           custom_expressions: expressionManager
             ? expressionManager.customItems
             : [],
+          custom_quick_fill:
+            storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [],
           export_date: new Date().toISOString(),
-          version: "1.2",
+          version: "1.3",
         };
         const dataStr = JSON.stringify(fullConfig, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -431,6 +433,17 @@ export const configManager = {
             if (typeof expressionManager !== "undefined") {
               expressionManager.customItems = [...config.custom_expressions];
               expressionManager.saveCustomItems();
+            }
+            if (
+              config.custom_quick_fill &&
+              Array.isArray(config.custom_quick_fill)
+            ) {
+              storageService.set(
+                STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+                config.custom_quick_fill
+              );
+              // 可以在这里触发一个事件，通知 expressionEditor 更新
+              // eventBus.emit(EVENTS.QUICK_FILL_IMPORTED);
             }
           }
         } else {

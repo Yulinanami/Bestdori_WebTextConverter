@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   LIVE2D_SUBSEQUENT_MODE: "bestdori_live2d_subsequent_mode",
   SPEAKER_MULTI_SELECT_MODE: "bestdori_speaker_multi_select_mode",
   SPEAKER_TEXT_EDIT_MODE: "bestdori_speaker_text_edit_mode",
+  CUSTOM_QUICK_FILL_OPTIONS: "bestdori_custom_quick_fill_options",
 };
 
 class StorageService {

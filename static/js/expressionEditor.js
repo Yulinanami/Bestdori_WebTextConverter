@@ -11,6 +11,9 @@ import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
 import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
 import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { state } from "./stateManager.js";
+import { modalService } from "./services/ModalService.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -54,8 +57,11 @@ export const expressionEditor = {
 
   // DOM 缓存
   domCache: {},
-
   tempLibraryItems: { motion: [], expression: [] },
+  quickFillOptions: {
+    default: [],
+    custom: [],
+  },
 
   init() {
     // 缓存 DOM 元素
@@ -84,6 +90,7 @@ export const expressionEditor = {
     document
       .getElementById("live2dViewerBtn")
       ?.addEventListener("click", () => this._openLive2dViewers());
+
     const setupSearchClear = (inputId, clearBtnId) => {
       const input = document.getElementById(inputId);
       const clearBtn = document.getElementById(clearBtnId);
@@ -91,12 +98,14 @@ export const expressionEditor = {
       input.addEventListener("input", () => {
         clearBtn.style.display = input.value ? "block" : "none";
       });
+
       clearBtn.addEventListener("click", () => {
         input.value = "";
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.focus();
       });
     };
+
     setupSearchClear("motionSearchInput", "clearMotionSearchBtn");
     setupSearchClear("expressionSearchInput", "clearExpressionSearchBtn");
     document
@@ -107,6 +116,27 @@ export const expressionEditor = {
       ?.addEventListener("input", (e) =>
         this._filterLibraryList("expression", e)
       );
+
+    const libraryContainer = document.getElementById("expressionEditorLibrary");
+    if (libraryContainer) {
+      libraryContainer.addEventListener("click", (e) => {
+        // 处理下拉按钮点击
+        if (e.target.classList.contains("quick-fill-btn")) {
+          this._toggleQuickFillDropdown(e.target.dataset.type);
+        }
+        // 处理下拉项点击
+        if (e.target.classList.contains("quick-fill-item")) {
+          e.preventDefault();
+          const type = e.target.dataset.type;
+          const value = e.target.dataset.value;
+          if (type === "add-custom") {
+            this._addCustomQuickFillOption();
+          } else {
+            this._handleQuickFillSelect(type, value);
+          }
+        }
+      });
+    }
 
     // 初始化通用事件
     this.initCommonEvents();
@@ -198,6 +228,8 @@ export const expressionEditor = {
         }
       },
       afterOpen: async () => {
+        this._loadQuickFillOptions();
+        this._renderQuickFillDropdowns();
         const motionSearch = document.getElementById("motionSearchInput");
         const expressionSearch = document.getElementById(
           "expressionSearchInput"
@@ -662,7 +694,9 @@ export const expressionEditor = {
     const itemElement = itemContainer.firstElementChild;
 
     // 获取角色信息
-    const characterName = editorService.getCharacterNameById(motionData.character);
+    const characterName = editorService.getCharacterNameById(
+      motionData.character
+    );
 
     itemElement.dataset.characterId = motionData.character;
     itemElement.dataset.characterName = characterName;
@@ -1261,6 +1295,135 @@ export const expressionEditor = {
       const url = `https://bestdori.com/tool/live2d/asset/jp/live2d/chara/${costumeId}`;
       window.open(url, "_blank");
     });
+  },
+
+  /**
+   * 加载默认和自定义的快速填充选项
+   */
+  _loadQuickFillOptions() {
+    const configData = state.get("configData");
+    this.quickFillOptions.default = configData?.quick_fill_options || [];
+    this.quickFillOptions.custom =
+      storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
+  },
+
+  /**
+   * 渲染两个快速填充下拉菜单
+   */
+  _renderQuickFillDropdowns() {
+    this._renderQuickFillDropdown("motion");
+    this._renderQuickFillDropdown("expression");
+  },
+
+  /**
+   * 渲染单个快速填充下拉菜单
+   * @param {'motion' | 'expression'} type
+   */
+  _renderQuickFillDropdown(type) {
+    const dropdownId =
+      type === "motion" ? "motionQuickFill" : "expressionQuickFill";
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
+
+    DOMUtils.clearElement(dropdown);
+
+    // 合并并排序所有选项
+    const allOptions = [
+      ...new Set([
+        ...this.quickFillOptions.default,
+        ...this.quickFillOptions.custom,
+      ]),
+    ].sort();
+
+    allOptions.forEach((option) => {
+      const item = DOMUtils.createButton(option, "quick-fill-item");
+      item.dataset.type = type;
+      item.dataset.value = option;
+      dropdown.appendChild(item);
+    });
+
+    // 添加分割线和自定义按钮
+    if (allOptions.length > 0) {
+      dropdown.appendChild(
+        DOMUtils.createElement("div", { className: "quick-fill-divider" })
+      );
+    }
+    const addItem = DOMUtils.createButton(
+      "自定义添加...",
+      "quick-fill-item quick-fill-add-btn"
+    );
+    addItem.dataset.type = "add-custom";
+    dropdown.appendChild(addItem);
+  },
+
+  /**
+   * 切换下拉菜单的显示/隐藏
+   * @param {'motion' | 'expression'} type
+   */
+  _toggleQuickFillDropdown(type) {
+    const dropdownId =
+      type === "motion" ? "motionQuickFill" : "expressionQuickFill";
+    const dropdown = document.getElementById(dropdownId);
+    if (!dropdown) return;
+
+    dropdown.classList.toggle("hidden");
+
+    // 添加点击外部关闭的逻辑
+    if (!dropdown.classList.contains("hidden")) {
+      setTimeout(() => {
+        document.addEventListener(
+          "click",
+          function onClickOutside(e) {
+            if (!dropdown.parentElement.contains(e.target)) {
+              dropdown.classList.add("hidden");
+              document.removeEventListener("click", onClickOutside);
+            }
+          },
+          { once: true }
+        );
+      }, 0);
+    }
+  },
+  /**
+   * 处理快速填充项的选择
+   * @param {'motion' | 'expression'} type
+   * @param {string} value
+   */
+  _handleQuickFillSelect(type, value) {
+    const inputId =
+      type === "motion" ? "motionSearchInput" : "expressionSearchInput";
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.value = value;
+      // 触发 input 事件以应用筛选
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    }
+    // 关闭下拉菜单
+    this._toggleQuickFillDropdown(type);
+  },
+
+  /**
+   * 添加自定义快速填充选项
+   */
+  async _addCustomQuickFillOption() {
+    const newValue = await modalService.prompt(
+      "请输入要添加的自定义快速填充关键词："
+    );
+    if (newValue && newValue.trim()) {
+      const trimmedValue = newValue.trim().toLowerCase();
+      if (!this.quickFillOptions.custom.includes(trimmedValue)) {
+        this.quickFillOptions.custom.push(trimmedValue);
+        storageService.set(
+          STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+          this.quickFillOptions.custom
+        );
+        this._renderQuickFillDropdowns(); // 重新渲染两个下拉菜单以保持同步
+        ui.showStatus(`已添加自定义填充项: ${trimmedValue}`, "success");
+      } else {
+        ui.showStatus("该填充项已存在！", "error");
+      }
+    }
   },
 };
 

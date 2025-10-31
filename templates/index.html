@@ -1026,19 +1026,36 @@
                 <label for="motionSearchInput" class="form-label"
                   >搜索动作:</label
                 >
-                <div class="search-input-container">
-                  <input
-                    type="text"
-                    class="form-input input-sm"
-                    id="motionSearchInput"
-                    placeholder="输入关键词进行筛选..."
-                  />
-                  <button
-                    class="clear-search-btn hidden"
-                    id="clearMotionSearchBtn"
-                  >
-                    ×
-                  </button>
+                <div class="search-group">
+                  <div class="search-input-container">
+                    <input
+                      type="text"
+                      class="form-input input-sm"
+                      id="motionSearchInput"
+                      placeholder="输入关键词筛选"
+                    />
+                    <button
+                      class="clear-search-btn hidden"
+                      id="clearMotionSearchBtn"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div class="quick-fill-wrapper">
+                    <button
+                      class="btn btn-sm btn-secondary quick-fill-btn"
+                      data-type="motion"
+                      title="快速填充"
+                    >
+                      ▼
+                    </button>
+                    <div
+                      class="quick-fill-dropdown hidden"
+                      id="motionQuickFill"
+                    >
+                      <!-- JS将在此处动态填充 -->
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="form-group">
@@ -1050,7 +1067,7 @@
                     type="text"
                     class="form-input input-sm"
                     id="tempMotionInput"
-                    placeholder="临时的动作ID..."
+                    placeholder="临时动作ID"
                   />
                   <button
                     class="btn btn-secondary btn-sm"
@@ -1071,19 +1088,36 @@
                 <label for="expressionSearchInput" class="form-label"
                   >搜索表情:</label
                 >
-                <div class="search-input-container">
-                  <input
-                    type="text"
-                    class="form-input input-sm"
-                    id="expressionSearchInput"
-                    placeholder="输入关键词进行筛选..."
-                  />
-                  <button
-                    class="clear-search-btn hidden"
-                    id="clearExpressionSearchBtn"
-                  >
-                    ×
-                  </button>
+                <div class="search-group">
+                  <div class="search-input-container">
+                    <input
+                      type="text"
+                      class="form-input input-sm"
+                      id="expressionSearchInput"
+                      placeholder="输入关键词筛选"
+                    />
+                    <button
+                      class="clear-search-btn hidden"
+                      id="clearExpressionSearchBtn"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div class="quick-fill-wrapper">
+                    <button
+                      class="btn btn-sm btn-secondary quick-fill-btn"
+                      data-type="expression"
+                      title="快速填充"
+                    >
+                      ▼
+                    </button>
+                    <div
+                      class="quick-fill-dropdown hidden"
+                      id="expressionQuickFill"
+                    >
+                      <!-- JS将在此处动态填充 -->
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="form-group">
@@ -1095,7 +1129,7 @@
                     type="text"
                     class="form-input input-sm"
                     id="tempExpressionInput"
-                    placeholder="临时的表情ID..."
+                    placeholder="临时表情ID"
                   />
                   <button
                     class="btn btn-secondary btn-sm"
@@ -1216,7 +1250,10 @@
           </div>
 
           <!-- 第三行：终点位置 (To)，展开时显示 -->
-          <div class="to-position-container to-position-grid" style="display: none;">
+          <div
+            class="to-position-container to-position-grid"
+            style="display: none"
+          >
             <div class="form-group-inline">
               <label>终点:</label>
               <select
@@ -1238,7 +1275,10 @@
         <div class="timeline-item-footer">
           <!-- 状态栏或"设置"按钮将由JS动态添加到这里 -->
           <!-- 切换起终点位置的按钮（用于登场/退场） -->
-          <button class="btn btn-sm btn-secondary toggle-position-btn hidden" title="显示/隐藏终点位置配置">
+          <button
+            class="btn btn-sm btn-secondary toggle-position-btn hidden"
+            title="显示/隐藏终点位置配置"
+          >
             <span class="toggle-position-icon">+</span>
             <span class="toggle-position-text">自定义位置配置</span>
           </button>
@@ -1278,7 +1318,13 @@
         <!-- 延时输入框（仅用于布局卡片） -->
         <div class="layout-delay-input-wrapper hidden">
           <label>延时(秒):</label>
-          <input type="number" class="form-input input-sm layout-delay-input" value="0" min="0" step="0.5" />
+          <input
+            type="number"
+            class="form-input input-sm layout-delay-input"
+            value="0"
+            min="0"
+            step="0.5"
+          />
         </div>
       </div>
     </template>
@@ -1297,7 +1343,11 @@
 
     <!-- 动作/表情分配：单个角色选项模板 -->
     <template id="motion-character-option-template">
-      <div class="character-selector-item" data-character-id="" data-character-name="">
+      <div
+        class="character-selector-item"
+        data-character-id=""
+        data-character-name=""
+      >
         <div class="dialogue-avatar micro-avatar"></div>
         <span class="character-name"></span>
       </div>
@@ -1305,13 +1355,22 @@
 
     <!-- 动作/表情分配：单个分配项模板 -->
     <template id="motion-assignment-item-template">
-      <div class="motion-assignment-item" data-character-id="" data-character-name="">
+      <div
+        class="motion-assignment-item"
+        data-character-id=""
+        data-character-name=""
+      >
         <div class="assignment-header">
           <div class="character-info">
             <div class="dialogue-avatar micro-avatar"></div>
             <span class="character-name"></span>
           </div>
-          <button class="remove-btn assignment-remove-btn" title="删除此动作/表情配置">×</button>
+          <button
+            class="remove-btn assignment-remove-btn"
+            title="删除此动作/表情配置"
+          >
+            ×
+          </button>
         </div>
         <div class="assignment-drop-zones">
           <div class="drop-zone motion-drop-zone" data-type="motion">
@@ -1327,7 +1386,13 @@
         </div>
         <div class="assignment-delay">
           <label>延时(秒):</label>
-          <input type="number" class="form-input input-sm assignment-delay-input" value="0" min="0" step="0.5" />
+          <input
+            type="number"
+            class="form-input input-sm assignment-delay-input"
+            value="0"
+            min="0"
+            step="0.5"
+          />
         </div>
       </div>
     </template>
