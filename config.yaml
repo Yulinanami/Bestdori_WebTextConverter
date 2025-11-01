@@ -12,8 +12,13 @@ quick_fill_options:
   - angry
   - bye
   - cry
+  - idle
+  - kime
+  - nf
   - nnf
   - sad
+  - serious
+  - shame
   - smile
   - surprise
   - thinking
