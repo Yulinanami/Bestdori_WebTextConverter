@@ -7,7 +7,7 @@ avatar_mapping:
   340: 4 # 祐天寺若麦
   341: 5 # 丰川祥子
 
-# 动作/表情编辑器的快速填充选项
+# 动作/表情编辑器默认的快速填充选项
 quick_fill_options:
   - angry
   - bye
@@ -16,7 +16,9 @@ quick_fill_options:
   - sad
   - smile
   - surprise
+  - thinking
 
+# 角色ID映射 - 角色名称到角色ID的转换
 character_mapping:
   户山香澄:
     - 1
@@ -110,6 +112,8 @@ character_mapping:
     - 340
   丰川祥子:
     - 341
+
+# 角色默认可用服装列表
 costume_mapping:
   1:
     - 001_school_summer-2023
@@ -335,6 +339,8 @@ costume_mapping:
     - 341_school_winter-2023
     - 341_casual-2023
     - 341_event_297_story_01
+
+# 角色默认使用的服装
 default_costumes:
   1: 001_casual-2023
   2: 002_casual-2023
@@ -382,6 +388,8 @@ default_costumes:
   339: 339_casual-2023
   340: 340_casual-2023
   341: 341_casual-2023
+
+# 角色默认可用动作/表情列表
 character_motions:
   1:
     [
@@ -3297,11 +3305,17 @@ character_expressions:
       thinking01,
       thinking02,
     ]
+
+# 旁白的最大名字长度限制，以及默认名字
 parsing:
   default_narrator_name: " "
   max_speaker_name_length: 50
+
+# 说话人名字和台词的分隔符正则表达式
 patterns:
   speaker_pattern: ^(.*?)\s*[：:]\s*(.*)$
+
+# 默认可用的引号去除选项
 quotes:
   quote_categories:
     中文单引号 ‘...’:
