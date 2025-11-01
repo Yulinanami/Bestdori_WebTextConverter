@@ -1,4 +1,4 @@
-# 头像ID映射 - 用于特殊角色ID到头像ID的转换
+# 特殊角色ID到头像ID的转换，用于Bestdori中还没有头像的角色，使用其他角色的头像代替
 avatar_mapping:
   229: 6 # 纯田真奈
   337: 1 # 三角初华
@@ -23,7 +23,7 @@ quick_fill_options:
   - surprise
   - thinking
 
-# 角色ID映射 - 角色名称到角色ID的转换
+# 角色ID映射，用于角色名称到角色ID的转换，以及绑定角色的头像
 character_mapping:
   户山香澄:
     - 1
@@ -394,7 +394,7 @@ default_costumes:
   340: 340_casual-2023
   341: 341_casual-2023
 
-# 角色默认可用动作/表情列表
+# 角色默认可用动作列表
 character_motions:
   1:
     [
@@ -2371,6 +2371,8 @@ character_motions:
       thinking01,
       thinking02,
     ]
+
+# 角色默认可用表情列表
 character_expressions:
   1:
     [

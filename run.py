@@ -46,7 +46,6 @@ if __name__ == "__main__":
     logger.info("文本转JSON转换器服务器启动中...")
     logger.info("监听地址: http://0.0.0.0:5000")
     logger.info("本地访问: http://127.0.0.1:5000")
-    logger.info("线程数: 8")
     logger.info("="*60)
 
     threading.Timer(1, open_browser).start()
