@@ -68,17 +68,18 @@ export const motionExpressionEditor = {
 
       // 如果可删除，添加删除按钮
       if (isDeletable) {
-        const actionsDiv = DOMUtils.createElement("div", {
-          class: "item-actions",
-        });
         const removeBtn = DOMUtils.createElement("button", {
-          class: "remove-btn",
+          className: "btn-icon-action btn-icon-danger remove-btn",
           "data-id": item,
           title: "删除此项",
         });
-        removeBtn.textContent = "×";
-        actionsDiv.appendChild(removeBtn);
-        itemEl.appendChild(actionsDiv);
+        const icon = DOMUtils.createElement(
+          "span",
+          { className: "material-symbols-outlined" },
+          "delete"
+        );
+        removeBtn.appendChild(icon);
+        itemEl.appendChild(removeBtn);
       }
 
       fragment.appendChild(itemEl);
@@ -116,8 +117,9 @@ export const motionExpressionEditor = {
 
   // 处理删除自定义项的点击事件
   handleDelete(e, type) {
-    if (e.target.matches(".remove-btn")) {
-      const idToDelete = e.target.dataset.id;
+    const removeBtn = e.target.closest(".remove-btn");
+    if (removeBtn) {
+      const idToDelete = removeBtn.dataset.id; 
       if (type === "motion") {
         this.tempCustomMotions = this.tempCustomMotions.filter(
           (id) => id !== idToDelete

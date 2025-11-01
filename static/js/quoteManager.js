@@ -140,11 +140,17 @@ export const quoteManager = {
     label.style.flex = "1";
 
     if (checkboxId.includes("custom")) {
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "btn btn-sm btn-danger delete-quote-btn";
-      deleteBtn.style.marginLeft = "10px";
-      deleteBtn.textContent = "删除";
+      const deleteBtn = DOMUtils.createElement("button", {
+        className: "btn-icon-action btn-icon-danger delete-quote-btn",
+        title: "删除此引号对",
+      });
       deleteBtn.onclick = () => this.removeCustomQuote(categoryName);
+      const icon = DOMUtils.createElement(
+        "span",
+        { className: "material-symbols-outlined" },
+        "delete"
+      );
+      deleteBtn.appendChild(icon);
       wrapper.appendChild(checkbox);
       wrapper.appendChild(label);
       wrapper.appendChild(deleteBtn);
