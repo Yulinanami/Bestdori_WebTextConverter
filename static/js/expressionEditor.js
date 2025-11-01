@@ -1338,10 +1338,10 @@ export const expressionEditor = {
     DOMUtils.clearElement(dropdown);
 
     // 合并并排序所有选项
-    const defaultOptions = new Set(this.quickFillOptions.default); 
+    const defaultOptions = new Set(this.quickFillOptions.default);
     const allOptions = [
       ...new Set([
-        ...this.quickFillOptions.default, 
+        ...this.quickFillOptions.default,
         ...this.quickFillOptions.custom,
       ]),
     ].sort();
@@ -1400,8 +1400,15 @@ export const expressionEditor = {
     const dropdown = document.getElementById(dropdownId);
     if (!dropdown) return;
 
-    dropdown.classList.toggle("hidden");
+    const btn = dropdown.previousElementSibling; 
+    const isActive = !dropdown.classList.contains("hidden");
+    if (isActive) {
+      if (btn) btn.classList.remove("active");
+    } else {
+      if (btn) btn.classList.add("active");
+    }
 
+    dropdown.classList.toggle("hidden");
     // 添加点击外部关闭的逻辑
     if (!dropdown.classList.contains("hidden")) {
       setTimeout(() => {
@@ -1410,6 +1417,7 @@ export const expressionEditor = {
           function onClickOutside(e) {
             if (!dropdown.parentElement.contains(e.target)) {
               dropdown.classList.add("hidden");
+              if (btn) btn.classList.remove("active"); 
               document.removeEventListener("click", onClickOutside);
             }
           },

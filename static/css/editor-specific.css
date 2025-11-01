@@ -613,6 +613,11 @@
 
 .quick-fill-btn {
   padding: 6px 10px;
+  transition: none;
+}
+
+.quick-fill-btn.active {
+  transform: rotate(180deg); 
 }
 
 .quick-fill-dropdown {
