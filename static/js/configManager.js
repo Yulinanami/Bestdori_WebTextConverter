@@ -329,8 +329,12 @@ export const configManager = {
             : [],
           custom_quick_fill:
             storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [],
+          auto_append_spaces: storageService.get(
+            STORAGE_KEYS.AUTO_APPEND_SPACES,
+            0
+          ),
           export_date: new Date().toISOString(),
-          version: "1.3",
+          version: "1.4",
         };
         const dataStr = JSON.stringify(fullConfig, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -338,13 +342,12 @@ export const configManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         const a = document.createElement("a");
         a.href = url;
-        // 生成带时间戳的文件名
         a.download = generateFilename("bestdori_config", "json");
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        ui.showStatus("配置已导出（包含位置配置）", "success");
+        ui.showStatus("所有配置已导出", "success");
       },
       "导出中..."
     );
@@ -456,6 +459,17 @@ export const configManager = {
         ) {
           quoteManager.renderQuoteOptions();
         }
+
+        // 导入自动添加空格的配置
+        if (typeof config.auto_append_spaces === "number") {
+          const value = Math.max(0, config.auto_append_spaces);
+          storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES, value);
+          const appendSpacesInput = document.getElementById("appendSpaces");
+          if (appendSpacesInput) {
+            appendSpacesInput.value = value;
+          }
+        }
+
         ui.showStatus("配置导入成功", "success");
       } catch (error) {
         console.error("配置导入失败:", error);
@@ -476,6 +490,7 @@ export const configManager = {
         "  - 所有角色的服装配置\n" +
         "  - 引号选项状态（预设和自定义）\n" +
         "  - 自定义动作和表情\n" +
+        "  - 自动添加空格的配置\n" +
         "  - Live2D 布局和位置设置\n" +
         "  - 编辑器偏好设置\n\n" +
         "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
