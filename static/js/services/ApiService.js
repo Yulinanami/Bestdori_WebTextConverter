@@ -92,11 +92,17 @@ class ApiService {
   /**
    * 转换项目文件为Bestdori JSON
    */
-  async convertText(projectFile, quoteConfig = [], narratorName = " ") {
+  async convertText(
+    projectFile,
+    quoteConfig = [],
+    narratorName = " ",
+    appendSpaces = 0
+  ) {
     return await this.post("/api/convert", {
       projectFile,
       quoteConfig,
       narratorName,
+      appendSpaces,
     });
   }
 

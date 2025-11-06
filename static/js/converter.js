@@ -67,20 +67,23 @@ export const converter = {
 
     const selectedQuotes = quoteManager.getSelectedQuotes();
     const narratorName = document.getElementById("narratorName").value || " ";
+    const appendSpaces =
+      parseInt(document.getElementById("appendSpaces").value, 10) || 0;
+
     this.convertFromProjectFile(
       projectFileToConvert,
       selectedQuotes,
-      narratorName
+      narratorName,
+      appendSpaces
     );
   },
 
-  /**
-   * 从项目文件转换为Bestdori JSON格式
-   * @param {Object} projectFile - 项目文件对象
-   * @param {Array<Array<string>>} selectedQuotes - 引号对数组 [["「", "」"]]
-   * @param {string} narratorName - 旁白名称
-   */
-  async convertFromProjectFile(projectFile, selectedQuotes = [], narratorName) {
+  async convertFromProjectFile(
+    projectFile,
+    selectedQuotes = [],
+    narratorName,
+    appendSpaces = 0
+  ) {
     const buttonId = "convertBtn";
     try {
       ui.setButtonLoading(buttonId, true, "转换中...");
@@ -91,12 +94,14 @@ export const converter = {
         projectFile,
         selectedQuotes,
         narratorName,
+        appendSpaces,
       });
 
       const data = await apiService.convertText(
         projectFile,
         selectedQuotes,
-        narratorName
+        narratorName,
+        appendSpaces
       );
       const result = data.result;
 

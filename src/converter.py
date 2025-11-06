@@ -44,13 +44,17 @@ class ProjectConverter:
         project_file: Dict[str, Any],
         quote_config: List[List[str]] = None,
         narrator_name: str = " ",
+        append_spaces: int = 0,
     ) -> str:
 
         active_quote_pairs = (
             {pair[0]: pair[1] for pair in quote_config} if quote_config else {}
         )
         actions = self._translate_actions(
-            project_file.get("actions", []), active_quote_pairs, narrator_name
+            project_file.get("actions", []),
+            active_quote_pairs,
+            narrator_name,
+            append_spaces,
         )
         global_settings = project_file.get("globalSettings", {})
 
@@ -64,8 +68,12 @@ class ProjectConverter:
             if "character" in action:
                 unique_characters.add(action["character"])
 
-        logger.info(f"转换统计 - 对话动作: {len(talk_actions)}, 布局动作: {len(layout_actions)}, 涉及角色数: {len(unique_characters)}")
-        logger.info(f"全局设置 - 服务器: {global_settings.get('server', 0)}, 背景: {global_settings.get('background', 'N/A')}, BGM: {global_settings.get('bgm', 'N/A')}")
+        logger.info(
+            f"转换统计 - 对话动作: {len(talk_actions)}, 布局动作: {len(layout_actions)}, 涉及角色数: {len(unique_characters)}"
+        )
+        logger.info(
+            f"全局设置 - 服务器: {global_settings.get('server', 0)}, 背景: {global_settings.get('background', 'N/A')}, BGM: {global_settings.get('bgm', 'N/A')}"
+        )
 
         result = ConversionResult(
             server=global_settings.get("server", 0),
@@ -82,6 +90,7 @@ class ProjectConverter:
         project_actions: List[Dict[str, Any]],
         active_quote_pairs: Dict[str, str],
         narrator_name: str,
+        append_spaces: int,
     ) -> List[Dict[str, Any]]:
         translated_actions = []
         for action in project_actions:
@@ -89,7 +98,10 @@ class ProjectConverter:
             if action_type == "talk":
                 translated_actions.append(
                     self._translate_talk_action(
-                        action, active_quote_pairs, narrator_name
+                        action,
+                        active_quote_pairs,
+                        narrator_name,
+                        append_spaces,  # 传递新参数
                     )
                 )
             elif action_type == "layout":
@@ -101,6 +113,7 @@ class ProjectConverter:
         talk_action: Dict[str, Any],
         active_quote_pairs: Dict[str, str],
         narrator_name: str,
+        append_spaces: int,
     ) -> Dict[str, Any]:
         speakers = talk_action.get("speakers", [])
         character_ids = [
@@ -113,6 +126,10 @@ class ProjectConverter:
         processed_body = self.quote_handler.remove_quotes(
             original_text, active_quote_pairs
         )
+
+        if append_spaces > 0:
+            processed_body += " " * append_spaces
+
         # 处理动作/表情配置（motions数组格式）
         motions = []
 
@@ -133,11 +150,15 @@ class ProjectConverter:
                         }
                     )
                     # 记录动作详情
-                    logger.info(f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}秒")
+                    logger.info(
+                        f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}秒"
+                    )
 
         if speakers:
             action_name = " & ".join(names)
-            logger.info(f"对话动作 - 说话人: {action_name} (ID: {character_ids}), 内容: {processed_body[:30]}...")
+            logger.info(
+                f"对话动作 - 说话人: {action_name} (ID: {character_ids}), 内容: {processed_body[:30]}..."
+            )
         else:
             action_name = narrator_name
             logger.info(f"对话动作 - 旁白: {processed_body[:30]}...")
@@ -167,8 +188,12 @@ class ProjectConverter:
         offset_to = to_pos.get("offsetX", 0)
 
         # 记录布局动作详情
-        logger.info(f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}, 延迟: {delay}秒")
-        logger.info(f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})")
+        logger.info(
+            f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}, 延迟: {delay}秒"
+        )
+        logger.info(
+            f"  位置: {side_from}({offset_from:+d}) -> {side_to}({offset_to:+d})"
+        )
         logger.info(f"  初始状态 - 动作: {motion or '无'}, 表情: {expression or '无'}")
 
         bestdori_action = LayoutActionItem(

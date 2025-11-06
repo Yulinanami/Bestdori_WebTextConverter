@@ -16,6 +16,8 @@ def convert_project():
         project_file = data.get("projectFile")
         quote_config = data.get("quoteConfig")
         narrator_name = data.get("narratorName", " ")
+        append_spaces = data.get("appendSpaces", 0)
+
         if not project_file or not isinstance(project_file, dict):
             if data.get("text") is not None:
                 logger.warning("API不匹配，客户端使用旧版本接口")
@@ -23,9 +25,13 @@ def convert_project():
             logger.warning("无效的项目文件")
             return jsonify({"error": "无效的项目文件"}), 400
 
-        logger.info(f"开始转换项目 - 旁白名称: '{narrator_name}'")
+        logger.info(
+            f"开始转换项目 - 旁白名称: '{narrator_name}', 结尾空格: {append_spaces}"
+        )
         converter = ProjectConverter()
-        result = converter.convert(project_file, quote_config, narrator_name)
+        result = converter.convert(
+            project_file, quote_config, narrator_name, append_spaces
+        )
         logger.info(f"项目转换成功 - 生成JSON长度: {len(result)} 字符")
         return jsonify({"result": result})
     except Exception as e:
