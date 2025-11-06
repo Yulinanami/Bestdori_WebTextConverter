@@ -503,6 +503,7 @@ export const configManager = {
           STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
           STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
           STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+          STORAGE_KEYS.AUTO_APPEND_SPACES,
         ];
 
         console.log("正在清除以下本地缓存:", keysToRemove);
