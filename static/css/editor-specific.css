@@ -106,7 +106,7 @@
 .talk-item .dialogue-preview-text {
   font-style: normal;
   color: var(--text-primary);
-  white-space: normal;
+  white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin: 0;
