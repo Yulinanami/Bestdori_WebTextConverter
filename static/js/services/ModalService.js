@@ -17,35 +17,35 @@ class ModalService {
   init() {
     if (this.initialized) return;
 
-    // 点击背景关闭模态框
-    window.addEventListener("click", (event) => {
-      const modals = document.querySelectorAll(".modal");
-      modals.forEach((modal) => {
-        if (event.target === modal && this.openModals.has(modal.id)) {
-          // 检查是否有特殊处理器
-          if (this.specialHandlers[modal.id]) {
-            this.specialHandlers[modal.id]();
-          } else {
-            this.close(modal.id);
-          }
-        }
-      });
-    });
+    /*
+     * 取消点击背景关闭模态框的功能，以防止意外关闭导致数据丢失。
+     */
+    // window.addEventListener("click", (event) => {
+    //   const modals = document.querySelectorAll(".modal");
+    //   modals.forEach((modal) => {
+    //     if (event.target === modal && this.openModals.has(modal.id)) {
+    //       if (this.specialHandlers[modal.id]) {
+    //         this.specialHandlers[modal.id]();
+    //       } else {
+    //         this.close(modal.id);
+    //       }
+    //     }
+    //   });
+    // });
 
-    // ESC 键关闭模态框
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && this.openModals.size > 0) {
-        // 关闭最后打开的模态框
-        const lastModal = Array.from(this.openModals).pop();
-
-        // 检查是否有特殊处理器
-        if (this.specialHandlers[lastModal]) {
-          this.specialHandlers[lastModal]();
-        } else {
-          this.close(lastModal);
-        }
-      }
-    });
+    /*
+     * 取消按 ESC 键关闭模态框的功能，以防止意外关闭。
+     */
+    // window.addEventListener("keydown", (event) => {
+    //   if (event.key === "Escape" && this.openModals.size > 0) {
+    //     const lastModal = Array.from(this.openModals).pop();
+    //     if (this.specialHandlers[lastModal]) {
+    //       this.specialHandlers[lastModal]();
+    //     } else {
+    //       this.close(lastModal);
+    //     }
+    //   }
+    // });
 
     // 绑定所有关闭按钮
     this._bindCloseButtons();
