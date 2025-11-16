@@ -333,6 +333,11 @@ export const configManager = {
             STORAGE_KEYS.AUTO_APPEND_SPACES,
             0
           ),
+        // 将换行前空格的设置添加到导出对象中
+        auto_append_spaces_before_newline: storageService.get(
+          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+          0
+        ),
           export_date: new Date().toISOString(),
           version: "1.4",
         };
@@ -470,6 +475,16 @@ export const configManager = {
           }
         }
 
+        // 导入自动添加换行前空格的配置
+        if (typeof config.auto_append_spaces_before_newline === "number") {
+          const value = Math.max(0, config.auto_append_spaces_before_newline);
+          storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, value);
+          const input = document.getElementById("appendSpacesBeforeNewline");
+          if (input) {
+            input.value = value;
+          }
+        }
+
         ui.showStatus("配置导入成功", "success");
       } catch (error) {
         console.error("配置导入失败:", error);
@@ -519,6 +534,7 @@ export const configManager = {
           STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
           STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
           STORAGE_KEYS.AUTO_APPEND_SPACES,
+          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, 
         ];
 
         console.log("正在清除以下本地缓存:", keysToRemove);
