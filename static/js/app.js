@@ -38,6 +38,23 @@ function initializeAppendSpaces() {
   });
 }
 
+// 处理换行前空格输入框的逻辑
+function initializeAppendSpacesBeforeNewline() {
+  const input = document.getElementById("appendSpacesBeforeNewline");
+  if (!input) return;
+
+  const savedValue = storageService.get(
+    STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+    0
+  );
+  input.value = savedValue;
+
+  input.addEventListener("input", (e) => {
+    const value = parseInt(e.target.value, 10) || 0;
+    storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, value);
+  });
+}
+
 // 初始化应用
 function initializeApp() {
   // 初始化服务层
@@ -61,7 +78,8 @@ function initializeApp() {
 
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
-  initializeAppendSpaces(); 
+  initializeAppendSpaces();
+  initializeAppendSpacesBeforeNewline(); // 调用新函数
 
   // 初始化状态
   motionExpressionEditor.init();

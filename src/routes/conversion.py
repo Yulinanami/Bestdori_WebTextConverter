@@ -17,6 +17,7 @@ def convert_project():
         quote_config = data.get("quoteConfig")
         narrator_name = data.get("narratorName", " ")
         append_spaces = data.get("appendSpaces", 0)
+        append_spaces_before_newline = data.get("appendSpacesBeforeNewline", 0) # 获取新参数
 
         if not project_file or not isinstance(project_file, dict):
             if data.get("text") is not None:
@@ -30,7 +31,11 @@ def convert_project():
         )
         converter = ProjectConverter()
         result = converter.convert(
-            project_file, quote_config, narrator_name, append_spaces
+            project_file,
+            quote_config,
+            narrator_name,
+            append_spaces,
+            append_spaces_before_newline,
         )
         logger.info(f"项目转换成功 - 生成JSON长度: {len(result)} 字符")
         return jsonify({"result": result})

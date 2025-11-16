@@ -96,13 +96,15 @@ class ApiService {
     projectFile,
     quoteConfig = [],
     narratorName = " ",
-    appendSpaces = 0
+    appendSpaces = 0,
+    appendSpacesBeforeNewline = 0 
   ) {
     return await this.post("/api/convert", {
       projectFile,
       quoteConfig,
       narratorName,
       appendSpaces,
+      appendSpacesBeforeNewline, 
     });
   }
 

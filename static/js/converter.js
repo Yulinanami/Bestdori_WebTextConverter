@@ -69,12 +69,18 @@ export const converter = {
     const narratorName = document.getElementById("narratorName").value || " ";
     const appendSpaces =
       parseInt(document.getElementById("appendSpaces").value, 10) || 0;
+    const appendSpacesBeforeNewline =
+      parseInt(
+        document.getElementById("appendSpacesBeforeNewline").value,
+        10
+      ) || 0;
 
     this.convertFromProjectFile(
       projectFileToConvert,
       selectedQuotes,
       narratorName,
-      appendSpaces
+      appendSpaces,
+      appendSpacesBeforeNewline 
     );
   },
 
@@ -82,7 +88,8 @@ export const converter = {
     projectFile,
     selectedQuotes = [],
     narratorName,
-    appendSpaces = 0
+    appendSpaces = 0,
+    appendSpacesBeforeNewline = 0 
   ) {
     const buttonId = "convertBtn";
     try {
@@ -95,13 +102,15 @@ export const converter = {
         selectedQuotes,
         narratorName,
         appendSpaces,
+        appendSpacesBeforeNewline,
       });
 
       const data = await apiService.convertText(
         projectFile,
         selectedQuotes,
         narratorName,
-        appendSpaces
+        appendSpaces,
+        appendSpacesBeforeNewline 
       );
       const result = data.result;
 

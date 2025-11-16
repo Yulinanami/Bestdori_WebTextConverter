@@ -45,6 +45,7 @@ class ProjectConverter:
         quote_config: List[List[str]] = None,
         narrator_name: str = " ",
         append_spaces: int = 0,
+        append_spaces_before_newline: int = 0,
     ) -> str:
 
         active_quote_pairs = (
@@ -55,6 +56,7 @@ class ProjectConverter:
             active_quote_pairs,
             narrator_name,
             append_spaces,
+            append_spaces_before_newline,
         )
         global_settings = project_file.get("globalSettings", {})
 
@@ -91,6 +93,7 @@ class ProjectConverter:
         active_quote_pairs: Dict[str, str],
         narrator_name: str,
         append_spaces: int,
+        append_spaces_before_newline: int,
     ) -> List[Dict[str, Any]]:
         translated_actions = []
         for action in project_actions:
@@ -101,7 +104,8 @@ class ProjectConverter:
                         action,
                         active_quote_pairs,
                         narrator_name,
-                        append_spaces,  # 传递新参数
+                        append_spaces,
+                        append_spaces_before_newline,
                     )
                 )
             elif action_type == "layout":
@@ -114,6 +118,7 @@ class ProjectConverter:
         active_quote_pairs: Dict[str, str],
         narrator_name: str,
         append_spaces: int,
+        append_spaces_before_newline: int,
     ) -> Dict[str, Any]:
         speakers = talk_action.get("speakers", [])
         character_ids = [
@@ -126,6 +131,10 @@ class ProjectConverter:
         processed_body = self.quote_handler.remove_quotes(
             original_text, active_quote_pairs
         )
+
+        if append_spaces_before_newline > 0 and processed_body:
+            spaces_to_add = " " * append_spaces_before_newline
+            processed_body = processed_body.replace("\n", f"{spaces_to_add}\n")
 
         if append_spaces > 0:
             processed_body += " " * append_spaces

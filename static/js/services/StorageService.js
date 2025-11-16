@@ -19,6 +19,8 @@ export const STORAGE_KEYS = {
   SPEAKER_TEXT_EDIT_MODE: "bestdori_speaker_text_edit_mode",
   CUSTOM_QUICK_FILL_OPTIONS: "bestdori_custom_quick_fill_options",
   AUTO_APPEND_SPACES: "bestdori_auto_append_spaces",
+  AUTO_APPEND_SPACES_BEFORE_NEWLINE:
+    "bestdori_auto_append_spaces_before_newline",
 };
 
 class StorageService {
