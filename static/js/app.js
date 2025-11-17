@@ -1,10 +1,6 @@
 // 主应用入口文件
 import { state } from "./stateManager.js";
-import {
-  ui,
-  initializeModalCloseButtons,
-  initPerformanceSettingsPersistence,
-} from "./uiUtils.js";
+import { ui, initPerformanceSettingsPersistence } from "./uiUtils.js";
 import { viewManager } from "./viewManager.js";
 import { fileHandler } from "./fileHandler.js";
 import { configManager } from "./configManager.js";
@@ -53,9 +49,6 @@ function initializeApp() {
 
   // 绑定经典视图事件
   bindClassicViewEvents();
-
-  // 绑定模态框事件
-  bindModalEvents();
 
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
@@ -234,11 +227,6 @@ function bindClassicViewEvents() {
       state.set("projectFile", null);
     }
   });
-}
-
-// 绑定模态框事件
-function bindModalEvents() {
-  initializeModalCloseButtons();
 }
 
 // DOM加载完成后初始化应用

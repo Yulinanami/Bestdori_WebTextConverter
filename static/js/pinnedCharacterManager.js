@@ -1,13 +1,12 @@
-const LOCAL_STORAGE_KEY = "bestdori_pinned_characters";
+import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+
+const LOCAL_STORAGE_KEY = STORAGE_KEYS.PINNED_CHARACTERS;
 let pinnedCharacters = new Set();
 
 function load() {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      pinnedCharacters = new Set(parsed);
-    }
+    const saved = storageService.get(LOCAL_STORAGE_KEY, []);
+    pinnedCharacters = new Set(Array.isArray(saved) ? saved : []);
   } catch (error) {
     console.error("加载置顶角色配置失败:", error);
     pinnedCharacters = new Set();
@@ -16,10 +15,7 @@ function load() {
 
 function save() {
   try {
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify(Array.from(pinnedCharacters))
-    );
+    storageService.set(LOCAL_STORAGE_KEY, Array.from(pinnedCharacters));
   } catch (error) {
     console.error("保存置顶角色配置失败:", error);
   }

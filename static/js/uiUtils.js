@@ -203,15 +203,3 @@ export function renderGroupedView({
   container.appendChild(fragment);
 }
 
-export function initializeModalCloseButtons() {
-  document
-    .querySelectorAll(".modal-close, .btn-modal-close")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const modalId = button.dataset.modalId || button.closest(".modal")?.id;
-        if (modalId) {
-          modalService.close(modalId);
-        }
-      });
-    });
-}

@@ -17,8 +17,6 @@ export const costumeManager = {
   // 模态框内的临时状态
   tempCostumeChanges: {},
   tempAvailableCostumes: {},
-  originalCostumes: {},
-  originalAvailableCostumes: {},
 
   init() {
     const costumeList = document.getElementById("costumeList");
@@ -168,7 +166,8 @@ export const costumeManager = {
       this.defaultAvailableCostumes = costumeData.available_costumes;
       this.defaultCostumes = costumeData.default_costumes;
 
-      const configData = await apiService.getConfig();
+      const configData =
+        state.get("configData") || (await apiService.getConfig());
       this.builtInCharacters = new Set(
         Object.keys(configData.character_mapping)
       );

@@ -22,6 +22,19 @@ function generateFilename(prefix = "file", extension = "json") {
   return `${prefix}_${timestamp}.${extension}`;
 }
 
+function applyNumericSetting(storageKey, inputId, value) {
+  if (typeof value !== "number") {
+    return;
+  }
+
+  const normalizedValue = Math.max(0, value);
+  storageService.set(storageKey, normalizedValue);
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = normalizedValue;
+  }
+}
+
 export const configManager = {
   defaultConfig: null,
 
@@ -433,25 +446,17 @@ export const configManager = {
         this.renderConfigList();
         quoteManager.renderQuoteOptions();
 
-        // 导入自动添加空格的配置
-        if (typeof config.auto_append_spaces === "number") {
-          const value = Math.max(0, config.auto_append_spaces);
-          storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES, value);
-          const appendSpacesInput = document.getElementById("appendSpaces");
-          if (appendSpacesInput) {
-            appendSpacesInput.value = value;
-          }
-        }
+        applyNumericSetting(
+          STORAGE_KEYS.AUTO_APPEND_SPACES,
+          "appendSpaces",
+          config.auto_append_spaces
+        );
 
-        // 导入自动添加换行前空格的配置
-        if (typeof config.auto_append_spaces_before_newline === "number") {
-          const value = Math.max(0, config.auto_append_spaces_before_newline);
-          storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, value);
-          const input = document.getElementById("appendSpacesBeforeNewline");
-          if (input) {
-            input.value = value;
-          }
-        }
+        applyNumericSetting(
+          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+          "appendSpacesBeforeNewline",
+          config.auto_append_spaces_before_newline
+        );
 
         ui.showStatus("配置导入成功", "success");
       } catch (error) {

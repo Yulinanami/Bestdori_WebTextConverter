@@ -68,12 +68,6 @@ class NavigationManager {
       ]);
 
       // 初始化临时状态
-      costumeManager.originalCostumes = DataUtils.deepClone(
-        state.get("currentCostumes")
-      );
-      costumeManager.originalAvailableCostumes = DataUtils.deepClone(
-        costumeManager.availableCostumes
-      );
       costumeManager.tempCostumeChanges = DataUtils.deepClone(
         state.get("currentCostumes")
       );
