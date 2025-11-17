@@ -5,7 +5,6 @@ import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
@@ -112,26 +111,15 @@ export const live2dEditor = {
       loadingText: "加载中...",
       beforeOpen: async () => {
         try {
-          let initialState;
-          const rawText = document.getElementById("inputText").value;
-          const projectState = editorService.getProjectState();
-          if (projectState) {
-            initialState = projectState;
-            ui.showStatus("已加载现有项目进度。", "info");
-          } else {
-            const response = await axios.post("/api/segment-text", {
-              text: rawText,
-            });
-            const segments = response.data.segments;
-            initialState = this.createProjectFileFromSegments(segments);
-            if (rawText.trim()) {
-              ui.showStatus("已根据当前文本创建新项目。", "info");
-            }
-          }
-
-          this.projectFileState = DataUtils.deepClone(initialState);
-          this.originalStateOnOpen = JSON.stringify(initialState);
-          historyManager.clear();
+          await this._prepareProjectState({
+            onExistingProjectLoaded: () =>
+              ui.showStatus("已加载现有项目进度。", "info"),
+            onNewProjectCreated: (_, { rawText }) => {
+              if (rawText?.trim()) {
+                ui.showStatus("已根据当前文本创建新项目。", "info");
+              }
+            },
+          });
         } catch (error) {
           ui.showStatus(
             `加载编辑器失败: ${error.response?.data?.error || error.message}`,
@@ -265,35 +253,6 @@ export const live2dEditor = {
         };
       },
     });
-  },
-
-  // 从文本片段创建项目文件（解析说话人并创建对话动作）
-  createProjectFileFromSegments(segments) {
-    const characterMap = new Map(
-      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
-        name,
-        { characterId: ids[0], name: name },
-      ])
-    );
-    const newProjectFile = {
-      version: "1.0",
-      actions: segments.map((text, index) => {
-        let speakers = [];
-        let cleanText = text;
-        const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-
-        if (match) {
-          const potentialSpeakerName = match[1].trim();
-          if (characterMap.has(potentialSpeakerName)) {
-            speakers.push(characterMap.get(potentialSpeakerName));
-            cleanText = match[2].trim();
-          }
-        }
-
-        return this._createActionFromSegment(index, cleanText, speakers);
-      }),
-    };
-    return newProjectFile;
   },
 
   // 获取所有已使用的角色名称集合（在布局中出现的角色）

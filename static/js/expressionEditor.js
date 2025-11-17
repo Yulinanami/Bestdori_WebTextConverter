@@ -5,7 +5,6 @@ import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
 import { EditorHelper } from "./utils/EditorHelper.js";
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
 import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
 import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
@@ -212,23 +211,7 @@ export const expressionEditor = {
       beforeOpen: async () => {
         try {
           this.tempLibraryItems = { motion: [], expression: [] };
-          let initialState;
-          const rawText = document.getElementById("inputText").value;
-          const projectState = editorService.getProjectState();
-
-          if (projectState) {
-            initialState = projectState;
-          } else {
-            const response = await axios.post("/api/segment-text", {
-              text: rawText,
-            });
-            initialState = this._createProjectFileFromSegments(
-              response.data.segments
-            );
-          }
-          this.projectFileState = DataUtils.deepClone(initialState);
-          this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-          historyManager.clear();
+          await this._prepareProjectState();
         } catch (error) {
           ui.showStatus(
             `加载编辑器失败: ${error.response?.data?.error || error.message}`,
@@ -1191,36 +1174,6 @@ export const expressionEditor = {
     );
 
     DOMUtils.appendChildren(container, itemElements);
-  },
-
-  // 从文本片段创建项目文件（用于导入时）
-  _createProjectFileFromSegments(segments) {
-    const characterMap = new Map(
-      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
-        name,
-        { characterId: ids[0], name: name },
-      ])
-    );
-
-    const newProjectFile = {
-      version: "1.0",
-      actions: segments.map((text, index) => {
-        let speakers = [];
-        let cleanText = text;
-        const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-
-        if (match) {
-          const potentialSpeakerName = match[1].trim();
-          if (characterMap.has(potentialSpeakerName)) {
-            speakers.push(characterMap.get(potentialSpeakerName));
-            cleanText = match[2].trim();
-          }
-        }
-
-        return this._createActionFromSegment(index, cleanText, speakers);
-      }),
-    };
-    return newProjectFile;
   },
 
   // 使用 BaseEditor 的 executeCommand 方法

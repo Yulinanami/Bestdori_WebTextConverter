@@ -137,6 +137,40 @@ export const BaseEditorMixin = {
   },
 
   /**
+   * 在打开编辑器前初始化项目状态
+   * @param {Object} options
+   * @param {Function} options.onExistingProjectLoaded - 已有项目加载后的回调
+   * @param {Function} options.onNewProjectCreated - 新项目创建后的回调
+   */
+  async _prepareProjectState(options = {}) {
+    const { onExistingProjectLoaded, onNewProjectCreated } = options;
+    const inputElement = document.getElementById("inputText");
+    const rawText = inputElement ? inputElement.value : "";
+    const trimmedText = rawText?.trim() || "";
+    const projectState = editorService.getProjectState();
+    let initialState;
+
+    if (projectState) {
+      initialState = projectState;
+      onExistingProjectLoaded?.(initialState, { rawText });
+    } else if (trimmedText) {
+      const response = await axios.post("/api/segment-text", {
+        text: rawText,
+      });
+      const segments = response.data?.segments || [];
+      initialState = this._createProjectFileFromSegments(segments);
+      onNewProjectCreated?.(initialState, { rawText, segments });
+    } else {
+      initialState = this._createProjectFileFromSegments([]);
+      onNewProjectCreated?.(initialState, { rawText, segments: [] });
+    }
+
+    this.projectFileState = DataUtils.deepClone(initialState);
+    this.originalStateOnOpen = JSON.stringify(initialState);
+    historyManager.clear();
+  },
+
+  /**
    * 从片段创建单个 action（由子类实现）
    * @param {number} index - 索引
    * @param {string} text - 文本内容

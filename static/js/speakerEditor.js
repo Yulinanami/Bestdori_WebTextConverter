@@ -1,5 +1,4 @@
 import { ui, renderGroupedView } from "./uiUtils.js";
-import { historyManager } from "./historyManager.js";
 import { editorService } from "./services/EditorService.js";
 import { DataUtils } from "./utils/DataUtils.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
@@ -385,23 +384,15 @@ export const speakerEditor = {
       loadingText: "加载中...",
       beforeOpen: async () => {
         try {
-          let initialState;
-          const rawText = document.getElementById("inputText").value;
-          const projectState = editorService.getProjectState();
-
-          if (projectState) {
-            initialState = projectState;
-            ui.showStatus("已加载现有项目进度。", "info");
-          } else {
-            const response = await axios.post("/api/segment-text", {
-              text: rawText,
-            });
-            const segments = response.data.segments;
-            initialState = this.createProjectFileFromSegments(segments);
-          }
-          this.projectFileState = DataUtils.deepClone(initialState);
-          this.originalStateOnOpen = JSON.stringify(initialState);
-          historyManager.clear();
+          await this._prepareProjectState({
+            onExistingProjectLoaded: () =>
+              ui.showStatus("已加载现有项目进度。", "info"),
+            onNewProjectCreated: (_, { rawText }) => {
+              if (rawText?.trim()) {
+                ui.showStatus("已根据当前文本创建新项目。", "info");
+              }
+            },
+          });
         } catch (error) {
           ui.showStatus(
             `加载编辑器失败: ${error.response?.data?.error || error.message}`,
@@ -474,41 +465,6 @@ export const speakerEditor = {
     });
   },
 
-  // 从文本片段创建项目文件（解析说话人并创建对话动作）
-  createProjectFileFromSegments(segments) {
-    const characterMap = new Map(
-      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
-        name,
-        { characterId: ids[0], name: name },
-      ])
-    );
-    const newProjectFile = {
-      version: "1.0",
-      actions: segments.map((text, index) => {
-        let speakers = [];
-        let cleanText = text;
-        const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-
-        if (match) {
-          const potentialSpeakerName = match[1].trim();
-          if (characterMap.has(potentialSpeakerName)) {
-            speakers.push(characterMap.get(potentialSpeakerName));
-            cleanText = match[2].trim();
-          }
-        }
-
-        return {
-          id: `action-id-${Date.now()}-${index}`,
-          type: "talk",
-          text: cleanText,
-          speakers: speakers,
-          characterStates: {},
-        };
-      }),
-    };
-
-    return newProjectFile;
-  },
 
   /**
    * 渲染左侧对话卡片画布
@@ -964,7 +920,7 @@ export const speakerEditor = {
     try {
       const rawText = document.getElementById("inputText").value;
       const response = await axios.post("/api/segment-text", { text: rawText });
-      const defaultState = this.createProjectFileFromSegments(
+      const defaultState = this._createProjectFileFromSegments(
         response.data.segments
       );
       baseEditor.executeCommand((currentState) => {
