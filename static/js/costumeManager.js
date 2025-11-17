@@ -7,7 +7,6 @@ import { configManager } from "./configManager.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { apiService } from "./services/ApiService.js";
 import { modalService } from "./services/ModalService.js";
-import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const costumeManager = {
   defaultCostumes: {},
@@ -502,7 +501,6 @@ export const costumeManager = {
 
         await new Promise((resolve) => setTimeout(resolve, 300));
         ui.showStatus("服装配置已保存！", "success");
-        eventBus.emit(EVENTS.COSTUME_SAVED, state.get("currentCostumes"));
       },
       "保存中..."
     );

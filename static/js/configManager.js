@@ -8,7 +8,6 @@ import { motionManager, expressionManager } from "./genericConfigManager.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { apiService } from "./services/ApiService.js";
 import { modalService } from "./services/ModalService.js";
-import { eventBus, EVENTS } from "./services/EventBus.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
 import { DataUtils } from "./utils/DataUtils.js";
 
@@ -93,7 +92,6 @@ export const configManager = {
       motionManager.init();
       expressionManager.init();
 
-      eventBus.emit(EVENTS.CONFIG_LOADED, data);
     } catch (error) {
       console.error("加载配置失败:", error);
       ui.showStatus(error.message || "无法加载应用配置", "error");
@@ -123,9 +121,9 @@ export const configManager = {
         "resetConfigBtn",
         async () => {
           const currentCostumes = { ...state.get("currentCostumes") };
-          const currentAvailableCostumes = costumeManager
-            ? { ...costumeManager.availableCostumes }
-            : {};
+          const currentAvailableCostumes = {
+            ...costumeManager.availableCostumes,
+          };
 
           storageService.remove(STORAGE_KEYS.CHARACTER_MAPPING);
           state.set("currentConfig", { ...this.defaultConfig });
@@ -133,19 +131,16 @@ export const configManager = {
           storageService.remove(STORAGE_KEYS.CUSTOM_QUOTES);
           state.set("customQuotes", []);
 
-          if (costumeManager) {
-            await this.updateCostumesAfterConfigReset(
-              currentCostumes,
-              currentAvailableCostumes
-            );
-          }
+          await this.updateCostumesAfterConfigReset(
+            currentCostumes,
+            currentAvailableCostumes
+          );
 
           await new Promise((resolve) => setTimeout(resolve, 300));
           this.renderConfigList();
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
 
-          eventBus.emit(EVENTS.CONFIG_RESET);
         },
         "重置中..."
       );
@@ -291,7 +286,6 @@ export const configManager = {
         if (this.saveLocalConfig(newConfig)) {
           state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");
-          eventBus.emit(EVENTS.CONFIG_SAVED, newConfig);
         } else {
           ui.showStatus("配置保存失败，可能是存储空间不足", "error");
         }
@@ -392,78 +386,52 @@ export const configManager = {
           throw new Error("配置文件包含不安全的数据，导入已被阻止");
         }
 
-        if (!config || typeof config !== "object") {
-          throw new Error("无效的配置文件格式");
-        }
-
-        if (config.character_mapping) {
-          state.set("currentConfig", config.character_mapping);
-          this.saveLocalConfig(config.character_mapping);
-          if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
-            state.set("customQuotes", config.custom_quotes);
-            if (
-              typeof quoteManager !== "undefined" &&
-              quoteManager.saveCustomQuotes
-            ) {
-              quoteManager.saveCustomQuotes();
-            }
-          }
-          if (
-            typeof costumeManager !== "undefined" &&
-            costumeManager.importCostumes
-          ) {
-            if (
-              config.costume_mapping ||
-              config.available_costumes ||
-              typeof config.enable_live2d === "boolean"
-            ) {
-              costumeManager.importCostumes(config);
-            }
-          }
-          if (
-            config.position_config &&
-            typeof positionManager !== "undefined" &&
-            positionManager.importPositions
-          ) {
-            positionManager.importPositions(config.position_config);
-          }
-          // 导入自定义动作/表情
-          if (config.custom_motions && Array.isArray(config.custom_motions)) {
-            if (typeof motionManager !== "undefined") {
-              motionManager.customItems = [...config.custom_motions];
-              motionManager.saveCustomItems();
-            }
-          }
-          if (
-            config.custom_expressions &&
-            Array.isArray(config.custom_expressions)
-          ) {
-            if (typeof expressionManager !== "undefined") {
-              expressionManager.customItems = [...config.custom_expressions];
-              expressionManager.saveCustomItems();
-            }
-            if (
-              config.custom_quick_fill &&
-              Array.isArray(config.custom_quick_fill)
-            ) {
-              storageService.set(
-                STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-                config.custom_quick_fill
-              );
-              // 可以在这里触发一个事件，通知 expressionEditor 更新
-              // eventBus.emit(EVENTS.QUICK_FILL_IMPORTED);
-            }
-          }
-        } else {
+        if (!config.character_mapping) {
           throw new Error("配置文件中没有有效数据");
         }
-        this.renderConfigList();
-        if (
-          typeof quoteManager !== "undefined" &&
-          quoteManager.renderQuoteOptions
-        ) {
-          quoteManager.renderQuoteOptions();
+
+        state.set("currentConfig", config.character_mapping);
+        this.saveLocalConfig(config.character_mapping);
+
+        if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
+          state.set("customQuotes", config.custom_quotes);
+          quoteManager.saveCustomQuotes();
         }
+
+        if (
+          config.costume_mapping ||
+          config.available_costumes ||
+          typeof config.enable_live2d === "boolean"
+        ) {
+          costumeManager.importCostumes(config);
+        }
+
+        if (config.position_config) {
+          positionManager.importPositions(config.position_config);
+        }
+
+        if (config.custom_motions && Array.isArray(config.custom_motions)) {
+          motionManager.customItems = [...config.custom_motions];
+          motionManager.saveCustomItems();
+        }
+
+        if (
+          config.custom_expressions &&
+          Array.isArray(config.custom_expressions)
+        ) {
+          expressionManager.customItems = [...config.custom_expressions];
+          expressionManager.saveCustomItems();
+        }
+
+        if (config.custom_quick_fill && Array.isArray(config.custom_quick_fill)) {
+          storageService.set(
+            STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+            config.custom_quick_fill
+          );
+        }
+
+        this.renderConfigList();
+        quoteManager.renderQuoteOptions();
 
         // 导入自动添加空格的配置
         if (typeof config.auto_append_spaces === "number") {

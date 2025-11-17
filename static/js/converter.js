@@ -3,7 +3,6 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { apiService } from "./services/ApiService.js";
-import { eventBus, EVENTS } from "./services/EventBus.js";
 
 /**
  * 将纯文本转换为项目文件格式
@@ -97,14 +96,6 @@ export const converter = {
       ui.showProgress(10);
       ui.showStatus("正在发送项目数据...", "info");
 
-      eventBus.emit(EVENTS.CONVERT_START, {
-        projectFile,
-        selectedQuotes,
-        narratorName,
-        appendSpaces,
-        appendSpacesBeforeNewline,
-      });
-
       const data = await apiService.convertText(
         projectFile,
         selectedQuotes,
@@ -123,13 +114,10 @@ export const converter = {
       ui.showStatus("转换完成！", "success");
       resultSection.scrollIntoView({ behavior: "smooth" });
 
-      eventBus.emit(EVENTS.CONVERT_SUCCESS, result);
-
       setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
       ui.showStatus(error.message, "error");
       ui.hideProgress();
-      eventBus.emit(EVENTS.CONVERT_ERROR, error);
     } finally {
       ui.setButtonLoading(buttonId, false);
     }

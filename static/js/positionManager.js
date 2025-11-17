@@ -6,7 +6,6 @@ import { ui } from "./uiUtils.js";
 import { configManager } from "./configManager.js";
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { modalService } from "./services/ModalService.js";
-import { eventBus, EVENTS } from "./services/EventBus.js";
 
 export const positionManager = {
   positions: ["leftOver", "leftInside", "center", "rightInside", "rightOver"],
@@ -321,10 +320,6 @@ export const positionManager = {
         await new Promise((resolve) => setTimeout(resolve, 300));
         this.savePositionConfig();
         ui.showStatus("位置配置已保存！", "success");
-        eventBus.emit(EVENTS.POSITION_SAVED, {
-          autoPositionMode: this.autoPositionMode,
-          manualPositions: this.manualPositions,
-        });
       },
       "保存中..."
     );

@@ -2,7 +2,6 @@
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { apiService } from "./services/ApiService.js";
-import { eventBus, EVENTS } from "./services/EventBus.js";
 
 // 支持的文件扩展名
 const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
@@ -85,8 +84,6 @@ export const fileHandler = {
       }
 
       ui.showStatus("文件上传成功！", "success");
-      eventBus.emit(EVENTS.FILE_UPLOADED, { filename, content: data.content });
-
       setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
       ui.showStatus(error.message, "error");
@@ -128,7 +125,6 @@ export const fileHandler = {
           window.URL.revokeObjectURL(url);
 
           ui.showStatus("文件下载成功！", "success");
-          eventBus.emit(EVENTS.FILE_DOWNLOADED, { filename });
         } catch (error) {
           ui.showStatus(error.message, "error");
         }

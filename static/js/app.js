@@ -18,40 +18,22 @@ import { expressionEditor } from "./expressionEditor.js";
 import { motionExpressionEditor } from "./motionExpressionEditor.js";
 import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 import { modalService } from "./services/ModalService.js";
-import { eventBus } from "./services/EventBus.js";
 import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { navigationManager } from "./navigationManager.js"; // 导航管理器
 import { apiService } from "./services/ApiService.js";
 
-// 处理结尾空格输入框的逻辑
-function initializeAppendSpaces() {
-  const appendSpacesInput = document.getElementById("appendSpaces");
-  if (!appendSpacesInput) return;
-
-  const savedValue = storageService.get(STORAGE_KEYS.AUTO_APPEND_SPACES, 0);
-  appendSpacesInput.value = savedValue;
-
-  appendSpacesInput.addEventListener("input", (e) => {
-    const value = parseInt(e.target.value, 10) || 0;
-    storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES, value);
-  });
-}
-
-// 处理换行前空格输入框的逻辑
-function initializeAppendSpacesBeforeNewline() {
-  const input = document.getElementById("appendSpacesBeforeNewline");
+// 初始化数字输入并保持本地存储同步
+function initializeNumericInput({ elementId, storageKey }) {
+  const input = document.getElementById(elementId);
   if (!input) return;
 
-  const savedValue = storageService.get(
-    STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-    0
-  );
+  const savedValue = storageService.get(storageKey, 0);
   input.value = savedValue;
 
   input.addEventListener("input", (e) => {
     const value = parseInt(e.target.value, 10) || 0;
-    storageService.set(STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, value);
+    storageService.set(storageKey, value);
   });
 }
 
@@ -59,7 +41,6 @@ function initializeAppendSpacesBeforeNewline() {
 function initializeApp() {
   // 初始化服务层
   modalService.init();
-  eventBus.setDebug(false);
 
   // 设置 LocalStorage 配额超限错误处理
   storageService.onQuotaExceeded = (key, size) => {
@@ -78,8 +59,14 @@ function initializeApp() {
 
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
-  initializeAppendSpaces();
-  initializeAppendSpacesBeforeNewline(); // 调用新函数
+  initializeNumericInput({
+    elementId: "appendSpaces",
+    storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES,
+  });
+  initializeNumericInput({
+    elementId: "appendSpacesBeforeNewline",
+    storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+  });
 
   // 初始化状态
   motionExpressionEditor.init();
