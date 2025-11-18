@@ -16,7 +16,7 @@ import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
 import { modalService } from "./services/ModalService.js";
 import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { navigationManager } from "./navigationManager.js"; // 导航管理器
+import { navigationManager } from "./navigationManager.js"; // 导航管理器（导入即执行）
 import { apiService } from "./services/ApiService.js";
 
 // 初始化数字输入并保持本地存储同步
