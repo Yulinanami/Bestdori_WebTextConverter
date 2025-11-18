@@ -2,12 +2,7 @@
 const _state = {
   currentResult: "",
   currentConfig: {},
-  quotesConfig: {},
   customQuotes: [],
-  batchFiles: [],
-  batchResults: [],
-  autoPreviewEnabled: true,
-  previewDebounceTimer: null,
   currentCostumes: {},
   projectFile: null,
 };
