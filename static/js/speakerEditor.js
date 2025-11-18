@@ -218,10 +218,7 @@ export const speakerEditor = {
     if (deleteButton) {
       const layoutCard = deleteButton.closest(".layout-item");
       if (layoutCard && layoutCard.dataset.id) {
-        LayoutPropertyMixin._deleteLayoutAction.call(
-          this,
-          layoutCard.dataset.id
-        );
+        this._deleteLayoutAction(layoutCard.dataset.id);
         return;
       }
     }
@@ -657,7 +654,7 @@ export const speakerEditor = {
             if (cardItem.classList.contains("dialogue-item")) {
               this.removeAllSpeakersFromAction(actionId);
             } else if (cardItem.classList.contains("layout-item")) {
-              LayoutPropertyMixin._deleteLayoutAction.call(this, actionId);
+              this._deleteLayoutAction(actionId);
             }
           }
 
@@ -767,9 +764,6 @@ export const speakerEditor = {
       });
     });
 
-    // 更新右侧角色列表
-    const usedIds = this._getUsedCharacterIds();
-    this.renderCharacterList(usedIds);
     editorService.clearSelection();
     this.domCache.canvas?.dispatchEvent(
       new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
@@ -787,9 +781,6 @@ export const speakerEditor = {
       }
     });
 
-    // 更新右侧角色列表
-    const usedIds = this._getUsedCharacterIds();
-    this.renderCharacterList(usedIds);
   },
 
   // 清空对话的所有说话人
@@ -801,9 +792,6 @@ export const speakerEditor = {
       }
     });
 
-    // 更新右侧角色列表
-    const usedIds = this._getUsedCharacterIds();
-    this.renderCharacterList(usedIds);
   },
 
   /**
