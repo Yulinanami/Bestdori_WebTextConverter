@@ -1,5 +1,4 @@
 // 动作表情编辑器
-import { DataUtils } from "./utils/DataUtils.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
 import { BaseEditor } from "./utils/BaseEditor.js";
 import { DragHelper } from "./utils/DragHelper.js";
