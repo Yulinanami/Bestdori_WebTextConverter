@@ -116,7 +116,18 @@ export const DragHelper = {
       }
 
       const isGroupingEnabled = getGroupingEnabled();
-      let localInsertIndex = evt.newDraggableIndex;
+      let localInsertIndex =
+        evt.newDraggableIndex !== undefined && evt.newDraggableIndex !== null
+          ? evt.newDraggableIndex
+          : evt.newIndex;
+
+      if (
+        localInsertIndex === undefined ||
+        localInsertIndex === null ||
+        Number.isNaN(localInsertIndex)
+      ) {
+        localInsertIndex = editor.projectFileState?.actions?.length || 0;
+      }
 
       if (
         isGroupingEnabled &&
@@ -126,11 +137,14 @@ export const DragHelper = {
       ) {
         // 减去前面所有分组标题（包括当前分组）占据的位置
         const headerOffset = editor.getHeaderOffset(true);
-        localInsertIndex = Math.max(0, localInsertIndex - headerOffset);
+        localInsertIndex = Math.max(
+          0,
+          Number(localInsertIndex) - headerOffset
+        );
       }
 
       const globalInsertIndex = editor.getGlobalIndex(
-        localInsertIndex,
+        Number(localInsertIndex),
         isGroupingEnabled
       );
 
