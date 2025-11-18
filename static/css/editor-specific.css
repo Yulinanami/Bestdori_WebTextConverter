@@ -174,29 +174,6 @@
   border-left-color: #f56565;
 }
 
-.character-status-tag {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid var(--border-primary);
-}
-
-.character-status-tag .character-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 0.9em;
-}
-
-.character-status-tag .drop-zones {
-  display: flex;
-  gap: 8px;
-}
-
 /* 布局卡片延时输入框 */
 .layout-delay-input-wrapper {
   display: flex;

@@ -1326,41 +1326,6 @@
       </div>
     </template>
 
-    <!-- 角色状态标签模板 -->
-    <template id="character-status-tag-template">
-      <div class="character-status-tag" data-character-id="">
-        <div class="character-info">
-          <div class="dialogue-avatar micro-avatar"></div>
-          <span class="character-name"></span>
-        </div>
-        <div class="drop-zones">
-          <div class="drop-zone motion-drop-zone" data-type="motion">
-            <span class="drop-zone-label">动作</span>
-            <span class="drop-zone-value">--</span>
-            <!-- 新增删除按钮 -->
-            <button class="clear-state-btn hidden">×</button>
-          </div>
-          <div class="drop-zone expression-drop-zone" data-type="expression">
-            <span class="drop-zone-label">表情</span>
-            <span class="drop-zone-value">--</span>
-            <!-- 新增删除按钮 -->
-            <button class="clear-state-btn hidden">×</button>
-          </div>
-        </div>
-        <!-- 延时输入框（仅用于布局卡片） -->
-        <div class="layout-delay-input-wrapper hidden">
-          <label>延时(秒):</label>
-          <input
-            type="number"
-            class="form-input input-sm layout-delay-input"
-            value="0"
-            min="0"
-            step="0.5"
-          />
-        </div>
-      </div>
-    </template>
-
     <!-- 动作/表情分配：角色选择列表模板 -->
     <template id="motion-character-selector-template">
       <div class="motion-character-selector">
