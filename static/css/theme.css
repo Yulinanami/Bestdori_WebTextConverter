@@ -178,18 +178,6 @@
   background: rgba(31, 41, 55, 0.9);
 }
 
-[data-theme="dark"] .drop-zone.sortable-ghost-receiving {
-  background-color: #1e3a5f;
-  border-color: #3b82f6;
-}
-
-[data-theme="dark"] #speakerEditorCanvas.sortable-ghost-receiving {
-  background-color: #1e3a5f;
-}
-
-[data-theme="dark"] #speakerEditorCharacterList.sortable-ghost-receiving {
-  background-color: #450a0a;
-}
 
 /* 黑夜模式下的表单输入框样式 */
 [data-theme="dark"] .form-input,
@@ -249,22 +237,6 @@
 [data-theme="dark"] .layout-item input:focus,
 [data-theme="dark"] .layout-item select:focus {
   background: #0f172a;
-  border-color: #6b7280;
-}
-
-/* 主题选择器内联样式 - 黑夜模式 */
-[data-theme="dark"] .theme-selector-inline {
-  background: #1f2937;
-  color: #f3f4f6;
-  border-color: #374151;
-}
-
-[data-theme="dark"] .theme-selector-inline:hover {
-  background: #111827;
-  border-color: #4b5563;
-}
-
-[data-theme="dark"] .theme-selector-inline:focus {
   border-color: #6b7280;
 }
 
@@ -410,14 +382,6 @@
 [data-theme="dark"] .step-number {
   background: #374151;
   color: #d1d5db;
-}
-
-[data-theme="dark"] .nav-menu-item {
-  color: #d1d5db;
-}
-
-[data-theme="dark"] .nav-menu-item:hover {
-  background: #374151;
 }
 
 [data-theme="dark"] .app-workspace {

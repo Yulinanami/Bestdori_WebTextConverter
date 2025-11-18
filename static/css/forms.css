@@ -96,18 +96,6 @@
   flex: 1;
 }
 
-.config-item-inline {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.config-item-inline label {
-  font-weight: 500;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
 /* 表单内联组 */
 .form-group-inline {
   display: flex;
@@ -138,11 +126,6 @@
 
 #expressionEditorLibrary .search-input-container .form-input {
   padding-right: 30px;
-}
-
-/* 自动预览开关 */
-.auto-preview-wrapper {
-  margin-left: auto;
 }
 
 .auto-preview-label {

@@ -29,12 +29,6 @@
   z-index: 2001;
 }
 
-/* 确保尺寸类能够覆盖基础样式 */
-.modal-content.modal-xl {
-  max-width: 900px;
-  width: 60%;
-}
-
 /* 模态框头部 */
 .modal-header {
   padding: 20px 30px;
@@ -115,19 +109,6 @@
   max-width: 1400px;
   display: flex;
   flex-direction: column;
-}
-
-/* 模态框尺寸变体 */
-.modal-content.modal-sm {
-  max-width: 500px;
-}
-
-.modal-content.modal-md {
-  max-width: 700px;
-}
-
-.modal-content.modal-lg {
-  max-width: 800px;
 }
 
 /* 模态框底部 */

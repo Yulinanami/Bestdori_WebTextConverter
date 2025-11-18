@@ -174,32 +174,6 @@
   border-left-color: #f56565;
 }
 
-/* Sortable 拖拽区域视觉反馈 */
-#speakerEditorCanvas.sortable-ghost-receiving {
-  background-color: #f0f8ff;
-}
-
-#speakerEditorCharacterList.sortable-ghost-receiving {
-  background-color: #fff0f0;
-}
-
-/* 结果区域按钮组 */
-.result-header > div:last-child {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* 角色状态条 */
-.timeline-item .character-status-bar {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border-primary);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .character-status-tag {
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
@@ -276,13 +250,6 @@
   cursor: grab;
 }
 
-/* 拖拽放置区的视觉反馈 */
-.drop-zone.sortable-ghost-receiving {
-  background-color: #ebf8ff;
-  border-style: solid;
-  border-color: #3182ce;
-}
-
 /* 表情编辑器库样式 */
 #expressionEditorLibrary .item-list-container {
   height: calc(80vh - 220px);
@@ -299,14 +266,6 @@
   width: 100%;
 }
 
-#expressionEditorTimeline .character-status-bar {
-  flex-basis: 100%;
-  width: 100%;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid var(--border-primary);
-}
-
 #expressionEditorTimeline .talk-item {
   padding-bottom: 10px;
 }
@@ -320,13 +279,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-/* 确保状态栏在新容器中正确显示 */
-.timeline-item-footer .character-status-bar {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
 }
 
 #speakerEditorModal .timeline-item-footer {

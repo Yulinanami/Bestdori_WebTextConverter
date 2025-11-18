@@ -50,23 +50,6 @@
   min-width: 100px;
 }
 
-/* 服装配置项样式 */
-.costume-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.costume-item:hover {
-  transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .costume-character-info {
   display: flex;
   align-items: center;
@@ -78,25 +61,8 @@
   color: var(--text-primary);
 }
 
-.costume-select-wrapper {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
 .costume-select {
   min-width: 200px;
-}
-
-/* 自定义角色标记 */
-.custom-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  font-size: var(--text-xs);
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-sm);
-  margin-left: 4px;
 }
 
 .costume-actions {
