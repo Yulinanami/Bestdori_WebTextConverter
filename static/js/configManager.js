@@ -104,7 +104,6 @@ export const configManager = {
       quoteManager.renderQuoteOptions();
       motionManager.init();
       expressionManager.init();
-
     } catch (error) {
       console.error("加载配置失败:", error);
       ui.showStatus(error.message || "无法加载应用配置", "error");
@@ -153,7 +152,6 @@ export const configManager = {
           this.renderConfigList();
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
-
         },
         "重置中..."
       );
@@ -340,11 +338,11 @@ export const configManager = {
             STORAGE_KEYS.AUTO_APPEND_SPACES,
             0
           ),
-        // 将换行前空格的设置添加到导出对象中
-        auto_append_spaces_before_newline: storageService.get(
-          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-          0
-        ),
+          // 将换行前空格的设置添加到导出对象中
+          auto_append_spaces_before_newline: storageService.get(
+            STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+            0
+          ),
           export_date: new Date().toISOString(),
           version: "1.4",
         };
@@ -436,7 +434,10 @@ export const configManager = {
           expressionManager.saveCustomItems();
         }
 
-        if (config.custom_quick_fill && Array.isArray(config.custom_quick_fill)) {
+        if (
+          config.custom_quick_fill &&
+          Array.isArray(config.custom_quick_fill)
+        ) {
           storageService.set(
             STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
             config.custom_quick_fill
@@ -507,7 +508,7 @@ export const configManager = {
           STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
           STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
           STORAGE_KEYS.AUTO_APPEND_SPACES,
-          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE, 
+          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
         ];
 
         console.log("正在清除以下本地缓存:", keysToRemove);

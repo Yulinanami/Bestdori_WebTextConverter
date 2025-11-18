@@ -1353,7 +1353,7 @@ export const expressionEditor = {
     const dropdown = document.getElementById(dropdownId);
     if (!dropdown) return;
 
-    const btn = dropdown.previousElementSibling; 
+    const btn = dropdown.previousElementSibling;
     const isActive = !dropdown.classList.contains("hidden");
     if (isActive) {
       if (btn) btn.classList.remove("active");
@@ -1370,7 +1370,7 @@ export const expressionEditor = {
           function onClickOutside(e) {
             if (!dropdown.parentElement.contains(e.target)) {
               dropdown.classList.add("hidden");
-              if (btn) btn.classList.remove("active"); 
+              if (btn) btn.classList.remove("active");
               document.removeEventListener("click", onClickOutside);
             }
           },

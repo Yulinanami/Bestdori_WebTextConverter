@@ -202,4 +202,3 @@ export function renderGroupedView({
 
   container.appendChild(fragment);
 }
-

@@ -445,7 +445,7 @@ export const live2dEditor = {
       );
       const appearedCharacterNames = new Set();
       const newActions = [];
-      let layoutCounter = 0
+      let layoutCounter = 0;
 
       // 遍历对话,为首次发言的角色创建登场动作
       currentState.actions.forEach((action) => {
@@ -461,7 +461,9 @@ export const live2dEditor = {
                 );
 
               const newLayoutAction = {
-                id: `layout-action-${Date.now()}-${speaker.characterId}-${layoutCounter++}`,
+                id: `layout-action-${Date.now()}-${
+                  speaker.characterId
+                }-${layoutCounter++}`,
                 type: "layout",
                 characterId: speaker.characterId,
                 characterName: speaker.name,

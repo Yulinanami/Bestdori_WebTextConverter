@@ -13,7 +13,7 @@ export const fileHandler = {
     ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(eventName, this.preventDefaults, false);
     });
-    
+
     ["dragenter", "dragover"].forEach((eventName) => {
       fileUpload.addEventListener(
         eventName,

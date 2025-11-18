@@ -462,7 +462,6 @@ export const speakerEditor = {
     });
   },
 
-
   /**
    * 渲染左侧对话卡片画布
    * 支持分组模式和普通模式两种渲染方式:
@@ -780,7 +779,6 @@ export const speakerEditor = {
         );
       }
     });
-
   },
 
   // 清空对话的所有说话人
@@ -791,7 +789,6 @@ export const speakerEditor = {
         action.speakers = [];
       }
     });
-
   },
 
   /**

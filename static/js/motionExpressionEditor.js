@@ -119,7 +119,7 @@ export const motionExpressionEditor = {
   handleDelete(e, type) {
     const removeBtn = e.target.closest(".remove-btn");
     if (removeBtn) {
-      const idToDelete = removeBtn.dataset.id; 
+      const idToDelete = removeBtn.dataset.id;
       if (type === "motion") {
         this.tempCustomMotions = this.tempCustomMotions.filter(
           (id) => id !== idToDelete

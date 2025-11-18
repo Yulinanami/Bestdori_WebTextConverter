@@ -79,7 +79,7 @@ export const converter = {
       selectedQuotes,
       narratorName,
       appendSpaces,
-      appendSpacesBeforeNewline 
+      appendSpacesBeforeNewline
     );
   },
 
@@ -88,7 +88,7 @@ export const converter = {
     selectedQuotes = [],
     narratorName,
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0 
+    appendSpacesBeforeNewline = 0
   ) {
     const buttonId = "convertBtn";
     try {
@@ -101,7 +101,7 @@ export const converter = {
         selectedQuotes,
         narratorName,
         appendSpaces,
-        appendSpacesBeforeNewline 
+        appendSpacesBeforeNewline
       );
       const result = data.result;
 
