@@ -1,6 +1,6 @@
-import { ui } from "./uiUtils.js";
-import { motionManager, expressionManager } from "./genericConfigManager.js";
-import { DOMUtils } from "./utils/DOMUtils.js";
+import { ui } from "../utils/uiUtils.js";
+import { motionManager, expressionManager } from "../managers/genericConfigManager.js";
+import { DOMUtils } from "../utils/DOMUtils.js";
 
 export const motionExpressionEditor = {
   tempCustomMotions: [], // 临时自定义动作列表

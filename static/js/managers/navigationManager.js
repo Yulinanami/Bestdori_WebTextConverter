@@ -64,7 +64,7 @@ class NavigationManager {
       const [{ costumeManager }, { state }, { DataUtils }] = await Promise.all([
         import("./costumeManager.js"),
         import("./stateManager.js"),
-        import("./utils/DataUtils.js"),
+        import("../utils/DataUtils.js"),
       ]);
 
       // 初始化临时状态
@@ -81,7 +81,7 @@ class NavigationManager {
     7: async () => {
       const [{ positionManager }, { DataUtils }] = await Promise.all([
         import("./positionManager.js"),
-        import("./utils/DataUtils.js"),
+        import("../utils/DataUtils.js"),
       ]);
 
       // 初始化临时状态

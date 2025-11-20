@@ -1,8 +1,8 @@
 // UI相关的工具
-import { state } from "./stateManager.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { modalService } from "./services/ModalService.js";
-import { DOMUtils } from "./utils/DOMUtils.js";
+import { state } from "../managers/stateManager.js";
+import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
+import { modalService } from "../services/ModalService.js";
+import { DOMUtils } from "./DOMUtils.js";
 
 let statusTimer = null;
 export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;

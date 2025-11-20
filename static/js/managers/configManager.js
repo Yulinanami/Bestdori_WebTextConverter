@@ -1,15 +1,15 @@
 // 配置管理相关功能
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui } from "../utils/uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { positionManager } from "./positionManager.js";
 import { motionManager, expressionManager } from "./genericConfigManager.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { apiService } from "./services/ApiService.js";
-import { modalService } from "./services/ModalService.js";
-import { DOMUtils } from "./utils/DOMUtils.js";
-import { DataUtils } from "./utils/DataUtils.js";
+import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
+import { apiService } from "../services/ApiService.js";
+import { modalService } from "../services/ModalService.js";
+import { DOMUtils } from "../utils/DOMUtils.js";
+import { DataUtils } from "../utils/DataUtils.js";
 
 /**
  * 生成带时间戳的文件名

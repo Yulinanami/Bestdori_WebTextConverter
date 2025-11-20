@@ -1,22 +1,22 @@
 // 主应用入口文件
-import { state } from "./stateManager.js";
-import { ui, initPerformanceSettingsPersistence } from "./uiUtils.js";
-import { viewManager } from "./viewManager.js";
-import { fileHandler } from "./fileHandler.js";
-import { configManager } from "./configManager.js";
-import { converter } from "./converter.js";
-import { quoteManager } from "./quoteManager.js";
-import { costumeManager } from "./costumeManager.js";
-import { positionManager } from "./positionManager.js";
-import { speakerEditor } from "./speakerEditor.js";
-import { live2dEditor } from "./live2dEditor.js";
-import { expressionEditor } from "./expressionEditor.js";
-import { motionExpressionEditor } from "./motionExpressionEditor.js";
-import { pinnedCharacterManager } from "./pinnedCharacterManager.js";
+import { state } from "./managers/stateManager.js";
+import { ui, initPerformanceSettingsPersistence } from "./utils/uiUtils.js";
+import { viewManager } from "./managers/viewManager.js";
+import { fileHandler } from "./managers/fileHandler.js";
+import { configManager } from "./managers/configManager.js";
+import { converter } from "./managers/converter.js";
+import { quoteManager } from "./managers/quoteManager.js";
+import { costumeManager } from "./managers/costumeManager.js";
+import { positionManager } from "./managers/positionManager.js";
+import { speakerEditor } from "./editors/speakerEditor.js";
+import { live2dEditor } from "./editors/live2dEditor.js";
+import { expressionEditor } from "./editors/expressionEditor.js";
+import { motionExpressionEditor } from "./editors/motionExpressionEditor.js";
+import { pinnedCharacterManager } from "./managers/pinnedCharacterManager.js";
 import { modalService } from "./services/ModalService.js";
-import { themeManager } from "./themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
+import { themeManager } from "./managers/themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
 import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { navigationManager } from "./navigationManager.js"; // 导航管理器（导入即执行）
+import { navigationManager } from "./managers/navigationManager.js"; // 导航管理器（导入即执行）
 import { apiService } from "./services/ApiService.js";
 
 // 初始化数字输入并保持本地存储同步

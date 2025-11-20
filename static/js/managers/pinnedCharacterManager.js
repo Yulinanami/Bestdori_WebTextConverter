@@ -1,4 +1,4 @@
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
+import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.PINNED_CHARACTERS;
 let pinnedCharacters = new Set();

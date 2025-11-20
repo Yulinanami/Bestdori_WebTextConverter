@@ -8,15 +8,15 @@
  * 4. 便于单元测试（可注入 mock service）
  */
 
-import { state } from "../stateManager.js";
-import { configManager } from "../configManager.js";
-import { historyManager } from "../historyManager.js";
-import { projectManager } from "../projectManager.js";
-import { pinnedCharacterManager } from "../pinnedCharacterManager.js";
-import { costumeManager } from "../costumeManager.js";
-import { positionManager } from "../positionManager.js";
-import { motionManager, expressionManager } from "../genericConfigManager.js";
-import { selectionManager } from "../selectionManager.js";
+import { state } from "../managers/stateManager.js";
+import { configManager } from "../managers/configManager.js";
+import { historyManager } from "../managers/historyManager.js";
+import { projectManager } from "../managers/projectManager.js";
+import { pinnedCharacterManager } from "../managers/pinnedCharacterManager.js";
+import { costumeManager } from "../managers/costumeManager.js";
+import { positionManager } from "../managers/positionManager.js";
+import { motionManager, expressionManager } from "../managers/genericConfigManager.js";
+import { selectionManager } from "../managers/selectionManager.js";
 
 /**
  * 编辑器服务 - 聚合所有编辑器需要的功能

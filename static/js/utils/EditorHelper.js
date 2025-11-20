@@ -5,7 +5,7 @@
  */
 
 import { modalService } from "../services/ModalService.js";
-import { ui } from "../uiUtils.js";
+import { ui } from "./uiUtils.js";
 
 export const EditorHelper = {
   /**

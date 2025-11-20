@@ -1,20 +1,20 @@
 // live2d布局编辑器
-import { DOMUtils } from "./utils/DOMUtils.js";
-import { BaseEditor } from "./utils/BaseEditor.js";
-import { DragHelper } from "./utils/DragHelper.js";
-import { EditorHelper } from "./utils/EditorHelper.js";
-import { ui, renderGroupedView } from "./uiUtils.js";
-import { editorService } from "./services/EditorService.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { BaseEditorMixin } from "./mixins/BaseEditorMixin.js";
-import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
-import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
-import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
-import { CharacterListMixin } from "./mixins/CharacterListMixin.js";
+import { DOMUtils } from "../utils/DOMUtils.js";
+import { BaseEditor } from "../utils/BaseEditor.js";
+import { DragHelper } from "../utils/DragHelper.js";
+import { EditorHelper } from "../utils/EditorHelper.js";
+import { ui, renderGroupedView } from "../utils/uiUtils.js";
+import { editorService } from "../services/EditorService.js";
+import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
+import { BaseEditorMixin } from "../mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "../mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "../mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "../mixins/ScrollAnimationMixin.js";
+import { CharacterListMixin } from "../mixins/CharacterListMixin.js";
 import {
   createTalkCard,
   createLayoutCard,
-} from "./utils/TimelineCardFactory.js";
+} from "../utils/TimelineCardFactory.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({

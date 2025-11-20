@@ -1,6 +1,6 @@
 // 视图管理相关功能
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui } from "../utils/uiUtils.js";
 
 export const viewManager = {
   init() {

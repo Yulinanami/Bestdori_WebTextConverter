@@ -1,11 +1,11 @@
 // Live2D 位置管理功能
-import { DataUtils } from "./utils/DataUtils.js";
-import { DOMUtils } from "./utils/DOMUtils.js";
+import { DataUtils } from "../utils/DataUtils.js";
+import { DOMUtils } from "../utils/DOMUtils.js";
 import { state } from "./stateManager.js";
-import { ui } from "./uiUtils.js";
+import { ui } from "../utils/uiUtils.js";
 import { configManager } from "./configManager.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
-import { modalService } from "./services/ModalService.js";
+import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
+import { modalService } from "../services/ModalService.js";
 
 export const positionManager = {
   positions: ["leftOver", "leftInside", "center", "rightInside", "rightOver"],
