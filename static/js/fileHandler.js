@@ -7,9 +7,32 @@ import { apiService } from "./services/ApiService.js";
 const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
 
 export const fileHandler = {
+  init() {
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput) {
+      fileInput.addEventListener(
+        "change",
+        this.handleFileUpload.bind(this)
+      );
+    }
+
+    const downloadBtn = document.getElementById("downloadBtn");
+    if (downloadBtn) {
+      downloadBtn.addEventListener(
+        "click",
+        this.downloadResult.bind(this)
+      );
+    }
+
+    this.setupFileDragDrop();
+  },
+
   // 设置文件拖拽功能
   setupFileDragDrop() {
     const fileUpload = document.getElementById("fileUpload");
+    if (!fileUpload) {
+      return;
+    }
     ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(eventName, this.preventDefaults, false);
     });

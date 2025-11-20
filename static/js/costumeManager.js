@@ -65,6 +65,16 @@ export const costumeManager = {
         this.tempCostumeChanges[key] = select.value;
       }
     });
+
+    const saveBtn = document.getElementById("saveCostumesBtn");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", this.saveCostumes.bind(this));
+    }
+
+    const resetBtn = document.getElementById("resetCostumesBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", this.resetCostumes.bind(this));
+    }
   },
 
   // 生成角色的唯一标识符（使用角色名称）

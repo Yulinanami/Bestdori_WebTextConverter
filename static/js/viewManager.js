@@ -3,6 +3,13 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 
 export const viewManager = {
+  init() {
+    const formatBtn = document.getElementById("formatTextBtn");
+    if (formatBtn) {
+      formatBtn.addEventListener("click", this.formatText.bind(this));
+    }
+  },
+
   formatText() {
     const textarea = document.getElementById("inputText");
     const originalText = textarea.value;

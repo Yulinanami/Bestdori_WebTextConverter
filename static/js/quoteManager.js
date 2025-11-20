@@ -6,6 +6,15 @@ import { DOMUtils } from "./utils/DOMUtils.js";
 
 export const quoteManager = {
   presetStates: {},
+  init() {
+    const addBtn = document.getElementById("addCustomQuoteBtn");
+    if (addBtn) {
+      addBtn.addEventListener(
+        "click",
+        this.addCustomQuoteOption.bind(this)
+      );
+    }
+  },
   // 加载自定义引号
   loadCustomQuotes() {
     const saved = storageService.get(STORAGE_KEYS.CUSTOM_QUOTES, []);

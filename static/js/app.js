@@ -47,8 +47,8 @@ function initializeApp() {
     );
   };
 
-  // 绑定经典视图事件
-  bindClassicViewEvents();
+  // 绑定全局事件
+  bindGlobalEvents();
 
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
@@ -82,8 +82,17 @@ function initializeApp() {
   // 初始化服装事件委托
   costumeManager.init();
 
-  // 初始化文件拖拽
-  fileHandler.setupFileDragDrop();
+  // 初始化文件处理
+  fileHandler.init();
+
+  // 初始化转换器事件
+  converter.init();
+
+  // 初始化文本视图操作
+  viewManager.init();
+
+  // 初始化引号相关按钮
+  quoteManager.init();
 
   // 加载配置
   configManager.init();
@@ -92,125 +101,30 @@ function initializeApp() {
   // 加载服装配置
   costumeManager.loadCostumeConfig();
 }
-// 绑定经典视图事件
-function bindClassicViewEvents() {
-  // 文件相关
-  document
-    .getElementById("fileInput")
-    .addEventListener("change", fileHandler.handleFileUpload.bind(fileHandler));
-  document
-    .getElementById("downloadBtn")
-    .addEventListener("click", fileHandler.downloadResult.bind(fileHandler));
-
-  // 转换相关
-  document
-    .getElementById("convertBtn")
-    .addEventListener("click", converter.convertText.bind(converter));
-  document
-    .getElementById("formatTextBtn")
-    .addEventListener("click", viewManager.formatText.bind(viewManager));
-
-  // 配置相关
-  document
-    .getElementById("addConfigBtn")
-    .addEventListener("click", configManager.addConfigItem.bind(configManager));
-  document
-    .getElementById("saveConfigBtn")
-    .addEventListener("click", configManager.saveConfig.bind(configManager));
-
-  // Bestdori 跳转按钮事件
-  document.getElementById("gotoBestdoriBtn").addEventListener("click", () => {
-    ui.goToBestdori();
-  });
-
-  // 重置配置按钮
-  const resetBtn = document.getElementById("resetConfigBtn");
-  if (resetBtn) {
-    resetBtn.addEventListener(
-      "click",
-      configManager.resetConfig.bind(configManager)
-    );
+// 绑定与具体模块无关的全局事件
+function bindGlobalEvents() {
+  const gotoBtn = document.getElementById("gotoBestdoriBtn");
+  if (gotoBtn) {
+    gotoBtn.addEventListener("click", () => ui.goToBestdori());
   }
 
-  // 导出配置按钮
-  const exportBtn = document.getElementById("exportConfigBtn");
-  if (exportBtn) {
-    exportBtn.addEventListener(
-      "click",
-      configManager.exportConfig.bind(configManager)
-    );
+  const helpBtn = document.getElementById("helpBtn");
+  if (helpBtn) {
+    helpBtn.addEventListener("click", () => ui.openModal("helpModal"));
   }
 
-  // 导入配置按钮
-  const importBtn = document.getElementById("importConfigBtn");
-  if (importBtn) {
-    importBtn.addEventListener("click", () => {
-      document.getElementById("importConfigInput").click();
-    });
-  }
+  const shutdownBtn = document.getElementById("shutdownBtn");
+  if (shutdownBtn) {
+    shutdownBtn.addEventListener("click", () => {
+      if (confirm("确定要关闭应用程序吗？")) {
+        ui.showStatus("正在关闭服务器...", "info");
 
-  // 导入配置文件选择
-  const importInput = document.getElementById("importConfigInput");
-  if (importInput) {
-    importInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        configManager.importConfig(file);
-        e.target.value = "";
-      }
-    });
-  }
+        // 调用关闭API
+        apiService.shutdownServer();
 
-  // 清除缓存按钮
-  const clearCacheBtn = document.getElementById("clearCacheBtn");
-  if (clearCacheBtn) {
-    clearCacheBtn.addEventListener(
-      "click",
-      configManager.clearLocalStorage.bind(configManager)
-    );
-  }
-
-  // 保存服装配置按钮
-  const saveCostumesBtn = document.getElementById("saveCostumesBtn");
-  if (saveCostumesBtn) {
-    saveCostumesBtn.addEventListener(
-      "click",
-      costumeManager.saveCostumes.bind(costumeManager)
-    );
-  }
-
-  // 重置服装按钮
-  const resetCostumesBtn = document.getElementById("resetCostumesBtn");
-  if (resetCostumesBtn) {
-    resetCostumesBtn.addEventListener(
-      "click",
-      costumeManager.resetCostumes.bind(costumeManager)
-    );
-  }
-
-  // 引号相关
-  document
-    .getElementById("addCustomQuoteBtn")
-    .addEventListener(
-      "click",
-      quoteManager.addCustomQuoteOption.bind(quoteManager)
-    );
-
-  // 帮助
-  document
-    .getElementById("helpBtn")
-    .addEventListener("click", () => ui.openModal("helpModal"));
-
-  document.getElementById("shutdownBtn").addEventListener("click", () => {
-    if (confirm("确定要关闭应用程序吗？")) {
-      ui.showStatus("正在关闭服务器...", "info");
-
-      // 调用关闭API
-      apiService.shutdownServer();
-
-      // 延迟一小段时间后，向用户显示最终信息
-      setTimeout(() => {
-        document.body.innerHTML = `
+        // 延迟一小段时间后，向用户显示最终信息
+        setTimeout(() => {
+          document.body.innerHTML = `
           <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background: var(--secondary-gradient); color: var(--text-primary);">
             <div>
               <h1 style="font-size: 2rem; margin-bottom: 1rem;">程序已关闭</h1>
@@ -218,15 +132,19 @@ function bindClassicViewEvents() {
             </div>
           </div>
         `;
-      }, 500); // 500ms的延迟确保请求有足够时间发出
-    }
-  });
+        }, 500); // 500ms的延迟确保请求有足够时间发出
+      }
+    });
+  }
 
-  document.getElementById("inputText").addEventListener("input", (e) => {
-    if (state.get("projectFile")) {
-      state.set("projectFile", null);
-    }
-  });
+  const inputText = document.getElementById("inputText");
+  if (inputText) {
+    inputText.addEventListener("input", () => {
+      if (state.get("projectFile")) {
+        state.set("projectFile", null);
+      }
+    });
+  }
 }
 
 // DOM加载完成后初始化应用

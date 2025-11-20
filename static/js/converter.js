@@ -49,6 +49,13 @@ function createProjectFileFromText(text) {
 }
 
 export const converter = {
+  init() {
+    const convertBtn = document.getElementById("convertBtn");
+    if (convertBtn) {
+      convertBtn.addEventListener("click", this.convertText.bind(this));
+    }
+  },
+
   // 转换文本为 Bestdori JSON 格式
   async convertText() {
     let projectFileToConvert;

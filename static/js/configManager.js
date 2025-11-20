@@ -73,6 +73,8 @@ export const configManager = {
         }
       });
     }
+
+    this.bindActionButtons();
   },
 
   /**
@@ -529,5 +531,57 @@ export const configManager = {
       }
     }
     return null;
+  },
+
+  bindActionButtons() {
+    const addBtn = document.getElementById("addConfigBtn");
+    if (addBtn) {
+      addBtn.addEventListener("click", this.addConfigItem.bind(this));
+    }
+
+    const saveBtn = document.getElementById("saveConfigBtn");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", this.saveConfig.bind(this));
+    }
+
+    const resetBtn = document.getElementById("resetConfigBtn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", this.resetConfig.bind(this));
+    }
+
+    const exportBtn = document.getElementById("exportConfigBtn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", this.exportConfig.bind(this));
+    }
+
+    const importBtn = document.getElementById("importConfigBtn");
+    if (importBtn) {
+      importBtn.addEventListener("click", () => {
+        const importInput = document.getElementById("importConfigInput");
+        if (importInput) {
+          importInput.click();
+        }
+      });
+    }
+
+    const importInput = document.getElementById("importConfigInput");
+    if (importInput) {
+      importInput.addEventListener("change", (e) => {
+        const files = e.target.files;
+        const file = files && files[0];
+        if (file) {
+          this.importConfig(file);
+          e.target.value = "";
+        }
+      });
+    }
+
+    const clearCacheBtn = document.getElementById("clearCacheBtn");
+    if (clearCacheBtn) {
+      clearCacheBtn.addEventListener(
+        "click",
+        this.clearLocalStorage.bind(this)
+      );
+    }
   },
 };
