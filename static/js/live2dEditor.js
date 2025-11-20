@@ -11,6 +11,10 @@ import { EventHandlerMixin } from "./mixins/EventHandlerMixin.js";
 import { LayoutPropertyMixin } from "./mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "./mixins/ScrollAnimationMixin.js";
 import { CharacterListMixin } from "./mixins/CharacterListMixin.js";
+import {
+  createTalkCard,
+  createLayoutCard,
+} from "./utils/TimelineCardFactory.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -566,10 +570,6 @@ export const live2dEditor = {
     const timeline = this.domCache.timeline;
     if (!timeline) return;
 
-    const talkTemplate = document.getElementById("timeline-talk-card-template");
-    const layoutTemplate = document.getElementById(
-      "timeline-layout-card-template"
-    );
     const isGroupingEnabled = this.domCache.groupCheckbox?.checked || false;
     const actions = this.projectFileState.actions;
     const groupSize = 50;
@@ -584,49 +584,18 @@ export const live2dEditor = {
       let card;
 
       if (action.type === "talk") {
-        card = talkTemplate.content.cloneNode(true);
-        card.querySelector(".timeline-item").dataset.id = action.id;
-        const nameDiv = card.querySelector(".speaker-name");
-        const avatarDiv = card.querySelector(".dialogue-avatar");
-
-        if (action.speakers && action.speakers.length > 0) {
-          const firstSpeaker = action.speakers[0];
-          nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
-          editorService.updateCharacterAvatar(
-            { querySelector: () => avatarDiv },
-            firstSpeaker.characterId,
-            firstSpeaker.name
-          );
-        } else {
-          nameDiv.textContent = "旁白";
-          avatarDiv.classList.add("fallback");
-          avatarDiv.textContent = "N";
-        }
-
-        card.querySelector(".dialogue-preview-text").textContent = action.text;
+        card = createTalkCard(action);
       } else if (action.type === "layout") {
-        card = layoutTemplate.content.cloneNode(true);
-        const item = card.querySelector(".timeline-item");
-        item.dataset.id = action.id;
-        item.dataset.layoutType = action.layoutType;
-        // 应用布局类型 CSS 类名
-        DOMUtils.applyLayoutTypeClass(item, action.layoutType);
-        const characterId = action.characterId;
-        const characterName =
-          action.characterName ||
-          editorService.getCharacterNameById(characterId);
-        card.querySelector(".speaker-name").textContent =
-          characterName || `未知角色 (ID: ${characterId})`;
-        const avatarDiv = card.querySelector(".dialogue-avatar");
-        editorService.updateCharacterAvatar(
-          { querySelector: () => avatarDiv },
-          characterId,
-          characterName
-        );
-
-        // 使用共享的渲染函数（在 live2d 编辑器中显示切换按钮）
-        this.renderLayoutCardControls(card, action, characterName, {
-          showToggleButton: true,
+        card = createLayoutCard(action, {
+          renderLayoutControls: (cardEl, layoutAction, characterName) =>
+            this.renderLayoutCardControls(
+              cardEl,
+              layoutAction,
+              characterName,
+              {
+                showToggleButton: true,
+              }
+            ),
         });
       } else {
         return null;
