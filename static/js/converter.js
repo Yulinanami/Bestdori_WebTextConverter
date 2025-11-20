@@ -3,50 +3,7 @@ import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { apiService } from "./services/ApiService.js";
-
-/**
- * 将纯文本转换为项目文件格式
- * 自动识别"角色名:对话"格式，未匹配的内容作为旁白
- * @param {string} text - 输入文本，段落间用空行分隔
- * @returns {Object} 项目文件对象 { version, actions }
- */
-function createProjectFileFromText(text) {
-  const segments = text
-    .split(/\n\s*\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const characterMap = new Map(
-    Object.entries(state.get("currentConfig")).map(([name, ids]) => [
-      name,
-      { characterId: ids[0], name: name },
-    ])
-  );
-
-  return {
-    version: "1.0",
-    actions: segments.map((segmentText, index) => {
-      let speakers = [];
-      let cleanText = segmentText;
-      const match = segmentText.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-
-      if (match) {
-        const potentialSpeakerName = match[1].trim();
-        if (characterMap.has(potentialSpeakerName)) {
-          speakers.push(characterMap.get(potentialSpeakerName));
-          cleanText = match[2].trim();
-        }
-      }
-
-      return {
-        id: `action-id-${Date.now()}-${index}`,
-        type: "talk",
-        text: cleanText,
-        speakers: speakers,
-        characterStates: {},
-      };
-    }),
-  };
-}
+import { createProjectFileFromText } from "./utils/converterCore.js";
 
 export const converter = {
   init() {
@@ -68,7 +25,10 @@ export const converter = {
         ui.showStatus("请输入要转换的文本！", "error");
         return;
       }
-      projectFileToConvert = createProjectFileFromText(inputText);
+      projectFileToConvert = createProjectFileFromText(
+        inputText,
+        state.get("currentConfig")
+      );
     }
 
     const selectedQuotes = quoteManager.getSelectedQuotes();

@@ -588,14 +588,9 @@ export const live2dEditor = {
       } else if (action.type === "layout") {
         card = createLayoutCard(action, {
           renderLayoutControls: (cardEl, layoutAction, characterName) =>
-            this.renderLayoutCardControls(
-              cardEl,
-              layoutAction,
-              characterName,
-              {
-                showToggleButton: true,
-              }
-            ),
+            this.renderLayoutCardControls(cardEl, layoutAction, characterName, {
+              showToggleButton: true,
+            }),
         });
       } else {
         return null;

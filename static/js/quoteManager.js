@@ -1,8 +1,8 @@
 // 引号管理相关功能
 import { state } from "./stateManager.js";
 import { ui } from "./uiUtils.js";
-import { storageService, STORAGE_KEYS } from "./services/StorageService.js";
 import { DOMUtils } from "./utils/DOMUtils.js";
+import { quoteStore } from "./stores/quoteStore.js";
 
 export const quoteManager = {
   presetStates: {},
@@ -17,27 +17,23 @@ export const quoteManager = {
   },
   // 加载自定义引号
   loadCustomQuotes() {
-    const saved = storageService.get(STORAGE_KEYS.CUSTOM_QUOTES, []);
-    state.set("customQuotes", saved);
+    const saved = quoteStore.loadCustomQuotes();
     return saved.length > 0;
   },
 
   // 保存自定义引号到本地
   saveCustomQuotes() {
-    return storageService.set(
-      STORAGE_KEYS.CUSTOM_QUOTES,
-      state.get("customQuotes")
-    );
+    return quoteStore.saveCustomQuotes();
   },
 
   // 加载预设引号的选中状态
   loadPresetQuotesState() {
-    return storageService.get(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
+    return quoteStore.getPresetStates();
   },
 
   // 保存预设引号的选中状态
   savePresetQuotesState(stateMap) {
-    return storageService.set(STORAGE_KEYS.PRESET_QUOTES_STATE, stateMap);
+    return quoteStore.savePresetStates(stateMap);
   },
 
   // 渲染引号选项
@@ -73,7 +69,7 @@ export const quoteManager = {
         }
       );
     }
-    state.get("customQuotes").forEach((quote, index) => {
+    quoteStore.getCustomQuotes().forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
       const element = this.createQuoteOptionElement(
         checkboxId,
@@ -104,13 +100,7 @@ export const quoteManager = {
 
     if (checkbox.id.includes("custom-saved")) {
       const quoteName = `${openChar}...${closeChar}`;
-      const customQuote = state
-        .get("customQuotes")
-        .find((q) => q.name === quoteName);
-      if (customQuote) {
-        customQuote.checked = checkbox.checked;
-        this.saveCustomQuotes();
-      }
+      quoteStore.updateCustomQuoteChecked(quoteName, checkbox.checked);
     } else {
       const stateKey = `${openChar}_${closeChar}`;
       this.presetStates[stateKey] = checkbox.checked;
@@ -171,11 +161,7 @@ export const quoteManager = {
 
   // 删除自定义引号
   removeCustomQuote(quoteName) {
-    state.set(
-      "customQuotes",
-      state.get("customQuotes").filter((q) => q.name !== quoteName)
-    );
-    this.saveCustomQuotes();
+    quoteStore.removeCustomQuoteByName(quoteName);
     this.renderQuoteOptions();
     ui.showStatus("自定义引号已删除", "success");
   },
@@ -208,21 +194,22 @@ export const quoteManager = {
     }
 
     const categoryName = `${openChar}...${closeChar}`;
-    if (state.get("customQuotes").some((q) => q.name === categoryName)) {
+    if (quoteStore.getCustomQuotes().some((q) => q.name === categoryName)) {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }
 
-    const quotes = [...state.get("customQuotes")];
-    quotes.push({
-      name: categoryName,
-      open: openChar,
-      close: closeChar,
-      checked: true,
-    });
+    const quotes = [
+      ...quoteStore.getCustomQuotes(),
+      {
+        name: categoryName,
+        open: openChar,
+        close: closeChar,
+        checked: true,
+      },
+    ];
 
-    state.set("customQuotes", quotes);
-    this.saveCustomQuotes();
+    quoteStore.saveCustomQuotes(quotes);
     this.renderQuoteOptions();
 
     document.getElementById(openInputId).value = "";
