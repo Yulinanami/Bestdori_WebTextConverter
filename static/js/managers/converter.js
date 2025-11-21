@@ -3,7 +3,7 @@ import { state } from "./stateManager.js";
 import { ui } from "../utils/uiUtils.js";
 import { quoteManager } from "./quoteManager.js";
 import { apiService } from "../services/ApiService.js";
-import { createProjectFileFromText } from "../utils/converterCore.js";
+import { createProjectFileFromText } from "../utils/ConverterCore.js";
 
 export const converter = {
   init() {
