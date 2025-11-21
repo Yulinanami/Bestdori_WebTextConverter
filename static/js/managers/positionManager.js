@@ -1,32 +1,23 @@
 // Live2D 位置管理功能
 import { DataUtils } from "../utils/DataUtils.js";
-import { DOMUtils } from "../utils/DOMUtils.js";
-import { state } from "./stateManager.js";
 import { ui } from "../utils/uiUtils.js";
-import { configManager } from "./configManager.js";
-import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
 import { modalService } from "../services/ModalService.js";
+import { positionUI } from "./position/positionUI.js";
+import { positionStore } from "./position/positionStore.js";
 
 export const positionManager = {
   positions: ["leftOver", "leftInside", "center", "rightInside", "rightOver"],
-  // 快速布局时使用的位置循环顺序（左内 → 中间 → 右内）
   autoLayoutPositions: ["leftInside", "center", "rightInside"],
-  positionNames: {
-    leftOver: "左外",
-    leftInside: "左内",
-    center: "中间",
-    rightInside: "右内",
-    rightOver: "右外",
-  },
+  positionNames: positionUI.positionNames,
 
   manualPositions: {},
   positionCounter: 0,
   tempManualPositions: {},
   tempAutoPositionMode: true,
+  autoPositionMode: true,
 
-  // 初始化
   init() {
-    this.loadPositionConfig();
+    positionStore.loadPositionConfig(this);
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
       autoCheckbox.addEventListener("change", (e) => {
@@ -72,25 +63,6 @@ export const positionManager = {
     }
   },
 
-  // 加载配置
-  loadPositionConfig() {
-    const config = storageService.get(STORAGE_KEYS.POSITION_CONFIG);
-    if (config) {
-      this.autoPositionMode = config.autoPositionMode !== false;
-      this.manualPositions = config.manualPositions || {};
-    }
-  },
-
-  // 保存配置
-  savePositionConfig() {
-    const config = {
-      autoPositionMode: this.autoPositionMode,
-      manualPositions: this.manualPositions,
-    };
-    return storageService.set(STORAGE_KEYS.POSITION_CONFIG, config);
-  },
-
-  // 切换手动配置显示
   toggleManualConfig() {
     const manualConfig = document.getElementById("manualPositionConfig");
     if (manualConfig) {
@@ -98,216 +70,8 @@ export const positionManager = {
     }
   },
 
-  /**
-   * 创建位置配置项元素
-   * @private
-   * @param {string} name - 角色名称
-   * @param {number} primaryId - 主要角色ID
-   * @param {number} avatarId - 头像ID
-   * @param {string} avatarPath - 头像路径
-   * @param {string} currentPosition - 当前位置
-   * @param {number} currentOffset - 当前偏移值
-   * @returns {HTMLElement} 位置配置项DOM元素
-   */
-  _createPositionItem(
-    name,
-    primaryId,
-    avatarId,
-    avatarPath,
-    currentPosition,
-    currentOffset
-  ) {
-    // 创建主容器
-    const item = DOMUtils.createElement("div", {
-      class: "position-config-item",
-    });
-
-    // 创建角色信息区域
-    const infoDiv = this._createCharacterInfo(
-      name,
-      primaryId,
-      avatarId,
-      avatarPath
-    );
-
-    // 创建控制区域
-    const controlsDiv = this._createPositionControls(
-      name,
-      currentPosition,
-      currentOffset
-    );
-
-    // 组装完整项目
-    DOMUtils.appendChildren(item, [infoDiv, controlsDiv]);
-
-    return item;
-  },
-
-  /**
-   * 创建角色信息区域
-   * @private
-   */
-  _createCharacterInfo(name, primaryId, avatarId, avatarPath) {
-    const infoDiv = DOMUtils.createElement("div", {
-      class: "position-character-info",
-    });
-
-    // 创建头像区域
-    const avatarWrapper = DOMUtils.createElement("div", {
-      class: "config-avatar-wrapper",
-    });
-
-    const avatarDiv = DOMUtils.createElement("div", {
-      class: "config-avatar",
-      "data-id": primaryId,
-    });
-
-    // 创建头像内容
-    if (avatarId > 0) {
-      const img = DOMUtils.createElement("img", {
-        src: avatarPath,
-        alt: name,
-        class: "config-avatar-img",
-      });
-
-      // 设置图片加载失败的回退处理
-      img.addEventListener("error", function () {
-        this.style.display = "none";
-        this.parentElement.textContent = name.charAt(0);
-        this.parentElement.classList.add("fallback");
-      });
-
-      avatarDiv.appendChild(img);
-    } else {
-      // 没有头像时显示首字母
-      avatarDiv.textContent = name.charAt(0);
-      avatarDiv.classList.add("fallback");
-    }
-
-    avatarWrapper.appendChild(avatarDiv);
-    infoDiv.appendChild(avatarWrapper);
-
-    // 创建角色名称标签
-    const nameSpan = DOMUtils.createElement("span", {
-      class: "position-character-name",
-    });
-    nameSpan.textContent = `${name} (ID: ${primaryId})`;
-    infoDiv.appendChild(nameSpan);
-
-    return infoDiv;
-  },
-
-  /**
-   * 创建位置控制区域
-   * @private
-   */
-  _createPositionControls(name, currentPosition, currentOffset) {
-    const controlsDiv = DOMUtils.createElement("div", {
-      class: "position-controls",
-    });
-
-    // 创建位置选择器
-    const select = DOMUtils.createElement("select", {
-      class: "form-input position-select",
-      "data-character": name,
-    });
-
-    // 添加位置选项
-    this.positions.forEach((pos) => {
-      const option = DOMUtils.createElement("option", { value: pos });
-      option.textContent = this.positionNames[pos];
-      if (pos === currentPosition) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
-
-    controlsDiv.appendChild(select);
-
-    // 创建偏移输入组
-    const offsetGroup = this._createOffsetInputGroup(name, currentOffset);
-    controlsDiv.appendChild(offsetGroup);
-
-    return controlsDiv;
-  },
-
-  /**
-   * 创建偏移输入组
-   * @private
-   */
-  _createOffsetInputGroup(name, currentOffset) {
-    const offsetGroup = DOMUtils.createElement("div", {
-      class: "position-offset-group",
-    });
-
-    // 创建标签
-    const label = DOMUtils.createElement("label", {
-      class: "position-offset-label",
-      for: `offset-${name}`,
-    });
-    label.textContent = "偏移:";
-
-    // 创建输入框
-    const input = DOMUtils.createElement("input", {
-      type: "number",
-      id: `offset-${name}`,
-      class: "form-input position-offset-input",
-      "data-character": name,
-      value: currentOffset,
-      step: "10",
-      placeholder: "0",
-      title: "设置水平偏移量，正值向右，负值向左",
-    });
-
-    // 创建单位提示
-    const hint = DOMUtils.createElement("span", {
-      class: "position-offset-hint",
-    });
-    hint.textContent = "px";
-
-    // 组装偏移输入组
-    DOMUtils.appendChildren(offsetGroup, [label, input, hint]);
-
-    return offsetGroup;
-  },
-
-  // 渲染位置列表
   renderPositionList() {
-    const positionList = document.getElementById("positionList");
-    if (!positionList) return;
-    const fragment = document.createDocumentFragment();
-    const characters = Object.entries(state.get("currentConfig")).sort(
-      ([, idsA], [, idsB]) => {
-        const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
-        const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
-        return idA - idB;
-      }
-    );
-    characters.forEach(([name, ids]) => {
-      if (!ids || ids.length === 0) return;
-      const primaryId = ids[0];
-      const avatarId = configManager.getAvatarId(primaryId);
-      const avatarPath =
-        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
-      const currentConfig = this.tempManualPositions[name] || {
-        position: "center",
-        offset: 0,
-      };
-      const currentPosition = currentConfig.position || "center";
-      const currentOffset = currentConfig.offset || 0;
-
-      const item = this._createPositionItem(
-        name,
-        primaryId,
-        avatarId,
-        avatarPath,
-        currentPosition,
-        currentOffset
-      );
-      fragment.appendChild(item);
-    });
-    DOMUtils.clearElement(positionList);
-    positionList.appendChild(fragment);
+    positionUI.renderPositionList(this);
   },
 
   // 保存位置配置
@@ -318,7 +82,7 @@ export const positionManager = {
         this.autoPositionMode = this.tempAutoPositionMode;
         this.manualPositions = DataUtils.deepClone(this.tempManualPositions);
         await new Promise((resolve) => setTimeout(resolve, 300));
-        this.savePositionConfig();
+        positionStore.savePositionConfig(this);
         ui.showStatus("位置配置已保存！", "success");
       },
       "保存中..."
@@ -352,37 +116,15 @@ export const positionManager = {
     }
   },
 
-  // 获取角色的位置和偏移
   getCharacterPositionConfig(characterName, appearanceOrder) {
-    if (this.autoPositionMode) {
-      return {
-        position:
-          this.autoLayoutPositions[
-            appearanceOrder % this.autoLayoutPositions.length
-          ],
-        offset: 0,
-      };
-    } else {
-      const config = this.manualPositions[characterName] || {
-        position: "center",
-        offset: 0,
-      };
-      return {
-        position: config.position || "center",
-        offset: config.offset || 0,
-      };
-    }
+    return positionStore.getCharacterPositionConfig(
+      this,
+      characterName,
+      appearanceOrder
+    );
   },
 
-  // 导入位置配置
   importPositions(positionConfig) {
-    if (!positionConfig) return;
-    if (typeof positionConfig.autoPositionMode === "boolean") {
-      this.autoPositionMode = positionConfig.autoPositionMode;
-    }
-    if (positionConfig.manualPositions) {
-      this.manualPositions = positionConfig.manualPositions;
-    }
-    this.savePositionConfig();
+    positionStore.importPositions(this, positionConfig);
   },
 };

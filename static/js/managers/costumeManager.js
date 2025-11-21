@@ -3,8 +3,8 @@ import { modalService } from "../services/ModalService.js";
 import { DataUtils } from "../utils/DataUtils.js";
 import { ui } from "../utils/uiUtils.js";
 import { state } from "./stateManager.js";
-import { costumeUI } from "./costumeUI.js";
-import { costumeData } from "./costumeData.js";
+import { costumeUI } from "./costume/costumeUI.js";
+import { costumeData } from "./costume/costumeData.js";
 
 export const costumeManager = {
   defaultCostumes: {},
