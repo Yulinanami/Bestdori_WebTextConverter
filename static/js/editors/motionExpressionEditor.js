@@ -1,5 +1,8 @@
 import { ui } from "../utils/uiUtils.js";
-import { motionManager, expressionManager } from "../managers/genericConfigManager.js";
+import {
+  motionManager,
+  expressionManager,
+} from "../managers/genericConfigManager.js";
 import { DOMUtils } from "../utils/DOMUtils.js";
 
 export const motionExpressionEditor = {

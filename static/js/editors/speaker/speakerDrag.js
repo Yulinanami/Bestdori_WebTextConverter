@@ -72,7 +72,10 @@ export function attachSpeakerDrag(editor, baseEditor) {
             document.addEventListener("dragover", editor.handleDragScrolling);
           },
           onEnd: () => {
-            document.removeEventListener("dragover", editor.handleDragScrolling);
+            document.removeEventListener(
+              "dragover",
+              editor.handleDragScrolling
+            );
             editor.stopScrolling();
           },
           onAdd: (evt) => {
@@ -166,7 +169,10 @@ export function attachSpeakerDrag(editor, baseEditor) {
             extraConfig: {
               sort: true,
               onStart: () => {
-                document.addEventListener("dragover", editor.handleDragScrolling);
+                document.addEventListener(
+                  "dragover",
+                  editor.handleDragScrolling
+                );
               },
             },
           })

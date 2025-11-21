@@ -10,18 +10,12 @@ export const fileHandler = {
   init() {
     const fileInput = document.getElementById("fileInput");
     if (fileInput) {
-      fileInput.addEventListener(
-        "change",
-        this.handleFileUpload.bind(this)
-      );
+      fileInput.addEventListener("change", this.handleFileUpload.bind(this));
     }
 
     const downloadBtn = document.getElementById("downloadBtn");
     if (downloadBtn) {
-      downloadBtn.addEventListener(
-        "click",
-        this.downloadResult.bind(this)
-      );
+      downloadBtn.addEventListener("click", this.downloadResult.bind(this));
     }
 
     this.setupFileDragDrop();

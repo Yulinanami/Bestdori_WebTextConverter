@@ -68,9 +68,7 @@ export function attachLive2dState(editor, _baseEditor) {
             action.speakers.forEach((speaker) => {
               if (!appearedCharacterNames.has(speaker.name)) {
                 appearedCharacterNames.add(speaker.name);
-                const defaultCostume = editor._getDefaultCostume(
-                  speaker.name
-                );
+                const defaultCostume = editor._getDefaultCostume(speaker.name);
                 const positionConfig =
                   editorService.positionManager.getCharacterPositionConfig(
                     speaker.name,

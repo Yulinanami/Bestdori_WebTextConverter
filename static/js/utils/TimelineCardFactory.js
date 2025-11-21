@@ -9,7 +9,10 @@ import { DOMUtils } from "./DOMUtils.js";
  * @param {string} options.templateId - 模板ID
  * @returns {DocumentFragment|null}
  */
-export function createTalkCard(action, { templateId = "timeline-talk-card-template" } = {}) {
+export function createTalkCard(
+  action,
+  { templateId = "timeline-talk-card-template" } = {}
+) {
   const template = document.getElementById(templateId);
   if (!template) {
     console.warn(`[TimelineCardFactory] 模板不存在: ${templateId}`);

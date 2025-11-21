@@ -15,7 +15,10 @@ import { projectManager } from "../managers/projectManager.js";
 import { pinnedCharacterManager } from "../managers/pinnedCharacterManager.js";
 import { costumeManager } from "../managers/costumeManager.js";
 import { positionManager } from "../managers/positionManager.js";
-import { motionManager, expressionManager } from "../managers/genericConfigManager.js";
+import {
+  motionManager,
+  expressionManager,
+} from "../managers/genericConfigManager.js";
 import { selectionManager } from "../managers/selectionManager.js";
 
 /**

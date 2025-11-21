@@ -23,7 +23,9 @@ export function attachSpeakerCanvas(editor) {
       const groupSize = 50;
       const actionIndexMap = new Map(actions.map((a, idx) => [a.id, idx]));
 
-      const talkTemplate = document.getElementById("text-snippet-card-template");
+      const talkTemplate = document.getElementById(
+        "text-snippet-card-template"
+      );
       const layoutTemplate = document.getElementById(
         "timeline-layout-card-template"
       );
