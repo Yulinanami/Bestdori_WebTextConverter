@@ -103,7 +103,7 @@ class NavigationManager {
     8: async () => {
       const [{ motionExpressionEditor }, { motionManager, expressionManager }] =
         await Promise.all([
-          import("./motionExpressionEditor.js"),
+          import("../editors/motionExpressionEditor.js"),
           import("./genericConfigManager.js"),
         ]);
 
