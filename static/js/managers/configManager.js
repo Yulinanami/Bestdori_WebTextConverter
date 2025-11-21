@@ -5,8 +5,8 @@ import { quoteManager } from "./quoteManager.js";
 import { costumeManager } from "./costumeManager.js";
 import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
 import { modalService } from "../services/ModalService.js";
-import { configUI } from "./configUI.js";
-import { configData } from "./configData.js";
+import { configUI } from "./config/configUI.js";
+import { configData } from "./config/configData.js";
 
 export const configManager = {
   defaultConfig: null,
