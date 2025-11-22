@@ -171,7 +171,15 @@ export const expressionEditor = {
       beforeOpen: async () => {
         try {
           this.tempLibraryItems = { motion: [], expression: [] };
-          await this._prepareProjectState();
+          await this._prepareProjectState({
+            onExistingProjectLoaded: () =>
+              ui.showStatus("已加载现有项目进度。", "info"),
+            onNewProjectCreated: (_, { rawText }) => {
+              if (rawText?.trim()) {
+                ui.showStatus("已根据当前文本创建新项目。", "info");
+              }
+            },
+          });
         } catch (error) {
           ui.showStatus(
             `加载编辑器失败: ${error.response?.data?.error || error.message}`,
