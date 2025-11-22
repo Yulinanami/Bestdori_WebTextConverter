@@ -1,4 +1,4 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
 
 /**
  * 为编辑器绑定时间轴的点击/变更事件。

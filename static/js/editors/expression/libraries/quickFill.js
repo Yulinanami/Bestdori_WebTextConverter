@@ -1,7 +1,7 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
-import { ui } from "../../../utils/uiUtils.js";
-import { storageService, STORAGE_KEYS } from "../../../services/StorageService.js";
-import { modalService } from "../../../services/ModalService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { ui } from "@utils/uiUtils.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { modalService } from "@services/ModalService.js";
 
 /**
  * 快速填充下拉菜单的渲染和增删逻辑。

@@ -1,4 +1,4 @@
-import { storageService, STORAGE_KEYS } from "../../services/StorageService.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 // 与模式切换相关的 UI 操作
 export function attachLive2dControls(editor) {

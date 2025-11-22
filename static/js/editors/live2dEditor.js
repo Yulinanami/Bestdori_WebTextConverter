@@ -1,18 +1,18 @@
 // live2d布局编辑器
-import { BaseEditor } from "../utils/BaseEditor.js";
-import { EditorHelper } from "../utils/EditorHelper.js";
-import { ui } from "../utils/uiUtils.js";
-import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
-import { BaseEditorMixin } from "../mixins/BaseEditorMixin.js";
-import { EventHandlerMixin } from "../mixins/EventHandlerMixin.js";
-import { LayoutPropertyMixin } from "../mixins/LayoutPropertyMixin.js";
-import { ScrollAnimationMixin } from "../mixins/ScrollAnimationMixin.js";
-import { CharacterListMixin } from "../mixins/CharacterListMixin.js";
-import { applyStateBridge } from "./common/stateBridge.js";
-import { attachLive2dState } from "./live2d/live2dState.js";
-import { attachLive2dControls } from "./live2d/live2dControls.js";
-import { attachLive2dTimeline } from "./live2d/live2dTimeline.js";
-import { attachLive2dDrag } from "./live2d/live2dDrag.js";
+import { BaseEditor } from "@utils/BaseEditor.js";
+import { EditorHelper } from "@utils/EditorHelper.js";
+import { ui } from "@utils/uiUtils.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { BaseEditorMixin } from "@mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "@mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
+import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
+import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachLive2dState } from "@editors/live2d/live2dState.js";
+import { attachLive2dControls } from "@editors/live2d/live2dControls.js";
+import { attachLive2dTimeline } from "@editors/live2d/live2dTimeline.js";
+import { attachLive2dDrag } from "@editors/live2d/live2dDrag.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({

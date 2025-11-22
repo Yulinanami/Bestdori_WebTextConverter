@@ -1,9 +1,9 @@
 // 基础编辑器功能 Mixin
 // 提供保存、导入、导出、关闭、命令执行等核心功能
-import { DataUtils } from "../utils/DataUtils.js";
-import { EditorHelper } from "../utils/EditorHelper.js";
-import { historyManager } from "../managers/historyManager.js";
-import { editorService } from "../services/EditorService.js";
+import { DataUtils } from "@utils/DataUtils.js";
+import { EditorHelper } from "@utils/EditorHelper.js";
+import { historyManager } from "@managers/historyManager.js";
+import { editorService } from "@services/EditorService.js";
 
 export const BaseEditorMixin = {
   // 共享属性

@@ -1,4 +1,4 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
 
 /**
  * 负责分配项拖放区的 Sortable 初始化。

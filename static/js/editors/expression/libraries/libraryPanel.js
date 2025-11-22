@@ -1,7 +1,7 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
-import { editorService } from "../../../services/EditorService.js";
-import { ui } from "../../../utils/uiUtils.js";
-import { state } from "../../../managers/stateManager.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { editorService } from "@services/EditorService.js";
+import { ui } from "@utils/uiUtils.js";
+import { state } from "@managers/stateManager.js";
 
 /**
  * 资源库与临时项、Live2D 浏览相关逻辑。

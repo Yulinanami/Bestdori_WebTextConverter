@@ -1,5 +1,5 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
-import { editorService } from "../../../services/EditorService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 /**
  * 负责动作/表情分配区域的 DOM 渲染。

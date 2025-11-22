@@ -1,5 +1,5 @@
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
 
 class GenericConfigManager {
   constructor(name, configKey, localStorageKey) {

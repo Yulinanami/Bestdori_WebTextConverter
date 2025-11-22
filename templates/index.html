@@ -1477,6 +1477,20 @@
       </div>
     </template>
 
+    <!-- Import Map: 提供 JS 别名（需在所有 module 脚本之前） -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@utils/": "/static/js/utils/",
+          "@services/": "/static/js/services/",
+          "@editors/": "/static/js/editors/",
+          "@managers/": "/static/js/managers/",
+          "@mixins/": "/static/js/mixins/",
+          "@stores/": "/static/js/stores/"
+        }
+      }
+    </script>
+
     <!-- 模块化JS文件 -->
     <script
       type="module"

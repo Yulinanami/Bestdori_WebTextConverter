@@ -1,12 +1,12 @@
 // 配置管理相关功能
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
-import { quoteManager } from "./quoteManager.js";
-import { costumeManager } from "./costumeManager.js";
-import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
-import { modalService } from "../services/ModalService.js";
-import { configUI } from "./config/configUI.js";
-import { configData } from "./config/configData.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
+import { quoteManager } from "@managers/quoteManager.js";
+import { costumeManager } from "@managers/costumeManager.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { modalService } from "@services/ModalService.js";
+import { configUI } from "@managers/config/configUI.js";
+import { configData } from "@managers/config/configData.js";
 
 export const configManager = {
   defaultConfig: null,

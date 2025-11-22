@@ -1,9 +1,9 @@
 // 文本转换管理
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
-import { quoteManager } from "./quoteManager.js";
-import { apiService } from "../services/ApiService.js";
-import { createProjectFileFromText } from "../utils/ConverterCore.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
+import { quoteManager } from "@managers/quoteManager.js";
+import { apiService } from "@services/ApiService.js";
+import { createProjectFileFromText } from "@utils/ConverterCore.js";
 
 export const converter = {
   init() {

@@ -1,9 +1,9 @@
-import { DOMUtils } from "../../utils/DOMUtils.js";
-import { renderGroupedView } from "../../utils/uiUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { renderGroupedView } from "@utils/uiUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
-} from "../../utils/TimelineCardFactory.js";
+} from "@utils/TimelineCardFactory.js";
 
 // 时间轴渲染与事件绑定
 export function attachLive2dTimeline(editor) {

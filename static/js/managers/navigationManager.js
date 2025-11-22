@@ -55,16 +55,16 @@ class NavigationManager {
   _stepInitializers = {
     // 配置管理
     5: async () => {
-      const { configManager } = await import("./configManager.js");
+      const { configManager } = await import("@managers/configManager.js");
       configManager.renderConfigList();
     },
 
     // 服装配置
     6: async () => {
       const [{ costumeManager }, { state }, { DataUtils }] = await Promise.all([
-        import("./costumeManager.js"),
-        import("./stateManager.js"),
-        import("../utils/DataUtils.js"),
+        import("@managers/costumeManager.js"),
+        import("@managers/stateManager.js"),
+        import("@utils/DataUtils.js"),
       ]);
 
       // 初始化临时状态
@@ -80,8 +80,8 @@ class NavigationManager {
     // 位置配置
     7: async () => {
       const [{ positionManager }, { DataUtils }] = await Promise.all([
-        import("./positionManager.js"),
-        import("../utils/DataUtils.js"),
+        import("@managers/positionManager.js"),
+        import("@utils/DataUtils.js"),
       ]);
 
       // 初始化临时状态
@@ -103,8 +103,8 @@ class NavigationManager {
     8: async () => {
       const [{ motionExpressionEditor }, { motionManager, expressionManager }] =
         await Promise.all([
-          import("../editors/motionExpressionEditor.js"),
-          import("./genericConfigManager.js"),
+          import("@editors/motionExpressionEditor.js"),
+          import("@managers/genericConfigManager.js"),
         ]);
 
       // 初始化临时状态（类似 open 方法的逻辑）

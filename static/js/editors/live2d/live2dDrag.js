@@ -1,5 +1,5 @@
-import { DragHelper } from "../../utils/DragHelper.js";
-import { ScrollAnimationMixin } from "../../mixins/ScrollAnimationMixin.js";
+import { DragHelper } from "@utils/DragHelper.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 拖拽和自动滚动相关逻辑
 export function attachLive2dDrag(editor, baseEditor) {

@@ -1,5 +1,5 @@
-import { bindTimelineEvents } from "./timeline/timelineEvents.js";
-import { renderTimeline } from "./timeline/timelineRenderer.js";
+import { bindTimelineEvents } from "@editors/expression/timeline/timelineEvents.js";
+import { renderTimeline } from "@editors/expression/timeline/timelineRenderer.js";
 
 // 时间轴渲染与事件绑定
 export function attachExpressionTimeline(editor) {

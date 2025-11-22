@@ -1,6 +1,6 @@
 // TimelineCardFactory - 统一创建编辑器时间轴所需的卡片
-import { editorService } from "../services/EditorService.js";
-import { DOMUtils } from "./DOMUtils.js";
+import { editorService } from "@services/EditorService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
 
 /**
  * 创建对话卡片

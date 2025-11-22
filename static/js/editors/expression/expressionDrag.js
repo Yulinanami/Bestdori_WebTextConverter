@@ -1,5 +1,5 @@
-import { DragHelper } from "../../utils/DragHelper.js";
-import { ScrollAnimationMixin } from "../../mixins/ScrollAnimationMixin.js";
+import { DragHelper } from "@utils/DragHelper.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 拖拽与自动滚动
 export function attachExpressionDrag(editor, baseEditor) {

@@ -1,5 +1,5 @@
-import { DOMUtils } from "../../utils/DOMUtils.js";
-import { DataUtils } from "../../utils/DataUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { DataUtils } from "@utils/DataUtils.js";
 
 /**
  * 负责配置管理的列表渲染与表单事件。

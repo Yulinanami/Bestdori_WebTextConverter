@@ -4,8 +4,8 @@
  * 用于 speakerEditor、live2dEditor、expressionEditor 的通用逻辑
  */
 
-import { historyManager } from "../managers/historyManager.js";
-import { DataUtils } from "./DataUtils.js";
+import { historyManager } from "@managers/historyManager.js";
+import { DataUtils } from "@utils/DataUtils.js";
 
 export class BaseEditor {
   constructor(config = {}) {

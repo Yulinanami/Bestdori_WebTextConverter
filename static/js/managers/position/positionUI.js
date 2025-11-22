@@ -1,6 +1,6 @@
-import { DOMUtils } from "../../utils/DOMUtils.js";
-import { configManager } from "../configManager.js";
-import { state } from "../stateManager.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { configManager } from "@managers/configManager.js";
+import { state } from "@managers/stateManager.js";
 
 /**
  * 负责位置配置的列表渲染与 DOM 结构。

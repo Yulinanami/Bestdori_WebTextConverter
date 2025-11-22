@@ -1,6 +1,6 @@
 // 事件处理 Mixin
 // 提供通用的事件监听初始化（撤销/重做、快捷键、模态框关闭等）
-import { historyManager } from "../managers/historyManager.js";
+import { historyManager } from "@managers/historyManager.js";
 
 export const EventHandlerMixin = {
   /**

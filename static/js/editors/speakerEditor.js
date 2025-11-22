@@ -1,17 +1,17 @@
-import { ui } from "../utils/uiUtils.js";
-import { editorService } from "../services/EditorService.js";
-import { BaseEditor } from "../utils/BaseEditor.js";
-import { EditorHelper } from "../utils/EditorHelper.js";
-import { BaseEditorMixin } from "../mixins/BaseEditorMixin.js";
-import { EventHandlerMixin } from "../mixins/EventHandlerMixin.js";
-import { LayoutPropertyMixin } from "../mixins/LayoutPropertyMixin.js";
-import { ScrollAnimationMixin } from "../mixins/ScrollAnimationMixin.js";
-import { CharacterListMixin } from "../mixins/CharacterListMixin.js";
-import { applyStateBridge } from "./common/stateBridge.js";
-import { attachSpeakerDrag } from "./speaker/speakerDrag.js";
-import { attachSpeakerCanvas } from "./speaker/speakerCanvas.js";
-import { attachSpeakerState } from "./speaker/speakerState.js";
-import { attachSpeakerControls } from "./speaker/speakerControls.js";
+import { ui } from "@utils/uiUtils.js";
+import { editorService } from "@services/EditorService.js";
+import { BaseEditor } from "@utils/BaseEditor.js";
+import { EditorHelper } from "@utils/EditorHelper.js";
+import { BaseEditorMixin } from "@mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "@mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
+import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
+import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachSpeakerDrag } from "@editors/speaker/speakerDrag.js";
+import { attachSpeakerCanvas } from "@editors/speaker/speakerCanvas.js";
+import { attachSpeakerState } from "@editors/speaker/speakerState.js";
+import { attachSpeakerControls } from "@editors/speaker/speakerControls.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({

@@ -1,10 +1,10 @@
-import { DOMUtils } from "../../../utils/DOMUtils.js";
-import { renderGroupedView } from "../../../utils/uiUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { renderGroupedView } from "@utils/uiUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
-} from "../../../utils/TimelineCardFactory.js";
-import { editorService } from "../../../services/EditorService.js";
+} from "@utils/TimelineCardFactory.js";
+import { editorService } from "@services/EditorService.js";
 
 /**
  * 时间轴渲染模块，负责普通与分组模式的卡片绘制。

@@ -1,4 +1,4 @@
-import { storageService, STORAGE_KEYS } from "../../services/StorageService.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 /**
  * 位置配置的存取与计算逻辑。

@@ -1,8 +1,8 @@
 // 布局属性管理 Mixin
 // 提供布局卡片的属性更新功能（位置、偏移、服装、类型等）
 
-import { DOMUtils } from "../utils/DOMUtils.js";
-import { editorService } from "../services/EditorService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 export const LayoutPropertyMixin = {
   /**

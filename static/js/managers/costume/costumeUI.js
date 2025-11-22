@@ -1,5 +1,5 @@
-import { costumeInteractions } from "./costumeInteractions.js";
-import { costumeRenderer } from "./costumeRenderer.js";
+import { costumeInteractions } from "@managers/costume/costumeInteractions.js";
+import { costumeRenderer } from "@managers/costume/costumeRenderer.js";
 
 /**
  * 服装管理 UI 的聚合出口，统一暴露外部使用的接口。

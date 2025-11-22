@@ -1,8 +1,8 @@
 // 角色列表渲染 Mixin
 // 提供角色列表的渲染和置顶功能
 
-import { DOMUtils } from "../utils/DOMUtils.js";
-import { editorService } from "../services/EditorService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 export const CharacterListMixin = {
   /**

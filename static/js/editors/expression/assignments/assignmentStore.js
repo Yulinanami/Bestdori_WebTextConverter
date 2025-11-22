@@ -1,4 +1,4 @@
-import { editorService } from "../../../services/EditorService.js";
+import { editorService } from "@services/EditorService.js";
 
 /**
  * 与动作/表情分配相关的状态更新逻辑。

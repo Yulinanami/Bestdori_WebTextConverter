@@ -1,6 +1,6 @@
-import { storageService, STORAGE_KEYS } from "../../services/StorageService.js";
-import { editorService } from "../../services/EditorService.js";
-import { modalService } from "../../services/ModalService.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { editorService } from "@services/EditorService.js";
+import { modalService } from "@services/ModalService.js";
 
 // 负责对话编辑器的交互与模式控制
 export function attachSpeakerControls(editor) {

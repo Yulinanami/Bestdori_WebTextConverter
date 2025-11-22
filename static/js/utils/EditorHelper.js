@@ -4,8 +4,8 @@
  * 用于处理编辑器的打开、关闭、保存、取消等操作
  */
 
-import { modalService } from "../services/ModalService.js";
-import { ui } from "./uiUtils.js";
+import { modalService } from "@services/ModalService.js";
+import { ui } from "@utils/uiUtils.js";
 
 export const EditorHelper = {
   /**

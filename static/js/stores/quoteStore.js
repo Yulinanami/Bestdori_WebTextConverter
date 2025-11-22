@@ -1,5 +1,5 @@
-import { state } from "../managers/stateManager.js";
-import { storageService, STORAGE_KEYS } from "../services/StorageService.js";
+import { state } from "@managers/stateManager.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 // 独立的引号数据存储与持久化层，避免 UI 逻辑直接依赖 storage/state
 export const quoteStore = {

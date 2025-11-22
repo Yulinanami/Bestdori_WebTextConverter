@@ -1,5 +1,5 @@
-import { ui } from "../../utils/uiUtils.js";
-import { editorService } from "../../services/EditorService.js";
+import { ui } from "@utils/uiUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 // 状态与数据处理相关的逻辑
 export function attachSpeakerState(editor) {

@@ -1,8 +1,8 @@
 // 引号管理相关功能
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
-import { DOMUtils } from "../utils/DOMUtils.js";
-import { quoteStore } from "../stores/quoteStore.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { quoteStore } from "@stores/quoteStore.js";
 
 export const quoteManager = {
   presetStates: {},

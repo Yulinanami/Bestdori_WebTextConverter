@@ -1,5 +1,5 @@
-import { libraryPanel } from "./libraries/libraryPanel.js";
-import { quickFill } from "./libraries/quickFill.js";
+import { libraryPanel } from "@editors/expression/libraries/libraryPanel.js";
+import { quickFill } from "@editors/expression/libraries/quickFill.js";
 
 // 资源库、临时项与快速填充相关逻辑
 export function attachExpressionLibraries(editor) {

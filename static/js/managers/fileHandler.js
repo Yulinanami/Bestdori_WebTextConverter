@@ -1,7 +1,7 @@
 // 文件处理相关功能
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
-import { apiService } from "../services/ApiService.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
+import { apiService } from "@services/ApiService.js";
 
 // 支持的文件扩展名
 const VALID_EXTENSIONS = [".txt", ".docx", ".md"];

@@ -1,5 +1,5 @@
-import { ui } from "../../utils/uiUtils.js";
-import { editorService } from "../../services/EditorService.js";
+import { ui } from "@utils/uiUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 // 状态与数据相关的逻辑（不包含 UI 事件绑定）
 export function attachLive2dState(editor, _baseEditor) {

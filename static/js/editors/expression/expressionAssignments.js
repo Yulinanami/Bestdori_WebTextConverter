@@ -1,6 +1,6 @@
-import { assignmentRenderer } from "./assignments/assignmentRenderer.js";
-import { assignmentStore } from "./assignments/assignmentStore.js";
-import { assignmentDnd } from "./assignments/assignmentDnd.js";
+import { assignmentRenderer } from "@editors/expression/assignments/assignmentRenderer.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentDnd } from "@editors/expression/assignments/assignmentDnd.js";
 
 // 动作/表情分配相关的渲染与状态操作
 export function attachExpressionAssignments(editor) {

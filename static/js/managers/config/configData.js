@@ -1,12 +1,12 @@
-import { state } from "../stateManager.js";
-import { ui } from "../../utils/uiUtils.js";
-import { quoteManager } from "../quoteManager.js";
-import { costumeManager } from "../costumeManager.js";
-import { positionManager } from "../positionManager.js";
-import { motionManager, expressionManager } from "../genericConfigManager.js";
-import { storageService, STORAGE_KEYS } from "../../services/StorageService.js";
-import { apiService } from "../../services/ApiService.js";
-import { modalService } from "../../services/ModalService.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
+import { quoteManager } from "@managers/quoteManager.js";
+import { costumeManager } from "@managers/costumeManager.js";
+import { positionManager } from "@managers/positionManager.js";
+import { motionManager, expressionManager } from "@managers/genericConfigManager.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { apiService } from "@services/ApiService.js";
+import { modalService } from "@services/ModalService.js";
 
 /**
  * 处理配置的加载、导入导出和本地存储。

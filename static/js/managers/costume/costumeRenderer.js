@@ -1,7 +1,7 @@
-import { DataUtils } from "../../utils/DataUtils.js";
-import { DOMUtils } from "../../utils/DOMUtils.js";
-import { configManager } from "../configManager.js";
-import { state } from "../stateManager.js";
+import { DataUtils } from "@utils/DataUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { configManager } from "@managers/configManager.js";
+import { state } from "@managers/stateManager.js";
 
 /**
  * 负责服装列表的渲染与 UI 更新。

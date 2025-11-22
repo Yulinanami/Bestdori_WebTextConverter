@@ -1,6 +1,6 @@
-import { modalService } from "../../services/ModalService.js";
-import { ui } from "../../utils/uiUtils.js";
-import { costumeRenderer } from "./costumeRenderer.js";
+import { modalService } from "@services/ModalService.js";
+import { ui } from "@utils/uiUtils.js";
+import { costumeRenderer } from "@managers/costume/costumeRenderer.js";
 
 /**
  * 服装列表的事件绑定与交互逻辑。

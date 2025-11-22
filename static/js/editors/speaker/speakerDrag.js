@@ -1,5 +1,5 @@
-import { DragHelper } from "../../utils/DragHelper.js";
-import { ScrollAnimationMixin } from "../../mixins/ScrollAnimationMixin.js";
+import { DragHelper } from "@utils/DragHelper.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 与拖拽相关的逻辑
 export function attachSpeakerDrag(editor, baseEditor) {

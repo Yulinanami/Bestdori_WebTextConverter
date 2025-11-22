@@ -1,6 +1,6 @@
-import { DOMUtils } from "../../utils/DOMUtils.js";
-import { renderGroupedView } from "../../utils/uiUtils.js";
-import { editorService } from "../../services/EditorService.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
+import { renderGroupedView } from "@utils/uiUtils.js";
+import { editorService } from "@services/EditorService.js";
 
 // 负责渲染左侧对话/布局卡片，以及多说话人弹窗
 export function attachSpeakerCanvas(editor) {

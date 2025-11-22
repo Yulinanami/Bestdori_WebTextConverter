@@ -1,6 +1,6 @@
-import { DataUtils } from "../utils/DataUtils.js";
-import { state } from "./stateManager.js";
-import { ui } from "../utils/uiUtils.js";
+import { DataUtils } from "@utils/DataUtils.js";
+import { state } from "@managers/stateManager.js";
+import { ui } from "@utils/uiUtils.js";
 
 export const projectManager = {
   /**

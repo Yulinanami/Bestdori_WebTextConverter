@@ -1,16 +1,16 @@
 // 动作表情编辑器（模块化入口）
-import { BaseEditor } from "../utils/BaseEditor.js";
-import { EditorHelper } from "../utils/EditorHelper.js";
-import { ui } from "../utils/uiUtils.js";
-import { BaseEditorMixin } from "../mixins/BaseEditorMixin.js";
-import { EventHandlerMixin } from "../mixins/EventHandlerMixin.js";
-import { LayoutPropertyMixin } from "../mixins/LayoutPropertyMixin.js";
-import { ScrollAnimationMixin } from "../mixins/ScrollAnimationMixin.js";
-import { applyStateBridge } from "./common/stateBridge.js";
-import { attachExpressionAssignments } from "./expression/expressionAssignments.js";
-import { attachExpressionTimeline } from "./expression/expressionTimeline.js";
-import { attachExpressionDrag } from "./expression/expressionDrag.js";
-import { attachExpressionLibraries } from "./expression/expressionLibraries.js";
+import { BaseEditor } from "@utils/BaseEditor.js";
+import { EditorHelper } from "@utils/EditorHelper.js";
+import { ui } from "@utils/uiUtils.js";
+import { BaseEditorMixin } from "@mixins/BaseEditorMixin.js";
+import { EventHandlerMixin } from "@mixins/EventHandlerMixin.js";
+import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
+import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
+import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachExpressionAssignments } from "@editors/expression/expressionAssignments.js";
+import { attachExpressionTimeline } from "@editors/expression/expressionTimeline.js";
+import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
+import { attachExpressionLibraries } from "@editors/expression/expressionLibraries.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
