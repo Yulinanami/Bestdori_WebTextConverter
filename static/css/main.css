@@ -1,29 +1,29 @@
 /* main.css - 主样式文件，导入所有模块 */
 
 /* 1. 主题变量和颜色 */
-@import url("theme.css");
+@import url("theme/theme.css");
 
 /* 2. 基础样式和重置 */
-@import url("base.css");
+@import url("base/base.css");
 
 /* 3. 布局样式 */
-@import url("layout.css");
+@import url("layout/layout.css");
 
 /* 4. 组件样式（已模块化） */
-@import url("buttons.css");
-@import url("avatars.css");
-@import url("forms.css");
-@import url("cards.css");
-@import url("editor-specific.css");
+@import url("components/buttons.css");
+@import url("components/avatars.css");
+@import url("components/forms.css");
+@import url("cards/cards.css");
+@import url("editors/editor-specific.css");
 
 /* 5. 模态框样式 */
-@import url("modals.css");
+@import url("components/modals.css");
 
 /* 6. 视图特定样式 */
-@import url("views.css");
+@import url("components/views.css");
 
 /* 7. 动画效果 */
-@import url("animations.css");
+@import url("base/animations.css");
 
 /* 8. 响应式设计 */
-@import url("responsive.css");
+@import url("layout/responsive.css");

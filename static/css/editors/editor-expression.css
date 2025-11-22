@@ -1,0 +1,107 @@
+/* 表情/Live2D 编辑器布局与特定样式 */
+
+/* 表情编辑器库样式 */
+#expressionEditorLibrary .item-list-container {
+  height: calc(80vh - 220px);
+}
+
+#expressionEditorTimeline .timeline-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+#expressionEditorTimeline .layout-item > .layout-card-header,
+#expressionEditorTimeline .layout-item > .layout-card-body {
+  width: 100%;
+}
+
+#expressionEditorTimeline .talk-item {
+  padding-bottom: 10px;
+}
+
+/* 时间轴 footer */
+#speakerEditorModal .timeline-item-footer {
+  display: none;
+}
+
+/* Live2D 编辑器中的 footer 需要显示（用于切换按钮） */
+#live2dEditorModal .layout-item .timeline-item-footer {
+  display: flex !important;
+}
+
+/* Live2D 编辑器中的 talk-item footer 保持隐藏 */
+#live2dEditorModal .talk-item .timeline-item-footer {
+  display: none;
+}
+
+#live2dEditorModal .timeline-item {
+  flex-wrap: nowrap;
+}
+
+#live2dEditorModal .talk-item {
+  flex-wrap: wrap;
+}
+
+#live2dEditorModal .talk-item .timeline-content {
+  flex: 1;
+  min-width: 200px;
+}
+
+#expressionEditorLibrary .form-group {
+  margin-bottom: 15px;
+}
+
+/* 表情编辑器时间轴 */
+#expressionEditorTimeline {
+  flex: 3;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+/* 表情编辑器模态框布局 */
+#expressionEditorModal .modal-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 20px;
+  height: 100%;
+}
+
+#expressionEditorLibrary {
+  flex: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  border-left: 1px solid var(--border-primary);
+  padding-left: 15px;
+  height: 100%;
+}
+
+#expressionEditorLibrary .config-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#expressionEditorLibrary .item-list-container {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  border: 1px solid var(--border-primary);
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+#expressionEditorLibrary .form-group:last-of-type {
+  margin-bottom: 10px;
+}

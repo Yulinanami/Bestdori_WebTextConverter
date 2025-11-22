@@ -1,0 +1,280 @@
+/* 说话人文本编辑、动作/表情分配与快速填充样式 */
+
+/* 按钮容器的样式和定位 */
+.card-action-buttons {
+  position: absolute;
+  top: 8px;
+  right: 45px; /* 定位在编号的左侧 */
+  display: none; /* 默认隐藏 */
+  align-items: center;
+  gap: 4px; /* 按钮之间的间距 */
+  z-index: 6;
+}
+
+/* 当编辑模式激活时，才显示按钮容器 */
+.text-edit-mode-active .card-action-buttons {
+  display: flex;
+}
+
+/* 调整图标大小 (复用现有样式) */
+.card-action-buttons .btn-icon-action .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* 角色选择器容器 */
+.motion-character-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.character-selector-header {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.character-selector-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.character-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.character-selector-item:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.character-selector-item .character-name {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+/* 动作/表情分配项容器 - 水平排布 */
+.motion-assignments-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.motion-assignment-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.assignment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.assignment-header .character-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+.assignment-remove-btn {
+  padding: 2px 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+
+/* 拖放区域 */
+.assignment-drop-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.motion-assignment-item .drop-zone {
+  min-width: auto;
+  width: 100%;
+}
+
+/* 延时输入 */
+.assignment-delay {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px dashed var(--border-secondary);
+}
+
+.assignment-delay label {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.assignment-delay .assignment-delay-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85em;
+  padding: 4px 6px;
+  max-width: 80px;
+}
+
+/* 保持"设置动作/表情"按钮在分配列表下方，固定尺寸 */
+.timeline-item-footer .setup-expressions-btn {
+  align-self: flex-start;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+/* 切换起终点位置按钮样式 */
+.toggle-position-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  /* 与 setup-expressions-btn 保持一致的样式 */
+  align-self: flex-start;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.toggle-position-btn .toggle-position-icon {
+  font-size: 1em;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.toggle-position-btn.expanded .toggle-position-icon {
+  transform: rotate(45deg);
+}
+
+.toggle-position-btn .toggle-position-text {
+  font-size: 0.85em;
+}
+
+.search-group {
+  display: flex;
+  gap: 8px;
+}
+
+.search-group .search-input-container {
+  flex-grow: 1;
+}
+
+.quick-fill-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.quick-fill-btn {
+  padding: 6px 10px;
+  transition: none;
+}
+
+.quick-fill-btn.active {
+  transform: rotate(180deg);
+}
+
+.quick-fill-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  min-width: 150px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  max-height: 335px;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.quick-fill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.quick-fill-delete-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  padding: 2px;
+  margin-left: 8px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+
+.quick-fill-item:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.quick-fill-divider {
+  height: 1px;
+  background-color: var(--border-primary);
+  margin: 5px 0;
+}
+
+.quick-fill-add-btn {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.quick-fill-item:hover .quick-fill-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.quick-fill-delete-btn:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.quick-fill-delete-btn .material-symbols-outlined {
+  font-size: 16px; /* 调整图标大小 */
+}

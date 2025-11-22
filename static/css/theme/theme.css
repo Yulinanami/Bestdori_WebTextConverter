@@ -1,0 +1,4 @@
+/* theme.css - 主题入口，聚合分拆后的主题样式 */
+@import url("theme-base.css");
+@import url("theme-dark-vars.css");
+@import url("theme-dark-overrides.css");

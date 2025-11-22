@@ -1,0 +1,49 @@
+/* 深色主题变量覆盖 */
+
+[data-theme="dark"] {
+  /* 主要颜色 */
+  --primary-gradient: #1a1a1a;
+  --secondary-gradient: #2d2d2d;
+
+  /* 基础颜色 */
+  --color-primary: #6b7280;
+  --color-primary-dark: #9ca3af;
+  --color-secondary: #374151;
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-error: #ef4444;
+  --color-error-light: #7f1d1d;
+  --color-error-lighter: #450a0a;
+  --color-info: #9ca3af;
+  --color-neutral: #6b7280;
+  --color-neutral-light: #1f2937;
+
+  /* 文本颜色 */
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-light: #6b7280;
+  --text-white: #ffffff;
+
+  /* 背景颜色 */
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-tertiary: #374151;
+  --bg-dark: #030712;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* 边框颜色 */
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --border-focus: #9ca3af;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
+
+  /* 分组标题颜色 - 黑夜模式 */
+  --group-header-active-bg: #1e3a5f;
+  --group-header-active-border: #3b82f6;
+}
