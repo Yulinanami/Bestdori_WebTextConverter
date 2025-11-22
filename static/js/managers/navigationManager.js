@@ -101,20 +101,22 @@ class NavigationManager {
 
     // 动作/表情配置
     8: async () => {
-      const [{ motionExpressionEditor }, { motionManager, expressionManager }] =
-        await Promise.all([
-          import("@editors/motionExpressionEditor.js"),
-          import("@managers/genericConfigManager.js"),
-        ]);
+      const [
+        { motionExpressionManager },
+        { motionManager, expressionManager },
+      ] = await Promise.all([
+        import("@managers/motionExpressionManager.js"),
+        import("@managers/genericConfigManager.js"),
+      ]);
 
       // 初始化临时状态（类似 open 方法的逻辑）
-      motionExpressionEditor.tempCustomMotions = JSON.parse(
+      motionExpressionManager.tempCustomMotions = JSON.parse(
         JSON.stringify(motionManager.customItems)
       );
-      motionExpressionEditor.tempCustomExpressions = JSON.parse(
+      motionExpressionManager.tempCustomExpressions = JSON.parse(
         JSON.stringify(expressionManager.customItems)
       );
-      motionExpressionEditor.renderLists();
+      motionExpressionManager.renderLists();
     },
   };
 

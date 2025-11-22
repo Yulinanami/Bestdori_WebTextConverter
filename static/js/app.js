@@ -8,10 +8,10 @@ import { converter } from "@managers/converter.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
 import { positionManager } from "@managers/positionManager.js";
-import { speakerEditor } from "@editors/speakerEditor.js";
-import { live2dEditor } from "@editors/live2dEditor.js";
-import { expressionEditor } from "@editors/expressionEditor.js";
-import { motionExpressionEditor } from "@editors/motionExpressionEditor.js";
+import { speakerEditor } from "@editors/speaker/speakerEditor.js";
+import { live2dEditor } from "@editors/live2d/live2dEditor.js";
+import { expressionEditor } from "@editors/expression/expressionEditor.js";
+import { motionExpressionManager } from "@managers/motionExpressionManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { modalService } from "@services/ModalService.js";
 import { themeManager } from "@managers/themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
@@ -62,7 +62,7 @@ function initializeApp() {
   });
 
   // 初始化状态
-  motionExpressionEditor.init();
+  motionExpressionManager.init();
 
   // 初始化动作表情管理器
   expressionEditor.init();

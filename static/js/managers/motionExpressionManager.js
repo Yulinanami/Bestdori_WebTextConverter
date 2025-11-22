@@ -5,7 +5,7 @@ import {
 } from "@managers/genericConfigManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 
-export const motionExpressionEditor = {
+export const motionExpressionManager = {
   tempCustomMotions: [], // 临时自定义动作列表
   tempCustomExpressions: [], // 临时自定义表情列表
 
