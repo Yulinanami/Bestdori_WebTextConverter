@@ -1,4 +1,3 @@
-import { DOMUtils } from "../../utils/DOMUtils.js";
 import { assignmentRenderer } from "./assignments/assignmentRenderer.js";
 import { assignmentStore } from "./assignments/assignmentStore.js";
 import { assignmentDnd } from "./assignments/assignmentDnd.js";

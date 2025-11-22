@@ -1,7 +1,6 @@
 import { DOMUtils } from "../../../utils/DOMUtils.js";
 import { editorService } from "../../../services/EditorService.js";
 import { ui } from "../../../utils/uiUtils.js";
-import { modalService } from "../../../services/ModalService.js";
 import { state } from "../../../managers/stateManager.js";
 
 /**
