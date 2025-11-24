@@ -71,6 +71,9 @@ export const BaseEditorMixin = {
       modalId: this.modalId,
       beforeClose: () => {
         // 销毁 Sortable 实例
+        this.sortableInstances = this.sortableInstances.filter(
+          (instance) => !!instance?.el
+        );
         this.sortableInstances.forEach((instance) => instance?.destroy());
         this.sortableInstances = [];
 
