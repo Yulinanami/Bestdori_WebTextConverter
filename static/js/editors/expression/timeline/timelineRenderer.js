@@ -1,5 +1,8 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { renderGroupedView } from "@utils/uiUtils.js";
+import {
+  createTimelineRenderCache,
+  renderIncrementalTimeline,
+} from "@utils/IncrementalTimelineRenderer.js";
 import {
   createTalkCard,
   createLayoutCard,
@@ -9,12 +12,14 @@ import { editorService } from "@services/EditorService.js";
 /**
  * 时间轴渲染模块，负责普通与分组模式的卡片绘制。
  */
+const timelineCache = createTimelineRenderCache();
+
 export function renderTimeline(editor) {
   const timeline = editor.domCache.timeline;
   if (!timeline) return;
 
   const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
-  const actions = editor.projectFileState.actions;
+  const actions = editor.projectFileState.actions || [];
   const groupSize = 50;
   const templates =
     editor.domCache.templates ||
@@ -23,6 +28,7 @@ export function renderTimeline(editor) {
       layout: document.getElementById("timeline-layout-card-template"),
     });
   const configEntries = editorService.getCurrentConfig() || {};
+  const configSignature = JSON.stringify(configEntries);
   const characterNameMap = new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
       ids.map((id) => [id, name])
@@ -30,17 +36,17 @@ export function renderTimeline(editor) {
   );
 
   const renderSingleCard = (action, globalIndex = -1) => {
-    let card;
+    let cardElement;
 
     if (action.type === "talk") {
-      card = createTalkCard(action, {
+      cardElement = createTalkCard(action, {
         template: templates.talk,
         templateId: templates.talk?.id || "text-snippet-card-template",
       });
     } else if (action.type === "layout") {
       const resolvedName =
         action.characterName || characterNameMap.get(action.characterId);
-      card = createLayoutCard(
+      cardElement = createLayoutCard(
         { ...action, characterName: resolvedName },
         {
           template: templates.layout,
@@ -59,6 +65,13 @@ export function renderTimeline(editor) {
     } else {
       return null;
     }
+
+    const card =
+      cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+        ? cardElement.firstElementChild
+        : cardElement;
+    if (!card) return null;
+
     const numberDiv = card.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
@@ -140,45 +153,38 @@ export function renderTimeline(editor) {
     return card;
   };
 
-  if (isGroupingEnabled && actions.length > groupSize) {
-    renderGroupedView({
-      container: timeline,
-      actions: actions,
-      activeGroupIndex: editor.activeGroupIndex,
-      onGroupClick: (index) => {
-        const isOpening = editor.activeGroupIndex !== index;
-        editor.activeGroupIndex = isOpening ? index : null;
-        editor.renderTimeline();
+  renderIncrementalTimeline({
+    container: timeline,
+    actions,
+    cache: timelineCache,
+    renderCard: renderSingleCard,
+    groupingEnabled: isGroupingEnabled,
+    groupSize,
+    activeGroupIndex: editor.activeGroupIndex,
+    contextSignature: configSignature,
+    onGroupToggle: (index) => {
+      const isOpening = editor.activeGroupIndex !== index;
+      editor.activeGroupIndex = isOpening ? index : null;
+      editor.renderTimeline();
 
-        if (isOpening) {
-          setTimeout(() => {
-            const scrollContainer = editor.domCache.timeline;
-            const header = scrollContainer?.querySelector(
-              `.timeline-group-header[data-group-idx="${index}"]`
-            );
-            if (
-              scrollContainer &&
-              header &&
-              scrollContainer.scrollTop !== header.offsetTop - 110
-            ) {
-              scrollContainer.scrollTo({
-                top: header.offsetTop - 110,
-                behavior: "smooth",
-              });
-            }
-          }, 0);
-        }
-      },
-      renderItemFn: renderSingleCard,
-      groupSize: groupSize,
-    });
-  } else {
-    DOMUtils.clearElement(timeline);
-    const fragment = document.createDocumentFragment();
-    actions.forEach((action, idx) => {
-      const card = renderSingleCard(action, idx);
-      if (card) fragment.appendChild(card);
-    });
-    timeline.appendChild(fragment);
-  }
+      if (isOpening) {
+        setTimeout(() => {
+          const scrollContainer = editor.domCache.timeline;
+          const header = scrollContainer?.querySelector(
+            `.timeline-group-header[data-group-idx="${index}"]`
+          );
+          if (
+            scrollContainer &&
+            header &&
+            scrollContainer.scrollTop !== header.offsetTop - 110
+          ) {
+            scrollContainer.scrollTo({
+              top: header.offsetTop - 110,
+              behavior: "smooth",
+            });
+          }
+        }, 0);
+      }
+    },
+  });
 }
