@@ -22,18 +22,24 @@ export function attachSpeakerCanvas(editor) {
       const actions = editor.projectFileState.actions;
       const groupSize = 50;
 
-      const talkTemplate = document.getElementById(
-        "text-snippet-card-template"
-      );
-      const layoutTemplate = document.getElementById(
-        "timeline-layout-card-template"
+      const templates =
+        editor.domCache.templates ||
+        (editor.domCache.templates = {
+          talk: document.getElementById("text-snippet-card-template"),
+          layout: document.getElementById("timeline-layout-card-template"),
+        });
+      const configEntries = editorService.getCurrentConfig() || {};
+      const characterNameMap = new Map(
+        Object.entries(configEntries).flatMap(([name, ids]) =>
+          ids.map((id) => [id, name])
+        )
       );
 
       const renderSingleCard = (action, globalIndex = -1) => {
         let card;
 
         if (action.type === "talk") {
-          card = talkTemplate.content.cloneNode(true);
+          card = templates.talk.content.cloneNode(true);
           const dialogueItem = card.querySelector(".dialogue-item");
           dialogueItem.dataset.id = action.id;
           const avatarContainer = card.querySelector(
@@ -77,7 +83,7 @@ export function attachSpeakerCanvas(editor) {
 
           card.querySelector(".dialogue-text").textContent = action.text;
         } else if (action.type === "layout") {
-          card = layoutTemplate.content.cloneNode(true);
+          card = templates.layout.content.cloneNode(true);
           const item = card.querySelector(".timeline-item");
           item.dataset.id = action.id;
           item.dataset.layoutType = action.layoutType;
@@ -89,8 +95,7 @@ export function attachSpeakerCanvas(editor) {
 
           const characterId = action.characterId;
           const characterName =
-            action.characterName ||
-            editorService.getCharacterNameById(characterId);
+            action.characterName || characterNameMap.get(characterId);
 
           card.querySelector(".speaker-name").textContent =
             characterName || `未知角色 (ID: ${characterId})`;

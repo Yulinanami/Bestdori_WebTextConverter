@@ -16,19 +16,47 @@ export function renderTimeline(editor) {
   const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
   const actions = editor.projectFileState.actions;
   const groupSize = 50;
+  const templates =
+    editor.domCache.templates ||
+    (editor.domCache.templates = {
+      talk: document.getElementById("timeline-talk-card-template"),
+      layout: document.getElementById("timeline-layout-card-template"),
+    });
+  const configEntries = editorService.getCurrentConfig() || {};
+  const characterNameMap = new Map(
+    Object.entries(configEntries).flatMap(([name, ids]) =>
+      ids.map((id) => [id, name])
+    )
+  );
 
   const renderSingleCard = (action, globalIndex = -1) => {
     let card;
 
     if (action.type === "talk") {
-      card = createTalkCard(action);
-    } else if (action.type === "layout") {
-      card = createLayoutCard(action, {
-        renderLayoutControls: (cardEl, layoutAction, characterName) =>
-          editor.renderLayoutCardControls(cardEl, layoutAction, characterName, {
-            showToggleButton: false,
-          }),
+      card = createTalkCard(action, {
+        template: templates.talk,
+        templateId: templates.talk?.id || "text-snippet-card-template",
       });
+    } else if (action.type === "layout") {
+      const resolvedName =
+        action.characterName || characterNameMap.get(action.characterId);
+      card = createLayoutCard(
+        { ...action, characterName: resolvedName },
+        {
+          template: templates.layout,
+          templateId: templates.layout?.id || "timeline-layout-card-template",
+          renderLayoutControls: (cardEl, layoutAction, characterName) =>
+            editor.renderLayoutCardControls(
+              cardEl,
+              layoutAction,
+              characterName,
+              {
+                showToggleButton: false,
+              }
+            ),
+        },
+        templates.layout
+      );
     } else {
       return null;
     }

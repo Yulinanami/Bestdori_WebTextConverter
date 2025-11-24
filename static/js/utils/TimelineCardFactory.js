@@ -7,19 +7,20 @@ import { DOMUtils } from "@utils/DOMUtils.js";
  * @param {Object} action - 动作对象
  * @param {Object} options
  * @param {string} options.templateId - 模板ID
+ * @param {HTMLTemplateElement} options.template - 预缓存的模板
  * @returns {DocumentFragment|null}
  */
 export function createTalkCard(
   action,
-  { templateId = "timeline-talk-card-template" } = {}
+  { templateId = "timeline-talk-card-template", template } = {}
 ) {
-  const template = document.getElementById(templateId);
-  if (!template) {
+  const tpl = template || document.getElementById(templateId);
+  if (!tpl) {
     console.warn(`[TimelineCardFactory] 模板不存在: ${templateId}`);
     return null;
   }
 
-  const card = template.content.cloneNode(true);
+  const card = tpl.content.cloneNode(true);
   const item = card.querySelector(".timeline-item");
   if (item) {
     item.dataset.id = action.id;
@@ -61,6 +62,7 @@ export function createTalkCard(
  * @param {Object} action - 布局动作
  * @param {Object} options
  * @param {string} options.templateId - 模板ID
+ * @param {HTMLTemplateElement} options.template - 预缓存的模板
  * @param {Function} options.renderLayoutControls - 渲染布局控制的回调
  * @param {Object} options.layoutOptions - 传递给控制渲染的附加参数
  * @returns {DocumentFragment|null}
@@ -69,17 +71,18 @@ export function createLayoutCard(
   action,
   {
     templateId = "timeline-layout-card-template",
+    template,
     renderLayoutControls,
     layoutOptions = {},
   } = {}
 ) {
-  const template = document.getElementById(templateId);
-  if (!template) {
+  const tpl = template || document.getElementById(templateId);
+  if (!tpl) {
     console.warn(`[TimelineCardFactory] 模板不存在: ${templateId}`);
     return null;
   }
 
-  const card = template.content.cloneNode(true);
+  const card = tpl.content.cloneNode(true);
   const item = card.querySelector(".timeline-item");
   if (!item) {
     return card;
