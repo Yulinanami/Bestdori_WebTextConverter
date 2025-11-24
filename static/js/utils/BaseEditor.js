@@ -29,30 +29,32 @@ export class BaseEditor {
    * @param {boolean} options.skipIfNoChange - 如果状态未改变则跳过执行
    */
   executeCommand(changeFn, options = {}) {
-    const beforeState = JSON.stringify(this.projectFileState);
+    const clone =
+      typeof structuredClone === "function"
+        ? structuredClone
+        : DataUtils.deepClone;
+    const beforeState = clone(this.projectFileState);
 
-    // 如果需要检查状态是否改变
+    let beforeStateJson = null;
     if (options.skipIfNoChange) {
-      const tempState = DataUtils.deepClone(this.projectFileState);
+      beforeStateJson = JSON.stringify(beforeState);
+      const tempState = clone(beforeState);
       changeFn(tempState);
-      const afterState = JSON.stringify(tempState);
-
-      // 状态未改变，直接返回
-      if (beforeState === afterState) {
+      if (JSON.stringify(tempState) === beforeStateJson) {
         return;
       }
     }
 
     const command = {
       execute: () => {
-        const newState = JSON.parse(beforeState);
+        const newState = clone(beforeState);
         changeFn(newState);
         this.projectFileState = newState;
         this.afterCommandCallback(); // 先执行回调（清除缓存等）
         this.renderCallback(); // 再渲染
       },
       undo: () => {
-        this.projectFileState = JSON.parse(beforeState);
+        this.projectFileState = clone(beforeState);
         this.afterCommandCallback(); // 先执行回调（清除缓存等）
         this.renderCallback(); // 再渲染
       },
