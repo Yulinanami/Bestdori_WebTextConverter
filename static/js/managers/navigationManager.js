@@ -7,12 +7,13 @@ class NavigationManager {
 
   init() {
     // 绑定导航项点击事件
-    const navSteps = document.querySelectorAll(".nav-step");
+    const navSteps =
+      this.navSteps || (this.navSteps = document.querySelectorAll(".nav-step"));
     navSteps.forEach((step) => {
-      step.addEventListener("click", () => {
+      step.onclick = () => {
         const stepNum = parseInt(step.dataset.step);
         this.navigateToStep(stepNum);
-      });
+      };
     });
 
     // 初始化显示第一步
@@ -21,7 +22,8 @@ class NavigationManager {
 
   navigateToStep(stepNum) {
     // 更新导航栏激活状态
-    const navSteps = document.querySelectorAll(".nav-step");
+    const navSteps =
+      this.navSteps || (this.navSteps = document.querySelectorAll(".nav-step"));
     navSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");
@@ -31,7 +33,9 @@ class NavigationManager {
     });
 
     // 更新工作区显示的步骤
-    const workspaceSteps = document.querySelectorAll(".workspace-step");
+    const workspaceSteps =
+      this.workspaceSteps ||
+      (this.workspaceSteps = document.querySelectorAll(".workspace-step"));
     workspaceSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");
@@ -104,17 +108,19 @@ class NavigationManager {
       const [
         { motionExpressionManager },
         { motionManager, expressionManager },
+        { DataUtils },
       ] = await Promise.all([
         import("@managers/motionExpressionManager.js"),
         import("@managers/genericConfigManager.js"),
+        import("@utils/DataUtils.js"),
       ]);
 
       // 初始化临时状态（类似 open 方法的逻辑）
-      motionExpressionManager.tempCustomMotions = JSON.parse(
-        JSON.stringify(motionManager.customItems)
+      motionExpressionManager.tempCustomMotions = DataUtils.deepClone(
+        motionManager.customItems
       );
-      motionExpressionManager.tempCustomExpressions = JSON.parse(
-        JSON.stringify(expressionManager.customItems)
+      motionExpressionManager.tempCustomExpressions = DataUtils.deepClone(
+        expressionManager.customItems
       );
       motionExpressionManager.renderLists();
     },

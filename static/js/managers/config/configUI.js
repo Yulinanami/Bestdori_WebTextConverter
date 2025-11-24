@@ -54,7 +54,12 @@ export const configUI = {
 
   renderNormalConfigList(manager, sortedConfig) {
     const configList = document.getElementById("configList");
-    const template = document.getElementById("config-item-template");
+    const template =
+      this.configItemTemplate ||
+      (this.configItemTemplate = document.getElementById(
+        "config-item-template"
+      ));
+    if (!configList || !template) return;
 
     const configItems = sortedConfig.map(([name, ids]) => {
       const clone = template.content.cloneNode(true);
