@@ -6,12 +6,24 @@ import { state } from "@managers/stateManager.js";
  * 负责位置配置的列表渲染与 DOM 结构。
  */
 export const positionUI = {
-  createPositionItem(name, primaryId, avatarId, avatarPath, currentPosition, currentOffset) {
+  createPositionItem(
+    name,
+    primaryId,
+    avatarId,
+    avatarPath,
+    currentPosition,
+    currentOffset
+  ) {
     const item = DOMUtils.createElement("div", {
       class: "position-config-item",
     });
 
-    const infoDiv = this.createCharacterInfo(name, primaryId, avatarId, avatarPath);
+    const infoDiv = this.createCharacterInfo(
+      name,
+      primaryId,
+      avatarId,
+      avatarPath
+    );
     const controlsDiv = this.createPositionControls(
       name,
       currentPosition,
@@ -78,14 +90,16 @@ export const positionUI = {
       "data-character": name,
     });
 
-    ["leftOver", "leftInside", "center", "rightInside", "rightOver"].forEach((pos) => {
-      const option = DOMUtils.createElement("option", { value: pos });
-      option.textContent = this.positionNames[pos];
-      if (pos === currentPosition) {
-        option.selected = true;
+    ["leftOver", "leftInside", "center", "rightInside", "rightOver"].forEach(
+      (pos) => {
+        const option = DOMUtils.createElement("option", { value: pos });
+        option.textContent = this.positionNames[pos];
+        if (pos === currentPosition) {
+          option.selected = true;
+        }
+        select.appendChild(option);
       }
-      select.appendChild(option);
-    });
+    );
 
     controlsDiv.appendChild(select);
 

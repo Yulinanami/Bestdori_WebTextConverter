@@ -73,7 +73,9 @@ export function bindTimelineEvents(editor) {
     if (e.target.matches(".assignment-remove-btn")) {
       const assignmentItem = e.target.closest(".motion-assignment-item");
       if (assignmentItem) {
-        const assignmentIndex = parseInt(assignmentItem.dataset.assignmentIndex);
+        const assignmentIndex = parseInt(
+          assignmentItem.dataset.assignmentIndex
+        );
         const actionId = card.dataset.id;
         editor._removeMotionAssignment(actionId, assignmentIndex);
       }
@@ -122,9 +124,7 @@ export function bindTimelineEvents(editor) {
     const assignmentItem = e.target.closest(".motion-assignment-item");
     if (assignmentItem && e.target.matches(".assignment-delay-input")) {
       const actionId = assignmentItem.dataset.actionId;
-      const assignmentIndex = parseInt(
-        assignmentItem.dataset.assignmentIndex
-      );
+      const assignmentIndex = parseInt(assignmentItem.dataset.assignmentIndex);
       const delayValue = parseFloat(e.target.value) || 0;
 
       const action = editor.projectFileState.actions.find(

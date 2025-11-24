@@ -90,7 +90,7 @@ export const libraryPanel = {
   filterLibraryList(type, event) {
     const searchTerm = event.target.value.toLowerCase().trim();
     const listContainerId =
-        type === "motion" ? "motionLibraryList" : "expressionLibraryList";
+      type === "motion" ? "motionLibraryList" : "expressionLibraryList";
     const listContainer = document.getElementById(listContainerId);
     if (!listContainer) return;
     const items = listContainer.querySelectorAll(
@@ -179,7 +179,6 @@ export const libraryPanel = {
   loadQuickFillOptions(editor) {
     const configData = state.get("configData");
     editor.quickFillOptions.default = configData?.quick_fill_options || [];
-    editor.quickFillOptions.custom =
-      editor._getCustomQuickFillOptions() || [];
+    editor.quickFillOptions.custom = editor._getCustomQuickFillOptions() || [];
   },
 };
