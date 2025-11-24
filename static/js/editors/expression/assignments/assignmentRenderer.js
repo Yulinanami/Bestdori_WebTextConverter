@@ -158,13 +158,6 @@ export const assignmentRenderer = {
     itemElement.dataset.assignmentIndex = index;
     itemElement.dataset.actionId = action.id;
 
-    if (isLayoutCard) {
-      const removeBtn = itemElement.querySelector(".assignment-remove-btn");
-      if (removeBtn) {
-        DOMUtils.toggleDisplay(removeBtn, false);
-      }
-    }
-
     const avatarDiv = itemElement.querySelector(".dialogue-avatar");
     editorService.updateCharacterAvatar(
       { querySelector: () => avatarDiv },

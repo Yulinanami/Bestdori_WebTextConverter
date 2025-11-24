@@ -77,7 +77,22 @@ export function bindTimelineEvents(editor) {
           assignmentItem.dataset.assignmentIndex
         );
         const actionId = card.dataset.id;
-        editor._removeMotionAssignment(actionId, assignmentIndex);
+        const action = editor.projectFileState.actions.find(
+          (a) => a.id === actionId
+        );
+        if (action && action.type === "layout") {
+          editor._executeCommand((currentState) => {
+            const layoutAction = currentState.actions.find(
+              (a) => a.id === actionId
+            );
+            if (layoutAction) {
+              layoutAction.initialState = {};
+              delete layoutAction.delay;
+            }
+          });
+        } else {
+          editor._removeMotionAssignment(actionId, assignmentIndex);
+        }
       }
       return;
     }
