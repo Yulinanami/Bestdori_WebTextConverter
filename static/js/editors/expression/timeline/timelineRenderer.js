@@ -54,8 +54,7 @@ export function renderTimeline(editor) {
                 showToggleButton: false,
               }
             ),
-        },
-        templates.layout
+        }
       );
     } else {
       return null;

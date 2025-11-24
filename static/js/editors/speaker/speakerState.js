@@ -99,14 +99,5 @@ export function attachSpeakerState(editor) {
         if (resetBtn && originalText) resetBtn.textContent = originalText;
       }
     },
-
-    _createActionFromSegment(index, text, speakers) {
-      return {
-        id: `action-id-${Date.now()}-${index}`,
-        type: "talk",
-        text: text,
-        speakers: speakers,
-      };
-    },
   });
 }

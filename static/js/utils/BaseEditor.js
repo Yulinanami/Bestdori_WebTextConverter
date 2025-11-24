@@ -16,7 +16,6 @@ export class BaseEditor {
 
     // 配置回调函数
     this.renderCallback = config.renderCallback || (() => {});
-    this.afterCommandCallback = config.afterCommandCallback || (() => {});
 
     // 分组大小配置
     this.groupSize = config.groupSize || 50;
@@ -50,13 +49,11 @@ export class BaseEditor {
         const newState = clone(beforeState);
         changeFn(newState);
         this.projectFileState = newState;
-        this.afterCommandCallback(); // 先执行回调（清除缓存等）
-        this.renderCallback(); // 再渲染
+        this.renderCallback();
       },
       undo: () => {
         this.projectFileState = clone(beforeState);
-        this.afterCommandCallback(); // 先执行回调（清除缓存等）
-        this.renderCallback(); // 再渲染
+        this.renderCallback();
       },
     };
 

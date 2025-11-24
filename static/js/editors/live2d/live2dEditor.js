@@ -129,16 +129,6 @@ export const live2dEditor = {
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
-
-  // 从文本片段创建动作对象
-  _createActionFromSegment(index, text, speakers) {
-    return {
-      id: `action-id-${Date.now()}-${index}`,
-      type: "talk",
-      text: text,
-      speakers: speakers,
-    };
-  },
 };
 
 // 状态代理
