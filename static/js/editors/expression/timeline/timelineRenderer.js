@@ -157,7 +157,11 @@ export function renderTimeline(editor) {
             const header = scrollContainer?.querySelector(
               `.timeline-group-header[data-group-idx="${index}"]`
             );
-            if (scrollContainer && header) {
+            if (
+              scrollContainer &&
+              header &&
+              scrollContainer.scrollTop !== header.offsetTop - 110
+            ) {
               scrollContainer.scrollTo({
                 top: header.offsetTop - 110,
                 behavior: "smooth",

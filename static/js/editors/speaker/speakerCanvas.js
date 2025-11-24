@@ -40,14 +40,16 @@ export function attachSpeakerCanvas(editor) {
 
         if (action.type === "talk") {
           card = templates.talk.content.cloneNode(true);
-          const dialogueItem = card.querySelector(".dialogue-item");
+          const dialogueItem = card.firstElementChild;
           dialogueItem.dataset.id = action.id;
-          const avatarContainer = card.querySelector(
+          const avatarContainer = dialogueItem.querySelector(
             ".speaker-avatar-container"
           );
-          const avatarDiv = card.querySelector(".dialogue-avatar");
-          const speakerNameDiv = card.querySelector(".speaker-name");
-          const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
+          const avatarDiv = dialogueItem.querySelector(".dialogue-avatar");
+          const speakerNameDiv = dialogueItem.querySelector(".speaker-name");
+          const multiSpeakerBadge = dialogueItem.querySelector(
+            ".multi-speaker-badge"
+          );
 
           if (action.speakers && action.speakers.length > 0) {
             const firstSpeaker = action.speakers[0];
@@ -81,10 +83,11 @@ export function attachSpeakerCanvas(editor) {
             dialogueItem.classList.add("narrator");
           }
 
-          card.querySelector(".dialogue-text").textContent = action.text;
+          dialogueItem.querySelector(".dialogue-text").textContent =
+            action.text;
         } else if (action.type === "layout") {
           card = templates.layout.content.cloneNode(true);
-          const item = card.querySelector(".timeline-item");
+          const item = card.firstElementChild;
           item.dataset.id = action.id;
           item.dataset.layoutType = action.layoutType;
           item.classList.remove("dialogue-item");
@@ -97,9 +100,9 @@ export function attachSpeakerCanvas(editor) {
           const characterName =
             action.characterName || characterNameMap.get(characterId);
 
-          card.querySelector(".speaker-name").textContent =
+          item.querySelector(".speaker-name").textContent =
             characterName || `未知角色 (ID: ${characterId})`;
-          const avatarDiv = card.querySelector(".dialogue-avatar");
+          const avatarDiv = item.querySelector(".dialogue-avatar");
           editorService.updateCharacterAvatar(
             { querySelector: () => avatarDiv },
             characterId,
@@ -135,7 +138,11 @@ export function attachSpeakerCanvas(editor) {
                 const header = scrollContainer?.querySelector(
                   `.timeline-group-header[data-group-idx="${index}"]`
                 );
-                if (scrollContainer && header) {
+                if (
+                  scrollContainer &&
+                  header &&
+                  scrollContainer.scrollTop !== header.offsetTop - 110
+                ) {
                   scrollContainer.scrollTo({
                     top: header.offsetTop - 110,
                     behavior: "smooth",
