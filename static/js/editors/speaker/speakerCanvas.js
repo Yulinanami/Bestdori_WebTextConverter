@@ -1,10 +1,10 @@
-import { DOMUtils } from "@utils/DOMUtils.js";
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
+import { createSpeakerRenderers } from "@editors/speaker/speakerRenderers.js";
 
 // 负责渲染左侧对话/布局卡片，以及多说话人弹窗
 export function attachSpeakerCanvas(editor) {
@@ -42,224 +42,17 @@ export function attachSpeakerCanvas(editor) {
         )
       );
 
-      const renderSingleCard = (action, globalIndex = -1) => {
-        let cardElement;
-
-        if (action.type === "talk") {
-          cardElement = templates.talk.content.cloneNode(true);
-          const dialogueItem = cardElement.firstElementChild;
-          dialogueItem.dataset.id = action.id;
-          const avatarContainer = dialogueItem.querySelector(
-            ".speaker-avatar-container"
-          );
-          const avatarDiv = dialogueItem.querySelector(".dialogue-avatar");
-          const speakerNameDiv = dialogueItem.querySelector(".speaker-name");
-          const multiSpeakerBadge = dialogueItem.querySelector(
-            ".multi-speaker-badge"
-          );
-
-          if (action.speakers && action.speakers.length > 0) {
-            const firstSpeaker = action.speakers[0];
-            avatarContainer.style.display = "flex";
-            speakerNameDiv.style.display = "block";
-            dialogueItem.classList.remove("narrator");
-            editorService.updateCharacterAvatar(
-              { querySelector: () => avatarDiv },
-              firstSpeaker.characterId,
-              firstSpeaker.name
-            );
-            const allNames = action.speakers.map((s) => s.name).join(" & ");
-            speakerNameDiv.textContent = allNames;
-
-            if (action.speakers.length > 1) {
-              multiSpeakerBadge.style.display = "flex";
-              multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
-              avatarContainer.style.cursor = "pointer";
-              avatarContainer.addEventListener("click", (e) => {
-                e.stopPropagation();
-                editor.showMultiSpeakerPopover(action.id, avatarContainer);
-              });
-            } else {
-              multiSpeakerBadge.style.display = "none";
-              avatarContainer.style.cursor = "default";
-            }
-          } else {
-            avatarContainer.style.display = "none";
-            speakerNameDiv.style.display = "none";
-            multiSpeakerBadge.style.display = "none";
-            dialogueItem.classList.add("narrator");
-          }
-
-          dialogueItem.querySelector(".dialogue-text").textContent =
-            action.text;
-        } else if (action.type === "layout") {
-          cardElement = templates.layout.content.cloneNode(true);
-          const item = cardElement.firstElementChild;
-          item.dataset.id = action.id;
-          item.dataset.layoutType = action.layoutType;
-          item.classList.remove("dialogue-item");
-          item.classList.add("layout-item");
-
-          // 根据类型添加样式
-          DOMUtils.applyLayoutTypeClass(item, action.layoutType);
-
-          const characterId = action.characterId;
-          const characterName =
-            action.characterName || characterNameMap.get(characterId);
-
-          item.querySelector(".speaker-name").textContent =
-            characterName || `未知角色 (ID: ${characterId})`;
-          const avatarDiv = item.querySelector(".dialogue-avatar");
-          editorService.updateCharacterAvatar(
-            { querySelector: () => avatarDiv },
-            characterId,
-            characterName
-          );
-          // 使用共享的渲染函数（在对话编辑器中隐藏切换按钮）
-          editor.renderLayoutCardControls(cardElement, action, characterName, {
-            showToggleButton: false,
-          });
-        } else {
-          return null;
-        }
-
-        const card =
-          cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
-            ? cardElement.firstElementChild
-            : cardElement;
-        if (!card) return null;
-
-        const numberDiv = card.querySelector(".card-sequence-number");
-        if (numberDiv && globalIndex !== -1) {
-          numberDiv.textContent = `#${globalIndex + 1}`;
-        }
-
-        // 缓存说话人签名用于增量检测
-        if (card.classList.contains("dialogue-item")) {
-          const key = (action.speakers || [])
-            .map((s) => `${s.characterId}:${s.name}`)
-            .join("|");
-          card.dataset.speakerKey = key;
-        }
-        return card;
-      };
+      const { renderSingleCard, updateCard } = createSpeakerRenderers(editor, {
+        templates,
+        characterNameMap,
+      });
 
       renderIncrementalTimeline({
         container: canvas,
         actions,
         cache: canvasCache,
         renderCard: renderSingleCard,
-        updateCard: (action, card, globalIndex = -1) => {
-          if (!card) return false;
-          if (action.type === "talk" && card.classList.contains("dialogue-item")) {
-            const avatarContainer = card.querySelector(
-              ".speaker-avatar-container"
-            );
-            const avatarDiv = card.querySelector(".dialogue-avatar");
-            const speakerNameDiv = card.querySelector(".speaker-name");
-            const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
-            const dialogueText = card.querySelector(".dialogue-text");
-            const speakerKey = card.dataset.speakerKey || "";
-            const nextSpeakerKey = (action.speakers || [])
-              .map((s) => `${s.characterId}:${s.name}`)
-              .join("|");
-
-            // 说话人集合变化时直接重建卡片，确保事件/头像一致
-            if (speakerKey !== nextSpeakerKey) {
-              return false;
-            }
-
-            if (action.speakers && action.speakers.length > 0) {
-              const firstSpeaker = action.speakers[0];
-              if (avatarContainer) avatarContainer.style.display = "flex";
-              if (speakerNameDiv) {
-                speakerNameDiv.style.display = "block";
-                speakerNameDiv.textContent = action.speakers
-                  .map((s) => s.name)
-                  .join(" & ");
-              }
-              card.classList.remove("narrator");
-              if (avatarDiv) {
-                DOMUtils.clearElement(avatarDiv);
-                avatarDiv.classList.remove("fallback");
-                avatarDiv.textContent = "";
-                editorService.updateCharacterAvatar(
-                  { querySelector: () => avatarDiv },
-                  firstSpeaker.characterId,
-                  firstSpeaker.name
-                );
-                avatarDiv.dataset.characterId = String(
-                  firstSpeaker.characterId || ""
-                );
-              }
-
-              if (action.speakers.length > 1) {
-                if (multiSpeakerBadge) {
-                  multiSpeakerBadge.style.display = "flex";
-                  multiSpeakerBadge.textContent = `+${
-                    action.speakers.length - 1
-                  }`;
-                }
-                if (avatarContainer) avatarContainer.style.cursor = "pointer";
-              } else if (multiSpeakerBadge) {
-                multiSpeakerBadge.style.display = "none";
-                if (avatarContainer) avatarContainer.style.cursor = "default";
-              }
-            } else {
-              if (avatarContainer) avatarContainer.style.display = "none";
-              if (speakerNameDiv) speakerNameDiv.style.display = "none";
-              if (multiSpeakerBadge) multiSpeakerBadge.style.display = "none";
-              card.classList.add("narrator");
-              if (avatarDiv) {
-                DOMUtils.clearElement(avatarDiv);
-                avatarDiv.classList.add("fallback");
-                avatarDiv.textContent = "N";
-                avatarDiv.dataset.characterId = "";
-              }
-            }
-
-            if (dialogueText) {
-              dialogueText.textContent = action.text;
-            }
-          } else if (action.type === "layout" && card.classList.contains("layout-item")) {
-            card.dataset.id = action.id;
-            card.dataset.layoutType = action.layoutType;
-            DOMUtils.applyLayoutTypeClass(card, action.layoutType);
-
-            const characterId = action.characterId;
-            const characterName =
-              action.characterName || characterNameMap.get(characterId);
-            const nameEl = card.querySelector(".speaker-name");
-            if (nameEl) {
-              nameEl.textContent =
-                characterName || `未知角色 (ID: ${characterId})`;
-            }
-            const avatarDiv = card.querySelector(".dialogue-avatar");
-            if (
-              avatarDiv &&
-              avatarDiv.dataset.characterId !== String(characterId || "")
-            ) {
-              editorService.updateCharacterAvatar(
-                { querySelector: () => avatarDiv },
-                characterId,
-                characterName
-              );
-              avatarDiv.dataset.characterId = String(characterId || "");
-            }
-
-            editor.renderLayoutCardControls(card, action, characterName, {
-              showToggleButton: false,
-            });
-          } else {
-            return false;
-          }
-
-          const numberDiv = card.querySelector(".card-sequence-number");
-          if (numberDiv && globalIndex !== -1) {
-            numberDiv.textContent = `#${globalIndex + 1}`;
-          }
-          return true;
-        },
+        updateCard,
         signatureResolver: DataUtils.actionSignature,
         groupingEnabled: isGroupingEnabled,
         groupSize,
@@ -291,109 +84,6 @@ export function attachSpeakerCanvas(editor) {
       });
 
       return usedIds;
-    },
-
-    /**
-     * 显示多说话人弹出菜单
-     * 点击多说话人徽章时触发,显示该对话的所有说话人列表
-     * 每个说话人旁边有删除按钮,点击外部自动关闭
-     * @param {string} actionId - 动作ID
-     * @param {HTMLElement} targetElement - 触发弹出菜单的元素(用于定位)
-     */
-    showMultiSpeakerPopover(actionId, targetElement) {
-      // 移除所有旧的 popover 防止内存泄漏
-      DOMUtils.getElements("#speaker-popover").forEach((p) => p.remove());
-
-      const action = editor.projectFileState.actions.find(
-        (a) => a.id === actionId
-      );
-      if (!action) return;
-
-      // 使用 DOMUtils 创建 popover
-      const popover = DOMUtils.createElement("div", {
-        id: "speaker-popover",
-        className: "speaker-popover-menu",
-        style: {
-          position: "fixed",
-          borderRadius: "8px",
-          boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
-          zIndex: "10001",
-          padding: "8px",
-          minWidth: "150px",
-        },
-      });
-
-      // 为每个说话人创建列表项
-      const items = action.speakers.map((speaker) => {
-        const nameSpan = DOMUtils.createElement(
-          "span",
-          {
-            style: { flexGrow: "1" },
-          },
-          speaker.name
-        );
-
-        const deleteBtn = DOMUtils.createElement(
-          "button",
-          {
-            className: "speaker-delete-btn",
-            style: {
-              borderRadius: "50%",
-              width: "22px",
-              height: "22px",
-              cursor: "pointer",
-              marginLeft: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "16px",
-              lineHeight: "1",
-            },
-            onClick: (e) => {
-              e.stopPropagation();
-              editor.removeSpeakerFromAction(actionId, speaker.characterId);
-              popover.remove();
-            },
-          },
-          "×"
-        );
-
-        return DOMUtils.createElement(
-          "div",
-          {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              padding: "6px 8px",
-              borderRadius: "5px",
-            },
-          },
-          [nameSpan, deleteBtn]
-        );
-      });
-
-      // 批量添加所有列表项
-      DOMUtils.appendChildren(popover, items);
-      document.body.appendChild(popover);
-
-      // 定位 popover
-      const rect = targetElement.getBoundingClientRect();
-      popover.style.top = `${rect.bottom + 5}px`;
-      popover.style.left = `${rect.left}px`;
-
-      // 点击外部关闭
-      setTimeout(() => {
-        document.addEventListener(
-          "click",
-          function onClickOutside(e) {
-            if (!popover.contains(e.target)) {
-              popover.remove();
-              document.removeEventListener("click", onClickOutside);
-            }
-          },
-          { once: true }
-        );
-      }, 0);
     },
   });
 }

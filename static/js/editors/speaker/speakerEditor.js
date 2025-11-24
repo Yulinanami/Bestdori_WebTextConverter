@@ -12,6 +12,7 @@ import { attachSpeakerDrag } from "@editors/speaker/speakerDrag.js";
 import { attachSpeakerCanvas } from "@editors/speaker/speakerCanvas.js";
 import { attachSpeakerState } from "@editors/speaker/speakerState.js";
 import { attachSpeakerControls } from "@editors/speaker/speakerControls.js";
+import { attachSpeakerPopover } from "@editors/speaker/speakerPopover.js";
 
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
@@ -151,3 +152,4 @@ attachSpeakerState(speakerEditor);
 attachSpeakerControls(speakerEditor);
 attachSpeakerCanvas(speakerEditor);
 attachSpeakerDrag(speakerEditor, baseEditor);
+attachSpeakerPopover(speakerEditor);
