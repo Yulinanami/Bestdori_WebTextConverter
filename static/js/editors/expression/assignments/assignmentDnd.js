@@ -4,7 +4,11 @@ import { DOMUtils } from "@utils/DOMUtils.js";
  * 负责分配项拖放区的 Sortable 初始化。
  */
 export const assignmentDnd = {
-  initSortableForAssignmentZones(editor, assignmentElement, isLayoutCard = false) {
+  initSortableForAssignmentZones(
+    editor,
+    assignmentElement,
+    isLayoutCard = false
+  ) {
     assignmentElement.querySelectorAll(".drop-zone").forEach((zone) => {
       new Sortable(zone, {
         group: {
@@ -45,7 +49,11 @@ export const assignmentDnd = {
             if (isLayoutCard) {
               editor._updateLayoutInitialState(actionId, updates);
             } else {
-              editor._updateMotionAssignment(actionId, assignmentIndex, updates);
+              editor._updateMotionAssignment(
+                actionId,
+                assignmentIndex,
+                updates
+              );
             }
           }
         },

@@ -7,7 +7,9 @@ import { editorService } from "@services/EditorService.js";
 export const assignmentRenderer = {
   showExpressionSetupUI(editor, cardElement) {
     const actionId = cardElement.dataset.id;
-    const action = editor.projectFileState.actions.find((a) => a.id === actionId);
+    const action = editor.projectFileState.actions.find(
+      (a) => a.id === actionId
+    );
     if (!action) return;
 
     const footer = cardElement.querySelector(".timeline-item-footer");
@@ -83,7 +85,9 @@ export const assignmentRenderer = {
   },
 
   createCharacterSelector(editor, action) {
-    const template = document.getElementById("motion-character-selector-template");
+    const template = document.getElementById(
+      "motion-character-selector-template"
+    );
     const selectorFragment = template.content.cloneNode(true);
 
     const selectorContainer = DOMUtils.createElement("div");
@@ -131,7 +135,13 @@ export const assignmentRenderer = {
     return selector;
   },
 
-  createAssignmentItem(editor, action, motionData, index, isLayoutCard = false) {
+  createAssignmentItem(
+    editor,
+    action,
+    motionData,
+    index,
+    isLayoutCard = false
+  ) {
     const template = document.getElementById("motion-assignment-item-template");
     const itemFragment = template.content.cloneNode(true);
 
@@ -139,7 +149,9 @@ export const assignmentRenderer = {
     itemContainer.appendChild(itemFragment);
     const itemElement = itemContainer.firstElementChild;
 
-    const characterName = editorService.getCharacterNameById(motionData.character);
+    const characterName = editorService.getCharacterNameById(
+      motionData.character
+    );
 
     itemElement.dataset.characterId = motionData.character;
     itemElement.dataset.characterName = characterName;

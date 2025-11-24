@@ -7,7 +7,9 @@ import { editorService } from "@services/EditorService.js";
 export const assignmentStore = {
   addMotionAssignment(editor, action, character) {
     editor._executeCommand((currentState) => {
-      const currentAction = currentState.actions.find((a) => a.id === action.id);
+      const currentAction = currentState.actions.find(
+        (a) => a.id === action.id
+      );
       if (!currentAction) return;
 
       if (!currentAction.motions) {
@@ -61,7 +63,10 @@ export const assignmentStore = {
     }
 
     if (action.type === "layout") {
-      return action.initialState && Object.keys(action.initialState).length > 0;
+      const hasInitialState =
+        action.initialState && Object.keys(action.initialState).length > 0;
+      const hasDelay = typeof action.delay === "number";
+      return hasInitialState || hasDelay;
     }
     return false;
   },
