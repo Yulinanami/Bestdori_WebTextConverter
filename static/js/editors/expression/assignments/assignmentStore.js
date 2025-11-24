@@ -71,6 +71,26 @@ export const assignmentStore = {
     return false;
   },
 
+  ensureLayoutAssignment(editor, actionId) {
+    const action = editor.projectFileState.actions.find(
+      (a) => a.id === actionId
+    );
+    if (!action || action.type !== "layout") return false;
+    if (this.actionHasExpressionData(action)) return false;
+
+    editor._executeCommand((currentState) => {
+      const layoutAction = currentState.actions.find((a) => a.id === actionId);
+      if (!layoutAction || layoutAction.type !== "layout") return;
+
+      const baseState = layoutAction.initialState || {};
+      layoutAction.initialState = {
+        motion: baseState.motion || "",
+        expression: baseState.expression || "",
+      };
+    });
+    return true;
+  },
+
   getStagedCharacters(editor) {
     const appearedCharacterNames = new Set();
     const characters = [];

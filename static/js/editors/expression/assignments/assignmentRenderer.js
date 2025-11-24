@@ -18,10 +18,6 @@ export const assignmentRenderer = {
     DOMUtils.clearElement(footer);
 
     if (action.type === "layout") {
-      if (!action.initialState) {
-        action.initialState = {};
-      }
-
       const assignmentsContainer = DOMUtils.createElement("div", {
         className: "motion-assignments-container",
       });
@@ -35,10 +31,11 @@ export const assignmentRenderer = {
       };
 
       if (char.name) {
+        const initialState = action.initialState || {};
         const motionData = {
           character: char.id,
-          motion: action.initialState.motion || "",
-          expression: action.initialState.expression || "",
+          motion: initialState.motion || "",
+          expression: initialState.expression || "",
           delay: action.delay || 0,
         };
 

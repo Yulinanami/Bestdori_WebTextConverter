@@ -56,6 +56,10 @@ export function attachExpressionAssignments(editor) {
       return assignmentStore.actionHasExpressionData(action);
     },
 
+    _ensureLayoutAssignment(actionId) {
+      return assignmentStore.ensureLayoutAssignment(editor, actionId);
+    },
+
     _getStagedCharacters() {
       return assignmentStore.getStagedCharacters(editor);
     },

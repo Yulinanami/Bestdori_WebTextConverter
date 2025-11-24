@@ -21,7 +21,14 @@ export function bindTimelineEvents(editor) {
       const footer = card.querySelector(".timeline-item-footer");
 
       if (action && action.type === "layout") {
-        editor.showExpressionSetupUI(card);
+        const created = editor._ensureLayoutAssignment(actionId);
+        const freshCard =
+          (created &&
+            editor.domCache.timeline?.querySelector(
+              `.layout-item[data-id="${actionId}"]`
+            )) ||
+          card;
+        editor.showExpressionSetupUI(freshCard);
         return;
       }
 
@@ -86,7 +93,7 @@ export function bindTimelineEvents(editor) {
               (a) => a.id === actionId
             );
             if (layoutAction) {
-              layoutAction.initialState = {};
+              delete layoutAction.initialState;
               delete layoutAction.delay;
             }
           });
