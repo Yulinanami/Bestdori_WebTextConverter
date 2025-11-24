@@ -18,30 +18,35 @@ export function attachLive2dDrag(editor, baseEditor) {
       const timeline = editor.domCache.timeline;
       if (!characterList || !timeline) return;
 
-      // 清理旧的 Sortable 实例
-      editor.sortableInstances.forEach((instance) => instance?.destroy());
-      editor.sortableInstances = [];
+      const hasCharacterSortable = editor.sortableInstances.some(
+        (instance) => instance?.el === characterList
+      );
+      const hasTimelineSortable = editor.sortableInstances.some(
+        (instance) => instance?.el === timeline
+      );
 
       // 角色列表的 Sortable 配置（只允许拖出，不允许排序）
-      editor.sortableInstances.push(
-        new Sortable(characterList, {
-          group: {
-            name: "live2d-shared",
-            pull: "clone",
-            put: false,
-          },
-          sort: false,
-          onStart: () =>
-            document.addEventListener("dragover", editor.handleDragScrolling),
-          onEnd: () => {
-            document.removeEventListener(
-              "dragover",
-              editor.handleDragScrolling
-            );
-            editor.stopScrolling();
-          },
-        })
-      );
+      if (!hasCharacterSortable) {
+        editor.sortableInstances.push(
+          new Sortable(characterList, {
+            group: {
+              name: "live2d-shared",
+              pull: "clone",
+              put: false,
+            },
+            sort: false,
+            onStart: () =>
+              document.addEventListener("dragover", editor.handleDragScrolling),
+            onEnd: () => {
+              document.removeEventListener(
+                "dragover",
+                editor.handleDragScrolling
+              );
+              editor.stopScrolling();
+            },
+          })
+        );
+      }
 
       // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
       const onEndHandler = DragHelper.createOnEndHandler({
@@ -100,32 +105,34 @@ export function attachLive2dDrag(editor, baseEditor) {
       });
 
       // 时间轴的 Sortable 配置
-      editor.sortableInstances.push(
-        new Sortable(
-          timeline,
-          DragHelper.createSortableConfig({
-            group: "live2d-shared",
-            onEnd: (evt) => {
-              document.removeEventListener(
-                "dragover",
-                editor.handleDragScrolling
-              );
-              editor.stopScrolling();
-              onEndHandler(evt);
-            },
-            onAdd: onAddHandler,
-            extraConfig: {
-              sort: true,
-              filter: ".timeline-group-header",
-              onStart: () =>
-                document.addEventListener(
+      if (!hasTimelineSortable) {
+        editor.sortableInstances.push(
+          new Sortable(
+            timeline,
+            DragHelper.createSortableConfig({
+              group: "live2d-shared",
+              onEnd: (evt) => {
+                document.removeEventListener(
                   "dragover",
                   editor.handleDragScrolling
-                ),
-            },
-          })
-        )
-      );
+                );
+                editor.stopScrolling();
+                onEndHandler(evt);
+              },
+              onAdd: onAddHandler,
+              extraConfig: {
+                sort: true,
+                filter: ".timeline-group-header",
+                onStart: () =>
+                  document.addEventListener(
+                    "dragover",
+                    editor.handleDragScrolling
+                  ),
+              },
+            })
+          )
+        );
+      }
     },
   });
 }

@@ -32,6 +32,7 @@ function ensureCard({
   renderCard,
   cache,
   signatureResolver,
+  updateCard,
 }) {
   const signature =
     typeof signatureResolver === "function"
@@ -41,12 +42,20 @@ function ensureCard({
   let cardEl = cache.nodesById.get(action.id);
 
   if (!cardEl || cachedSignature !== signature) {
-    const rendered = normalizeCardElement(renderCard(action, index));
-    if (!rendered) return null;
+    let updated = false;
+    if (cardEl && typeof updateCard === "function") {
+      updated = updateCard(action, cardEl, index) === true;
+    }
 
-    cache.nodesById.set(action.id, rendered);
+    if (!updated) {
+      const rendered = normalizeCardElement(renderCard(action, index));
+      if (!rendered) return null;
+
+      cache.nodesById.set(action.id, rendered);
+      cardEl = rendered;
+    }
+
     cache.signatures.set(action.id, signature);
-    cardEl = rendered;
   } else {
     cache.signatures.set(action.id, signature);
   }
@@ -106,6 +115,7 @@ export function renderIncrementalTimeline({
   actions = [],
   renderCard,
   cache,
+  updateCard,
   groupingEnabled = false,
   groupSize = 50,
   activeGroupIndex = null,
@@ -136,6 +146,7 @@ export function renderIncrementalTimeline({
           renderCard,
           cache,
           signatureResolver,
+          updateCard,
         })
       )
       .filter(Boolean);
@@ -169,6 +180,7 @@ export function renderIncrementalTimeline({
           renderCard,
           cache,
           signatureResolver,
+          updateCard,
         });
         if (card) {
           fragment.appendChild(card);

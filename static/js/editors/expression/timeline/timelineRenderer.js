@@ -3,6 +3,7 @@ import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
 } from "@utils/IncrementalTimelineRenderer.js";
+import { DataUtils } from "@utils/DataUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
@@ -28,7 +29,7 @@ export function renderTimeline(editor) {
       layout: document.getElementById("timeline-layout-card-template"),
     });
   const configEntries = editorService.getCurrentConfig() || {};
-  const configSignature = JSON.stringify(configEntries);
+  const configSignature = DataUtils.shallowSignature(configEntries);
   const characterNameMap = new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
       ids.map((id) => [id, name])
@@ -153,11 +154,15 @@ export function renderTimeline(editor) {
     return card;
   };
 
+  const updateCard = () => false;
+
   renderIncrementalTimeline({
     container: timeline,
     actions,
     cache: timelineCache,
     renderCard: renderSingleCard,
+    updateCard,
+    signatureResolver: DataUtils.actionSignature,
     groupingEnabled: isGroupingEnabled,
     groupSize,
     activeGroupIndex: editor.activeGroupIndex,

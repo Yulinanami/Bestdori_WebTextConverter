@@ -28,31 +28,33 @@ export class BaseEditor {
    * @param {boolean} options.skipIfNoChange - 如果状态未改变则跳过执行
    */
   executeCommand(changeFn, options = {}) {
-    const clone =
-      typeof structuredClone === "function"
-        ? structuredClone
-        : DataUtils.deepClone;
-    const beforeState = clone(this.projectFileState);
+    const beforeState = this.projectFileState || {};
+    const draft = DataUtils.deepClone(beforeState);
+    changeFn(draft);
 
-    let beforeStateJson = null;
-    if (options.skipIfNoChange) {
-      beforeStateJson = JSON.stringify(beforeState);
-      const tempState = clone(beforeState);
-      changeFn(tempState);
-      if (JSON.stringify(tempState) === beforeStateJson) {
-        return;
-      }
+    const { patches, inversePatches } = DataUtils.generatePatches(
+      beforeState,
+      draft
+    );
+
+    if (options.skipIfNoChange && patches.length === 0) {
+      return;
     }
+    if (!patches.length) return;
 
     const command = {
       execute: () => {
-        const newState = clone(beforeState);
-        changeFn(newState);
-        this.projectFileState = newState;
+        this.projectFileState = DataUtils.applyPatches(
+          this.projectFileState,
+          patches
+        );
         this.renderCallback();
       },
       undo: () => {
-        this.projectFileState = clone(beforeState);
+        this.projectFileState = DataUtils.applyPatches(
+          this.projectFileState,
+          inversePatches
+        );
         this.renderCallback();
       },
     };

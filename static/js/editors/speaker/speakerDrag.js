@@ -52,32 +52,36 @@ export function attachSpeakerDrag(editor, baseEditor) {
       const canvas = editor.domCache.canvas;
       if (!characterList || !canvas) return;
 
-      // 清理旧的 Sortable 实例
-      editor.sortableInstances.forEach((instance) => instance?.destroy());
-      editor.sortableInstances = [];
+      const hasCharacterSortable = editor.sortableInstances.some(
+        (instance) => instance?.el === characterList
+      );
+      const hasCanvasSortable = editor.sortableInstances.some(
+        (instance) => instance?.el === canvas
+      );
 
       // 角色列表的Sortable配置
-      editor.sortableInstances.push(
-        new Sortable(characterList, {
-          group: {
-            name: "shared-speakers",
-            pull: "clone", // 拖出时克隆
-            put: true, // 可接收拖回
-          },
-          sort: false,
-          onMove: (evt) => {
-            return !evt.related.closest("#speakerEditorCharacterList");
-          },
-          onStart: () => {
-            document.addEventListener("dragover", editor.handleDragScrolling);
-          },
-          onEnd: () => {
-            document.removeEventListener(
-              "dragover",
-              editor.handleDragScrolling
-            );
-            editor.stopScrolling();
-          },
+      if (!hasCharacterSortable) {
+        editor.sortableInstances.push(
+          new Sortable(characterList, {
+            group: {
+              name: "shared-speakers",
+              pull: "clone", // 拖出时克隆
+              put: true, // 可接收拖回
+            },
+            sort: false,
+            onMove: (evt) => {
+              return !evt.related.closest("#speakerEditorCharacterList");
+            },
+            onStart: () => {
+              document.addEventListener("dragover", editor.handleDragScrolling);
+            },
+            onEnd: () => {
+              document.removeEventListener(
+                "dragover",
+                editor.handleDragScrolling
+              );
+              editor.stopScrolling();
+            },
           onAdd: (evt) => {
             const cardItem = evt.item;
             const actionId = cardItem.dataset.id;
@@ -92,9 +96,11 @@ export function attachSpeakerDrag(editor, baseEditor) {
             }
 
             cardItem.remove();
+            editor.renderCanvas();
           },
         })
       );
+      }
       // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
       const onEndHandler = DragHelper.createOnEndHandler({
         editor: baseEditor,
@@ -152,32 +158,34 @@ export function attachSpeakerDrag(editor, baseEditor) {
         characterItem.remove();
       };
 
-      editor.sortableInstances.push(
-        new Sortable(
-          canvas,
-          DragHelper.createSortableConfig({
-            group: "shared-speakers",
-            onEnd: (evt) => {
-              document.removeEventListener(
-                "dragover",
-                editor.handleDragScrolling
-              );
-              editor.stopScrolling();
-              onEndHandler(evt);
-            },
-            onAdd: onAddHandler,
-            extraConfig: {
-              sort: true,
-              onStart: () => {
-                document.addEventListener(
+      if (!hasCanvasSortable) {
+        editor.sortableInstances.push(
+          new Sortable(
+            canvas,
+            DragHelper.createSortableConfig({
+              group: "shared-speakers",
+              onEnd: (evt) => {
+                document.removeEventListener(
                   "dragover",
                   editor.handleDragScrolling
                 );
+                editor.stopScrolling();
+                onEndHandler(evt);
               },
-            },
-          })
-        )
-      );
+              onAdd: onAddHandler,
+              extraConfig: {
+                sort: true,
+                onStart: () => {
+                  document.addEventListener(
+                    "dragover",
+                    editor.handleDragScrolling
+                  );
+                },
+              },
+            })
+          )
+        );
+      }
     },
   });
 }

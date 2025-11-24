@@ -3,6 +3,7 @@ import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
 } from "@utils/IncrementalTimelineRenderer.js";
+import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
 
 // 负责渲染左侧对话/布局卡片，以及多说话人弹窗
@@ -34,7 +35,7 @@ export function attachSpeakerCanvas(editor) {
           layout: document.getElementById("timeline-layout-card-template"),
         });
       const configEntries = editorService.getCurrentConfig() || {};
-      const configSignature = JSON.stringify(configEntries);
+      const configSignature = DataUtils.shallowSignature(configEntries);
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
           ids.map((id) => [id, name])
@@ -132,6 +133,14 @@ export function attachSpeakerCanvas(editor) {
         if (numberDiv && globalIndex !== -1) {
           numberDiv.textContent = `#${globalIndex + 1}`;
         }
+
+        // 缓存说话人签名用于增量检测
+        if (card.classList.contains("dialogue-item")) {
+          const key = (action.speakers || [])
+            .map((s) => `${s.characterId}:${s.name}`)
+            .join("|");
+          card.dataset.speakerKey = key;
+        }
         return card;
       };
 
@@ -140,6 +149,118 @@ export function attachSpeakerCanvas(editor) {
         actions,
         cache: canvasCache,
         renderCard: renderSingleCard,
+        updateCard: (action, card, globalIndex = -1) => {
+          if (!card) return false;
+          if (action.type === "talk" && card.classList.contains("dialogue-item")) {
+            const avatarContainer = card.querySelector(
+              ".speaker-avatar-container"
+            );
+            const avatarDiv = card.querySelector(".dialogue-avatar");
+            const speakerNameDiv = card.querySelector(".speaker-name");
+            const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
+            const dialogueText = card.querySelector(".dialogue-text");
+            const speakerKey = card.dataset.speakerKey || "";
+            const nextSpeakerKey = (action.speakers || [])
+              .map((s) => `${s.characterId}:${s.name}`)
+              .join("|");
+
+            // 说话人集合变化时直接重建卡片，确保事件/头像一致
+            if (speakerKey !== nextSpeakerKey) {
+              return false;
+            }
+
+            if (action.speakers && action.speakers.length > 0) {
+              const firstSpeaker = action.speakers[0];
+              if (avatarContainer) avatarContainer.style.display = "flex";
+              if (speakerNameDiv) {
+                speakerNameDiv.style.display = "block";
+                speakerNameDiv.textContent = action.speakers
+                  .map((s) => s.name)
+                  .join(" & ");
+              }
+              card.classList.remove("narrator");
+              if (avatarDiv) {
+                DOMUtils.clearElement(avatarDiv);
+                avatarDiv.classList.remove("fallback");
+                avatarDiv.textContent = "";
+                editorService.updateCharacterAvatar(
+                  { querySelector: () => avatarDiv },
+                  firstSpeaker.characterId,
+                  firstSpeaker.name
+                );
+                avatarDiv.dataset.characterId = String(
+                  firstSpeaker.characterId || ""
+                );
+              }
+
+              if (action.speakers.length > 1) {
+                if (multiSpeakerBadge) {
+                  multiSpeakerBadge.style.display = "flex";
+                  multiSpeakerBadge.textContent = `+${
+                    action.speakers.length - 1
+                  }`;
+                }
+                if (avatarContainer) avatarContainer.style.cursor = "pointer";
+              } else if (multiSpeakerBadge) {
+                multiSpeakerBadge.style.display = "none";
+                if (avatarContainer) avatarContainer.style.cursor = "default";
+              }
+            } else {
+              if (avatarContainer) avatarContainer.style.display = "none";
+              if (speakerNameDiv) speakerNameDiv.style.display = "none";
+              if (multiSpeakerBadge) multiSpeakerBadge.style.display = "none";
+              card.classList.add("narrator");
+              if (avatarDiv) {
+                DOMUtils.clearElement(avatarDiv);
+                avatarDiv.classList.add("fallback");
+                avatarDiv.textContent = "N";
+                avatarDiv.dataset.characterId = "";
+              }
+            }
+
+            if (dialogueText) {
+              dialogueText.textContent = action.text;
+            }
+          } else if (action.type === "layout" && card.classList.contains("layout-item")) {
+            card.dataset.id = action.id;
+            card.dataset.layoutType = action.layoutType;
+            DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+
+            const characterId = action.characterId;
+            const characterName =
+              action.characterName || characterNameMap.get(characterId);
+            const nameEl = card.querySelector(".speaker-name");
+            if (nameEl) {
+              nameEl.textContent =
+                characterName || `未知角色 (ID: ${characterId})`;
+            }
+            const avatarDiv = card.querySelector(".dialogue-avatar");
+            if (
+              avatarDiv &&
+              avatarDiv.dataset.characterId !== String(characterId || "")
+            ) {
+              editorService.updateCharacterAvatar(
+                { querySelector: () => avatarDiv },
+                characterId,
+                characterName
+              );
+              avatarDiv.dataset.characterId = String(characterId || "");
+            }
+
+            editor.renderLayoutCardControls(card, action, characterName, {
+              showToggleButton: false,
+            });
+          } else {
+            return false;
+          }
+
+          const numberDiv = card.querySelector(".card-sequence-number");
+          if (numberDiv && globalIndex !== -1) {
+            numberDiv.textContent = `#${globalIndex + 1}`;
+          }
+          return true;
+        },
+        signatureResolver: DataUtils.actionSignature,
         groupingEnabled: isGroupingEnabled,
         groupSize,
         activeGroupIndex: editor.activeGroupIndex,

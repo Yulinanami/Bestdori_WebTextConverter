@@ -1,7 +1,9 @@
+import { DOMUtils } from "@utils/DOMUtils.js";
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
 } from "@utils/IncrementalTimelineRenderer.js";
+import { DataUtils } from "@utils/DataUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
@@ -149,7 +151,7 @@ export function attachLive2dTimeline(editor) {
           layout: document.getElementById("timeline-layout-card-template"),
         });
       const configEntries = editorService.getCurrentConfig() || {};
-      const configSignature = JSON.stringify(configEntries);
+      const configSignature = DataUtils.shallowSignature(configEntries);
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
           ids.map((id) => [id, name])
@@ -199,11 +201,93 @@ export function attachLive2dTimeline(editor) {
         return card;
       };
 
+      const updateCard = (action, card, globalIndex = -1) => {
+        if (!card) return false;
+        if (action.type === "talk" && card.classList.contains("talk-item")) {
+          const nameDiv = card.querySelector(".speaker-name");
+          const avatarDiv = card.querySelector(".dialogue-avatar");
+          const preview = card.querySelector(".dialogue-preview-text");
+
+          if (action.speakers && action.speakers.length > 0) {
+            const firstSpeaker = action.speakers[0];
+            if (nameDiv) {
+              nameDiv.textContent = action.speakers
+                .map((s) => s.name)
+                .join(" & ");
+            }
+            if (
+              avatarDiv &&
+              avatarDiv.dataset.characterId !==
+                String(firstSpeaker.characterId || "")
+            ) {
+              editorService.updateCharacterAvatar(
+                { querySelector: () => avatarDiv },
+                firstSpeaker.characterId,
+                firstSpeaker.name
+              );
+              avatarDiv.dataset.characterId = String(
+                firstSpeaker.characterId || ""
+              );
+            }
+          } else {
+            if (nameDiv) nameDiv.textContent = "旁白";
+            if (avatarDiv) {
+              avatarDiv.classList.add("fallback");
+              avatarDiv.textContent = "N";
+            }
+          }
+
+          if (preview) {
+            preview.textContent = action.text;
+          }
+        } else if (action.type === "layout" && card.classList.contains("layout-item")) {
+          card.dataset.id = action.id;
+          card.dataset.layoutType = action.layoutType;
+          DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+
+          const characterId = action.characterId;
+          const characterName =
+            action.characterName || characterNameMap.get(action.characterId);
+          const nameDiv = card.querySelector(".speaker-name");
+          if (nameDiv) {
+            nameDiv.textContent =
+              characterName || `未知角色 (ID: ${characterId ?? "?"})`;
+          }
+
+          const avatarDiv = card.querySelector(".dialogue-avatar");
+          if (
+            avatarDiv &&
+            avatarDiv.dataset.characterId !== String(characterId || "")
+          ) {
+            editorService.updateCharacterAvatar(
+              { querySelector: () => avatarDiv },
+              characterId,
+              characterName
+            );
+            avatarDiv.dataset.characterId = String(characterId || "");
+          }
+
+          editor.renderLayoutCardControls(card, action, characterName, {
+            showToggleButton: true,
+          });
+        } else {
+          return false;
+        }
+
+        const numberDiv = card.querySelector(".card-sequence-number");
+        if (numberDiv && globalIndex !== -1) {
+          numberDiv.textContent = `#${globalIndex + 1}`;
+        }
+        return true;
+      };
+
       renderIncrementalTimeline({
         container: timeline,
         actions,
         cache: timelineCache,
         renderCard: renderSingleCard,
+        updateCard,
+        signatureResolver: DataUtils.actionSignature,
         groupingEnabled: isGroupingEnabled,
         groupSize,
         activeGroupIndex: editor.activeGroupIndex,

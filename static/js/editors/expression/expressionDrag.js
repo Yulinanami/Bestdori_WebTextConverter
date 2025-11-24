@@ -18,6 +18,11 @@ export function attachExpressionDrag(editor, baseEditor) {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
 
+      const existing = editor.sortableInstances.find(
+        (instance) => instance?.el === timeline
+      );
+      if (existing) return;
+
       // 使用 DragHelper 创建 onEnd 处理器
       const onEndHandler = DragHelper.createOnEndHandler({
         editor: baseEditor,
@@ -31,10 +36,6 @@ export function attachExpressionDrag(editor, baseEditor) {
           });
         },
       });
-
-      // 清理旧的 Sortable 实例
-      editor.sortableInstances.forEach((instance) => instance?.destroy());
-      editor.sortableInstances = [];
 
       editor.sortableInstances.push(
         new Sortable(

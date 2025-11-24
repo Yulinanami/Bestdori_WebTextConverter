@@ -8,10 +8,13 @@ import { state } from "@managers/stateManager.js";
  */
 export const libraryPanel = {
   initDragAndDropForLibraries(editor) {
-    const timelineSortable = editor.sortableInstances[0];
-    editor.sortableInstances
-      .slice(1)
-      .forEach((instance) => instance?.destroy());
+    const sortables = (editor.sortableInstances || []).filter(
+      (s) => s && s.el
+    );
+    const timelineSortable = sortables.find((s) => s.el?.id);
+    sortables
+      .filter((s) => s !== timelineSortable)
+      .forEach((instance) => instance?.el && instance.destroy());
     editor.sortableInstances = timelineSortable ? [timelineSortable] : [];
 
     ["motion", "expression"].forEach((type) => {

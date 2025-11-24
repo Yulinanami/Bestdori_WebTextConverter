@@ -142,17 +142,29 @@ export const LayoutPropertyMixin = {
     // 渲染服装选择器
     const costumeSelect = card.querySelector(".layout-costume-select");
     if (costumeSelect) {
-      DOMUtils.clearElement(costumeSelect);
       const availableCostumes =
         editorService.costumeManager.availableCostumes[characterName] || [];
-      availableCostumes.forEach((costumeId) => {
-        const option = new Option(costumeId, costumeId);
-        costumeSelect.add(option);
-      });
+      const optionsHash = availableCostumes.join("|");
+      const lastHash = costumeSelect.dataset.optionsHash;
+      const lastChar = costumeSelect.dataset.characterName;
 
-      if (action.costume && !availableCostumes.includes(action.costume)) {
-        const option = new Option(`${action.costume} (自定义)`, action.costume);
-        costumeSelect.add(option, 0);
+      if (lastHash !== optionsHash || lastChar !== characterName) {
+        DOMUtils.clearElement(costumeSelect);
+        availableCostumes.forEach((costumeId) => {
+          const option = new Option(costumeId, costumeId);
+          costumeSelect.add(option);
+        });
+
+        if (action.costume && !availableCostumes.includes(action.costume)) {
+          const option = new Option(
+            `${action.costume} (自定义)`,
+            action.costume
+          );
+          costumeSelect.add(option, 0);
+        }
+
+        costumeSelect.dataset.optionsHash = optionsHash;
+        costumeSelect.dataset.characterName = characterName || "";
       }
 
       costumeSelect.value = action.costume;
@@ -160,12 +172,15 @@ export const LayoutPropertyMixin = {
 
     // 填充主位置下拉选项
     if (positionSelect) {
-      DOMUtils.clearElement(positionSelect);
-      Object.entries(editorService.positionManager.positionNames).forEach(
-        ([value, name]) => {
-          positionSelect.add(new Option(name, value));
-        }
-      );
+      if (!positionSelect.dataset.optionsReady) {
+        DOMUtils.clearElement(positionSelect);
+        Object.entries(editorService.positionManager.positionNames).forEach(
+          ([value, name]) => {
+            positionSelect.add(new Option(name, value));
+          }
+        );
+        positionSelect.dataset.optionsReady = "true";
+      }
       positionSelect.value = currentPosition;
     }
 
@@ -181,13 +196,14 @@ export const LayoutPropertyMixin = {
     const mainOffsetLabel = card.querySelector(".main-offset-label");
 
     // 填充终点的下拉选项
-    if (toPositionSelect) {
+    if (toPositionSelect && !toPositionSelect.dataset.optionsReady) {
       DOMUtils.clearElement(toPositionSelect);
       Object.entries(editorService.positionManager.positionNames).forEach(
         ([value, name]) => {
           toPositionSelect.add(new Option(name, value));
         }
       );
+      toPositionSelect.dataset.optionsReady = "true";
     }
 
     // 根据 _independentToPosition 标记决定是否显示第二个位置行
