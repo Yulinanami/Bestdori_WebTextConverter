@@ -17,9 +17,7 @@ import { attachSpeakerPopover } from "@editors/speaker/speakerPopover.js";
 // 创建基础编辑器实例
 const baseEditor = new BaseEditor({
   renderCallback: () => {
-    const usedIds = speakerEditor.renderCanvas();
-    speakerEditor.renderCharacterList(usedIds);
-    speakerEditor._reattachSelection();
+    speakerEditor.scheduleRender();
   },
   groupSize: 50,
 });
@@ -31,10 +29,23 @@ export const speakerEditor = {
   importButtonId: "importProjectBtn",
   exportButtonId: "exportProjectBtn",
   characterListId: "speakerEditorCharacterList",
+  renderFrameId: null,
 
   isMultiSelectMode: false,
   isTextEditMode: false,
   domCache: {},
+
+  scheduleRender() {
+    if (this.renderFrameId) {
+      cancelAnimationFrame(this.renderFrameId);
+    }
+    this.renderFrameId = requestAnimationFrame(() => {
+      this.renderFrameId = null;
+      const usedIds = this.renderCanvas();
+      this.renderCharacterList(usedIds);
+      this._reattachSelection();
+    });
+  },
 
   // 初始化编辑器，绑定事件监听器和快捷键
   init() {
@@ -130,6 +141,10 @@ export const speakerEditor = {
   },
 
   onBeforeClose() {
+    if (this.renderFrameId) {
+      cancelAnimationFrame(this.renderFrameId);
+      this.renderFrameId = null;
+    }
     editorService.detachSelection(this.domCache.canvas);
   },
 };
