@@ -152,10 +152,14 @@ export const expressionEditor = {
       this._executeCommand((currentState) => {
         currentState.actions.forEach((action) => {
           if (action.type === "talk") action.motions = [];
-          else if (action.type === "layout") action.initialState = {};
+          else if (action.type === "layout") {
+            delete action.initialState;
+            delete action.delay;
+          }
         });
       });
       ui.showStatus("已恢复默认表情动作。", "success");
+      this.renderTimeline();
     } finally {
       if (resetBtn && originalText) resetBtn.textContent = originalText;
     }
