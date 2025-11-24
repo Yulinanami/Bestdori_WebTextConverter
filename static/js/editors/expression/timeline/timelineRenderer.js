@@ -17,12 +17,7 @@ export function renderTimeline(editor) {
   const actions = editor.projectFileState.actions;
   const groupSize = 50;
 
-  const actionIndexMap = new Map(
-    editor.projectFileState.actions.map((a, idx) => [a.id, idx])
-  );
-
-  const renderSingleCard = (action) => {
-    const globalIndex = actionIndexMap.get(action.id) ?? -1;
+  const renderSingleCard = (action, globalIndex = -1) => {
     let card;
 
     if (action.type === "talk") {
@@ -149,8 +144,8 @@ export function renderTimeline(editor) {
   } else {
     DOMUtils.clearElement(timeline);
     const fragment = document.createDocumentFragment();
-    actions.forEach((action) => {
-      const card = renderSingleCard(action);
+    actions.forEach((action, idx) => {
+      const card = renderSingleCard(action, idx);
       if (card) fragment.appendChild(card);
     });
     timeline.appendChild(fragment);

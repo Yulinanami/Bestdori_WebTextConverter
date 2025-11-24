@@ -138,13 +138,7 @@ export function attachLive2dTimeline(editor) {
       const actions = editor.projectFileState.actions;
       const groupSize = 50;
 
-      // 创建索引缓存 Map
-      const actionIndexMap = new Map(
-        editor.projectFileState.actions.map((a, idx) => [a.id, idx])
-      );
-
-      const renderSingleCard = (action) => {
-        const globalIndex = actionIndexMap.get(action.id) ?? -1;
+      const renderSingleCard = (action, globalIndex = -1) => {
         let card;
 
         if (action.type === "talk") {
@@ -200,8 +194,8 @@ export function attachLive2dTimeline(editor) {
       } else {
         DOMUtils.clearElement(timeline);
         const fragment = document.createDocumentFragment();
-        actions.forEach((action) => {
-          const card = renderSingleCard(action);
+        actions.forEach((action, idx) => {
+          const card = renderSingleCard(action, idx);
           if (card) fragment.appendChild(card);
         });
         timeline.appendChild(fragment);

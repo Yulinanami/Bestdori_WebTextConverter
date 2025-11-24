@@ -21,7 +21,6 @@ export function attachSpeakerCanvas(editor) {
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions;
       const groupSize = 50;
-      const actionIndexMap = new Map(actions.map((a, idx) => [a.id, idx]));
 
       const talkTemplate = document.getElementById(
         "text-snippet-card-template"
@@ -30,8 +29,7 @@ export function attachSpeakerCanvas(editor) {
         "timeline-layout-card-template"
       );
 
-      const renderSingleCard = (action) => {
-        const globalIndex = actionIndexMap.get(action.id) ?? -1;
+      const renderSingleCard = (action, globalIndex = -1) => {
         let card;
 
         if (action.type === "talk") {
@@ -147,8 +145,8 @@ export function attachSpeakerCanvas(editor) {
       } else {
         DOMUtils.clearElement(canvas);
         const fragment = document.createDocumentFragment();
-        actions.forEach((action) => {
-          const renderedCard = renderSingleCard(action);
+        actions.forEach((action, idx) => {
+          const renderedCard = renderSingleCard(action, idx);
           if (renderedCard) fragment.appendChild(renderedCard);
         });
         canvas.appendChild(fragment);

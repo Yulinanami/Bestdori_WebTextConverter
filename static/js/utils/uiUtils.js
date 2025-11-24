@@ -144,7 +144,7 @@ export function initPerformanceSettingsPersistence() {
  * @param {Array} actions - 动作数组
  * @param {number|null} activeGroupIndex - 当前展开的组索引
  * @param {Function} onGroupClick - 组头点击回调
- * @param {Function} renderItemFn - 单个动作渲染函数
+ * @param {Function} renderItemFn - 单个动作渲染函数 (action, globalIndex)
  * @param {number} groupSize - 每组大小,默认50
  */
 export function renderGroupedView({
@@ -191,8 +191,8 @@ export function renderGroupedView({
         "var(--group-header-active-border, #90cdf4)";
 
       const actionsToRender = actions.slice(startNum - 1, endNum);
-      actionsToRender.forEach((action) => {
-        const cardElement = renderItemFn(action);
+      actionsToRender.forEach((action, idx) => {
+        const cardElement = renderItemFn(action, startNum - 1 + idx);
         if (cardElement) {
           fragment.appendChild(cardElement);
         }
