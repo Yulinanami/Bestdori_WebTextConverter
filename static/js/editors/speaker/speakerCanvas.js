@@ -1,9 +1,14 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { renderGroupedView } from "@utils/uiUtils.js";
+import {
+  createTimelineRenderCache,
+  renderIncrementalTimeline,
+} from "@utils/IncrementalTimelineRenderer.js";
 import { editorService } from "@services/EditorService.js";
 
 // 负责渲染左侧对话/布局卡片，以及多说话人弹窗
 export function attachSpeakerCanvas(editor) {
+  const canvasCache = createTimelineRenderCache();
+
   Object.assign(editor, {
     /**
      * 渲染左侧对话卡片画布
@@ -19,7 +24,7 @@ export function attachSpeakerCanvas(editor) {
 
       const usedIds = editor._getUsedCharacterIds();
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
-      const actions = editor.projectFileState.actions;
+      const actions = editor.projectFileState.actions || [];
       const groupSize = 50;
 
       const templates =
@@ -29,6 +34,7 @@ export function attachSpeakerCanvas(editor) {
           layout: document.getElementById("timeline-layout-card-template"),
         });
       const configEntries = editorService.getCurrentConfig() || {};
+      const configSignature = JSON.stringify(configEntries);
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
           ids.map((id) => [id, name])
@@ -36,11 +42,11 @@ export function attachSpeakerCanvas(editor) {
       );
 
       const renderSingleCard = (action, globalIndex = -1) => {
-        let card;
+        let cardElement;
 
         if (action.type === "talk") {
-          card = templates.talk.content.cloneNode(true);
-          const dialogueItem = card.firstElementChild;
+          cardElement = templates.talk.content.cloneNode(true);
+          const dialogueItem = cardElement.firstElementChild;
           dialogueItem.dataset.id = action.id;
           const avatarContainer = dialogueItem.querySelector(
             ".speaker-avatar-container"
@@ -86,8 +92,8 @@ export function attachSpeakerCanvas(editor) {
           dialogueItem.querySelector(".dialogue-text").textContent =
             action.text;
         } else if (action.type === "layout") {
-          card = templates.layout.content.cloneNode(true);
-          const item = card.firstElementChild;
+          cardElement = templates.layout.content.cloneNode(true);
+          const item = cardElement.firstElementChild;
           item.dataset.id = action.id;
           item.dataset.layoutType = action.layoutType;
           item.classList.remove("dialogue-item");
@@ -109,12 +115,18 @@ export function attachSpeakerCanvas(editor) {
             characterName
           );
           // 使用共享的渲染函数（在对话编辑器中隐藏切换按钮）
-          editor.renderLayoutCardControls(card, action, characterName, {
+          editor.renderLayoutCardControls(cardElement, action, characterName, {
             showToggleButton: false,
           });
         } else {
           return null;
         }
+
+        const card =
+          cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+            ? cardElement.firstElementChild
+            : cardElement;
+        if (!card) return null;
 
         const numberDiv = card.querySelector(".card-sequence-number");
         if (numberDiv && globalIndex !== -1) {
@@ -123,46 +135,39 @@ export function attachSpeakerCanvas(editor) {
         return card;
       };
 
-      if (isGroupingEnabled && actions.length > groupSize) {
-        renderGroupedView({
-          container: canvas,
-          actions,
-          activeGroupIndex: editor.activeGroupIndex,
-          onGroupClick: (index) => {
-            const isOpening = editor.activeGroupIndex !== index;
-            editor.activeGroupIndex = isOpening ? index : null;
-            editor.renderCanvas();
-            if (isOpening) {
-              setTimeout(() => {
-                const scrollContainer = editor.domCache.canvas;
-                const header = scrollContainer?.querySelector(
-                  `.timeline-group-header[data-group-idx="${index}"]`
-                );
-                if (
-                  scrollContainer &&
-                  header &&
-                  scrollContainer.scrollTop !== header.offsetTop - 110
-                ) {
-                  scrollContainer.scrollTo({
-                    top: header.offsetTop - 110,
-                    behavior: "smooth",
-                  });
-                }
-              }, 0);
-            }
-          },
-          renderItemFn: renderSingleCard,
-          groupSize,
-        });
-      } else {
-        DOMUtils.clearElement(canvas);
-        const fragment = document.createDocumentFragment();
-        actions.forEach((action, idx) => {
-          const renderedCard = renderSingleCard(action, idx);
-          if (renderedCard) fragment.appendChild(renderedCard);
-        });
-        canvas.appendChild(fragment);
-      }
+      renderIncrementalTimeline({
+        container: canvas,
+        actions,
+        cache: canvasCache,
+        renderCard: renderSingleCard,
+        groupingEnabled: isGroupingEnabled,
+        groupSize,
+        activeGroupIndex: editor.activeGroupIndex,
+        contextSignature: configSignature,
+        onGroupToggle: (index) => {
+          const isOpening = editor.activeGroupIndex !== index;
+          editor.activeGroupIndex = isOpening ? index : null;
+          editor.renderCanvas();
+          if (isOpening) {
+            setTimeout(() => {
+              const scrollContainer = editor.domCache.canvas;
+              const header = scrollContainer?.querySelector(
+                `.timeline-group-header[data-group-idx="${index}"]`
+              );
+              if (
+                scrollContainer &&
+                header &&
+                scrollContainer.scrollTop !== header.offsetTop - 110
+              ) {
+                scrollContainer.scrollTo({
+                  top: header.offsetTop - 110,
+                  behavior: "smooth",
+                });
+              }
+            }, 0);
+          }
+        },
+      });
 
       return usedIds;
     },
