@@ -47,6 +47,27 @@ export const projectManager = {
    */
   async import() {
     return new Promise((resolve) => {
+      const isValidProjectFile = (data) => {
+        if (!data || !Array.isArray(data.actions)) return false;
+        return data.actions.every((action) => {
+          if (!action || typeof action !== "object") return false;
+          if (typeof action.type !== "string") return false;
+          if (action.type === "talk") {
+            return (
+              Array.isArray(action.speakers) &&
+              typeof action.text === "string"
+            );
+          }
+          if (action.type === "layout") {
+            return (
+              typeof action.layoutType === "string" &&
+              action.hasOwnProperty("characterId")
+            );
+          }
+          return false;
+        });
+      };
+
       const input = document.createElement("input");
       input.type = "file";
       input.accept = ".json";
@@ -60,12 +81,13 @@ export const projectManager = {
         reader.onload = (event) => {
           try {
             const importedProject = JSON.parse(event.target.result);
-            if (importedProject && importedProject.actions) {
-              ui.showStatus("项目导入成功！", "success");
-              resolve(importedProject);
-            } else {
-              throw new Error("无效的项目文件格式。");
+            if (!isValidProjectFile(importedProject)) {
+              throw new Error(
+                "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。"
+              );
             }
+            ui.showStatus("项目导入成功！", "success");
+            resolve(importedProject);
           } catch (err) {
             ui.showStatus(`导入失败: ${err.message}`, "error");
             resolve(null);
