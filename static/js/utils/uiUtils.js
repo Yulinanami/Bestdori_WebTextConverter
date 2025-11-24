@@ -2,7 +2,6 @@
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
-import { DOMUtils } from "@utils/DOMUtils.js";
 
 let statusTimer = null;
 export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
@@ -133,72 +132,4 @@ export function initPerformanceSettingsPersistence() {
       }
     }
   });
-}
-
-/**
- * 渲染分组折叠视图
- * 将大量动作分组显示,每组50条(可配置)
- * 点击组头展开/折叠该组,同时只能展开一组
- * 性能优化:只渲染展开组的DOM元素,其他组只显示头部
- * @param {HTMLElement} container - 容器元素
- * @param {Array} actions - 动作数组
- * @param {number|null} activeGroupIndex - 当前展开的组索引
- * @param {Function} onGroupClick - 组头点击回调
- * @param {Function} renderItemFn - 单个动作渲染函数 (action, globalIndex)
- * @param {number} groupSize - 每组大小,默认50
- */
-export function renderGroupedView({
-  container,
-  actions,
-  activeGroupIndex,
-  onGroupClick,
-  renderItemFn,
-  groupSize = 50,
-}) {
-  DOMUtils.clearElement(container);
-  const totalActions = actions.length;
-  const numGroups = Math.ceil(totalActions / groupSize);
-  const fragment = document.createDocumentFragment();
-
-  for (let i = 0; i < numGroups; i++) {
-    const startNum = i * groupSize + 1;
-    const endNum = Math.min((i + 1) * groupSize, totalActions);
-    const groupHeader = document.createElement("div");
-
-    groupHeader.className = "timeline-group-header";
-    groupHeader.textContent = `▶ 对话 ${startNum} - ${endNum} (${
-      endNum - startNum + 1
-    }条)`;
-    groupHeader.dataset.groupIdx = i;
-    groupHeader.style.cursor = "pointer";
-    groupHeader.style.padding = "12px 18px";
-    groupHeader.style.background = "var(--bg-secondary)";
-    groupHeader.style.border = "1px solid var(--border-primary)";
-    groupHeader.style.borderRadius = "var(--radius-lg)";
-    groupHeader.style.marginBottom = "15px";
-    groupHeader.style.fontWeight = "600";
-    groupHeader.style.transition = "all 0.2s ease";
-    groupHeader.addEventListener("click", () => onGroupClick(i));
-    fragment.appendChild(groupHeader);
-
-    if (i === activeGroupIndex) {
-      groupHeader.classList.add("active");
-      groupHeader.textContent = `▼ 对话 ${startNum} - ${endNum} (${
-        endNum - startNum + 1
-      }条)`;
-      groupHeader.style.background = "var(--group-header-active-bg, #ebf8ff)";
-      groupHeader.style.borderColor =
-        "var(--group-header-active-border, #90cdf4)";
-
-      const actionsToRender = actions.slice(startNum - 1, endNum);
-      actionsToRender.forEach((action, idx) => {
-        const cardElement = renderItemFn(action, startNum - 1 + idx);
-        if (cardElement) {
-          fragment.appendChild(cardElement);
-        }
-      });
-    }
-  }
-
-  container.appendChild(fragment);
 }
