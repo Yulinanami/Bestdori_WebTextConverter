@@ -1,9 +1,9 @@
-import { DOMUtils } from "@utils/DOMUtils.js";
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
+import { DOMUtils } from "@utils/DOMUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
@@ -35,6 +35,82 @@ export function renderTimeline(editor) {
       ids.map((id) => [id, name])
     )
   );
+
+  const renderAssignments = (card, action) => {
+    const footer = card.querySelector(".timeline-item-footer");
+    if (!footer) return;
+    DOMUtils.clearElement(footer);
+
+    if (!editor._actionHasExpressionData(action)) {
+      const setupButton = DOMUtils.createButton(
+        "设置动作/表情",
+        "btn btn-secondary btn-sm setup-expressions-btn"
+      );
+      footer.appendChild(setupButton);
+      return;
+    }
+
+    if (action.type === "talk") {
+      const assignmentsContainer = DOMUtils.createElement("div", {
+        className: "motion-assignments-container",
+      });
+      assignmentsContainer.dataset.actionId = action.id;
+
+      if (action.motions && action.motions.length > 0) {
+        action.motions.forEach((motionData, index) => {
+          const assignmentItem = editor._createAssignmentItem(
+            action,
+            motionData,
+            index
+          );
+          assignmentsContainer.appendChild(assignmentItem);
+        });
+      }
+
+      const characterSelector = editor._createCharacterSelector(action);
+      characterSelector.style.display = "none";
+
+      const setupButton = DOMUtils.createButton(
+        "设置动作/表情",
+        "btn btn-secondary btn-sm setup-expressions-btn"
+      );
+
+      footer.appendChild(assignmentsContainer);
+      footer.appendChild(characterSelector);
+      footer.appendChild(setupButton);
+    } else if (action.type === "layout") {
+      const assignmentsContainer = DOMUtils.createElement("div", {
+        className: "motion-assignments-container",
+      });
+      assignmentsContainer.dataset.actionId = action.id;
+
+      const char = {
+        id: action.characterId,
+        name:
+          action.characterName ||
+          editorService.getCharacterNameById(action.characterId),
+      };
+
+      if (char.name) {
+        const motionData = {
+          character: char.id,
+          motion: action.initialState?.motion || "",
+          expression: action.initialState?.expression || "",
+          delay: action.delay || 0,
+        };
+
+        const assignmentItem = editor._createAssignmentItem(
+          action,
+          motionData,
+          0,
+          true
+        );
+        assignmentsContainer.appendChild(assignmentItem);
+      }
+
+      footer.appendChild(assignmentsContainer);
+    }
+  };
 
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
@@ -77,84 +153,87 @@ export function renderTimeline(editor) {
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
-
-    const footer = card.querySelector(".timeline-item-footer");
-    if (editor._actionHasExpressionData(action)) {
-      if (action.type === "talk") {
-        const assignmentsContainer = DOMUtils.createElement("div", {
-          className: "motion-assignments-container",
-        });
-        assignmentsContainer.dataset.actionId = action.id;
-
-        if (action.motions && action.motions.length > 0) {
-          action.motions.forEach((motionData, index) => {
-            const assignmentItem = editor._createAssignmentItem(
-              action,
-              motionData,
-              index
-            );
-            assignmentsContainer.appendChild(assignmentItem);
-          });
-        }
-
-        const characterSelector = editor._createCharacterSelector(action);
-        characterSelector.style.display = "none";
-
-        const setupButton = DOMUtils.createButton(
-          "设置动作/表情",
-          "btn btn-secondary btn-sm setup-expressions-btn"
-        );
-
-        DOMUtils.clearElement(footer);
-        footer.appendChild(assignmentsContainer);
-        footer.appendChild(characterSelector);
-        footer.appendChild(setupButton);
-      } else if (action.type === "layout") {
-        const assignmentsContainer = DOMUtils.createElement("div", {
-          className: "motion-assignments-container",
-        });
-        assignmentsContainer.dataset.actionId = action.id;
-
-        const char = {
-          id: action.characterId,
-          name:
-            action.characterName ||
-            editorService.getCharacterNameById(action.characterId),
-        };
-
-        if (char.name) {
-          const motionData = {
-            character: char.id,
-            motion: action.initialState?.motion || "",
-            expression: action.initialState?.expression || "",
-            delay: action.delay || 0,
-          };
-
-          const assignmentItem = editor._createAssignmentItem(
-            action,
-            motionData,
-            0,
-            true
-          );
-          assignmentsContainer.appendChild(assignmentItem);
-        }
-
-        DOMUtils.clearElement(footer);
-        footer.appendChild(assignmentsContainer);
-      }
-    } else {
-      DOMUtils.clearElement(footer);
-      const setupButton = DOMUtils.createButton(
-        "设置动作/表情",
-        "btn btn-secondary btn-sm setup-expressions-btn"
-      );
-      footer.appendChild(setupButton);
-    }
+    renderAssignments(card, action);
 
     return card;
   };
 
-  const updateCard = () => false;
+  const updateCard = (action, card, globalIndex = -1) => {
+    if (!card) return false;
+
+    if (action.type === "talk" && card.classList.contains("talk-item")) {
+      const nameDiv = card.querySelector(".speaker-name");
+      const avatarDiv = card.querySelector(".dialogue-avatar");
+      const preview = card.querySelector(".dialogue-preview-text");
+
+      if (action.speakers && action.speakers.length > 0) {
+        const firstSpeaker = action.speakers[0];
+        if (nameDiv) {
+          nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
+        }
+        if (
+          avatarDiv &&
+          avatarDiv.dataset.characterId !== String(firstSpeaker.characterId || "")
+        ) {
+          editorService.updateCharacterAvatar(
+            { querySelector: () => avatarDiv },
+            firstSpeaker.characterId,
+            firstSpeaker.name
+          );
+          avatarDiv.dataset.characterId = String(firstSpeaker.characterId || "");
+        }
+      } else {
+        if (nameDiv) nameDiv.textContent = "旁白";
+        if (avatarDiv) {
+          avatarDiv.classList.add("fallback");
+          avatarDiv.textContent = "N";
+        }
+      }
+
+      if (preview) {
+        preview.textContent = action.text;
+      }
+    } else if (
+      action.type === "layout" &&
+      card.classList.contains("layout-item")
+    ) {
+      card.dataset.id = action.id;
+      card.dataset.layoutType = action.layoutType;
+      DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+
+      const characterId = action.characterId;
+      const characterName =
+        action.characterName || characterNameMap.get(action.characterId);
+      const nameDiv = card.querySelector(".speaker-name");
+      if (nameDiv) {
+        nameDiv.textContent =
+          characterName || `未知角色 (ID: ${characterId ?? "?"})`;
+      }
+
+      const avatarDiv = card.querySelector(".dialogue-avatar");
+      if (
+        avatarDiv &&
+        avatarDiv.dataset.characterId !== String(characterId || "")
+      ) {
+        editorService.updateCharacterAvatar(
+          { querySelector: () => avatarDiv },
+          characterId,
+          characterName
+        );
+        avatarDiv.dataset.characterId = String(characterId || "");
+      }
+    } else {
+      return false;
+    }
+
+    const numberDiv = card.querySelector(".card-sequence-number");
+    if (numberDiv && globalIndex !== -1) {
+      numberDiv.textContent = `#${globalIndex + 1}`;
+    }
+
+    renderAssignments(card, action);
+    return true;
+  };
 
   renderIncrementalTimeline({
     container: timeline,
