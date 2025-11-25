@@ -128,16 +128,6 @@ export const expressionEditor = {
     this.renderTimeline();
   },
 
-  _createActionFromSegment(index, text, speakers) {
-    return {
-      id: `action-id-${Date.now()}-${index}`,
-      type: "talk",
-      text: text,
-      speakers: speakers,
-      motions: [],
-    };
-  },
-
   // 恢复默认表情动作（清空所有角色状态配置）
   async reset() {
     if (!confirm("确定要恢复默认表情动作吗？此操作可以撤销。")) {

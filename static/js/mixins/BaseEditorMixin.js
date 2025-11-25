@@ -171,6 +171,7 @@ export const BaseEditorMixin = {
       type: "talk",
       text: text,
       speakers: speakers,
+      motions: [],
     };
   },
 };

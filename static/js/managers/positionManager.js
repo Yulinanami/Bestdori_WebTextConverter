@@ -11,7 +11,6 @@ export const positionManager = {
   positionNames: positionUI.positionNames,
 
   manualPositions: {},
-  positionCounter: 0,
   tempManualPositions: {},
   tempAutoPositionMode: true,
   autoPositionMode: true,
