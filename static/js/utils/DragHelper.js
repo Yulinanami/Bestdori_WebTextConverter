@@ -153,8 +153,10 @@ export const DragHelper = {
         executeFn(data, globalInsertIndex);
       }
 
-      // 移除拖拽项
-      item.remove();
+      // 移除拖拽项（仅当它不属于源列表时，避免误删原始节点）
+      if (item && item.parentNode && item.parentNode !== evt.from) {
+        item.remove();
+      }
     };
   },
 };

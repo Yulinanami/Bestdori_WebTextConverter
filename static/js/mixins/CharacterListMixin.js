@@ -2,7 +2,16 @@
 // 提供角色列表的渲染和置顶功能
 
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
+
+function createCharacterListCache() {
+  return {
+    nodesByName: new Map(),
+    signatures: new Map(),
+    contextSignature: "",
+  };
+}
 
 export const CharacterListMixin = {
   /**
@@ -16,10 +25,25 @@ export const CharacterListMixin = {
     const template = document.getElementById("draggable-character-template");
     if (!template) return;
 
-    DOMUtils.clearElement(listContainer);
+    const cache =
+      this._characterListCache || (this._characterListCache = createCharacterListCache());
     const fragment = document.createDocumentFragment();
     const characters = editorService.getAllCharacters();
     const pinned = editorService.getPinnedCharacters();
+
+    // 计算上下文签名（角色配置 + 置顶列表），发生变化时强制更新签名缓存
+    const configSignature = DataUtils.shallowSignature(
+      characters.reduce((acc, [name, ids]) => {
+        acc[name] = ids;
+        return acc;
+      }, {})
+    );
+    const pinnedSignature = JSON.stringify(Array.from(pinned).sort());
+    const contextSignature = `${configSignature}|${pinnedSignature}`;
+    if (cache.contextSignature !== contextSignature) {
+      cache.signatures.clear();
+      cache.contextSignature = contextSignature;
+    }
 
     // 排序：置顶角色优先，然后按ID排序
     characters.sort(([nameA, idsA], [nameB, idsB]) => {
@@ -30,34 +54,63 @@ export const CharacterListMixin = {
       return idsA[0] - idsB[0];
     });
 
+    const validNames = new Set();
+
     // 渲染角色项
     characters.forEach(([name, ids]) => {
-      const item = template.content.cloneNode(true);
-      const characterItem = item.querySelector(".character-item");
       const characterId = ids[0];
-      characterItem.dataset.characterId = characterId;
-      characterItem.dataset.characterName = name;
+      const isPinned = pinned.has(name);
+      const isUsed = usedCharacterNames && usedCharacterNames.has(name);
+      const signature = `${characterId}|${isPinned ? 1 : 0}|${isUsed ? 1 : 0}`;
+      validNames.add(name);
 
-      // 标记已使用的角色
-      if (usedCharacterNames && usedCharacterNames.has(name)) {
-        characterItem.classList.add("is-used");
+      const cachedSignature = cache.signatures.get(name);
+      let card = cache.nodesByName.get(name);
+      const needsUpdate = !card || cachedSignature !== signature;
+
+      if (!card) {
+        const instance = template.content.cloneNode(true);
+        card = instance.querySelector(".character-item") || instance.firstElementChild;
       }
 
-      // 更新角色头像
-      const avatarWrapper = { querySelector: (sel) => item.querySelector(sel) };
-      editorService.updateCharacterAvatar(avatarWrapper, characterId, name);
-      item.querySelector(".character-name").textContent = name;
-
-      // 设置置顶按钮状态
-      const pinBtn = item.querySelector(".pin-btn");
-      if (pinned.has(name)) {
-        pinBtn.classList.add("is-pinned");
+      if (card) {
+        // 复位可能由拖拽留下的状态，避免被隐藏或异常样式
+        card.style.display = "";
+        card.classList.remove("sortable-ghost", "sortable-chosen", "sortable-drag");
       }
 
-      fragment.appendChild(item);
+      if (needsUpdate && card) {
+        card.dataset.characterId = characterId;
+        card.dataset.characterName = name;
+        card.classList.toggle("is-used", !!isUsed);
+
+        const pinBtn = card.querySelector(".pin-btn");
+        if (pinBtn) {
+          pinBtn.classList.toggle("is-pinned", isPinned);
+        }
+
+        editorService.updateCharacterAvatar(card, characterId, name);
+        const nameEl = card.querySelector(".character-name");
+        if (nameEl) nameEl.textContent = name;
+
+        cache.signatures.set(name, signature);
+        cache.nodesByName.set(name, card);
+      }
+
+      if (card) {
+        fragment.appendChild(card);
+      }
     });
 
-    listContainer.appendChild(fragment);
+    // 清理无效缓存节点
+    for (const cachedName of Array.from(cache.nodesByName.keys())) {
+      if (!validNames.has(cachedName)) {
+        cache.nodesByName.delete(cachedName);
+        cache.signatures.delete(cachedName);
+      }
+    }
+
+    listContainer.replaceChildren(fragment);
   },
 
   /**
