@@ -54,6 +54,9 @@ dist/
 *.egg
 *.spec
 *.ico
+*.png
+*.jpg
+*.jpeg
 
 config.local.yaml
 secrets.yaml
