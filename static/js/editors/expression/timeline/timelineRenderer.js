@@ -36,80 +36,22 @@ export function renderTimeline(editor) {
     )
   );
 
-  const renderAssignments = (card, action) => {
+  const renderFooter = (card, action) => {
     const footer = card.querySelector(".timeline-item-footer");
     if (!footer) return;
     DOMUtils.clearElement(footer);
 
-    if (!editor._actionHasExpressionData(action)) {
-      const setupButton = DOMUtils.createButton(
-        "设置动作/表情",
-        "btn btn-secondary btn-sm setup-expressions-btn"
-      );
-      footer.appendChild(setupButton);
+    if (editor._actionHasExpressionData(action)) {
+      // 复用统一的分配渲染逻辑，避免两套实现
+      editor.showExpressionSetupUI(card);
       return;
     }
 
-    if (action.type === "talk") {
-      const assignmentsContainer = DOMUtils.createElement("div", {
-        className: "motion-assignments-container",
-      });
-      assignmentsContainer.dataset.actionId = action.id;
-
-      if (action.motions && action.motions.length > 0) {
-        action.motions.forEach((motionData, index) => {
-          const assignmentItem = editor._createAssignmentItem(
-            action,
-            motionData,
-            index
-          );
-          assignmentsContainer.appendChild(assignmentItem);
-        });
-      }
-
-      const characterSelector = editor._createCharacterSelector(action);
-      characterSelector.style.display = "none";
-
-      const setupButton = DOMUtils.createButton(
-        "设置动作/表情",
-        "btn btn-secondary btn-sm setup-expressions-btn"
-      );
-
-      footer.appendChild(assignmentsContainer);
-      footer.appendChild(characterSelector);
-      footer.appendChild(setupButton);
-    } else if (action.type === "layout") {
-      const assignmentsContainer = DOMUtils.createElement("div", {
-        className: "motion-assignments-container",
-      });
-      assignmentsContainer.dataset.actionId = action.id;
-
-      const char = {
-        id: action.characterId,
-        name:
-          action.characterName ||
-          editorService.getCharacterNameById(action.characterId),
-      };
-
-      if (char.name) {
-        const motionData = {
-          character: char.id,
-          motion: action.initialState?.motion || "",
-          expression: action.initialState?.expression || "",
-          delay: action.delay || 0,
-        };
-
-        const assignmentItem = editor._createAssignmentItem(
-          action,
-          motionData,
-          0,
-          true
-        );
-        assignmentsContainer.appendChild(assignmentItem);
-      }
-
-      footer.appendChild(assignmentsContainer);
-    }
+    const setupButton = DOMUtils.createButton(
+      "设置动作/表情",
+      "btn btn-secondary btn-sm setup-expressions-btn"
+    );
+    footer.appendChild(setupButton);
   };
 
   const renderSingleCard = (action, globalIndex = -1) => {
@@ -153,7 +95,7 @@ export function renderTimeline(editor) {
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
-    renderAssignments(card, action);
+    renderFooter(card, action);
 
     return card;
   };
@@ -231,7 +173,7 @@ export function renderTimeline(editor) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
 
-    renderAssignments(card, action);
+    renderFooter(card, action);
     return true;
   };
 
