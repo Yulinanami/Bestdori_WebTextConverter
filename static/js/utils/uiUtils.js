@@ -120,7 +120,7 @@ export function initPerformanceSettingsPersistence() {
   if (!checkbox) return;
 
   // 加载保存的设置
-  const savedState = storageService.get(GROUPING_STORAGE_KEY, false);
+  const savedState = storageService.get(GROUPING_STORAGE_KEY, true);
   checkbox.checked = savedState === true || savedState === "true";
 
   // 监听变化
