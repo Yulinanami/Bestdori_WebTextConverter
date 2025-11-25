@@ -4,8 +4,13 @@ import threading
 import webbrowser
 import atexit
 import logging
+import mimetypes
 from waitress import serve
 from src.app import create_app
+
+# 强制修正 JavaScript MIME 类型
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('application/javascript', '.mjs')
 
 # 配置根日志记录器
 logging.basicConfig(
