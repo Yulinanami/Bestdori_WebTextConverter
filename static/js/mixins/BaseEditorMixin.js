@@ -2,6 +2,7 @@
 // 提供保存、导入、导出、关闭、命令执行等核心功能
 import { DataUtils } from "@utils/DataUtils.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
+import { createProjectFileFromText } from "@utils/ConverterCore.js";
 import { historyManager } from "@managers/historyManager.js";
 import { editorService } from "@services/EditorService.js";
 
@@ -109,34 +110,17 @@ export const BaseEditorMixin = {
    * @returns {Object} 项目文件对象
    */
   _createProjectFileFromSegments(segments) {
-    const characterMap = new Map(
-      Object.entries(editorService.getCurrentConfig()).map(([name, ids]) => [
-        name,
-        { characterId: ids[0], name: name },
-      ])
+    const text = segments.join("\n\n");
+    const baseProject = createProjectFileFromText(
+      text,
+      editorService.getCurrentConfig()
     );
-
-    const newProjectFile = {
-      version: "1.0",
-      actions: segments.map((text, index) => {
-        let speakers = [];
-        let cleanText = text;
-        const match = text.match(/^(.*?)\s*[：:]\s*(.*)$/s);
-
-        if (match) {
-          const potentialSpeakerName = match[1].trim();
-          if (characterMap.has(potentialSpeakerName)) {
-            speakers.push(characterMap.get(potentialSpeakerName));
-            cleanText = match[2].trim();
-          }
-        }
-
-        // 调用子类实现的 createAction 方法
-        return this._createActionFromSegment(index, cleanText, speakers);
-      }),
-    };
-
-    return newProjectFile;
+    const actions = baseProject.actions.map((action, index) =>
+      this._createActionFromSegment
+        ? this._createActionFromSegment(index, action.text, action.speakers)
+        : action
+    );
+    return { ...baseProject, actions };
   },
 
   /**

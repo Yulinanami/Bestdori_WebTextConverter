@@ -1,11 +1,6 @@
 // 核心转换逻辑：将文本拆分为项目文件格式（无 DOM/状态依赖）
 
-/**
- * 根据角色配置生成角色映射表
- * @param {Object<string, Array<number>>} characterConfig
- * @returns {Map<string, { characterId: number, name: string }>}
- */
-export function buildCharacterMap(characterConfig = {}) {
+function buildCharacterMap(characterConfig = {}) {
   return new Map(
     Object.entries(characterConfig).map(([name, ids]) => [
       name,

@@ -111,8 +111,9 @@ export const fileHandler = {
     }
   },
 
-  // 通用的下载逻辑
-  async _download(buttonId) {
+  // 下载结果
+  async downloadResult() {
+    const buttonId = "downloadBtn";
     if (!state.get("currentResult")) {
       ui.showStatus("没有可下载的结果！", "error");
       return;
@@ -148,10 +149,5 @@ export const fileHandler = {
       },
       "下载中..."
     );
-  },
-
-  // 下载结果
-  async downloadResult() {
-    await this._download("downloadBtn");
   },
 };
