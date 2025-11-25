@@ -92,6 +92,7 @@
 
 - Python 3 (3.10+)
 - pip (Python 包管理器)
+- 浏览器务必使用最新版本Chrome、Edge等现代浏览器
 
 ### 安装步骤
 
