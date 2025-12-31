@@ -16,6 +16,12 @@ export const EventHandlerMixin = {
       historyManager.redo()
     );
 
+    // 初始化撤销/重做按钮状态（避免复用上一次打开时的 UI 状态）
+    if (this.domCache.undoBtn)
+      this.domCache.undoBtn.disabled = !historyManager.canUndo();
+    if (this.domCache.redoBtn)
+      this.domCache.redoBtn.disabled = !historyManager.canRedo();
+
     // 保存/导入/导出按钮
     document
       .getElementById(this.saveButtonId)
@@ -44,12 +50,10 @@ export const EventHandlerMixin = {
 
     // 历史状态变化监听（更新撤销/重做按钮状态）
     document.addEventListener("historychange", (e) => {
-      if (this.domCache.modal?.style.display === "flex") {
-        if (this.domCache.undoBtn)
-          this.domCache.undoBtn.disabled = !e.detail.canUndo;
-        if (this.domCache.redoBtn)
-          this.domCache.redoBtn.disabled = !e.detail.canRedo;
-      }
+      if (this.domCache.undoBtn)
+        this.domCache.undoBtn.disabled = !e.detail.canUndo;
+      if (this.domCache.redoBtn)
+        this.domCache.redoBtn.disabled = !e.detail.canRedo;
     });
 
     // 快捷键监听
