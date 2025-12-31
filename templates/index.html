@@ -13,6 +13,15 @@
         }
       })();
     </script>
+    <!-- 兼容部分 ESM 依赖在浏览器中读取 process.env（例如 Immer） -->
+    <script>
+      (function () {
+        window.process = window.process || { env: {} };
+        window.process.env = window.process.env || {};
+        window.process.env.NODE_ENV =
+          window.process.env.NODE_ENV || "production";
+      })();
+    </script>
     <link
       rel="icon"
       type="image/svg+xml"
@@ -1481,6 +1490,7 @@
     <script type="importmap">
       {
         "imports": {
+          "immer": "/static/js/lib/immer.mjs",
           "@utils/": "/static/js/utils/",
           "@services/": "/static/js/services/",
           "@editors/": "/static/js/editors/",

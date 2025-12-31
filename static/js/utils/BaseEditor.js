@@ -5,7 +5,9 @@
  */
 
 import { historyManager } from "@managers/historyManager.js";
-import { DataUtils } from "@utils/DataUtils.js";
+import { applyPatches, enablePatches, produceWithPatches } from "immer";
+
+enablePatches();
 
 export class BaseEditor {
   constructor(config = {}) {
@@ -29,12 +31,11 @@ export class BaseEditor {
    */
   executeCommand(changeFn, options = {}) {
     const beforeState = this.projectFileState || {};
-    const draft = DataUtils.deepClone(beforeState);
-    changeFn(draft);
-
-    const { patches, inversePatches } = DataUtils.generatePatches(
+    const [nextState, patches, inversePatches] = produceWithPatches(
       beforeState,
-      draft
+      (draft) => {
+        changeFn(draft);
+      }
     );
 
     if (options.skipIfNoChange && patches.length === 0) {
@@ -42,16 +43,20 @@ export class BaseEditor {
     }
     if (!patches.length) return;
 
+    let executedOnce = false;
     const command = {
       execute: () => {
-        this.projectFileState = DataUtils.applyPatches(
-          this.projectFileState,
-          patches
-        );
+        // 第一次执行直接使用 produceWithPatches 的产物，避免重复应用补丁
+        if (!executedOnce) {
+          executedOnce = true;
+          this.projectFileState = nextState;
+        } else {
+          this.projectFileState = applyPatches(this.projectFileState, patches);
+        }
         this.renderCallback();
       },
       undo: () => {
-        this.projectFileState = DataUtils.applyPatches(
+        this.projectFileState = applyPatches(
           this.projectFileState,
           inversePatches
         );
