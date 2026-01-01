@@ -3,10 +3,9 @@ import { editorService } from "@services/EditorService.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
 
-/**
- * 资源库与临时项、Live2D 浏览相关逻辑。
- */
+// 右侧资源库：渲染动作/表情列表、搜索过滤、临时项、打开 Live2D 浏览器等
 export const libraryPanel = {
+  // 初始化拖拽：动作/表情库里的 item 可以拖拽（clone）
   initDragAndDropForLibraries(editor) {
     const sortables = (editor.sortableInstances || []).filter(
       (s) => s && s.el
@@ -44,6 +43,7 @@ export const libraryPanel = {
     });
   },
 
+  // 刷新右侧资源库（优先展示“在场角色”相关的动作/表情）
   renderLibraries(editor) {
     const stagedCharacters = editor._getStagedCharacters();
     const stagedCharacterIds = new Set(stagedCharacters.map((c) => c.id));
@@ -72,6 +72,7 @@ export const libraryPanel = {
     editor.initDragAndDropForLibraries();
   },
 
+  // 把一组 items 渲染成可拖拽列表
   renderLibrary(type, items) {
     const container = document.getElementById(`${type}LibraryList`);
     DOMUtils.clearElement(container);
@@ -90,6 +91,7 @@ export const libraryPanel = {
     DOMUtils.appendChildren(container, itemElements);
   },
 
+  // 搜索过滤：只显示前缀匹配的项
   filterLibraryList(type, event) {
     const searchTerm = event.target.value.toLowerCase().trim();
     const listContainerId =
@@ -106,6 +108,7 @@ export const libraryPanel = {
     });
   },
 
+  // 添加一个“临时动作/表情项”（只对当前编辑器窗口有效）
   addTempItem(editor, type) {
     const isMotion = type === "motion";
     const input = document.getElementById(
@@ -134,6 +137,7 @@ export const libraryPanel = {
     ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
   },
 
+  // 打开 Live2D 浏览器（如果时间线里有服装，会按服装逐个打开）
   openLive2dViewers(editor) {
     if (!editor.projectFileState || !editor.projectFileState.actions) {
       ui.showStatus("没有可分析的剧情内容。", "error");
@@ -179,6 +183,7 @@ export const libraryPanel = {
     });
   },
 
+  // 读取快速填充选项：默认来自后端配置，自定义来自本地存储
   loadQuickFillOptions(editor) {
     const configData = state.get("configData");
     editor.quickFillOptions.default = configData?.quick_fill_options || [];

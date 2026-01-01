@@ -1,10 +1,9 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 
-/**
- * 负责动作/表情分配区域的 DOM 渲染。
- */
+// 分配 UI 渲染：负责把动作/表情分配区画到卡片底部
 export const assignmentRenderer = {
+  // 根据 action 类型渲染分配区（talk 显示列表；layout 显示 initialState）
   showExpressionSetupUI(editor, cardElement) {
     const actionId = cardElement.dataset.id;
     const action = editor.projectFileState.actions.find(
@@ -81,6 +80,7 @@ export const assignmentRenderer = {
     characterSelector.style.display = "none";
   },
 
+  // 创建“选择角色”的列表（点了就添加一条分配）
   createCharacterSelector(editor, action) {
     const template = document.getElementById(
       "motion-character-selector-template"
@@ -132,6 +132,7 @@ export const assignmentRenderer = {
     return selector;
   },
 
+  // 创建一条分配项 DOM（头像 + 动作区 + 表情区 + 延迟输入 + 删除）
   createAssignmentItem(
     editor,
     action,

@@ -2,10 +2,9 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { configManager } from "@managers/configManager.js";
 import { state } from "@managers/stateManager.js";
 
-/**
- * 负责位置配置的列表渲染与 DOM 结构。
- */
+// 把位置配置画到页面上：创建 DOM、填充头像、渲染列表
 export const positionUI = {
+  // 创建一个角色的“位置配置行”（头像 + 名字 + 下拉框 + 偏移输入）
   createPositionItem(
     name,
     primaryId,
@@ -35,6 +34,7 @@ export const positionUI = {
     return item;
   },
 
+  // 创建左侧角色信息区域（头像 + 名字）
   createCharacterInfo(name, primaryId, avatarId, avatarPath) {
     const infoDiv = DOMUtils.createElement("div", {
       class: "position-character-info",
@@ -80,6 +80,7 @@ export const positionUI = {
     return infoDiv;
   },
 
+  // 创建右侧控制区（位置下拉框 + 偏移输入）
   createPositionControls(name, currentPosition, currentOffset) {
     const controlsDiv = DOMUtils.createElement("div", {
       class: "position-controls",
@@ -109,6 +110,7 @@ export const positionUI = {
     return controlsDiv;
   },
 
+  // 创建“偏移量”输入框那一小组控件
   createOffsetInputGroup(name, currentOffset) {
     const offsetGroup = DOMUtils.createElement("div", {
       class: "position-offset-group",
@@ -141,6 +143,7 @@ export const positionUI = {
     return offsetGroup;
   },
 
+  // 把所有角色渲染到位置列表里
   renderPositionList(manager) {
     const positionList = document.getElementById("positionList");
     if (!positionList) return;

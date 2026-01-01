@@ -1,12 +1,4 @@
-/**
- * EditorService - Facade 模式聚合编辑器依赖
- *
- * 目的：
- * 1. 减少编辑器直接依赖的 Manager 数量（从 7-8 个减少到 1 个）
- * 2. 提供统一的编辑器 API 接口
- * 3. 隐藏内部实现细节
- * 4. 便于单元测试（可注入 mock service）
- */
+// 给编辑器模块用的服务：把各种 manager 打包成一个统一入口
 
 import { state } from "@managers/stateManager.js";
 import { configManager } from "@managers/configManager.js";
@@ -21,12 +13,10 @@ import {
 } from "@managers/genericConfigManager.js";
 import { selectionManager } from "@managers/selectionManager.js";
 
-/**
- * 编辑器服务 - 聚合所有编辑器需要的功能
- */
+// 编辑器服务：把常用能力（状态、配置、置顶、选择等）集中在一起
 class EditorService {
   constructor(dependencies = {}) {
-    // 依赖注入，支持测试时替换
+    // 初始化：允许外部传入依赖（测试/替换实现时很有用）
     this.state = dependencies.state || state;
     this.configManager = dependencies.configManager || configManager;
     this.historyManager = dependencies.historyManager || historyManager;
@@ -43,32 +33,24 @@ class EditorService {
 
   // ==================== 状态管理 ====================
 
-  /**
-   * 获取当前项目状态
-   */
+  // 读取当前项目（编辑进度）数据
   getProjectState() {
     return this.state.get("projectFile");
   }
 
-  /**
-   * 设置项目状态
-   */
+  // 保存当前项目（编辑进度）数据
   setProjectState(newState) {
     this.state.set("projectFile", newState);
   }
 
-  /**
-   * 获取当前配置
-   */
+  // 读取当前角色配置（角色名 -> ID 映射）
   getCurrentConfig() {
     return this.state.get("currentConfig");
   }
 
   // ==================== 角色配置 ====================
 
-  /**
-   * 更新角色头像
-   */
+  // 在页面上更新某个角色的头像显示
   updateCharacterAvatar(container, characterId, characterName) {
     return this.configManager.updateConfigAvatar(
       container,
@@ -77,16 +59,12 @@ class EditorService {
     );
   }
 
-  /**
-   * 根据 ID 获取角色名称
-   */
+  // 根据角色 ID 反查角色名（用于显示）
   getCharacterNameById(characterId) {
     return this.configManager.getCharacterNameById(characterId);
   }
 
-  /**
-   * 获取所有角色配置
-   */
+  // 获取“所有角色”（返回 [name, ids] 的列表）
   getAllCharacters() {
     const config = this.getCurrentConfig();
     return Object.entries(config);
@@ -94,32 +72,24 @@ class EditorService {
 
   // ==================== 固定角色管理 ====================
 
-  /**
-   * 获取固定的角色列表
-   */
+  // 获取已置顶的角色列表（方便拖拽/快速选择）
   getPinnedCharacters() {
     return this.pinnedCharacterManager.getPinned();
   }
 
-  /**
-   * 切换角色固定状态
-   */
+  // 切换某个角色是否置顶
   togglePinCharacter(characterName) {
     return this.pinnedCharacterManager.toggle(characterName);
   }
 
   // ==================== 选择管理 ====================
 
-  /**
-   * 清除选择
-   */
+  // 清空当前多选/选择状态
   clearSelection() {
     return this.selectionManager?.clear?.();
   }
 
-  /**
-   * 分离选择管理器
-   */
+  // 从某个 DOM 上解绑选择逻辑（销毁时用）
   detachSelection(element) {
     return this.selectionManager?.detach?.(element);
   }
@@ -128,8 +98,8 @@ class EditorService {
   // historyManager 已经通过 BaseEditor 集成，编辑器不需要直接访问
 }
 
-// 创建单例
+// 创建并导出单例（编辑器直接用 editorService）
 export const editorService = new EditorService();
 
-// 导出类用于测试
+// 也导出类本身（方便测试时 new 一个并注入假依赖）
 export { EditorService };

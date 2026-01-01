@@ -1,9 +1,8 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 
-/**
- * 负责分配项拖放区的 Sortable 初始化。
- */
+// 分配区拖拽：把“动作/表情库”的 item 拖进 drop-zone 后写回数据
 export const assignmentDnd = {
+  // 给某个分配项里的所有 drop-zone 初始化 Sortable
   initSortableForAssignmentZones(
     editor,
     assignmentElement,

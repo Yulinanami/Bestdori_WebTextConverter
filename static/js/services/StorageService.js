@@ -1,9 +1,7 @@
-/**
- * StorageService - 统一的 LocalStorage 操作服务
- * 提供类型安全的存储操作和错误处理
- */
+// localStorage：读/写/删除
 
 export const STORAGE_KEYS = {
+  // 这里集中放所有 localStorage 的 key（避免到处写字符串写错）
   CHARACTER_MAPPING: "bestdori_character_mapping",
   CUSTOM_QUOTES: "bestdori_custom_quotes",
   PRESET_QUOTES_STATE: "bestdori_preset_quotes_state",
@@ -25,16 +23,11 @@ export const STORAGE_KEYS = {
 
 class StorageService {
   constructor() {
-    // 错误处理回调，可由外部设置
+    // 当存储空间满了时，用这个回调通知 UI（外部可以赋值）
     this.onQuotaExceeded = null;
   }
 
-  /**
-   * 获取存储的数据
-   * @param {string} key - 存储键
-   * @param {any} defaultValue - 默认值
-   * @returns {any} 存储的数据或默认值
-   */
+  // 读取一个 key：如果没有就返回默认值（并自动尝试 JSON.parse）
   get(key, defaultValue = null) {
     try {
       const item = localStorage.getItem(key);
@@ -53,12 +46,7 @@ class StorageService {
     }
   }
 
-  /**
-   * 设置存储数据
-   * @param {string} key - 存储键
-   * @param {any} value - 要存储的值
-   * @returns {boolean} 是否成功
-   */
+  // 保存一个 key：自动把对象转成 JSON 字符串；失败时返回 false
   set(key, value) {
     try {
       const serialized =
@@ -78,11 +66,7 @@ class StorageService {
     }
   }
 
-  /**
-   * 删除存储数据
-   * @param {string} key - 存储键
-   * @returns {boolean} 是否成功
-   */
+  // 删除一个 key
   remove(key) {
     try {
       localStorage.removeItem(key);
@@ -93,11 +77,7 @@ class StorageService {
     }
   }
 
-  /**
-   * 批量删除存储数据
-   * @param {string[]} keys - 存储键数组
-   * @returns {boolean} 是否全部成功
-   */
+  // 批量删除多个 key（有一个失败就返回 false）
   removeMultiple(keys) {
     let allSuccess = true;
     keys.forEach((key) => {
@@ -108,10 +88,7 @@ class StorageService {
     return allSuccess;
   }
 
-  /**
-   * 获取存储大小（近似值，单位：字节）
-   * @returns {number} 存储大小
-   */
+  // 估算 localStorage 当前占用大小（字节）
   getSize() {
     let size = 0;
     for (let key in localStorage) {
@@ -122,10 +99,7 @@ class StorageService {
     return size;
   }
 
-  /**
-   * 获取存储大小（可读格式）
-   * @returns {string} 如 "1.2 MB"
-   */
+  // 把占用大小格式化成人类可读的字符串（例如 1.2 MB）
   getSizeFormatted() {
     const bytes = this.getSize();
     if (bytes === 0) return "0 Bytes";
@@ -136,5 +110,5 @@ class StorageService {
   }
 }
 
-// 导出单例
+// 导出单例（全站共用同一个存储服务）
 export const storageService = new StorageService();

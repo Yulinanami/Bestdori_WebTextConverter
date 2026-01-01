@@ -1,12 +1,13 @@
-// 文件处理相关功能
+// 负责上传文件→读取文本和下载结果 JSON的整套流程
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { apiService } from "@services/ApiService.js";
 
-// 支持的文件扩展名
+// 允许上传的文件类型
 const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
 
 export const fileHandler = {
+  // 初始化：绑定上传/下载按钮，并启用拖拽上传
   init() {
     const fileInput = document.getElementById("fileInput");
     if (fileInput) {
@@ -21,7 +22,7 @@ export const fileHandler = {
     this.setupFileDragDrop();
   },
 
-  // 设置文件拖拽功能
+  // 让上传区域支持“拖拽文件进来”
   setupFileDragDrop() {
     const fileUpload = document.getElementById("fileUpload");
     if (!fileUpload) {
@@ -49,11 +50,13 @@ export const fileHandler = {
     fileUpload.addEventListener("drop", this.handleDrop.bind(this), false);
   },
 
+  // 拦截浏览器默认拖拽行为（避免打开文件/跳转页面）
   preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
   },
 
+  // 拖拽松手时：把文件交给统一的上传处理
   handleDrop(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -65,7 +68,7 @@ export const fileHandler = {
     }
   },
 
-  // 处理文件上传
+  // 上传文件到后端，并把解析出的文本填回输入框
   async handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -111,7 +114,7 @@ export const fileHandler = {
     }
   },
 
-  // 下载结果
+  // 把当前转换结果下载为 .json 文件
   async downloadResult() {
     const buttonId = "downloadBtn";
     if (!state.get("currentResult")) {

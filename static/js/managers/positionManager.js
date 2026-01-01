@@ -1,4 +1,4 @@
-// Live2D 位置管理功能
+// 管理 Live2D 的站位配置：自动站位/手动站位、渲染列表、保存到本地
 import { DataUtils } from "@utils/DataUtils.js";
 import { ui } from "@utils/uiUtils.js";
 import { modalService } from "@services/ModalService.js";
@@ -15,6 +15,7 @@ export const positionManager = {
   tempAutoPositionMode: true,
   autoPositionMode: true,
 
+  // 初始化：读取本地配置，并绑定页面上相关输入控件
   init() {
     positionStore.loadPositionConfig(this);
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
@@ -62,6 +63,7 @@ export const positionManager = {
     }
   },
 
+  // 根据是否启用“自动站位”，显示/隐藏手动配置区域
   toggleManualConfig() {
     const manualConfig = document.getElementById("manualPositionConfig");
     if (manualConfig) {
@@ -69,11 +71,12 @@ export const positionManager = {
     }
   },
 
+  // 渲染位置配置列表（每个角色一行）
   renderPositionList() {
     positionUI.renderPositionList(this);
   },
 
-  // 保存位置配置
+  // 保存当前页面上的临时配置到本地存储
   async savePositions() {
     await ui.withButtonLoading(
       "savePositionsBtn",
@@ -88,7 +91,7 @@ export const positionManager = {
     );
   },
 
-  // 重置为默认位置（全部设为中间，偏移清零）
+  // 重置为默认（启用自动站位；手动偏移清空）
   async resetPositions() {
     const confirmed = await modalService.confirm(
       "确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？"
@@ -115,6 +118,7 @@ export const positionManager = {
     }
   },
 
+  // 获取某角色的最终站位配置（自动模式会按登场顺序分配位置）
   getCharacterPositionConfig(characterName, appearanceOrder) {
     return positionStore.getCharacterPositionConfig(
       this,
@@ -123,6 +127,7 @@ export const positionManager = {
     );
   },
 
+  // 从导入的数据里恢复位置配置（用于“导入配置”）
   importPositions(positionConfig) {
     positionStore.importPositions(this, positionConfig);
   },

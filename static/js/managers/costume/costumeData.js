@@ -3,12 +3,9 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
 import { ui } from "@utils/uiUtils.js";
 
-/**
- * 服装相关的数据与持久化逻辑。
- * 提供独立的转换、加载、保存方法，方便在其他模块复用。
- */
+// 服装数据的仓库：负责转换数据结构/读写本地/从后端加载
 export const costumeData = {
-  // 转换可用服装列表为基于角色名称的映射
+  // 把“可用服装(按角色ID)”转换成“可用服装(按角色名 key)”
   convertAvailableCostumesToNameBased(manager) {
     const nameBased = {};
     Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
@@ -45,7 +42,7 @@ export const costumeData = {
     return nameBased;
   },
 
-  // 转换默认服装配置为基于角色名称的映射
+  // 把“默认服装(按角色ID)”转换成“默认服装(按角色名 key)”
   convertDefaultCostumesToNameBased(manager) {
     const nameBased = {};
     Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
@@ -79,7 +76,7 @@ export const costumeData = {
     return nameBased;
   },
 
-  // 加载服装配置
+  // 从后端加载默认服装配置，并结合本地保存的数据初始化 manager
   async loadCostumeConfig(manager) {
     try {
       const costumeDataResponse = await apiService.getCostumes();
@@ -115,22 +112,22 @@ export const costumeData = {
     }
   },
 
-  // 从 LocalStorage 加载服装配置
+  // 从本地读取“当前服装选择”
   loadLocalCostumes() {
     return storageService.get(STORAGE_KEYS.COSTUME_MAPPING_V2);
   },
 
-  // 保存服装配置到 LocalStorage
+  // 保存“当前服装选择”到本地
   saveLocalCostumes(costumes) {
     return storageService.set(STORAGE_KEYS.COSTUME_MAPPING_V2, costumes);
   },
 
-  // 加载本地可用服装列表
+  // 从本地读取“可用服装列表”
   loadLocalAvailableCostumes() {
     return storageService.get(STORAGE_KEYS.AVAILABLE_COSTUMES_V2);
   },
 
-  // 修改保存可用服装列表的方法，添加验证
+  // 保存“可用服装列表”（会做一个简单校验，避免写入空数据）
   saveLocalAvailableCostumes(manager) {
     const hasValidData =
       Object.keys(manager.availableCostumes).length > 0 &&
@@ -147,7 +144,7 @@ export const costumeData = {
     );
   },
 
-  // 导入配置时处理服装配置
+  // 导入配置：应用导入的服装相关字段，并保存到本地
   importCostumes(manager, config) {
     if (config.costume_mapping) {
       state.set("currentCostumes", config.costume_mapping);

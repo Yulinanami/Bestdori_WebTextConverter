@@ -1,23 +1,10 @@
-/**
- * 编辑器助手工具 - 提供编辑器生命周期的通用流程
- *
- * 用于处理编辑器的打开、关闭、保存、取消等操作
- */
+// 编辑器流程助手：统一处理打开/关闭/保存这些重复流程（显示 loading、开关弹窗等）。
 
 import { modalService } from "@services/ModalService.js";
 import { ui } from "@utils/uiUtils.js";
 
 export const EditorHelper = {
-  /**
-   * 打开编辑器的通用流程
-   * @param {Object} params - 参数对象
-   * @param {Object} params.editor - 编辑器实例（必须有 BaseEditor 的方法）
-   * @param {string} params.modalId - 模态框ID
-   * @param {string} params.buttonId - 触发按钮ID（用于显示加载状态）
-   * @param {Function} params.beforeOpen - 打开前的回调（可选）
-   * @param {Function} params.afterOpen - 打开后的回调（可选）
-   * @param {string} params.loadingText - 加载提示文本（默认："加载中..."）
-   */
+  // 打开编辑器的通用流程（先跑 beforeOpen/afterOpen，再打开弹窗）
   async openEditor(params) {
     const {
       editor,
@@ -54,12 +41,7 @@ export const EditorHelper = {
     );
   },
 
-  /**
-   * 关闭编辑器的通用流程
-   * @param {Object} params - 参数对象
-   * @param {string} params.modalId - 模态框ID
-   * @param {Function} params.beforeClose - 关闭前的回调（可选）
-   */
+  // 关闭编辑器的通用流程（先做 beforeClose 清理，再关弹窗）
   closeEditor(params) {
     const { modalId, beforeClose } = params;
 
@@ -70,17 +52,7 @@ export const EditorHelper = {
     modalService.close(modalId);
   },
 
-  /**
-   * 保存编辑器的通用流程
-   * @param {Object} params - 参数对象
-   * @param {Object} params.editor - 编辑器实例（必须有 BaseEditor 的方法）
-   * @param {string} params.modalId - 模态框ID
-   * @param {string} params.buttonId - 保存按钮ID（用于显示加载状态，可选）
-   * @param {Function} params.applyChanges - 应用更改的回调
-   * @param {Function} params.beforeSave - 保存前的回调（可选）
-   * @param {Function} params.afterSave - 保存后的回调（可选）
-   * @param {string} params.loadingText - 加载提示文本（默认："保存中..."）
-   */
+  // 保存编辑器的通用流程（显示 loading，执行 applyChanges，保存后关闭弹窗）
   async saveEditor(params) {
     const {
       editor,

@@ -1,13 +1,10 @@
 import { ui } from "@utils/uiUtils.js";
 import { editorService } from "@services/EditorService.js";
 
-// 状态与数据处理相关的逻辑
+// 读写说话人、重置为默认等。
 export function attachSpeakerState(editor) {
   Object.assign(editor, {
-    /**
-     * 获取所有已使用的角色名称
-     * @returns {Set<string>} 角色名称集合
-     */
+    // 统计当前项目里出现过哪些角色（用于右侧列表高亮）
     _getUsedCharacterIds() {
       const usedNames = new Set();
       if (this.projectFileState && this.projectFileState.actions) {
@@ -24,7 +21,7 @@ export function attachSpeakerState(editor) {
       return usedNames;
     },
 
-    // 更新对话的说话人分配（支持多选批量分配）
+    // 给某条对话（或当前多选的多条对话）添加一个说话人
     updateSpeakerAssignment(actionId, newSpeaker) {
       const selectedIds = editorService.selectionManager.getSelectedIds();
       const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
@@ -48,7 +45,7 @@ export function attachSpeakerState(editor) {
       );
     },
 
-    // 从对话中移除指定说话人
+    // 从一条对话里移除某个说话人
     removeSpeakerFromAction(actionId, characterIdToRemove) {
       this._executeCommand((currentState) => {
         const action = currentState.actions.find((a) => a.id === actionId);
@@ -60,7 +57,7 @@ export function attachSpeakerState(editor) {
       });
     },
 
-    // 清空对话的所有说话人
+    // 清空一条对话的所有说话人（变成旁白）
     removeAllSpeakersFromAction(actionId) {
       this._executeCommand((currentState) => {
         const action = currentState.actions.find((a) => a.id === actionId);
@@ -70,7 +67,7 @@ export function attachSpeakerState(editor) {
       });
     },
 
-    // 恢复默认说话人（重新解析文本自动分配说话人）
+    // 恢复默认：按原始文本重新分段并重建项目（可撤销）
     async reset() {
       if (!confirm("确定要恢复默认说话人吗？此操作可以撤销。")) {
         return;

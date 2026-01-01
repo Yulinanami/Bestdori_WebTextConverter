@@ -10,11 +10,10 @@ import {
 } from "@utils/TimelineCardFactory.js";
 import { editorService } from "@services/EditorService.js";
 
-/**
- * 时间轴渲染模块，负责普通与分组模式的卡片绘制。
- */
+// 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
 const timelineCache = createTimelineRenderCache();
 
+// 渲染动作/表情编辑器的时间线
 export function renderTimeline(editor) {
   const timeline = editor.domCache.timeline;
   if (!timeline) return;
@@ -36,6 +35,7 @@ export function renderTimeline(editor) {
     )
   );
 
+  // 渲染卡片底部：决定显示“设置按钮”还是直接显示分配区
   const renderFooter = (card, action) => {
     const footer = card.querySelector(".timeline-item-footer");
     if (!footer) return;
@@ -54,6 +54,7 @@ export function renderTimeline(editor) {
     footer.appendChild(setupButton);
   };
 
+  // 画一个卡片（talk/layout）
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
 
@@ -100,6 +101,7 @@ export function renderTimeline(editor) {
     return card;
   };
 
+  // 尝试就地更新卡片内容（返回 false 表示需要整张重画）
   const updateCard = (action, card, globalIndex = -1) => {
     if (!card) return false;
 

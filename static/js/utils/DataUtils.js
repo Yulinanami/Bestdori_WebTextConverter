@@ -1,13 +1,7 @@
-/**
- * DataUtils - 数据处理工具函数
- */
+// 常用数据工具：深拷贝、排序、生成轻量签名等。
 
 export const DataUtils = {
-  /**
-   * 深拷贝对象
-   * @param {any} obj - 要拷贝的对象
-   * @returns {any}
-   */
+  // 深拷贝：避免改动一个对象时把原对象也改了
   deepClone(obj) {
     if (obj === null || typeof obj !== "object") {
       return obj;
@@ -18,13 +12,7 @@ export const DataUtils = {
     return JSON.parse(JSON.stringify(obj));
   },
 
-  /**
-   * 数组排序（支持多字段）
-   * @param {Array} arr - 输入数组
-   * @param {string|Array} keys - 排序键
-   * @param {string|Array} orders - 排序顺序 ('asc' | 'desc')
-   * @returns {Array}
-   */
+  // 排序：按一个或多个字段/函数来排序（不修改原数组）
   sortBy(arr, keys, orders = "asc") {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const orderArray = Array.isArray(orders) ? orders : [orders];
@@ -43,12 +31,7 @@ export const DataUtils = {
     });
   },
 
-  /**
-   * 生成轻量签名（用于增量渲染）
-   * 针对 action 选取核心字段，避免全量 stringify
-   * @param {Object} action
-   * @returns {string}
-   */
+  // 给 action 生成“轻量签名”：用于判断卡片是否需要重新渲染
   actionSignature(action) {
     if (!action || typeof action !== "object") return "";
     if (action.type === "talk") {
@@ -89,12 +72,7 @@ export const DataUtils = {
     return JSON.stringify(action);
   },
 
-  /**
-   * 对象哈希（浅层字段排序后 stringify）
-   * 用于 contextSignature 等轻量对比
-   * @param {Object} obj
-   * @returns {string}
-   */
+  // 给对象生成一个“浅层签名”（用于快速判断配置是否变化）
   shallowSignature(obj) {
     if (!obj || typeof obj !== "object") return "";
     const sorted = Object.keys(obj)

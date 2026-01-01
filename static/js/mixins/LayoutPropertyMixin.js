@@ -1,14 +1,10 @@
-// 布局属性管理 Mixin
-// 提供布局卡片的属性更新功能（位置、偏移、服装、类型等）
+// 布局卡片的通用属性编辑：当用户改下拉框/输入框时，把改动写回 action 数据
 
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 
 export const LayoutPropertyMixin = {
-  /**
-   * 布局属性更新策略处理器映射
-   * 每个处理器负责更新特定控件类型对应的 action 属性
-   */
+  // 不同控件对应不同字段：这里集中放“控件 class -> 如何更新 action”
   _layoutPropertyHandlers: {
     "layout-type-select": (action, value) => {
       action.layoutType = value;
@@ -77,11 +73,7 @@ export const LayoutPropertyMixin = {
     },
   },
 
-  /**
-   * 更新布局动作的属性（类型、位置、偏移、服装）
-   * @param {string} actionId - 动作ID
-   * @param {HTMLElement} targetElement - 触发变化的DOM元素
-   */
+  // 根据触发的控件类型，把布局卡片的改动写回 action（按 actionId 找到那条 action）
   _updateLayoutActionProperty(actionId, targetElement) {
     const value =
       targetElement.type === "number"
@@ -93,7 +85,7 @@ export const LayoutPropertyMixin = {
       const action = currentState.actions.find((a) => a.id === actionId);
       if (!action) return;
 
-      // 查找匹配的处理器并执行
+      // 找到匹配的处理器并执行
       const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
         controlClassName.includes(key)
       );
@@ -104,14 +96,7 @@ export const LayoutPropertyMixin = {
     });
   },
 
-  /**
-   * 渲染布局卡片的位置和服装选择器（三个编辑器共享）
-   * @param {HTMLElement} card - 布局卡片DOM元素
-   * @param {Object} action - 布局动作数据
-   * @param {string} characterName - 角色名称
-   * @param {Object} options - 可选配置
-   * @param {boolean} options.showToggleButton - 是否显示切换按钮（默认false，仅live2d编辑器为true）
-   */
+  // 把布局卡片上的控件（位置/偏移/服装等）渲染成当前 action 的值
   renderLayoutCardControls(card, action, characterName, options = {}) {
     const { showToggleButton = false } = options;
 

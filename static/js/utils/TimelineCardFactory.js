@@ -2,14 +2,7 @@
 import { editorService } from "@services/EditorService.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 
-/**
- * 创建对话卡片
- * @param {Object} action - 动作对象
- * @param {Object} options
- * @param {string} options.templateId - 模板ID
- * @param {HTMLTemplateElement} options.template - 预缓存的模板
- * @returns {DocumentFragment|null}
- */
+// 创建一张“对话卡片”（talk）
 export function createTalkCard(
   action,
   { templateId = "timeline-talk-card-template", template } = {}
@@ -57,16 +50,7 @@ export function createTalkCard(
   return card;
 }
 
-/**
- * 创建布局卡片
- * @param {Object} action - 布局动作
- * @param {Object} options
- * @param {string} options.templateId - 模板ID
- * @param {HTMLTemplateElement} options.template - 预缓存的模板
- * @param {Function} options.renderLayoutControls - 渲染布局控制的回调
- * @param {Object} options.layoutOptions - 传递给控制渲染的附加参数
- * @returns {DocumentFragment|null}
- */
+// 创建一张“布局卡片”（layout），并调用 renderLayoutControls 去渲染控件
 export function createLayoutCard(
   action,
   {

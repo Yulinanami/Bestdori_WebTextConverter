@@ -1,9 +1,10 @@
 import { DragHelper } from "@utils/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
-// 拖拽和自动滚动相关逻辑
+// 拖角色到时间线生成布局、拖卡片排序、拖拽时自动滚动
 export function attachLive2dDrag(editor, baseEditor) {
   Object.assign(editor, {
+    // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
     handleDragScrolling: (e) => {
       const containers = [
         editor.domCache.timeline,
@@ -12,7 +13,7 @@ export function attachLive2dDrag(editor, baseEditor) {
       ScrollAnimationMixin.handleDragScrolling.call(editor, e, containers);
     },
 
-    // 初始化拖放功能（角色列表拖入时间轴创建布局动作）
+    // 初始化拖拽：角色列表可拖出；时间线可接收并支持排序
     initDragAndDrop() {
       const characterList = editor.domCache.characterList;
       const timeline = editor.domCache.timeline;

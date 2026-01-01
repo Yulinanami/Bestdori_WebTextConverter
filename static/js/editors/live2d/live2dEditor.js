@@ -1,4 +1,4 @@
-// live2d布局编辑器
+// 管理 layout action（登场/移动/退场）并提供拖拽编辑
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
 import { ui } from "@utils/uiUtils.js";
@@ -14,7 +14,7 @@ import { attachLive2dControls } from "@editors/live2d/live2dControls.js";
 import { attachLive2dTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2dDrag } from "@editors/live2d/live2dDrag.js";
 
-// 创建基础编辑器实例
+// 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
     live2dEditor.renderTimeline();
@@ -37,7 +37,7 @@ export const live2dEditor = {
   // 后续布局模式: 'move' 或 'hide'
   subsequentLayoutMode: "move",
 
-  // 初始化编辑器，绑定事件监听器和快捷键
+  // 初始化：缓存 DOM、绑定按钮事件、读取本地偏好设置
   init() {
     // 缓存 DOM 元素
     this.domCache = {
@@ -71,14 +71,14 @@ export const live2dEditor = {
       this._toggleSubsequentLayoutMode()
     );
 
-    // 初始化通用事件
+    // 初始化通用事件（撤销/重做/保存/导入导出/关闭确认/快捷键）
     this.initCommonEvents();
 
-    // 初始化置顶按钮处理
+    // 初始化置顶按钮（图钉）
     this.initPinButtonHandler();
   },
 
-  // 打开 Live2D 布局编辑器模态框
+  // 打开 Live2D 布局编辑器弹窗，并加载/创建项目数据
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -117,24 +117,24 @@ export const live2dEditor = {
     });
   },
 
-  // 钩子方法：导入后刷新视图
+  // 导入项目后：刷新时间线与角色列表
   afterImport() {
     this.renderTimeline();
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 
-  // 钩子方法：置顶切换后刷新角色列表
+  // 置顶状态变化后：刷新角色列表
   afterPinToggle() {
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 };
 
-// 状态代理
+// 状态桥接：让 live2dEditor 直接拥有 projectFileState 等字段
 applyStateBridge(live2dEditor, baseEditor);
 
-// 继承 mixins
+// 混入通用能力（保存/事件/布局控件/滚动/角色列表等）
 Object.assign(
   live2dEditor,
   BaseEditorMixin,
@@ -144,7 +144,7 @@ Object.assign(
   CharacterListMixin
 );
 
-// 注入拆分后的功能模块
+// 注入拆分出的功能模块（把 live2dEditor 作为宿主对象扩展方法）
 attachLive2dState(live2dEditor, baseEditor);
 attachLive2dControls(live2dEditor);
 attachLive2dTimeline(live2dEditor);

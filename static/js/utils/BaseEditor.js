@@ -1,8 +1,4 @@
-/**
- * 编辑器基类 - 提供所有编辑器的共同功能
- *
- * 用于 speakerEditor、live2dEditor、expressionEditor 的通用逻辑
- */
+// 编辑器的“内核”：负责状态管理 + 撤销/重做（通过 immer patches）。
 
 import { historyManager } from "@managers/historyManager.js";
 import { applyPatches, enablePatches, produceWithPatches } from "immer";
@@ -23,12 +19,7 @@ export class BaseEditor {
     this.groupSize = config.groupSize || 50;
   }
 
-  /**
-   * 执行命令并支持撤销/恢复
-   * @param {Function} changeFn - 修改状态的函数
-   * @param {Object} options - 可选配置
-   * @param {boolean} options.skipIfNoChange - 如果状态未改变则跳过执行
-   */
+  // 执行一次“可撤销的修改”（changeFn 会修改 draft）
   executeCommand(changeFn, options = {}) {
     const beforeState = this.projectFileState || {};
     const [nextState, patches, inversePatches] = produceWithPatches(
@@ -67,12 +58,7 @@ export class BaseEditor {
     historyManager.do(command);
   }
 
-  /**
-   * 在分组模式下，将本地索引转换为全局索引
-   * @param {number} localIndex - 组内的本地索引
-   * @param {boolean} isGroupingEnabled - 是否启用分组
-   * @returns {number} 全局索引
-   */
+  // 分组模式下：把“组内索引”换算成“全局索引”
   getGlobalIndex(localIndex, isGroupingEnabled = false) {
     if (
       !isGroupingEnabled ||
@@ -87,25 +73,17 @@ export class BaseEditor {
     return offset + localIndex;
   }
 
-  /**
-   * 备份当前状态（用于编辑器打开时）
-   */
+  // 备份：记录打开编辑器时的原始状态（用于判断是否有未保存更改）
   backupState() {
     this.originalStateOnOpen = JSON.stringify(this.projectFileState);
   }
 
-  /**
-   * 清理备份状态（用于保存后）
-   */
+  // 清理备份：保存成功后就不再提示“未保存更改”
   clearBackup() {
     this.originalStateOnOpen = null;
   }
 
-  /**
-   * 获取标题偏移量
-   * @param {boolean} isGroupingEnabled - 是否启用分组
-   * @returns {number} 标题偏移量
-   */
+  // 分组模式下：计算列表里“分组标题”占用的偏移量
   getHeaderOffset(isGroupingEnabled = false) {
     if (
       !isGroupingEnabled ||

@@ -1,16 +1,7 @@
-/**
- * DOMUtils - DOM 操作工具函数
- * 减少重复的 DOM 操作代码
- */
+// 常用 DOM 小工具：创建元素、清空、批量 append、显示/隐藏等。
 
 export const DOMUtils = {
-  /**
-   * 创建元素并设置属性
-   * @param {string} tag - 标签名
-   * @param {object} attrs - 属性对象
-   * @param {string|Element|Element[]} children - 子元素
-   * @returns {HTMLElement}
-   */
+  // 创建一个元素，并顺便设置属性/事件/子节点
   createElement(tag, attrs = {}, children = null) {
     const element = document.createElement(tag);
 
@@ -52,10 +43,7 @@ export const DOMUtils = {
     return element;
   },
 
-  /**
-   * 清空元素内容
-   * @param {string|HTMLElement} elementOrId - 元素或元素 ID
-   */
+  // 清空一个元素的内容（可传元素或元素 id）
   clearElement(elementOrId) {
     const element =
       typeof elementOrId === "string"
@@ -66,11 +54,7 @@ export const DOMUtils = {
     }
   },
 
-  /**
-   * 批量添加子元素
-   * @param {HTMLElement} parent - 父元素
-   * @param {HTMLElement[]} children - 子元素数组
-   */
+  // 把一组子元素批量 append 到父元素（用 fragment 减少重排）
   appendChildren(parent, children) {
     const fragment = document.createDocumentFragment();
     children.forEach((child) => {
@@ -81,11 +65,7 @@ export const DOMUtils = {
     parent.appendChild(fragment);
   },
 
-  /**
-   * 切换元素的显示/隐藏
-   * @param {string|HTMLElement} elementOrId - 元素或元素 ID
-   * @param {boolean} show - 是否显示
-   */
+  // 显示/隐藏一个元素（display: block/none）
   toggleDisplay(elementOrId, show) {
     const element =
       typeof elementOrId === "string"
@@ -96,23 +76,12 @@ export const DOMUtils = {
     }
   },
 
-  /**
-   * 安全地获取多个元素
-   * @param {string} selector - 选择器
-   * @param {HTMLElement} parent - 父元素
-   * @returns {NodeList}
-   */
+  // 查询多个元素（querySelectorAll 的小包装）
   getElements(selector, parent = document) {
     return parent.querySelectorAll(selector);
   },
 
-  /**
-   * 创建按钮元素
-   * @param {string} text - 按钮文本
-   * @param {string} className - CSS 类名
-   * @param {Function} onClick - 点击事件处理函数
-   * @returns {HTMLButtonElement}
-   */
+  // 创建一个按钮，并可选绑定点击事件
   createButton(text, className = "btn", onClick = null) {
     const button = this.createElement("button", { className }, text);
     if (onClick) {
@@ -121,12 +90,7 @@ export const DOMUtils = {
     return button;
   },
 
-  /**
-   * 应用布局类型 CSS 类名
-   * 移除所有布局类型类名，然后根据 layoutType 添加对应的类名
-   * @param {HTMLElement} element - 目标元素
-   * @param {string} layoutType - 布局类型 ("appear" | "move" | "hide")
-   */
+  // 给布局卡片加上对应的样式类（appear/move/hide）
   applyLayoutTypeClass(element, layoutType) {
     // 移除所有布局类型类名
     element.classList.remove(

@@ -1,9 +1,6 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 
-/**
- * 为编辑器绑定时间轴的点击/变更事件。
- * 提供独立模块方便与渲染逻辑解耦。
- */
+// 时间线事件：处理点击“设置/删除/清空动作表情”等按钮，以及延迟输入变化
 export function bindTimelineEvents(editor) {
   const timeline = editor.domCache.timeline;
   if (!timeline) return;

@@ -3,11 +3,7 @@ export const selectionManager = {
   lastSelectedId: null,
   _boundClickHandler: null,
 
-  /**
-   * 绑定事件监听器到容器。
-   * @param {HTMLElement} container - 列表项所在的父容器元素。
-   * @param {string} itemSelector - 用于识别可选项目的CSS选择器。
-   */
+  // 让一个列表容器支持“点击/Shift/Ctrl 多选”（itemSelector 用来找到每一项）
   attach(container, itemSelector) {
     if (this._boundClickHandler) {
       this.detach(container);
@@ -20,10 +16,7 @@ export const selectionManager = {
     container.addEventListener("click", this._boundClickHandler);
   },
 
-  /**
-   * 从容器解绑事件监听器。
-   * @param {HTMLElement} container - 列表项所在的父容器元素。
-   */
+  // 取消绑定（销毁页面/切换视图时用，避免重复绑定）
   detach(container) {
     if (this._boundClickHandler) {
       container.removeEventListener("click", this._boundClickHandler);
@@ -31,6 +24,7 @@ export const selectionManager = {
     }
   },
 
+  // 统一处理点击：决定是单选、Ctrl 切换，还是 Shift 选范围
   _handleClick(container, itemSelector, e) {
     const item = e.target.closest(itemSelector);
     if (!item || !item.dataset.id) return;
@@ -58,10 +52,7 @@ export const selectionManager = {
     );
   },
 
-  /**
-   * 切换单个项目的选中状态。
-   * @param {string} id - 项目的ID。
-   */
+  // Ctrl/Command 点击：把某一项加入/移出“已选中集合”
   toggle(id) {
     if (this.selectedIds.has(id)) {
       this.selectedIds.delete(id);
@@ -70,21 +61,13 @@ export const selectionManager = {
     }
   },
 
-  /**
-   * 只选中单个项目。
-   * @param {string} id - 项目的ID。
-   */
+  // 普通点击：只保留一个选中项
   selectSingle(id) {
     this.clear();
     this.selectedIds.add(id);
   },
 
-  /**
-   * 选中一个范围内的所有项目。
-   * @param {string} endId - Shift+点击的结束项目的ID。
-   * @param {HTMLElement} container - 列表容器。
-   * @param {string} itemSelector - 项目选择器。
-   */
+  // Shift 点击：把“上一次选中的项”到“当前项”之间的全部选中
   selectRange(endId, container, itemSelector) {
     if (!this.lastSelectedId) {
       this.selectSingle(endId);
@@ -102,17 +85,12 @@ export const selectionManager = {
     rangeIds.forEach((id) => this.selectedIds.add(id));
   },
 
-  /**
-   * 清除所有选项。
-   */
+  // 清空所有选中项
   clear() {
     this.selectedIds.clear();
   },
 
-  /**
-   * 获取当前所有选中项的ID数组。
-   * @returns {string[]}
-   */
+  // 获取当前选中的 id 列表（数组形式）
   getSelectedIds() {
     return Array.from(this.selectedIds);
   },

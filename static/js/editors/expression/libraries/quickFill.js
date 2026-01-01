@@ -3,15 +3,15 @@ import { ui } from "@utils/uiUtils.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 
-/**
- * 快速填充下拉菜单的渲染和增删逻辑。
- */
+// 快速填充：一个小下拉菜单，点一下就把关键词填进搜索框里
 export const quickFill = {
+  // 刷新两个下拉菜单（动作/表情）
   renderQuickFillDropdowns(editor) {
     editor._renderQuickFillDropdown("motion");
     editor._renderQuickFillDropdown("expression");
   },
 
+  // 渲染一个下拉菜单（包含默认项 + 自定义项 + “自定义添加”按钮）
   renderQuickFillDropdown(editor, type) {
     const dropdownId =
       type === "motion" ? "motionQuickFill" : "expressionQuickFill";
@@ -69,6 +69,7 @@ export const quickFill = {
     dropdown.appendChild(addItem);
   },
 
+  // 展开/收起某个下拉菜单（并在点到外部时自动关闭）
   toggleQuickFillDropdown(type) {
     const dropdownId =
       type === "motion" ? "motionQuickFill" : "expressionQuickFill";
@@ -101,6 +102,7 @@ export const quickFill = {
     }
   },
 
+  // 点选某个填充项：把值写入搜索框并触发过滤
   handleQuickFillSelect(type, value) {
     const inputId =
       type === "motion" ? "motionSearchInput" : "expressionSearchInput";
@@ -113,6 +115,7 @@ export const quickFill = {
     quickFill.toggleQuickFillDropdown(type);
   },
 
+  // 新增一个自定义填充项（保存到 localStorage）
   async addCustomQuickFillOption(editor) {
     const newValue = await modalService.prompt(
       "请输入要添加的自定义快速填充关键词："
@@ -133,6 +136,7 @@ export const quickFill = {
     }
   },
 
+  // 删除一个自定义填充项（保存到 localStorage）
   async deleteCustomQuickFillOption(editor, valueToDelete) {
     const confirmed = await modalService.confirm(
       `确定要删除自定义填充项 "${valueToDelete}" 吗？`
@@ -150,6 +154,7 @@ export const quickFill = {
     }
   },
 
+  // 从 localStorage 读取自定义填充项列表
   getCustomQuickFillOptions() {
     return storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
   },

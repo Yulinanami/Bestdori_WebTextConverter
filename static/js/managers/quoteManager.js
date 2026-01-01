@@ -1,4 +1,4 @@
-// 引号管理相关功能
+// 管理“去引号”选项：渲染引号复选框、保存选择、支持自定义引号对
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
@@ -6,34 +6,37 @@ import { quoteStore } from "@stores/quoteStore.js";
 
 export const quoteManager = {
   presetStates: {},
+
+  // 初始化：绑定“添加自定义引号”按钮
   init() {
     const addBtn = document.getElementById("addCustomQuoteBtn");
     if (addBtn) {
       addBtn.addEventListener("click", this.addCustomQuoteOption.bind(this));
     }
   },
-  // 加载自定义引号
+
+  // 从本地读取自定义引号列表（并写入全局状态）
   loadCustomQuotes() {
     const saved = quoteStore.loadCustomQuotes();
     return saved.length > 0;
   },
 
-  // 保存自定义引号到本地
+  // 把当前自定义引号列表保存到本地
   saveCustomQuotes() {
     return quoteStore.saveCustomQuotes();
   },
 
-  // 加载预设引号的选中状态
+  // 读取“预设引号”的勾选状态（是否参与去引号）
   loadPresetQuotesState() {
     return quoteStore.getPresetStates();
   },
 
-  // 保存预设引号的选中状态
+  // 保存“预设引号”的勾选状态
   savePresetQuotesState(stateMap) {
     return quoteStore.savePresetStates(stateMap);
   },
 
-  // 渲染引号选项
+  // 把“预设 + 自定义”引号渲染成一组复选框
   renderQuoteOptions() {
     const container = document.getElementById("quoteOptionsContainer");
     if (!container) return;
@@ -81,7 +84,7 @@ export const quoteManager = {
     this.attachCheckboxListeners();
   },
 
-  // 为所有引号复选框添加事件监听器
+  // 给所有复选框绑定 change 事件（勾选变化就保存）
   attachCheckboxListeners() {
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       checkbox.addEventListener("change", () => {
@@ -90,6 +93,7 @@ export const quoteManager = {
     });
   },
 
+  // 当某个复选框勾选变化时：更新本地存储
   handleCheckboxChange(checkbox) {
     const openChar = checkbox.dataset.open;
     const closeChar = checkbox.dataset.close;
@@ -105,7 +109,7 @@ export const quoteManager = {
     }
   },
 
-  // 辅助函数：创建引号选项元素
+  // 生成“一行引号选项”的 DOM（复选框 + 文案 + 可选删除按钮）
   createQuoteOptionElement(
     checkboxId,
     categoryName,
@@ -156,14 +160,14 @@ export const quoteManager = {
     return wrapper;
   },
 
-  // 删除自定义引号
+  // 删除某个自定义引号对，并重新渲染列表
   removeCustomQuote(quoteName) {
     quoteStore.removeCustomQuoteByName(quoteName);
     this.renderQuoteOptions();
     ui.showStatus("自定义引号已删除", "success");
   },
 
-  // 获取选中的引号对
+  // 收集当前勾选的引号对（交给后端做“去引号”）
   getSelectedQuotes() {
     const selectedPairs = [];
 
@@ -179,7 +183,7 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 添加自定义引号并处理UI更新
+  // 新增一个自定义引号对（并刷新 UI）
   _addCustomQuote(options) {
     const { openInputId, closeInputId, onComplete } = options;
     const openChar = document.getElementById(openInputId).value;
@@ -217,7 +221,7 @@ export const quoteManager = {
     }
   },
 
-  // 添加自定义引号选项
+  // 从输入框读取并添加一个自定义引号对
   addCustomQuoteOption() {
     this._addCustomQuote({
       openInputId: "customQuoteOpen",

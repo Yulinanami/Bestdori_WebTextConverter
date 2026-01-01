@@ -3,10 +3,9 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { configManager } from "@managers/configManager.js";
 import { state } from "@managers/stateManager.js";
 
-/**
- * 负责服装列表的渲染与 UI 更新。
- */
+// 把服装数据渲染成页面 DOM，并在数据变更时更新 UI
 export const costumeRenderer = {
+  // 渲染整个服装配置列表（每个角色一块）
   renderCostumeList(manager) {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
@@ -99,6 +98,7 @@ export const costumeRenderer = {
     costumeList.appendChild(fragment);
   },
 
+  // 生成“某个角色的可用服装列表”HTML（用于 innerHTML）
   renderCostumeListItems(characterKey, costumes, safeDomId) {
     if (!costumes || costumes.length === 0) {
       return '<div class="empty-costume-list">暂无可用服装</div>';
@@ -123,6 +123,7 @@ export const costumeRenderer = {
       .join("");
   },
 
+  // 更新某个角色的局部 UI（服装列表区域 + 下拉框选项）
   updateCostumeListUI(manager, characterKey, safeDomId) {
     const listContainer = document.getElementById(`costume-list-${safeDomId}`);
     if (listContainer) {

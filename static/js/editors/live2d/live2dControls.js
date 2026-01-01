@@ -1,11 +1,9 @@
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
-// 与模式切换相关的 UI 操作
+// 控制后续拖拽是 move 还是 hide
 export function attachLive2dControls(editor) {
   Object.assign(editor, {
-    /**
-     * 切换后续布局模式（移动/退场）
-     */
+    // 切换后续布局模式（move/退场 hide），并保存到本地
     _toggleSubsequentLayoutMode() {
       editor.subsequentLayoutMode =
         editor.subsequentLayoutMode === "move" ? "hide" : "move";
@@ -16,9 +14,7 @@ export function attachLive2dControls(editor) {
       editor._updateSubsequentModeButton();
     },
 
-    /**
-     * 更新后续布局模式按钮的文本
-     */
+    // 更新按钮文字，让用户知道当前模式
     _updateSubsequentModeButton() {
       if (editor.domCache.subsequentModeText) {
         const modeText =

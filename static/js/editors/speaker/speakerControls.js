@@ -2,10 +2,10 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { editorService } from "@services/EditorService.js";
 import { modalService } from "@services/ModalService.js";
 
-// 负责对话编辑器的交互与模式控制
+// 多选模式、文本编辑、卡片点击逻辑等
 export function attachSpeakerControls(editor) {
   Object.assign(editor, {
-    // 从本地存储恢复多选/文本编辑模式
+    // 从本地读取“多选/编辑模式”的开关状态
     loadModePreferences() {
       const savedMultiSelect = storageService.get(
         STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE
@@ -17,7 +17,7 @@ export function attachSpeakerControls(editor) {
       this.isTextEditMode = savedTextEdit === true;
     },
 
-    // 同步模式按钮与画布的 UI 状态
+    // 把当前模式状态同步到按钮文字和画布样式上
     applyModeUIState() {
       this._updateMultiSelectButtonUI();
       this._updateTextEditButtonUI();
@@ -27,6 +27,7 @@ export function attachSpeakerControls(editor) {
       );
     },
 
+    // 更新“多选按钮”的显示文字
     _updateMultiSelectButtonUI() {
       const btn = this.domCache.toggleMultiSelectBtn;
       if (btn) {
@@ -34,6 +35,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
+    // 更新“编辑按钮”的显示文字
     _updateTextEditButtonUI() {
       const btn = this.domCache.toggleTextEditBtn;
       if (btn) {
@@ -41,9 +43,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    /**
-     * 切换多选模式的状态和UI
-     */
+    // 切换多选模式（并清空当前选择）
     _toggleMultiSelectMode() {
       this.isMultiSelectMode = !this.isMultiSelectMode;
       storageService.set(
@@ -57,9 +57,7 @@ export function attachSpeakerControls(editor) {
       );
     },
 
-    /**
-     * 切换文本编辑模式的状态和UI
-     */
+    // 切换文本编辑模式（允许直接编辑卡片文本）
     _toggleTextEditMode() {
       this.isTextEditMode = !this.isTextEditMode;
       storageService.set(
@@ -69,10 +67,7 @@ export function attachSpeakerControls(editor) {
       this.applyModeUIState();
     },
 
-    /**
-     * 处理点击编辑按钮后的逻辑
-     * @param {string} actionId - 被点击卡片对应的动作ID
-     */
+    // 点击“编辑”按钮：弹窗修改这条对话的文本
     _handleTextEdit(actionId) {
       const action = this.projectFileState.actions.find(
         (a) => a.id === actionId
@@ -94,10 +89,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    /**
-     * 处理卡片点击事件，根据多选模式执行不同操作
-     * @param {MouseEvent} e - 点击事件对象
-     */
+    // 点击卡片时：根据多选/快捷键决定如何选择、或触发编辑/新增/删除
     _handleCardClick(e) {
       const editBtn = e.target.closest(".edit-text-btn");
       if (editBtn) {
@@ -169,10 +161,7 @@ export function attachSpeakerControls(editor) {
       );
     },
 
-    /**
-     * 处理删除对话卡片的逻辑
-     * @param {string} actionId - 被点击卡片对应的动作ID
-     */
+    // 删除一条对话卡片（会二次确认）
     async _handleCardDelete(actionId) {
       const action = this.projectFileState.actions.find(
         (a) => a.id === actionId
@@ -194,10 +183,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    /**
-     * 处理在当前卡片下方添加新对话卡片的逻辑
-     * @param {string} actionId - 被点击卡片对应的动作ID
-     */
+    // 在当前卡片下方新增一条对话（弹窗输入文本）
     async _handleCardAdd(actionId) {
       const newText = await modalService.prompt("请输入新对话的内容：");
       if (newText && newText.trim()) {
@@ -220,7 +206,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    // 重新附加卡片选择功能
+    // 重新绑定画布点击事件（避免重复绑定/旧 handler 残留）
     _reattachSelection() {
       const canvas = this.domCache.canvas;
       if (canvas) {
@@ -235,7 +221,7 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    // 绑定画布的交互事件（选择高亮、属性修改等）
+    // 绑定画布：选择高亮、布局控件变更等交互
     bindCanvasEvents() {
       const canvas = this.domCache.canvas;
       if (!canvas) return;

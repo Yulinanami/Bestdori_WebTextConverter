@@ -8,16 +8,15 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
 import { modalService } from "@services/ModalService.js";
 
-/**
- * 处理配置的加载、导入导出和本地存储。
- * 与 UI 解耦，方便在不同界面或脚本中复用。
- */
+// 配置数据层：负责从后端/本地读取配置，以及导入导出与清缓存。
 export const configData = {
+  // 生成一个带时间戳的文件名（用于导出下载）
   generateFilename(prefix = "file", extension = "json") {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
     return `${prefix}_${timestamp}.${extension}`;
   },
 
+  // 把数字设置写进 localStorage，并同步到页面输入框
   applyNumericSetting(storageKey, inputId, value) {
     if (typeof value !== "number") {
       return;
@@ -31,7 +30,7 @@ export const configData = {
     }
   },
 
-  // 加载配置
+  // 从后端加载默认配置，并优先使用本地覆盖（如果有）
   async loadConfig(manager) {
     try {
       const data = await apiService.getConfig();
@@ -55,17 +54,17 @@ export const configData = {
     }
   },
 
-  // 从 LocalStorage 加载配置
+  // 从本地读取“角色映射配置”
   loadLocalConfig() {
     return storageService.get(STORAGE_KEYS.CHARACTER_MAPPING);
   },
 
-  // 保存配置到 LocalStorage
+  // 保存“角色映射配置”到本地
   saveLocalConfig(config) {
     return storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config);
   },
 
-  // 导出配置（包含位置配置）
+  // 导出所有配置为一个 JSON 文件（角色/引号/服装/位置/动作表情等）
   async exportConfig(manager) {
     await ui.withButtonLoading(
       "exportConfigBtn",
@@ -122,6 +121,7 @@ export const configData = {
     );
   },
 
+  // 简单校验：确认导入文件是个普通对象（避免奇怪的数据结构）
   validateConfig(config) {
     if (!config || typeof config !== "object" || Array.isArray(config)) {
       console.error("配置验证失败：不是有效的对象");
@@ -130,6 +130,7 @@ export const configData = {
     return true;
   },
 
+  // 导入配置文件（读取 JSON，并分发给各个子系统）
   importConfig(manager, file) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -214,6 +215,7 @@ export const configData = {
     reader.readAsText(file);
   },
 
+  // 清空本地保存的所有数据（相当于恢复出厂设置）
   async clearLocalStorage() {
     const confirmed = await modalService.confirm(
       "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +

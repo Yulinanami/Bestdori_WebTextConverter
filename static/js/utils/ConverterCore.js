@@ -1,5 +1,6 @@
-// 核心转换逻辑：将文本拆分为项目文件格式（无 DOM/状态依赖）
+// 把“纯文本剧本”转换成“项目文件(projectFile)”结构（不依赖 DOM/全局状态）。
 
+// 把角色配置（角色名 -> ids）变成 Map，方便快速用角色名查到 characterId
 function buildCharacterMap(characterConfig = {}) {
   return new Map(
     Object.entries(characterConfig).map(([name, ids]) => [
@@ -9,13 +10,7 @@ function buildCharacterMap(characterConfig = {}) {
   );
 }
 
-/**
- * 将纯文本转换为项目文件格式
- * 自动识别"角色名:对话"格式，未匹配的内容作为旁白
- * @param {string} text - 输入文本，段落间用空行分隔
- * @param {Object<string, Array<number>>} characterConfig - 角色配置映射
- * @returns {Object} 项目文件对象 { version, actions }
- */
+// 把输入文本按空行分段，并识别“角色名:台词”，生成 projectFile.actions
 export function createProjectFileFromText(text, characterConfig = {}) {
   const segments = text
     .split(/\n\s*\n/)

@@ -1,10 +1,12 @@
-// navigationManager.js - 管理左侧导航和步骤切换
+// 管理左侧导航点击步骤时切换右侧内容，并在需要时初始化该步骤的数据
 
 class NavigationManager {
   constructor() {
+    // 初始化：创建实例后立刻绑定导航点击事件
     this.init();
   }
 
+  // 初始化：给左侧步骤按钮绑定点击事件，并默认跳到第 1 步
   init() {
     // 绑定导航项点击事件
     const navSteps =
@@ -20,6 +22,7 @@ class NavigationManager {
     this.navigateToStep(1);
   }
 
+  // 切换到指定步骤：高亮左侧、显示右侧，并触发该步骤的初始化逻辑
   navigateToStep(stepNum) {
     // 更新导航栏激活状态
     const navSteps =
@@ -51,19 +54,15 @@ class NavigationManager {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  /**
-   * 步骤内容初始化器映射
-   * 使用策略模式和 async/await 替代深层 Promise 嵌套
-   * @private
-   */
+  // 每个步骤需要“进场初始化”时，就在这里写对应的加载逻辑
   _stepInitializers = {
-    // 配置管理
+    // 第 5 步：配置管理（角色列表）
     5: async () => {
       const { configManager } = await import("@managers/configManager.js");
       configManager.renderConfigList();
     },
 
-    // 服装配置
+    // 第 6 步：服装配置（初始化临时修改区，避免直接改动正式数据）
     6: async () => {
       const [{ costumeManager }, { state }, { DataUtils }] = await Promise.all([
         import("@managers/costumeManager.js"),
@@ -81,7 +80,7 @@ class NavigationManager {
       costumeManager.renderCostumeList();
     },
 
-    // 位置配置
+    // 第 7 步：位置配置（初始化临时配置，并渲染列表）
     7: async () => {
       const [{ positionManager }, { DataUtils }] = await Promise.all([
         import("@managers/positionManager.js"),
@@ -103,7 +102,7 @@ class NavigationManager {
       positionManager.toggleManualConfig();
     },
 
-    // 动作/表情配置
+    // 第 8 步：动作/表情配置（初始化临时列表，并渲染）
     8: async () => {
       const [
         { motionExpressionManager },
@@ -126,6 +125,7 @@ class NavigationManager {
     },
   };
 
+  // 进入某个步骤时，按需执行该步骤对应的初始化函数
   async initializeStepContent(stepNum) {
     // 使用策略模式查找并执行对应的初始化器
     const initializer = this._stepInitializers[stepNum];
@@ -135,5 +135,5 @@ class NavigationManager {
   }
 }
 
-// 创建全局实例
+// 创建单例（导入即生效）
 export const navigationManager = new NavigationManager();

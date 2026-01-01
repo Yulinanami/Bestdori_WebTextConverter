@@ -1,8 +1,10 @@
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 
+// 用于动作/表情等类似的数据结构
 class GenericConfigManager {
   constructor(name, configKey, localStorageKey) {
+    // 初始化：记住配置字段名，并加载本地自定义项
     this.name = name;
     this.configKey = configKey;
     this.localStorageKey = localStorageKey;
@@ -10,6 +12,7 @@ class GenericConfigManager {
     this.customItems = this.loadCustomItems();
   }
 
+  // 从后端下发的 configData 里读取“每个角色的默认列表”
   init() {
     const configData = state.get("configData");
     if (configData && configData[this.configKey]) {
@@ -19,6 +22,7 @@ class GenericConfigManager {
     }
   }
 
+  // 从 localStorage 读取用户自定义项
   loadCustomItems() {
     try {
       const saved = localStorage.getItem(this.localStorageKey);
@@ -29,6 +33,7 @@ class GenericConfigManager {
     }
   }
 
+  // 把用户自定义项保存到 localStorage
   saveCustomItems() {
     try {
       localStorage.setItem(
@@ -40,6 +45,7 @@ class GenericConfigManager {
     }
   }
 
+  // 获取“所有角色默认项”的去重集合（Set）
   getAllDefaultItems() {
     const defaultItems = new Set();
     Object.values(this.characterItems).forEach((list) => {
@@ -48,17 +54,14 @@ class GenericConfigManager {
     return defaultItems;
   }
 
-  /**
-   * 获取指定角色可用的所有项目列表（默认 + 全局自定义）
-   * @param {number | string} characterId - 角色的 ID
-   * @returns {string[]} - 可用项目列表
-   */
+  // 获取某个角色可用的项目列表（默认 + 全局自定义，去重后排序）
   getAvailableItemsForCharacter(characterId) {
     const defaultItems = this.characterItems[characterId] || [];
     // 使用 Set 确保唯一性
     return Array.from(new Set([...defaultItems, ...this.customItems])).sort();
   }
 
+  // 获取“所有已知项目”（默认 + 自定义，去重后排序）
   getAllKnownItems() {
     const allItems = new Set(this.customItems);
     Object.values(this.characterItems).forEach((list) => {
@@ -68,12 +71,14 @@ class GenericConfigManager {
   }
 }
 
+// 动作配置的通用管理器实例
 export const motionManager = new GenericConfigManager(
   "动作",
   "character_motions",
   "bestdori_custom_motions"
 );
 
+// 表情配置的通用管理器实例
 export const expressionManager = new GenericConfigManager(
   "表情",
   "character_expressions",

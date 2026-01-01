@@ -1,9 +1,8 @@
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
-/**
- * 位置配置的存取与计算逻辑。
- */
+// 位置配置的仓库：负责读写本地存储，并计算“自动站位”时的位置分配
 export const positionStore = {
+  // 从本地读取位置配置，并写回 manager
   loadPositionConfig(manager) {
     const config = storageService.get(STORAGE_KEYS.POSITION_CONFIG);
     if (config) {
@@ -12,6 +11,7 @@ export const positionStore = {
     }
   },
 
+  // 把 manager 里的位置配置保存到本地
   savePositionConfig(manager) {
     const config = {
       autoPositionMode: manager.autoPositionMode,
@@ -20,6 +20,7 @@ export const positionStore = {
     return storageService.set(STORAGE_KEYS.POSITION_CONFIG, config);
   },
 
+  // 导入位置配置（并立刻保存）
   importPositions(manager, positionConfig) {
     if (!positionConfig) return;
     if (typeof positionConfig.autoPositionMode === "boolean") {
@@ -31,6 +32,7 @@ export const positionStore = {
     this.savePositionConfig(manager);
   },
 
+  // 获取某角色的站位：自动模式按顺序分配；手动模式读手动配置
   getCharacterPositionConfig(manager, characterName, appearanceOrder) {
     if (manager.autoPositionMode) {
       return {

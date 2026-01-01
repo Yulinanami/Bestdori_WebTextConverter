@@ -1,19 +1,7 @@
-/**
- * 拖拽助手工具 - 为编辑器提供拖拽相关的辅助功能
- *
- * 用于处理 Sortable.js 的配置和事件
- */
+// 拖拽助手：帮你少写 Sortable.js 配置，处理分组模式下的索引换算。
 
 export const DragHelper = {
-  /**
-   * 创建标准的 Sortable 配置对象
-   * @param {Object} options - 配置选项
-   * @param {string} options.group - Sortable 分组名称
-   * @param {Function} options.onEnd - 拖拽结束回调（移动现有项）
-   * @param {Function} options.onAdd - 添加新项回调
-   * @param {Object} options.extraConfig - 额外的 Sortable 配置
-   * @returns {Object} Sortable 配置对象
-   */
+  // 生成一个通用的 Sortable 配置（可传 group/onEnd/onAdd/extraConfig）
   createSortableConfig(options = {}) {
     const config = {
       animation: 150,
@@ -42,15 +30,7 @@ export const DragHelper = {
     return config;
   },
 
-  /**
-   * 创建拖拽结束处理器（移动现有项）
-   * @param {Object} params - 参数对象
-   * @param {Object} params.editor - 编辑器实例（必须有 BaseEditor 的方法）
-   * @param {Function} params.getGroupingEnabled - 获取是否启用分组的函数
-   * @param {number} params.groupSize - 每组大小
-   * @param {Function} params.executeFn - 执行移动的函数 (oldIndex, newIndex) => void
-   * @returns {Function} onEnd 事件处理器
-   */
+  // 生成 onEnd 处理器：把拖拽的“本地索引”换算成“全局索引”，再调用 executeFn
   createOnEndHandler(params) {
     const { editor, getGroupingEnabled, groupSize = 50, executeFn } = params;
 
@@ -86,16 +66,7 @@ export const DragHelper = {
     };
   },
 
-  /**
-   * 创建添加新项处理器
-   * @param {Object} params - 参数对象
-   * @param {Object} params.editor - 编辑器实例（必须有 BaseEditor 的方法）
-   * @param {Function} params.getGroupingEnabled - 获取是否启用分组的函数
-   * @param {Function} params.validateItem - 验证拖拽项的函数 (item) => boolean
-   * @param {Function} params.extractData - 从拖拽项提取数据的函数 (item) => Object
-   * @param {Function} params.executeFn - 执行添加的函数 (data, globalIndex) => void
-   * @returns {Function} onAdd 事件处理器
-   */
+  // 生成 onAdd 处理器：校验拖入项 -> 提取数据 -> 计算插入位置 -> 调用 executeFn
   createOnAddHandler(params) {
     const {
       editor,

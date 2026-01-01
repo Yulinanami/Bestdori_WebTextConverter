@@ -1,4 +1,4 @@
-// 文本转换管理
+// 点击转换：把文本/项目数据交给后端转换，并把结果显示出来
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
@@ -6,6 +6,7 @@ import { apiService } from "@services/ApiService.js";
 import { createProjectFileFromText } from "@utils/ConverterCore.js";
 
 export const converter = {
+  // 初始化：绑定“转换”按钮
   init() {
     const convertBtn = document.getElementById("convertBtn");
     if (convertBtn) {
@@ -13,7 +14,7 @@ export const converter = {
     }
   },
 
-  // 转换文本为 Bestdori JSON 格式
+  // 收集输入内容与选项，并开始转换（文本模式或“已保存的项目模式”）
   async convertText() {
     let projectFileToConvert;
 
@@ -50,6 +51,7 @@ export const converter = {
     );
   },
 
+  // 把项目文件发给后端转换，并把 JSON 结果渲染到页面上
   async convertFromProjectFile(
     projectFile,
     selectedQuotes = [],

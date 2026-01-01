@@ -1,9 +1,10 @@
 import { DragHelper } from "@utils/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
-// 与拖拽相关的逻辑
+// 拖角色到卡片、拖卡片排序、拖拽时自动滚动
 export function attachSpeakerDrag(editor, baseEditor) {
   Object.assign(editor, {
+    // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
     handleDragScrolling: (e) => {
       const containers = [
         editor.domCache.canvas,
@@ -12,7 +13,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
       ScrollAnimationMixin.handleDragScrolling.call(editor, e, containers);
     },
 
-    // 根据 Y 坐标查找最接近的对话卡片（用于拖拽插入位置计算）
+    // 根据鼠标 Y 坐标，找出最接近的对话卡片（用于决定把角色丢给哪条对话）
     _findClosestCard(y) {
       const canvas = editor.domCache.canvas;
       if (!canvas) return null;
@@ -41,12 +42,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
       return closestCard;
     },
 
-    /**
-     * 初始化拖拽功能
-     * 设置两个Sortable实例:
-     * 1. 角色列表 - 可拖出(clone模式),拖回时清除说话人
-     * 2. 对话画布 - 可排序,可接收角色拖入并分配说话人
-     */
+    // 初始化拖拽：角色列表可拖出，画布可接收并可排序
     initDragAndDrop() {
       const characterList = editor.domCache.characterList;
       const canvas = editor.domCache.canvas;
@@ -135,7 +131,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
         },
       });
 
-      // 创建自定义的 onAdd 处理器（speakerEditor 有特殊逻辑）
+      // 当“角色”拖到画布上时：把角色设置成目标对话的说话人
       const onAddHandler = (evt) => {
         const characterItem = evt.item;
         characterItem.style.display = "none";

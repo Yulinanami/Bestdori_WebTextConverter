@@ -1,4 +1,4 @@
-// 提供 projectFileState / originalStateOnOpen / activeGroupIndex 的 getter/setter
+// 把 baseEditor 的几个关键字段“转发”到 target 上
 export function applyStateBridge(target, baseEditor) {
   Object.defineProperties(target, {
     projectFileState: {

@@ -1,19 +1,14 @@
-/**
- * ModalService - 统一的模态框管理服务
- * 提供模态框的打开、关闭、事件绑定等功能
- */
+// 统一管理弹窗（打开/关闭/绑定关闭按钮）
 
 class ModalService {
   constructor() {
+    // 初始化：记录已打开的弹窗，并防止重复初始化
     this.openModals = new Set();
     this.initialized = false;
-    this.specialHandlers = {}; // 特殊模态框的处理器
+    this.specialHandlers = {}; // 某些弹窗需要“自定义关闭方式”时放这里
   }
 
-  /**
-   * 初始化模态框服务
-   * 绑定全局事件监听器
-   */
+  // 初始化：绑定关闭按钮等一次性事件（只做一次）
   init() {
     if (this.initialized) return;
 
@@ -47,17 +42,14 @@ class ModalService {
     //   }
     // });
 
-    // 绑定所有关闭按钮
+    // 绑定页面上所有“关闭弹窗”的按钮
     this._bindCloseButtons();
 
     this.initialized = true;
     console.log("[ModalService] 已初始化");
   }
 
-  /**
-   * 绑定模态框关闭按钮
-   * @private
-   */
+  // 给所有关闭按钮绑定点击事件（点了就关闭所在弹窗）
   _bindCloseButtons() {
     document
       .querySelectorAll(".modal-close, .btn-modal-close")
@@ -72,13 +64,7 @@ class ModalService {
       });
   }
 
-  /**
-   * 打开模态框
-   * @param {string} modalId - 模态框 ID
-   * @param {object} options - 选项
-   * @param {Function} options.onOpen - 打开后的回调
-   * @param {Function} options.onClose - 关闭前的回调
-   */
+  // 打开指定弹窗（modalId 是弹窗 DOM 的 id）
   open(modalId, options = {}) {
     const modal = document.getElementById(modalId);
     if (!modal) {
@@ -103,11 +89,7 @@ class ModalService {
     console.log(`[ModalService] 打开模态框: ${modalId}`);
   }
 
-  /**
-   * 关闭模态框
-   * @param {string} modalId - 模态框 ID
-   * @param {Function} beforeClose - 关闭前的回调，返回 false 可阻止关闭
-   */
+  // 关闭指定弹窗（可传 beforeClose 来拦截关闭，比如未保存时提示）
   close(modalId, beforeClose = null) {
     const modal = document.getElementById(modalId);
     if (!modal) {
@@ -135,12 +117,7 @@ class ModalService {
     console.log(`[ModalService] 关闭模态框: ${modalId}`);
   }
 
-  /**
-   * 确认对话框
-   * @param {string} message - 确认消息
-   * @param {object} options - 选项
-   * @returns {Promise<boolean>} 是否确认
-   */
+  // 弹出“确认/取消”的对话框（返回 Promise<boolean>）
   async confirm(message, _options = {}) {
     return new Promise((resolve) => {
       // 使用原生 confirm（后续可以改为自定义模态框时使用 options.title、confirmText、cancelText）
@@ -149,11 +126,7 @@ class ModalService {
     });
   }
 
-  /**
-   * 警告对话框
-   * @param {string} message - 警告消息
-   * @param {object} options - 选项
-   */
+  // 弹出“只有一个确定按钮”的提示框（返回 Promise<void>）
   async alert(message, _options = {}) {
     return new Promise((resolve) => {
       // 使用原生 alert（后续可以改为自定义模态框时使用 options.title）
@@ -162,12 +135,7 @@ class ModalService {
     });
   }
 
-  /**
-   * 输入对话框
-   * @param {string} message - 提示消息
-   * @param {string} defaultValue - 默认值
-   * @returns {Promise<string|null>} 输入值或 null
-   */
+  // 弹出“输入框”对话框（返回用户输入的字符串或 null）
   async prompt(message, defaultValue = "") {
     return new Promise((resolve) => {
       // 使用原生 prompt（后续可以改为自定义模态框）
@@ -177,5 +145,5 @@ class ModalService {
   }
 }
 
-// 导出单例
+// 导出单例（全站共用同一个弹窗管理器）
 export const modalService = new ModalService();

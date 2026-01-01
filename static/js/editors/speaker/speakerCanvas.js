@@ -6,19 +6,12 @@ import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { createSpeakerRenderers } from "@editors/speaker/speakerRenderers.js";
 
-// 负责渲染左侧对话/布局卡片，以及多说话人弹窗
+// 把 actions 画成左侧卡片列表
 export function attachSpeakerCanvas(editor) {
   const canvasCache = createTimelineRenderCache();
 
   Object.assign(editor, {
-    /**
-     * 渲染左侧对话卡片画布
-     * 支持分组模式和普通模式两种渲染方式:
-     * - 分组模式: 每50条对话折叠为一组,提升长剧本性能
-     * - 普通模式: 一次性渲染所有对话卡片
-     * 卡片显示对话文本、说话人头像、序号,支持多说话人徽章
-     * @returns {Set<number>} 已使用的角色ID集合
-     */
+    // 渲染左侧卡片列表（对话/布局），并返回“已出现角色集合”
     renderCanvas() {
       const canvas = editor.domCache.canvas;
       if (!canvas) return new Set();

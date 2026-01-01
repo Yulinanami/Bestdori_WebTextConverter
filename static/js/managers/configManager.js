@@ -1,4 +1,4 @@
-// 配置管理相关功能
+// 配置管理的入口：负责角色列表配置、导入导出、清缓存等操作
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
@@ -11,42 +11,39 @@ import { configData } from "@managers/config/configData.js";
 export const configManager = {
   defaultConfig: null,
 
+  // 初始化：绑定配置列表交互和页面按钮
   init() {
     configUI.bindConfigListInteractions(this);
     this.bindActionButtons();
   },
 
+  // 获取当前角色配置（角色名 -> ID 列表）
   getCurrentConfig() {
     return state.get("currentConfig");
   },
 
-  /**
-   * 获取角色头像ID
-   * 使用avatar_mapping配置将特殊角色ID映射到对应的头像ID
-   * 例如: Mujica成员(ID 337-341)映射到Mujica头像(ID 1-6)
-   * @returns {number} 头像ID
-   */
+  // 获取用于显示的头像 ID（有些角色会映射到“替代头像”）
   getAvatarId(characterId) {
     const avatarMapping = state.get("avatarMapping") || {};
     return avatarMapping[characterId] || characterId;
   },
 
-  // 加载配置
+  // 从后端/本地加载配置（初始化整个应用的角色与引号等数据）
   async loadConfig() {
     return configData.loadConfig(this);
   },
 
-  // 从 LocalStorage 加载配置
+  // 读取本地保存的角色配置
   loadLocalConfig() {
     return configData.loadLocalConfig();
   },
 
-  // 保存配置到 LocalStorage
+  // 保存角色配置到本地
   saveLocalConfig(config) {
     return configData.saveLocalConfig(config);
   },
 
-  // 重置为默认配置（保留服装配置）
+  // 恢复默认角色列表（会清掉自定义角色；服装尽量保留已有角色的设置）
   async resetConfig() {
     const confirmed = await modalService.confirm(
       "【警告】此操作将恢复为系统默认角色列表。\n\n" +
@@ -84,11 +81,7 @@ export const configManager = {
     }
   },
 
-  /**
-   * 重置角色配置后更新服装配置
-   * 保留现有角色的服装设置,为新角色使用默认服装
-   * 确保重置角色列表时不会丢失用户已配置的服装
-   */
+  // 重置角色列表后：把服装配置“对齐到新角色表”（已有角色尽量保留）
   async updateCostumesAfterConfigReset(
     previousCostumes,
     previousAvailableCostumes
@@ -116,22 +109,22 @@ export const configManager = {
     costumeManager.saveLocalAvailableCostumes();
   },
 
-  // 渲染配置列表
+  // 把当前角色配置渲染到页面列表
   renderConfigList() {
     configUI.renderConfigList(this);
   },
 
-  // 更新配置项头像
+  // 更新某一行的头像显示
   updateConfigAvatar(avatarWrapper, id, name) {
     configUI.updateConfigAvatar(this, avatarWrapper, id, name);
   },
 
-  // 添加配置项
+  // 新增一行配置项（空白行）
   addConfigItem() {
     configUI.addConfigItem();
   },
 
-  // 保存配置（只保存到本地）
+  // 从页面表单读出角色配置，并保存到本地
   async saveConfig() {
     await ui.withButtonLoading(
       "saveConfigBtn",
@@ -163,29 +156,22 @@ export const configManager = {
     );
   },
 
-  // 导出配置（包含位置配置）
+  // 导出所有配置（包含服装、位置、动作表情等）
   async exportConfig() {
     return configData.exportConfig(this);
   },
 
-  /**
-   * 导入完整配置文件
-   * 支持导入多个子系统配置:
-   * - character_mapping: 角色映射
-   * - custom_quotes: 自定义引号
-   * - costume_mapping/available_costumes: 服装配置
-   * - position_config: 位置配置
-   * 解析JSON文件后依次调用各子系统的导入方法
-   */
+  // 导入一个完整配置文件（会分发给多个子模块）
   importConfig(file) {
     return configData.importConfig(this, file);
   },
 
-  // 清除所有本地存储
+  // 清除所有本地缓存（恢复出厂设置）
   async clearLocalStorage() {
     return configData.clearLocalStorage();
   },
 
+  // 用角色 ID 反查角色名（用于显示）
   getCharacterNameById(id) {
     for (const [name, ids] of Object.entries(state.get("currentConfig"))) {
       if (ids.includes(id)) {
@@ -195,6 +181,7 @@ export const configManager = {
     return null;
   },
 
+  // 绑定配置页面上的按钮（新增/保存/重置/导入/导出/清缓存）
   bindActionButtons() {
     const addBtn = document.getElementById("addConfigBtn");
     if (addBtn) {

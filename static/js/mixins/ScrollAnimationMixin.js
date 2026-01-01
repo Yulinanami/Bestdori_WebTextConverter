@@ -1,13 +1,7 @@
-// 滚动动画 Mixin
-// 提供拖拽时的自动滚动功能
+// 拖拽时的自动滚动：鼠标靠近容器上下边缘就自动滚动
 
 export const ScrollAnimationMixin = {
-  /**
-   * 处理拖拽时的自动滚动
-   * 当鼠标接近容器边缘时触发滚动
-   * @param {Event} e - dragover 事件
-   * @param {HTMLElement[]} scrollContainers - 可滚动的容器数组
-   */
+  // 处理 dragover：根据鼠标位置决定是否开始自动滚动
   handleDragScrolling(e, scrollContainers) {
     if (!scrollContainers || scrollContainers.length === 0) return;
 
@@ -25,7 +19,7 @@ export const ScrollAnimationMixin = {
       return;
     }
 
-    // 计算滚动速度
+    // 根据鼠标离顶部/底部的距离决定滚动方向和速度
     const rect = scrollTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     const hotZone = 75; // 热区高度（像素）
@@ -37,7 +31,7 @@ export const ScrollAnimationMixin = {
       newScrollSpeed = 10; // 向下滚动
     }
 
-    // 启动或更新滚动
+    // 开始滚动 / 更新滚动速度 / 停止滚动
     if (newScrollSpeed !== 0) {
       if (newScrollSpeed !== this.scrollSpeed || !this.scrollAnimationFrame) {
         this.scrollSpeed = newScrollSpeed;
@@ -48,10 +42,7 @@ export const ScrollAnimationMixin = {
     }
   },
 
-  /**
-   * 使用 requestAnimationFrame 优化滚动性能
-   * @param {HTMLElement} elementToScroll - 要滚动的元素
-   */
+  // 开始自动滚动（用 requestAnimationFrame 让滚动更平滑）
   startScrolling(elementToScroll) {
     this.stopScrolling();
 
@@ -64,9 +55,7 @@ export const ScrollAnimationMixin = {
     scroll();
   },
 
-  /**
-   * 停止自动滚动动画
-   */
+  // 停止自动滚动
   stopScrolling() {
     if (this.scrollAnimationFrame) {
       cancelAnimationFrame(this.scrollAnimationFrame);

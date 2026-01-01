@@ -14,7 +14,7 @@ import { attachSpeakerState } from "@editors/speaker/speakerState.js";
 import { attachSpeakerControls } from "@editors/speaker/speakerControls.js";
 import { attachSpeakerPopover } from "@editors/speaker/speakerPopover.js";
 
-// 创建基础编辑器实例
+// 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
     speakerEditor.scheduleRender();
@@ -35,6 +35,7 @@ export const speakerEditor = {
   isTextEditMode: false,
   domCache: {},
 
+  // 统一的“下一帧再渲染”（避免频繁重绘导致卡顿）
   scheduleRender() {
     if (this.renderFrameId) {
       cancelAnimationFrame(this.renderFrameId);
@@ -47,7 +48,7 @@ export const speakerEditor = {
     });
   },
 
-  // 初始化编辑器，绑定事件监听器和快捷键
+  // 初始化：缓存 DOM、绑定按钮事件、启用通用快捷键等
   init() {
     // 缓存 DOM 元素
     this.domCache = {
@@ -76,10 +77,10 @@ export const speakerEditor = {
       this._toggleTextEditMode()
     );
 
-    // 初始化通用事件
+    // 初始化通用事件（撤销/重做/保存/导入导出/关闭确认/快捷键）
     this.initCommonEvents();
 
-    // 初始化置顶按钮处理
+    // 初始化置顶按钮（图钉）
     this.initPinButtonHandler();
     this.applyModeUIState();
 
@@ -88,7 +89,7 @@ export const speakerEditor = {
     }
   },
 
-  // 打开对话编辑器模态框
+  // 打开“对话编辑器”弹窗，并加载/创建项目数据
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -128,18 +129,20 @@ export const speakerEditor = {
     });
   },
 
-  // 钩子方法
+  // 导入项目后：刷新画布与角色列表
   afterImport() {
     this.renderCanvas();
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 
+  // 置顶状态变化后：刷新角色列表
   afterPinToggle() {
     const usedCharacterNames = this._getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 
+  // 关闭弹窗前：取消渲染任务，并解绑选择事件
   onBeforeClose() {
     if (this.renderFrameId) {
       cancelAnimationFrame(this.renderFrameId);
@@ -149,10 +152,10 @@ export const speakerEditor = {
   },
 };
 
-// 状态代理
+// 状态桥接：让 speakerEditor 直接拥有 projectFileState 等字段
 applyStateBridge(speakerEditor, baseEditor);
 
-// 使用 Object.assign 继承 mixins
+// 混入通用能力（保存/事件/布局控件/滚动/角色列表等）
 Object.assign(
   speakerEditor,
   BaseEditorMixin,
@@ -162,7 +165,7 @@ Object.assign(
   CharacterListMixin
 );
 
-// 拆分模块注入
+// 注入拆分出的功能模块（把 speakerEditor 作为宿主对象扩展方法）
 attachSpeakerState(speakerEditor);
 attachSpeakerControls(speakerEditor);
 attachSpeakerCanvas(speakerEditor);

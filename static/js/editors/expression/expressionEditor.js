@@ -1,4 +1,4 @@
-// 动作表情编辑器（模块化入口）
+// 给每一句对话/每个布局设置动作与表情，提供时间线编辑
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
 import { ui } from "@utils/uiUtils.js";
@@ -12,7 +12,7 @@ import { attachExpressionTimeline } from "@editors/expression/expressionTimeline
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { attachExpressionLibraries } from "@editors/expression/expressionLibraries.js";
 
-// 创建基础编辑器实例
+// 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
     expressionEditor.renderTimeline();
@@ -35,6 +35,7 @@ export const expressionEditor = {
     custom: [],
   },
 
+  // 初始化：缓存 DOM、绑定按钮事件、绑定搜索与快捷填充交互
   init() {
     // 缓存 DOM 元素
     this.domCache = {
@@ -63,6 +64,7 @@ export const expressionEditor = {
       .getElementById("live2dViewerBtn")
       ?.addEventListener("click", () => this._openLive2dViewers());
 
+    // 给搜索框加一个“清空按钮”（输入时显示，点一下清空）
     const setupSearchClear = (inputId, clearBtnId) => {
       const input = document.getElementById(inputId);
       const clearBtn = document.getElementById(clearBtnId);
@@ -124,11 +126,12 @@ export const expressionEditor = {
     this.initCommonEvents();
   },
 
+  // 导入项目后：刷新时间线显示
   afterImport() {
     this.renderTimeline();
   },
 
-  // 恢复默认表情动作（清空所有角色状态配置）
+  // 恢复默认：清空所有对话/布局上的动作与表情设置（可撤销）
   async reset() {
     if (!confirm("确定要恢复默认表情动作吗？此操作可以撤销。")) {
       return;
@@ -155,7 +158,7 @@ export const expressionEditor = {
     }
   },
 
-  // 打开表情动作编辑器模态框
+  // 打开动作/表情编辑器弹窗，并加载/创建项目数据
   async open() {
     await EditorHelper.openEditor({
       editor: baseEditor,
@@ -202,16 +205,16 @@ export const expressionEditor = {
     });
   },
 
-  // 使用 BaseEditor 的 executeCommand 方法
+  // 对外提供一个小包装：执行一次可撤销的状态修改
   _executeCommand(changeFn) {
     baseEditor.executeCommand(changeFn);
   },
 };
 
-// 状态代理
+// 状态桥接：让 expressionEditor 直接拥有 projectFileState 等字段
 applyStateBridge(expressionEditor, baseEditor);
 
-// 应用 mixins
+// 混入通用能力（保存/事件/布局控件/滚动等）
 Object.assign(
   expressionEditor,
   BaseEditorMixin,
@@ -220,7 +223,7 @@ Object.assign(
   ScrollAnimationMixin
 );
 
-// 注入拆分后的功能模块
+// 注入拆分出的功能模块（把 expressionEditor 作为宿主对象扩展方法）
 attachExpressionAssignments(expressionEditor);
 attachExpressionTimeline(expressionEditor);
 attachExpressionDrag(expressionEditor, baseEditor);

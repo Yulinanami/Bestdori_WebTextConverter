@@ -5,11 +5,12 @@ import {
 } from "@managers/genericConfigManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 
+// 管理动作/表情配置页面渲染列表、添加自定义项、删除项、保存到本地
 export const motionExpressionManager = {
   tempCustomMotions: [], // 临时自定义动作列表
   tempCustomExpressions: [], // 临时自定义表情列表
 
-  // 初始化编辑器，绑定事件监听器
+  // 初始化：绑定按钮点击与删除事件
   init() {
     document
       .getElementById("addCustomMotionBtn")
@@ -31,13 +32,13 @@ export const motionExpressionManager = {
       ?.addEventListener("click", (e) => this.handleDelete(e, "expression"));
   },
 
-  // 渲染动作和表情列表
+  // 一次性刷新“动作列表 + 表情列表”
   renderLists() {
     this.renderList("motion");
     this.renderList("expression");
   },
 
-  // 渲染单个列表（动作或表情）
+  // 刷新某一个列表（动作或表情）
   renderList(type) {
     const isMotion = type === "motion";
     const manager = isMotion ? motionManager : expressionManager;
@@ -62,14 +63,14 @@ export const motionExpressionManager = {
       }
       const isDeletable = tempCustomItems.includes(item);
 
-      // 使用 createElement 创建元素，避免字符串拼接
+      // 创建这一行的“名称”和“删除按钮”
       const nameSpan = DOMUtils.createElement("span", {
         class: "item-name",
       });
       nameSpan.textContent = item;
       itemEl.appendChild(nameSpan);
 
-      // 如果可删除，添加删除按钮
+      // 自定义项允许删除：显示删除按钮
       if (isDeletable) {
         const removeBtn = DOMUtils.createElement("button", {
           className: "btn-icon-action btn-icon-danger remove-btn",

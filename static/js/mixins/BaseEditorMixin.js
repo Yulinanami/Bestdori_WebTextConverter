@@ -1,5 +1,4 @@
-// 基础编辑器功能 Mixin
-// 提供保存、导入、导出、关闭、命令执行等核心功能
+// 编辑器通用能力合集：保存/导入导出/关闭/撤销重做/准备项目数据等
 import { DataUtils } from "@utils/DataUtils.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
 import { createProjectFileFromText } from "@utils/ConverterCore.js";
@@ -7,22 +6,17 @@ import { historyManager } from "@managers/historyManager.js";
 import { editorService } from "@services/EditorService.js";
 
 export const BaseEditorMixin = {
-  // 共享属性
+  // 共享状态：Sortable 实例与自动滚动相关
   sortableInstances: [],
   scrollAnimationFrame: null,
   scrollSpeed: 0,
 
-  /**
-   * 使用命令模式执行状态修改（支持撤销/重做）
-   * @param {Function} changeFn - 接收 currentState 参数的修改函数
-   */
+  // 通过 BaseEditor 执行一次“可撤销的修改”（changeFn 会拿到 currentState）
   _executeCommand(changeFn) {
     this.baseEditor.executeCommand(changeFn);
   },
 
-  /**
-   * 保存编辑器状态到全局项目状态
-   */
+  // 保存：把编辑器里的临时状态写回全局项目进度
   async save() {
     await EditorHelper.saveEditor({
       editor: this.baseEditor,
@@ -39,16 +33,12 @@ export const BaseEditorMixin = {
     });
   },
 
-  /**
-   * 导出项目文件为 JSON
-   */
+  // 导出：把当前项目进度下载成 JSON 文件
   exportProject() {
     editorService.projectManager.export(this.projectFileState);
   },
 
-  /**
-   * 导入项目文件
-   */
+  // 导入：选择一个项目进度 JSON，并替换当前编辑器状态
   async importProject() {
     const importedProject = await editorService.projectManager.import();
     if (importedProject) {
@@ -64,9 +54,7 @@ export const BaseEditorMixin = {
     }
   },
 
-  /**
-   * 关闭编辑器并清理资源
-   */
+  // 关闭编辑器：做清理（拖拽实例、滚动动画、子模块钩子）
   _closeEditor() {
     EditorHelper.closeEditor({
       modalId: this.modalId,
@@ -92,10 +80,7 @@ export const BaseEditorMixin = {
     });
   },
 
-  /**
-   * 删除布局动作
-   * @param {string} actionId - 动作ID
-   */
+  // 删除一条 layout action（按 actionId）
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
@@ -104,11 +89,7 @@ export const BaseEditorMixin = {
     });
   },
 
-  /**
-   * 从文本片段创建项目文件
-   * @param {string[]} segments - 文本片段数组
-   * @returns {Object} 项目文件对象
-   */
+  // 把“分段后的文本”组装成项目文件（actions 数组）
   _createProjectFileFromSegments(segments) {
     const text = segments.join("\n\n");
     const baseProject = createProjectFileFromText(
@@ -123,12 +104,7 @@ export const BaseEditorMixin = {
     return { ...baseProject, actions };
   },
 
-  /**
-   * 在打开编辑器前初始化项目状态
-   * @param {Object} options
-   * @param {Function} options.onExistingProjectLoaded - 已有项目加载后的回调
-   * @param {Function} options.onNewProjectCreated - 新项目创建后的回调
-   */
+  // 打开编辑器前准备 projectFileState：优先用已保存进度，否则用输入文本创建
   async _prepareProjectState(options = {}) {
     const { onExistingProjectLoaded, onNewProjectCreated } = options;
     const inputElement = document.getElementById("inputText");
@@ -157,13 +133,7 @@ export const BaseEditorMixin = {
     historyManager.clear();
   },
 
-  /**
-   * 从片段创建单个 action（由子类实现）
-   * @param {number} index - 索引
-   * @param {string} text - 文本内容
-   * @param {Array} speakers - 说话人数组
-   * @returns {Object} action 对象
-   */
+  // 把一段文本变成一个 action（子类可覆盖，默认创建 talk）
   _createActionFromSegment(index, text, speakers) {
     // 默认实现：创建基本的 talk action
     return {

@@ -1,10 +1,8 @@
 import { editorService } from "@services/EditorService.js";
 
-/**
- * 与动作/表情分配相关的状态更新逻辑。
- * 所有函数接受 editor 实例，便于解耦和复用。
- */
+// 分配数据层：负责修改 editor 的 projectFileState（通过 _executeCommand 支持撤销）
 export const assignmentStore = {
+  // 在 talk action 上新增一条 motions 记录
   addMotionAssignment(editor, action, character) {
     editor._executeCommand((currentState) => {
       const currentAction = currentState.actions.find(
@@ -25,6 +23,7 @@ export const assignmentStore = {
     });
   },
 
+  // 更新 layout action 的 initialState（motion/expression）
   updateLayoutInitialState(editor, actionId, updates) {
     editor._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
@@ -38,6 +37,7 @@ export const assignmentStore = {
     });
   },
 
+  // 更新 talk action 的 motions[index]
   updateMotionAssignment(editor, actionId, assignmentIndex, updates) {
     editor._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
@@ -48,6 +48,7 @@ export const assignmentStore = {
     });
   },
 
+  // 删除 talk action 的 motions[index]
   removeMotionAssignment(editor, actionId, assignmentIndex) {
     editor._executeCommand((currentState) => {
       const action = currentState.actions.find((a) => a.id === actionId);
@@ -57,6 +58,7 @@ export const assignmentStore = {
     });
   },
 
+  // 判断 action 是否已经有动作/表情/延迟数据（决定 UI 是否显示“设置”或直接显示分配区）
   actionHasExpressionData(action) {
     if (action.type === "talk") {
       return action.motions && action.motions.length > 0;
@@ -71,6 +73,7 @@ export const assignmentStore = {
     return false;
   },
 
+  // 确保 layout action 至少有一个 initialState（用于显示分配 UI）
   ensureLayoutAssignment(editor, actionId) {
     const action = editor.projectFileState.actions.find(
       (a) => a.id === actionId
@@ -91,6 +94,7 @@ export const assignmentStore = {
     return true;
   },
 
+  // 获取“已经登场的角色列表”（用于对话动作的角色选择）
   getStagedCharacters(editor) {
     const appearedCharacterNames = new Set();
     const characters = [];

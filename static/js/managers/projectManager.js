@@ -3,11 +3,7 @@ import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 
 export const projectManager = {
-  /**
-   * 保存项目。将传入的当前状态同步到全局状态。
-   * @param {object} currentState - 编辑器当前的临时项目状态。
-   * @param {function} onComplete - 操作完成后的回调函数 (例如关闭模态框)。
-   */
+  // 保存当前编辑进度到内存状态（并可在保存后做回调）
   save(currentState, onComplete) {
     const newState = DataUtils.deepClone(currentState);
     state.set("projectFile", newState);
@@ -17,10 +13,7 @@ export const projectManager = {
     }
   },
 
-  /**
-   * 导出项目为 JSON 文件。
-   * @param {object} currentState - 编辑器当前的临时项目状态。
-   */
+  // 把当前编辑进度导出成一个 .json 文件（方便以后继续编辑）
   export(currentState) {
     if (!currentState) {
       ui.showStatus("没有可导出的内容。", "error");
@@ -41,12 +34,10 @@ export const projectManager = {
     URL.revokeObjectURL(url);
   },
 
-  /**
-   * 导入项目文件。
-   * @returns {Promise<object|null>} 返回一个包含导入的项目数据，如果用户取消则返回null。
-   */
+  // 选择并导入一个“编辑进度 JSON”，成功就返回项目数据，取消则返回 null
   async import() {
     return new Promise((resolve) => {
+      // 简单校验：确认这是“编辑器进度文件”，不是最终导出的 Bestdori JSON
       const isValidProjectFile = (data) => {
         if (!data || !Array.isArray(data.actions)) return false;
         return data.actions.every((action) => {

@@ -3,6 +3,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.PINNED_CHARACTERS;
 let pinnedCharacters = new Set();
 
+// 从本地读取“置顶角色列表”到内存
 function load() {
   try {
     const saved = storageService.get(LOCAL_STORAGE_KEY, []);
@@ -13,6 +14,7 @@ function load() {
   }
 }
 
+// 把当前“置顶角色列表”保存到本地
 function save() {
   try {
     storageService.set(LOCAL_STORAGE_KEY, Array.from(pinnedCharacters));
@@ -21,13 +23,11 @@ function save() {
   }
 }
 
+// 管理“置顶角色”：让常用角色显示在更靠前的位置
 export const pinnedCharacterManager = {
   load,
 
-  /**
-   * 切换一个角色的置顶状态
-   * @param {string} characterName - 角色的名称
-   */
+  // 切换某个角色是否置顶（置顶/取消置顶）
   toggle(characterName) {
     if (pinnedCharacters.has(characterName)) {
       pinnedCharacters.delete(characterName);
@@ -37,10 +37,7 @@ export const pinnedCharacterManager = {
     save();
   },
 
-  /**
-   * 获取所有已置顶角色的 Set 集合
-   * @returns {Set<string>}
-   */
+  // 获取当前所有置顶角色（Set）
   getPinned() {
     return pinnedCharacters;
   },

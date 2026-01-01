@@ -1,9 +1,10 @@
 import { DragHelper } from "@utils/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
-// 拖拽与自动滚动
+// 给 expressionEditor 注入“拖拽排序能力”：拖卡片排序，拖拽时自动滚动
 export function attachExpressionDrag(editor, baseEditor) {
   Object.assign(editor, {
+    // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
     handleDragScrolling: (e) => {
       const containers = [
         editor.domCache.timeline,
@@ -13,7 +14,7 @@ export function attachExpressionDrag(editor, baseEditor) {
       ScrollAnimationMixin.handleDragScrolling.call(editor, e, containers);
     },
 
-    // 初始化时间轴拖拽排序
+    // 初始化：让时间线支持拖拽排序（move action 的顺序）
     initTimelineDrag() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;

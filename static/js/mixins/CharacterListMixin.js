@@ -1,11 +1,11 @@
-// 角色列表渲染 Mixin
-// 提供角色列表的渲染和置顶功能
+// 角色列表通用能力：渲染右侧角色列表，支持置顶角色
 
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
 
 function createCharacterListCache() {
+  // 用一个小缓存减少重复创建 DOM（提升渲染性能）
   return {
     nodesByName: new Map(),
     signatures: new Map(),
@@ -14,10 +14,7 @@ function createCharacterListCache() {
 }
 
 export const CharacterListMixin = {
-  /**
-   * 渲染角色列表
-   * @param {Set<string>} usedCharacterNames - 已使用的角色名称集合（用于高亮显示）
-   */
+  // 渲染角色列表（usedCharacterNames 用于高亮：哪些角色已经在剧情里出现过）
   renderCharacterList(usedCharacterNames) {
     const listContainer = document.getElementById(this.characterListId);
     if (!listContainer) return;
@@ -31,7 +28,7 @@ export const CharacterListMixin = {
     const characters = editorService.getAllCharacters();
     const pinned = editorService.getPinnedCharacters();
 
-    // 计算上下文签名（角色配置 + 置顶列表），发生变化时强制更新签名缓存
+    // 如果角色配置或置顶列表变了，就清空签名缓存，避免显示不一致
     const configSignature = DataUtils.shallowSignature(
       characters.reduce((acc, [name, ids]) => {
         acc[name] = ids;
@@ -45,7 +42,7 @@ export const CharacterListMixin = {
       cache.contextSignature = contextSignature;
     }
 
-    // 排序：置顶角色优先，然后按ID排序
+    // 排序：置顶角色排前面，其余按角色 ID 排序
     characters.sort(([nameA, idsA], [nameB, idsB]) => {
       const isAPinned = pinned.has(nameA);
       const isBPinned = pinned.has(nameB);
@@ -56,7 +53,7 @@ export const CharacterListMixin = {
 
     const validNames = new Set();
 
-    // 渲染角色项
+    // 逐个渲染角色项（尽量复用缓存的 DOM 节点）
     characters.forEach(([name, ids]) => {
       const characterId = ids[0];
       const isPinned = pinned.has(name);
@@ -74,9 +71,13 @@ export const CharacterListMixin = {
       }
 
       if (card) {
-        // 复位可能由拖拽留下的状态，避免被隐藏或异常样式
+        // 清理拖拽留下的临时样式，避免显示异常
         card.style.display = "";
-        card.classList.remove("sortable-ghost", "sortable-chosen", "sortable-drag");
+        card.classList.remove(
+          "sortable-ghost",
+          "sortable-chosen",
+          "sortable-drag"
+        );
       }
 
       if (needsUpdate && card) {
@@ -102,7 +103,7 @@ export const CharacterListMixin = {
       }
     });
 
-    // 清理无效缓存节点
+    // 清理缓存：删除已经不存在的角色
     for (const cachedName of Array.from(cache.nodesByName.keys())) {
       if (!validNames.has(cachedName)) {
         cache.nodesByName.delete(cachedName);
@@ -113,9 +114,7 @@ export const CharacterListMixin = {
     listContainer.replaceChildren(fragment);
   },
 
-  /**
-   * 初始化置顶按钮的事件处理
-   */
+  // 初始化：点击“图钉按钮”就切换置顶，并刷新列表
   initPinButtonHandler() {
     const characterList = document.getElementById(this.characterListId);
     if (!characterList) return;

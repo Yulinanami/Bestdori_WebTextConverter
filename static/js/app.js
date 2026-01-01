@@ -1,4 +1,4 @@
-// 主应用入口文件
+// 应用入口：页面加载完成后，初始化各个模块并绑定事件
 import { state } from "@managers/stateManager.js";
 import { ui, initPerformanceSettingsPersistence } from "@utils/uiUtils.js";
 import { viewManager } from "@managers/viewManager.js";
@@ -14,12 +14,12 @@ import { expressionEditor } from "@editors/expression/expressionEditor.js";
 import { motionExpressionManager } from "@managers/motionExpressionManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { modalService } from "@services/ModalService.js";
-import { themeManager } from "@managers/themeManager.js"; // 自动初始化主题管理器（单例模式，导入即执行）
+import { themeManager } from "@managers/themeManager.js"; // 导入即自动初始化主题
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
-import { navigationManager } from "@managers/navigationManager.js"; // 导航管理器（导入即执行）
+import { navigationManager } from "@managers/navigationManager.js"; // 导入即自动初始化导航
 import { apiService } from "@services/ApiService.js";
 
-// 初始化数字输入并保持本地存储同步
+// 让一个数字输入框“自动保存到本地”，下次打开还能记住
 function initializeNumericInput({ elementId, storageKey }) {
   const input = document.getElementById(elementId);
   if (!input) return;
@@ -33,7 +33,7 @@ function initializeNumericInput({ elementId, storageKey }) {
   });
 }
 
-// 初始化应用
+// 初始化整个应用（按顺序启动各模块）
 function initializeApp() {
   // 初始化服务层
   modalService.init();
@@ -101,7 +101,7 @@ function initializeApp() {
   // 加载服装配置
   costumeManager.loadCostumeConfig();
 }
-// 绑定与具体模块无关的全局事件
+// 绑定“全局按钮/输入框”的事件（不属于某个具体模块的那种）
 function bindGlobalEvents() {
   const gotoBtn = document.getElementById("gotoBestdoriBtn");
   if (gotoBtn) {

@@ -1,6 +1,7 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 
+// 把speakers数组压成一个字符串 key（用于判断卡片是否还能“增量更新”）
 function setSpeakerKey(card, speakers = []) {
   const key = speakers.map((s) => `${s.characterId}:${s.name}`).join("|");
   card.dataset.speakerKey = key;
@@ -10,6 +11,7 @@ export function createSpeakerRenderers(
   editor,
   { templates, characterNameMap }
 ) {
+  // renderSingleCard负责画一个卡片，updateCard负责就地更新卡片
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
 

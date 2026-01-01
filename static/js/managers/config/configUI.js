@@ -1,11 +1,9 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
 
-/**
- * 负责配置管理的列表渲染与表单事件。
- * 将 DOM 操作与数据逻辑解耦，便于后续维护和测试。
- */
+// 配置 UI 层
 export const configUI = {
+  // 绑定配置列表的删除按钮、输入变化等事件
   bindConfigListInteractions(manager) {
     const configList = document.getElementById("configList");
     if (configList) {
@@ -43,6 +41,7 @@ export const configUI = {
     }
   },
 
+  // 把配置按角色 ID 排序后渲染到页面
   renderConfigList(manager) {
     const sortedConfig = DataUtils.sortBy(
       Object.entries(manager.getCurrentConfig()),
@@ -52,6 +51,7 @@ export const configUI = {
     this.renderNormalConfigList(manager, sortedConfig);
   },
 
+  // 按给定的数据渲染列表（使用 template 克隆 DOM）
   renderNormalConfigList(manager, sortedConfig) {
     const configList = document.getElementById("configList");
     const template =
@@ -80,6 +80,7 @@ export const configUI = {
     DOMUtils.appendChildren(configList, configItems);
   },
 
+  // 更新某一行的头像显示（图片加载失败就用首字母兜底）
   updateConfigAvatar(manager, avatarWrapper, id, name) {
     const avatar = avatarWrapper.querySelector(".config-avatar");
     avatar.dataset.id = id;
@@ -110,6 +111,7 @@ export const configUI = {
     }
   },
 
+  // 在列表最上面插入一个空白配置项（方便用户新增角色）
   addConfigItem() {
     const configList = document.getElementById("configList");
     const template = document.getElementById("config-item-template");

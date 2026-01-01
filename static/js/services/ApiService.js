@@ -1,6 +1,7 @@
-// API服务 - 封装所有后端接口调用
+// 把后端接口封装
 class ApiService {
   constructor() {
+    // 初始化：设置接口前缀、超时和默认请求头
     this.baseURL = "";
     this.timeout = 30000;
     this.defaultHeaders = {
@@ -8,9 +9,7 @@ class ApiService {
     };
   }
 
-  /**
-   * 统一错误处理,将axios错误转换为友好的错误消息
-   */
+  // 把 axios 的报错“翻译”成用户能看懂的提示文字
   _handleError(error) {
     if (error.response) {
       // 服务器返回错误状态码
@@ -43,6 +42,7 @@ class ApiService {
     }
   }
 
+  // 发起 GET 请求，并直接返回后端 JSON 数据
   async get(url, config = {}) {
     try {
       const response = await axios.get(url, {
@@ -57,9 +57,7 @@ class ApiService {
     }
   }
 
-  /**
-   * POST请求 - 自动处理FormData,跳过JSON header
-   */
+  // 发起 POST 请求：支持 JSON 或 FormData（上传文件时用）
   async post(url, data = {}, config = {}) {
     const isFormData = data instanceof FormData;
     const requestHeaders = isFormData ? {} : this.defaultHeaders;
@@ -81,17 +79,17 @@ class ApiService {
 
   // ==================== 业务 API ====================
 
+  // 获取后端提供的默认配置（角色映射、引号、动作表情等）
   async getConfig() {
     return await this.get("/api/config");
   }
 
+  // 获取后端提供的服装配置（可用服装 + 默认服装）
   async getCostumes() {
     return await this.get("/api/costumes");
   }
 
-  /**
-   * 转换项目文件为Bestdori JSON
-   */
+  // 把“项目文件(projectFile)”转换成 Bestdori 可导入的 JSON 字符串
   async convertText(
     projectFile,
     quoteConfig = [],
@@ -108,9 +106,7 @@ class ApiService {
     });
   }
 
-  /**
-   * 上传文本文件(.txt, .docx等)
-   */
+  // 上传剧本文件（txt/docx/md），让后端解析成纯文本
   async uploadFile(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -118,6 +114,7 @@ class ApiService {
     return await this.post("/api/upload", formData);
   }
 
+  // 让后端生成一个可下载的 JSON 文件（返回 blob）
   async downloadResult(content, filename) {
     try {
       const response = await axios.post(
@@ -136,6 +133,7 @@ class ApiService {
     }
   }
 
+  // 请求后端关闭本地服务器（桌面打包版会用到）
   async shutdownServer() {
     try {
       await this.post("/api/shutdown", {}, { timeout: 1000 });
@@ -145,5 +143,5 @@ class ApiService {
   }
 }
 
-// 导出单例
+// 导出一个全局单例（全站共用同一套 API 调用）
 export const apiService = new ApiService();

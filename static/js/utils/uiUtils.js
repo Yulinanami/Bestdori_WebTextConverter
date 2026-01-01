@@ -1,4 +1,4 @@
-// UI相关的工具
+// 页面 UI 小工具：进度条、提示条、按钮 loading、复制、跳转等。
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
@@ -7,16 +7,19 @@ let statusTimer = null;
 export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
 
 export const ui = {
+  // 显示顶部进度条，并设置进度百分比
   showProgress(percent) {
     document.getElementById("progressContainer").style.display = "block";
     document.getElementById("progressFill").style.width = percent + "%";
   },
 
+  // 隐藏顶部进度条
   hideProgress() {
     document.getElementById("progressContainer").style.display = "none";
     document.getElementById("progressFill").style.width = "0%";
   },
 
+  // 在页面右下角弹出一条提示（success/info/error）
   showStatus(message, type) {
     const statusElement = document.getElementById("statusMessage");
 
@@ -30,14 +33,17 @@ export const ui = {
     }, 4000);
   },
 
+  // 打开一个弹窗（modalId 是弹窗的 DOM id）
   openModal(modalId) {
     modalService.open(modalId);
   },
 
+  // 关闭一个弹窗
   closeModal(modalId) {
     modalService.close(modalId);
   },
 
+  // 把按钮切换到“加载中/正常”状态（并可替换按钮文字）
   setButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
     const button = document.getElementById(buttonId);
 
@@ -77,7 +83,7 @@ export const ui = {
     }
   },
 
-  // 快速设置按钮加载状态的辅助方法
+  // 用 try/finally 包住异步函数：自动开/关按钮 loading
   async withButtonLoading(buttonId, asyncFn, loadingText = "处理中...") {
     this.setButtonLoading(buttonId, true, loadingText);
     try {
@@ -87,7 +93,7 @@ export const ui = {
     }
   },
 
-  // 添加复制到剪贴板的方法
+  // 复制文本到剪贴板（成功返回 true）
   async copyToClipboard(text) {
     try {
       await navigator.clipboard.writeText(text);
@@ -98,7 +104,7 @@ export const ui = {
     }
   },
 
-  // 添加跳转到 Bestdori 的方法
+  // 一键跳转到 Bestdori 发帖页面（会先尝试把 JSON 复制到剪贴板）
   async goToBestdori() {
     if (state.get("currentResult")) {
       const copied = await this.copyToClipboard(state.get("currentResult"));
@@ -115,6 +121,7 @@ export const ui = {
   },
 };
 
+// 把“卡片分组”开关状态保存到本地（下次打开仍生效）
 export function initPerformanceSettingsPersistence() {
   const checkbox = document.getElementById("groupCardsCheckbox");
   if (!checkbox) return;

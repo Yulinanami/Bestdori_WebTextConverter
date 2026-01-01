@@ -1,6 +1,6 @@
-// 增量时间轴渲染工具
-// 通过缓存已渲染的卡片节点,仅在数据变化时更新,避免整表重绘
+// 增量时间线渲染：缓存卡片 DOM，只更新变动的部分，避免整列表重画。
 
+// 把 DocumentFragment/Element 统一转换成卡片元素
 function normalizeCardElement(card) {
   if (!card) return null;
   if (card.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -9,6 +9,7 @@ function normalizeCardElement(card) {
   return card;
 }
 
+// 更新卡片上的序号（#1/#2/...）
 function updateSequenceNumber(cardEl, index) {
   const numberDiv = cardEl?.querySelector(".card-sequence-number");
   if (numberDiv) {
@@ -16,6 +17,7 @@ function updateSequenceNumber(cardEl, index) {
   }
 }
 
+// 清理缓存：把已经不存在的卡片节点删掉
 function removeStaleNodes(cache, validIds) {
   for (const [id, node] of cache.nodesById.entries()) {
     if (!validIds.has(id)) {
@@ -26,6 +28,7 @@ function removeStaleNodes(cache, validIds) {
   }
 }
 
+// 获取某条 action 对应的卡片：能复用就复用，不能就重新渲染
 function ensureCard({
   action,
   index,
@@ -64,6 +67,7 @@ function ensureCard({
   return cardEl;
 }
 
+// 创建一个“分组标题”节点（点击可展开/收起）
 function createGroupHeader({ start, end, index, isActive, onClick }) {
   const header = document.createElement("div");
   header.className = "timeline-group-header";
@@ -93,9 +97,7 @@ function createGroupHeader({ start, end, index, isActive, onClick }) {
   return header;
 }
 
-/**
- * 创建时间轴渲染缓存
- */
+// 创建时间线渲染缓存（节点 Map + 签名 Map）
 export function createTimelineRenderCache() {
   return {
     nodesById: new Map(),
@@ -104,12 +106,7 @@ export function createTimelineRenderCache() {
   };
 }
 
-/**
- * 以增量方式渲染时间轴
- * - 重用未变化的卡片节点
- * - 仅在数据签名变化时重新生成卡片
- * - 支持分组模式下只渲染当前展开组
- */
+// 增量渲染时间线（支持分组模式：只渲染当前展开的一组）
 export function renderIncrementalTimeline({
   container,
   actions = [],

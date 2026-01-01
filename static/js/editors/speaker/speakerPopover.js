@@ -1,13 +1,9 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 
+// 点击徽章后弹出列表并支持删除。
 export function attachSpeakerPopover(editor) {
   Object.assign(editor, {
-    /**
-     * 显示多说话人弹出菜单
-     * 点击多说话人徽章时触发,显示该对话的所有说话人列表
-     * @param {string} actionId - 动作ID
-     * @param {HTMLElement} targetElement - 触发弹出菜单的元素(用于定位)
-     */
+    // 显示多说话人弹窗（定位在 targetElement 附近）
     showMultiSpeakerPopover(actionId, targetElement) {
       DOMUtils.getElements("#speaker-popover").forEach((p) => p.remove());
 

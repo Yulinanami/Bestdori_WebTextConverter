@@ -1,8 +1,9 @@
-// 视图管理相关功能
+// 处理“页面上和文本输入相关”的小功能（例如格式化输入文本）
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 
 export const viewManager = {
+  // 初始化：绑定“格式化文本”按钮
   init() {
     const formatBtn = document.getElementById("formatTextBtn");
     if (formatBtn) {
@@ -10,6 +11,7 @@ export const viewManager = {
     }
   },
 
+  // 把输入框里的文本整理成“段落间空一行”的格式
   formatText() {
     const textarea = document.getElementById("inputText");
     const originalText = textarea.value;

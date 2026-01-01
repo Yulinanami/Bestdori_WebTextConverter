@@ -7,11 +7,12 @@ import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { createLive2dRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
 
-// 时间轴渲染与事件绑定
+// 渲染卡片、响应删除/控件修改等
 export function attachLive2dTimeline(editor) {
   const timelineCache = createTimelineRenderCache();
 
   Object.assign(editor, {
+    // 绑定时间线上的点击/修改事件（删除、展开终点位置、改下拉框等）
     bindTimelineEvents() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
@@ -127,13 +128,7 @@ export function attachLive2dTimeline(editor) {
       };
     },
 
-    /**
-     * 渲染Live2D布局编辑器时间轴
-     * 渲染两种类型的卡片:
-     * - talk卡片: 显示对话内容和说话人信息(只读)
-     * - layout卡片: 可编辑的布局动作,包含类型/位置/服装/偏移量选择器
-     * 支持分组模式(50条/组)优化长剧本性能,自动显示卡片序号和布局类型样式
-     */
+    // 渲染时间线：对话卡片只读，布局卡片可编辑（支持分组模式）
     renderTimeline() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
