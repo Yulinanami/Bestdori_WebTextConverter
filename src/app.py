@@ -1,4 +1,4 @@
-# 主应用
+# Flask 主应用（负责创建 app、注册路由、处理请求）
 import os
 import logging
 import signal
@@ -10,6 +10,7 @@ from .routes import all_blueprints
 logger = logging.getLogger(__name__)
 
 
+# 创建并配置 Flask 应用实例
 def create_app():
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     template_folder = os.path.join(project_root, "templates")
@@ -24,9 +25,9 @@ def create_app():
         app.register_blueprint(bp)
         logger.info(f"已注册蓝图: {bp.name} (前缀: {bp.url_prefix or '/'})")
 
+    # 提供一个接口：收到请求后安全退出服务器进程
     @app.route('/api/shutdown', methods=['POST'])
     def shutdown():
-        """安全地关闭服务器进程"""
         logger.info("收到关闭服务器的请求...")
         try:
             # 获取当前进程的ID
@@ -39,7 +40,7 @@ def create_app():
             logger.error(f"关闭服务器时出错: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
 
-    # 请求前日志
+    # 在每个请求开始前打印基本信息
     @app.before_request
     def log_request_info():
         logger.debug(f"收到请求: {request.method} {request.path}")
@@ -49,12 +50,13 @@ def create_app():
             except:
                 pass
 
-    # 响应后日志
+    # 在每个请求结束后打印响应状态码
     @app.after_request
     def log_response_info(response):
         logger.debug(f"响应状态: {response.status_code} - {request.method} {request.path}")
         return response
 
+    # 首页：返回前端页面
     @app.route("/")
     def index():
         return render_template("index.html")

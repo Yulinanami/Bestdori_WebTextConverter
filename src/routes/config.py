@@ -1,4 +1,4 @@
-# 配置相关api
+# 配置相关 API（把后端配置发给前端）
 import logging
 from flask import Blueprint, jsonify, current_app
 
@@ -7,6 +7,7 @@ config_bp = Blueprint("config", __name__, url_prefix="/api")
 
 
 @config_bp.route("/config", methods=["GET"])
+# 返回前端需要的各种配置（角色映射、引号配置、动作/表情等）
 def get_config():
     config_manager = current_app.config["CONFIG_MANAGER"]
     try:
@@ -28,6 +29,7 @@ def get_config():
 
 
 @config_bp.route("/costumes", methods=["GET"])
+# 返回服装相关配置（可选服装 + 默认服装）
 def get_costumes():
     config_manager = current_app.config["CONFIG_MANAGER"]
     try:

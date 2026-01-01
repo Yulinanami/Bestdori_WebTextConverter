@@ -1,4 +1,4 @@
-# 日志配置
+# 日志基础配置（让各模块的 logger 输出到标准输出）
 import logging
 import sys
 

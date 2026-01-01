@@ -1,4 +1,4 @@
-# 聚合路由
+# 汇总所有蓝图
 from .conversion import conversion_bp
 from .config import config_bp
 

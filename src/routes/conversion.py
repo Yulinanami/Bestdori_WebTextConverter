@@ -1,4 +1,4 @@
-# 文本转换api
+# 转换相关 API（项目转换、文件上传/下载、文本分段）
 import tempfile
 import logging
 from ..converter import ProjectConverter
@@ -10,6 +10,7 @@ conversion_bp = Blueprint("conversion", __name__, url_prefix="/api")
 
 
 @conversion_bp.route("/convert", methods=["POST"])
+# 接收项目 JSON 并返回转换后的 Bestdori JSON 字符串
 def convert_project():
     try:
         data = request.get_json()
@@ -17,7 +18,7 @@ def convert_project():
         quote_config = data.get("quoteConfig")
         narrator_name = data.get("narratorName", " ")
         append_spaces = data.get("appendSpaces", 0)
-        append_spaces_before_newline = data.get("appendSpacesBeforeNewline", 0) # 获取新参数
+        append_spaces_before_newline = data.get("appendSpacesBeforeNewline", 0)  # 换行前补空格
 
         if not project_file or not isinstance(project_file, dict):
             if data.get("text") is not None:
@@ -45,6 +46,7 @@ def convert_project():
 
 
 @conversion_bp.route("/upload", methods=["POST"])
+# 上传文件并解析为纯文本（支持 docx/markdown/纯文本）
 def upload_file():
     file_converter = current_app.config["FILE_CONVERTER"]
     try:
@@ -78,6 +80,7 @@ def upload_file():
 
 
 @conversion_bp.route("/download", methods=["POST"])
+# 把前端传来的文本内容打包成文件并下载
 def download_result():
     try:
         logger.info("收到文件下载请求")
@@ -106,6 +109,7 @@ def download_result():
 
 
 @conversion_bp.route("/segment-text", methods=["POST"])
+# 把长文本按空行切成多个段落，方便前端逐段处理
 def segment_text():
     try:
         logger.info("收到文本分段请求")

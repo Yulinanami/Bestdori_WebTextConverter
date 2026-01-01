@@ -1,4 +1,4 @@
-# 文本转换器
+# 文本转换器（把前端的项目 JSON 转成 Bestdori 需要的 JSON）
 import json
 import logging
 from dataclasses import asdict
@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class QuoteHandler:
+    # 如果文本被成对引号包住，就把两端引号去掉
     def remove_quotes(self, text: str, active_quote_pairs: Dict[str, str]) -> str:
         stripped = text.strip()
         if len(stripped) < 2 or not active_quote_pairs:
@@ -22,6 +23,7 @@ class QuoteHandler:
 
 
 class ProjectConverter:
+    # 初始化转换器（准备引号处理器和少量 ID 映射规则）
     def __init__(self):
         self.quote_handler = QuoteHandler()
         self.special_id_mapping = {
@@ -33,12 +35,15 @@ class ProjectConverter:
             341: 5,  # 丰川祥子
         }
 
+    # 把输入角色 ID 转成输出用的角色 ID（处理少数特殊映射）
     def _get_output_id(self, char_id: int) -> int:
         return self.special_id_mapping.get(char_id, char_id)
 
+    # 批量把角色 ID 列表转成输出用的 ID 列表
     def _get_output_ids(self, char_ids: List[int]) -> List[int]:
         return [self._get_output_id(cid) for cid in char_ids]
 
+    # 主入口：把整个项目文件转换成 JSON 字符串
     def convert(
         self,
         project_file: Dict[str, Any],
@@ -60,7 +65,7 @@ class ProjectConverter:
         )
         global_settings = project_file.get("globalSettings", {})
 
-        # 统计转换信息
+        # 记录一份转换统计，方便排查数据问题
         talk_actions = [a for a in actions if a.get("characters") is not None]
         layout_actions = [a for a in actions if a.get("layoutType") is not None]
         unique_characters = set()
@@ -87,6 +92,7 @@ class ProjectConverter:
 
         return json.dumps(asdict(result), ensure_ascii=False, indent=2)
 
+    # 遍历项目动作列表，把每个动作翻译成目标格式
     def _translate_actions(
         self,
         project_actions: List[Dict[str, Any]],
@@ -112,6 +118,7 @@ class ProjectConverter:
                 translated_actions.append(self._translate_layout_action(action))
         return translated_actions
 
+    # 把“对话动作”翻译成 Bestdori 的 talk action
     def _translate_talk_action(
         self,
         talk_action: Dict[str, Any],
@@ -139,7 +146,7 @@ class ProjectConverter:
         if append_spaces > 0:
             processed_body += " " * append_spaces
 
-        # 处理动作/表情配置（motions数组格式）
+        # 处理对话附带的动作/表情（motions 数组）
         motions = []
 
         if "motions" in talk_action and talk_action["motions"]:
@@ -149,7 +156,7 @@ class ProjectConverter:
                 expression = motion_data.get("expression", "")
                 delay = motion_data.get("delay", 0)
 
-                if motion or expression:  # 只添加有实际内容的动作
+                if motion or expression:  # 只在有内容时才生成一条 motion
                     motions.append(
                         {
                             "character": self._get_output_id(char_id),
@@ -158,7 +165,7 @@ class ProjectConverter:
                             "delay": delay,
                         }
                     )
-                    # 记录动作详情
+                    # 打印动作详情，方便确认解析结果
                     logger.info(
                         f"  角色 {char_id} - 动作: {motion or '无'}, 表情: {expression or '无'}, 延迟: {delay}秒"
                     )
@@ -180,6 +187,7 @@ class ProjectConverter:
         )
         return asdict(bestdori_action)
 
+    # 把“布局动作”翻译成 Bestdori 的 layout action
     def _translate_layout_action(self, layout_action: Dict[str, Any]) -> Dict[str, Any]:
         position = layout_action.get("position", {})
         initial_state = layout_action.get("initialState", {})
@@ -196,7 +204,7 @@ class ProjectConverter:
         offset_from = from_pos.get("offsetX", 0)
         offset_to = to_pos.get("offsetX", 0)
 
-        # 记录布局动作详情
+        # 打印布局动作详情（类型/角色/位置等）
         logger.info(
             f"布局动作 - 类型: {layout_type}, 角色ID: {char_id}, 服装: {costume or '默认'}, 延迟: {delay}秒"
         )

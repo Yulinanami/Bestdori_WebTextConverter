@@ -1,4 +1,4 @@
-# 文本格式转换器
+# 文件内容转换工具（把上传的文件解析成纯文本）
 import io
 import re
 import logging
@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class FileFormatConverter:
     @staticmethod
+    # 把 docx（二进制内容）解析成纯文本
     def docx_to_text(file_content: bytes) -> str:
         try:
             doc = Document(io.BytesIO(file_content))
@@ -23,6 +24,7 @@ class FileFormatConverter:
             raise ValueError(f"无法解析Word文档: {str(e)}")
 
     @staticmethod
+    # 把 Markdown 文本转成纯文本（去掉 HTML 标签）
     def markdown_to_text(md_content: str) -> str:
         try:
             html = markdown2.markdown(md_content)
@@ -35,6 +37,7 @@ class FileFormatConverter:
             raise ValueError(f"无法解析Markdown: {str(e)}")
 
     @staticmethod
+    # 根据文件扩展名选择合适的解析方式，并返回纯文本内容
     def read_file_content_to_text(filename: str, content: bytes) -> str:
         filename_lower = filename.lower()
         try:

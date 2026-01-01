@@ -1,4 +1,4 @@
-# 启动服务器
+# 启动服务器，直接运行这个文件即可
 import multiprocessing
 import threading
 import webbrowser
@@ -30,11 +30,13 @@ logger = logging.getLogger(__name__)
 app = create_app()
 
 
+# 退出时做一些收尾工作
 def cleanup():
     logger.info("服务器正在关闭...")
     logger.info("清理完成。")
 
 
+# 启动后自动打开浏览器访问首页
 def open_browser():
     logger.info("正在打开浏览器: http://127.0.0.1:5000")
     webbrowser.open_new("http://127.0.0.1:5000")

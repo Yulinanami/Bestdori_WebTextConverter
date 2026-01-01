@@ -1,4 +1,3 @@
-import { DOMUtils } from "@utils/DOMUtils.js";
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
