@@ -53,7 +53,6 @@ dist/
 *.egg-info/
 *.egg
 *.spec
-*.ico
 *.png
 *.jpg
 *.jpeg
