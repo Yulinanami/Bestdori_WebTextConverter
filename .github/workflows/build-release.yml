@@ -14,6 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -29,7 +37,6 @@ jobs:
         run: |
           pyinstaller --name=WebTextConverter `
             --onefile `
-            --windowed `
             --icon=favicon.ico `
             --add-data="templates;templates" `
             --add-data="static;static" `
@@ -37,16 +44,29 @@ jobs:
             --hidden-import=waitress `
             run.py
 
+      - name: Create release package
+        shell: bash
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PACKAGE_NAME="WebTextConverter_Windows_x64_${VERSION}"
+          mkdir -p "${PACKAGE_NAME}"
+          cp dist/WebTextConverter.exe "${PACKAGE_NAME}/"
+          cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
+          cp README.md "${PACKAGE_NAME}/"
+          cp -r assets "${PACKAGE_NAME}/"
+          cp -r example "${PACKAGE_NAME}/"
+          7z a -tzip "${PACKAGE_NAME}.zip" "${PACKAGE_NAME}"
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: WebTextConverter-Windows
-          path: dist/WebTextConverter.exe
+          path: WebTextConverter_Windows_x64_${{ steps.version.outputs.VERSION }}.zip
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/WebTextConverter.exe
+          files: WebTextConverter_Windows_x64_${{ steps.version.outputs.VERSION }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,6 +75,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -77,15 +104,27 @@ jobs:
             --hidden-import=waitress \
             run.py
 
+      - name: Create release package
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PACKAGE_NAME="WebTextConverter_Linux_x64_${VERSION}"
+          mkdir -p "${PACKAGE_NAME}"
+          cp dist/WebTextConverter "${PACKAGE_NAME}/"
+          cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
+          cp README.md "${PACKAGE_NAME}/"
+          cp -r assets "${PACKAGE_NAME}/"
+          cp -r example "${PACKAGE_NAME}/"
+          tar -czvf "${PACKAGE_NAME}.tar.gz" "${PACKAGE_NAME}"
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: WebTextConverter-Linux
-          path: dist/WebTextConverter
+          path: WebTextConverter_Linux_x64_${{ steps.version.outputs.VERSION }}.tar.gz
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/WebTextConverter
+          files: WebTextConverter_Linux_x64_${{ steps.version.outputs.VERSION }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
