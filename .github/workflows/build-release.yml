@@ -36,7 +36,6 @@ jobs:
       - name: Build Windows executable
         run: |
           pyinstaller --name=WebTextConverter `
-            --onefile `
             --icon=favicon.ico `
             --add-data="templates;templates" `
             --add-data="static;static" `
@@ -49,8 +48,11 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
           PACKAGE_NAME="WebTextConverter_Windows_x64_${VERSION}"
-          mkdir -p "${PACKAGE_NAME}"
-          cp dist/WebTextConverter.exe "${PACKAGE_NAME}/"
+          # 重命名 dist/WebTextConverter 文件夹
+          mv dist/WebTextConverter "${PACKAGE_NAME}"
+          # 重命名可执行文件
+          mv "${PACKAGE_NAME}/WebTextConverter.exe" "${PACKAGE_NAME}/WebTextConverter_Windows_x64_${VERSION}.exe"
+          # 复制其他文件
           cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
           cp README.md "${PACKAGE_NAME}/"
           cp -r assets "${PACKAGE_NAME}/"
@@ -97,7 +99,6 @@ jobs:
       - name: Build Linux executable
         run: |
           pyinstaller --name=WebTextConverter \
-            --onefile \
             --add-data="templates:templates" \
             --add-data="static:static" \
             --add-data="config.yaml:." \
@@ -108,8 +109,11 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
           PACKAGE_NAME="WebTextConverter_Linux_x64_${VERSION}"
-          mkdir -p "${PACKAGE_NAME}"
-          cp dist/WebTextConverter "${PACKAGE_NAME}/"
+          # 重命名 dist/WebTextConverter 文件夹
+          mv dist/WebTextConverter "${PACKAGE_NAME}"
+          # 重命名可执行文件
+          mv "${PACKAGE_NAME}/WebTextConverter" "${PACKAGE_NAME}/WebTextConverter_Linux_x64_${VERSION}"
+          # 复制其他文件
           cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
           cp README.md "${PACKAGE_NAME}/"
           cp -r assets "${PACKAGE_NAME}/"
