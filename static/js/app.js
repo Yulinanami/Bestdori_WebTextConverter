@@ -14,10 +14,10 @@ import { expressionEditor } from "@editors/expression/expressionEditor.js";
 import { motionExpressionManager } from "@managers/motionExpressionManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { modalService } from "@services/ModalService.js";
-import { themeManager } from "@managers/themeManager.js"; // 导入即自动初始化主题
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
-import { navigationManager } from "@managers/navigationManager.js"; // 导入即自动初始化导航
 import { apiService } from "@services/ApiService.js";
+import "@managers/navigationManager.js"; // 初始化导航
+import "@managers/themeManager.js"; // 初始化主题
 
 // 让一个数字输入框“自动保存到本地”，下次打开还能记住
 function initializeNumericInput({ elementId, storageKey }) {
