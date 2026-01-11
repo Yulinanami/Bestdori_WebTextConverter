@@ -1,6 +1,5 @@
 // 角色列表通用能力：渲染右侧角色列表，支持置顶角色
 
-import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
 
@@ -23,7 +22,8 @@ export const CharacterListMixin = {
     if (!template) return;
 
     const cache =
-      this._characterListCache || (this._characterListCache = createCharacterListCache());
+      this._characterListCache ||
+      (this._characterListCache = createCharacterListCache());
     const fragment = document.createDocumentFragment();
     const characters = editorService.getAllCharacters();
     const pinned = editorService.getPinnedCharacters();
@@ -67,7 +67,9 @@ export const CharacterListMixin = {
 
       if (!card) {
         const instance = template.content.cloneNode(true);
-        card = instance.querySelector(".character-item") || instance.firstElementChild;
+        card =
+          instance.querySelector(".character-item") ||
+          instance.firstElementChild;
       }
 
       if (card) {
