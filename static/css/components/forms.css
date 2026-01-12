@@ -75,12 +75,12 @@
 
 .file-upload:hover .file-upload-label {
   border-color: var(--border-focus);
-  background: #e9ecef;
+  background: var(--color-hover-bg);
 }
 
 .file-upload.dragover .file-upload-label {
   border-color: var(--border-focus);
-  background: #e9ecef;
+  background: var(--color-hover-bg);
   transform: scale(1.02);
 }
 

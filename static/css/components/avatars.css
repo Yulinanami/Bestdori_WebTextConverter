@@ -19,7 +19,7 @@
   background: var(--color-secondary);
   overflow: hidden;
   position: relative;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--avatar-border);
   transition: border-color 0.3s ease, transform 0.3s ease;
 }
 
@@ -74,7 +74,7 @@
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
-  background: #f0f0f0;
+  background: var(--avatar-loading-bg);
 }
 
 /* 不同尺寸头像 */
@@ -91,7 +91,7 @@
 
 /* 加载中状态 */
 .dialogue-avatar.loading {
-  background: #f0f0f0;
+  background: var(--avatar-loading-bg);
 }
 
 .dialogue-avatar.loading::before {

@@ -47,4 +47,23 @@
   /* 分组标题颜色 - 黑夜模式 */
   --group-header-active-bg: #1e3a5f;
   --group-header-active-border: #3b82f6;
+
+  /* 状态背景色 - 深色模式 */
+  --color-success-bg: #064e3b;
+  --color-warning-bg: #422006;
+  --color-error-bg: #450a0a;
+  --color-info-bg: #374151;
+  --color-selected-bg: #1e3a5f;
+
+  /* 状态边框色 - 深色模式 */
+  --color-success-border: #10b981;
+  --color-warning-border: #fbbf24;
+  --color-error-border: #ef4444;
+  --color-info-border: #3b82f6;
+  --color-selected-border: #3b82f6;
+
+  /* 交互颜色 - 深色模式 */
+  --color-hover-bg: #374151;
+  --avatar-loading-bg: #374151;
+  --avatar-border: #4b5563;
 }

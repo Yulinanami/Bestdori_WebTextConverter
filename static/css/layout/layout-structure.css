@@ -222,19 +222,19 @@
 }
 
 .status-success {
-  background: #f0fff4;
+  background: var(--color-success-bg);
   color: var(--color-success);
   border: 1px solid var(--color-success);
 }
 
 .status-error {
-  background: #fed7d7;
+  background: var(--color-error-light);
   color: var(--color-error);
   border: 1px solid var(--color-error);
 }
 
 .status-info {
-  background: #eeeeee;
+  background: var(--color-info-bg);
   color: var(--color-info);
   border: 1px solid var(--border-secondary);
 }

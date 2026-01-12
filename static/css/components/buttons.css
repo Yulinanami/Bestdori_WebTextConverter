@@ -101,7 +101,7 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1a1a1a;
+  background: var(--color-primary-dark);
 }
 
 .btn-secondary {
@@ -110,7 +110,7 @@
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #cbd5e0;
+  background: var(--border-secondary);
 }
 
 .btn-success {
@@ -128,7 +128,7 @@
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #fecaca;
+  background: var(--color-error-light);
 }
 
 /* 按钮尺寸 */
@@ -167,7 +167,7 @@
 }
 
 .remove-btn:hover {
-  background: #feb2b2;
+  background: var(--color-error-light);
 }
 
 /* Bestdori 跳转按钮样式 */

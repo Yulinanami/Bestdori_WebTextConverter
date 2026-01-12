@@ -83,4 +83,23 @@
   /* 分组标题颜色 */
   --group-header-active-bg: #ebf8ff;
   --group-header-active-border: #90cdf4;
+
+  /* 状态背景色 */
+  --color-success-bg: #f0fff4;
+  --color-warning-bg: #fffbeb;
+  --color-error-bg: #fff5f5;
+  --color-info-bg: #eeeeee;
+  --color-selected-bg: #ebf8ff;
+
+  /* 状态边框色 */
+  --color-success-border: #48bb78;
+  --color-warning-border: #f6e05e;
+  --color-error-border: #f56565;
+  --color-info-border: #3182ce;
+  --color-selected-border: #3182ce;
+
+  /* 交互颜色 */
+  --color-hover-bg: #e9ecef;
+  --avatar-loading-bg: #f0f0f0;
+  --avatar-border: #e2e8f0;
 }

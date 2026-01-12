@@ -65,12 +65,12 @@
 
 .speaker-delete-btn {
   border: none;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
   transition: all 0.2s ease;
 }
 
 .speaker-delete-btn:hover {
-  background: #fee2e2;
-  color: #ef4444;
+  background: var(--color-error-light);
+  color: var(--color-error);
 }

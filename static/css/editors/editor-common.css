@@ -44,8 +44,8 @@
 }
 
 .character-item.is-used {
-  border-color: #48bb78;
-  background-color: #f0fff4;
+  border-color: var(--color-success-border);
+  background-color: var(--color-success-bg);
 }
 
 .character-item .character-name {
@@ -58,15 +58,15 @@
 
 /* 对话项选中状态 */
 .dialogue-item.is-selected .dialogue-text {
-  background-color: #ebf8ff;
-  border: 2px solid #3182ce;
+  background-color: var(--color-selected-bg);
+  border: 2px solid var(--color-selected-border);
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
 /* 旁白选中状态 */
 .dialogue-item.narrator.is-selected .dialogue-text {
-  background-color: #ebf8ff;
-  border: 2px solid #3182ce;
+  background-color: var(--color-selected-bg);
+  border: 2px solid var(--color-selected-border);
 }
 
 /* 时间轴项目 */
@@ -115,17 +115,17 @@
 
 /* 布局卡片样式 */
 .layout-item {
-  background-color: #fff;
+  background-color: var(--bg-primary);
   box-shadow: var(--shadow-sm);
 }
 
 .layout-item[data-layout-type="appear"],
 .layout-item[data-layout-type="move"] {
-  border-color: #48bb78;
+  border-color: var(--color-success-border);
 }
 
 .layout-item[data-layout-type="hide"] {
-  border-color: #e53e3e;
+  border-color: var(--color-error);
 }
 
 .layout-card-header {
@@ -160,18 +160,18 @@
 
 /* 登场/移动/退场卡片颜色 */
 .layout-type-appear {
-  background-color: #f0fff4;
-  border-left-color: #48bb78;
+  background-color: var(--color-success-bg);
+  border-left-color: var(--color-success-border);
 }
 
 .layout-type-move {
-  background-color: #fffbeb;
-  border-left-color: #f6e05e;
+  background-color: var(--color-warning-bg);
+  border-left-color: var(--color-warning-border);
 }
 
 .layout-type-hide {
-  background-color: #fff5f5;
-  border-left-color: #f56565;
+  background-color: var(--color-error-bg);
+  border-left-color: var(--color-error-border);
 }
 
 /* 布局卡片延时输入框 */

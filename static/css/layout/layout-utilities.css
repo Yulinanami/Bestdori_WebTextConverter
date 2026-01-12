@@ -126,7 +126,7 @@
 }
 
 .text-gray {
-  color: #4a5568;
+  color: var(--text-secondary);
 }
 
 /* 编辑器布局 */
