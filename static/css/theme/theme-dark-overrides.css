@@ -36,14 +36,6 @@
   border-left-color: #ef4444;
 }
 
-[data-theme="dark"] .container {
-  background: rgba(31, 41, 55, 0.95);
-}
-
-[data-theme="dark"] .sortable-drag .character-item {
-  background: rgba(31, 41, 55, 0.9);
-}
-
 /* 表单与输入 */
 [data-theme="dark"] .form-input,
 [data-theme="dark"] input[type="text"],
@@ -172,29 +164,11 @@
   border-color: #6b7280;
 }
 
-/* 多说话人弹出菜单 */
-.speaker-popover-menu {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-primary);
-}
-
+/* 多说话人弹出菜单 - 深色模式 */
 [data-theme="dark"] .speaker-popover-menu {
   background: #1f2937;
   color: #f3f4f6;
   border-color: #4b5563;
-}
-
-.speaker-delete-btn {
-  border: none;
-  background: #f1f5f9;
-  color: #64748b;
-  transition: all 0.2s ease;
-}
-
-.speaker-delete-btn:hover {
-  background: #fee2e2;
-  color: #ef4444;
 }
 
 [data-theme="dark"] .speaker-delete-btn {

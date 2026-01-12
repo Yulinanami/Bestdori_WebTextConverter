@@ -2,7 +2,7 @@
 
 /* 文本样式 */
 .text-hint {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   margin-bottom: 15px;
 }
 
@@ -54,9 +54,6 @@
 /* 内边距工具类 */
 .p-15 {
   padding: var(--spacing-md);
-}
-.pb-20 {
-  padding-bottom: var(--spacing-lg);
 }
 .pt-15 {
   padding-top: var(--spacing-md);
@@ -125,7 +122,7 @@
 
 /* 特定颜色文本 */
 .text-muted {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .text-gray {

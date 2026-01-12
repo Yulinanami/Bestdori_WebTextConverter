@@ -55,3 +55,22 @@
 .dialogue-item.narrator .dialogue-text::before {
   display: none;
 }
+
+/* 多说话人弹出菜单 */
+.speaker-popover-menu {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.speaker-delete-btn {
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.speaker-delete-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
