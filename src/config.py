@@ -45,16 +45,6 @@ class ConfigManager:
             )
             return {}
 
-    # 把配置写回 YAML 文件（暂时无用）
-    def _save_config(self, config: Dict[str, Any]):
-        try:
-            logger.info(f"正在保存配置文件: {self.config_path}")
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
-            logger.info("配置文件保存成功")
-        except Exception as e:
-            logger.error(f"配置文件保存失败: {e}", exc_info=True)
-
     # 获取“角色名 -> 角色ID列表”的映射
     def get_character_mapping(self) -> Dict[str, List[int]]:
         return self.config.get("character_mapping", {})
@@ -62,10 +52,6 @@ class ConfigManager:
     # 获取解析相关配置（比如是否启用某些规则）
     def get_parsing_config(self) -> Dict[str, Any]:
         return self.config.get("parsing", {})
-
-    # 获取文本匹配用的正则/关键字配置
-    def get_patterns(self) -> Dict[str, str]:
-        return self.config.get("patterns", {})
 
     # 获取引号处理配置（用于去掉文本两端引号）
     def get_quotes_config(self) -> Dict[str, Any]:
