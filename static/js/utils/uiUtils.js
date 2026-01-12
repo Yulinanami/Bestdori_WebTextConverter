@@ -4,7 +4,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 
 let statusTimer = null;
-export const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
+const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
 
 export const ui = {
   // 显示顶部进度条，并设置进度百分比
