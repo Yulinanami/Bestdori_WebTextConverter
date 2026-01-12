@@ -1,0 +1,24 @@
+/* responsive-print.css - 打印样式 */
+@media print {
+  body {
+    background: white;
+  }
+
+  .app-container {
+    box-shadow: none;
+    border: 1px solid var(--border-secondary);
+  }
+
+  .btn,
+  .file-upload,
+  .modal:not(.modal-open) {
+    /* 修复打印时模态框隐藏问题 */
+    display: none !important;
+  }
+
+  .result-content {
+    background: white;
+    color: black;
+    border: 1px solid var(--border-secondary);
+  }
+}

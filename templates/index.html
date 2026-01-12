@@ -47,7 +47,14 @@
   <body>
     <!-- 顶部标题栏 -->
     <div class="app-header">
-      <div class="app-logo">
+      <div class="app-logo flex-center">
+        <button
+          id="sidebarToggle"
+          class="btn btn-icon mr-10 hidden-desktop"
+          aria-label="切换侧边栏"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
         <h1>Bestdori 文本转换器</h1>
       </div>
       <div class="app-header-actions">
@@ -82,6 +89,9 @@
         </button>
       </div>
     </div>
+
+    <!-- 移动端侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- 主应用容器 -->
     <div class="app-container">

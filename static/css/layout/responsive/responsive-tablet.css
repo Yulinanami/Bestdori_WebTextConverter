@@ -1,0 +1,18 @@
+/* responsive-tablet.css - 平板设备 (1024px 以下) */
+@media (max-width: 1024px) {
+  /* 模态框调整 */
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  /* 按钮组调整 */
+  .btn-group {
+    gap: var(--spacing-sm);
+  }
+
+  /* 隐藏桌面端才显示的元素 */
+  .hidden-mobile {
+    display: none !important;
+  }
+}

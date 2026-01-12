@@ -1,0 +1,13 @@
+/* responsive-utilities.css - 响应式工具类与桌面端特定样式 */
+
+/* 桌面端隐藏元素 (min-width: 769px) */
+@media (min-width: 769px) {
+  .hidden-desktop {
+    display: none !important;
+  }
+}
+
+/* 间距工具类 */
+.mr-10 {
+  margin-right: 10px;
+}

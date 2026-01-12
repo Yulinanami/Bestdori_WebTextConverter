@@ -1,0 +1,178 @@
+/* responsive-mobile.css - 移动设备 (768px 以下) */
+@media (max-width: 768px) {
+  /* 基础间距调整 */
+  body {
+    padding: 0; /* 移动端取消body内边距，利用全屏 */
+  }
+
+  .app-header {
+    padding: 0 15px; /* 调整头部内边距 */
+  }
+
+  .app-logo h1 {
+    font-size: var(--text-lg); /* 缩小标题以在一行显示 */
+  }
+
+  /* 侧边栏响应式处理 */
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-xl);
+    width: 260px; /* 稍微窄一点 */
+  }
+
+  .app-sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* 遮罩层 */
+  .sidebar-overlay {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s linear, visibility 0.3s linear;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 工作区响应式处理 */
+  .app-workspace {
+    margin-left: 0;
+    padding: 15px; /* 减小内边距 */
+  }
+
+  /* 步骤标题调整 */
+  .step-title {
+    font-size: var(--text-xl);
+  }
+
+  .step-description {
+    font-size: var(--text-sm);
+  }
+
+  /* 编辑器布局调整 (垂直堆叠) */
+  .editor-layout {
+    flex-direction: column;
+    overflow-y: initial; /* 允许外部容器滚动 */
+    height: auto;
+  }
+
+  .editor-canvas {
+    flex: none;
+    height: 50vh; /* 画布占一半屏幕 */
+    min-height: 300px;
+    padding-right: 0;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .editor-sidebar {
+    flex: none;
+    height: auto;
+    max-height: 350px; /* 固定高度以支持内部滚动 */
+    overflow-y: auto; /* 允许角色列表内部滚动 */
+    border-left: none;
+    padding-left: 0;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary); /* 添加上边框区分 */
+  }
+
+  /* Live2D 编辑器特殊处理 (时间线需要更多空间) */
+  #live2dEditorTimeline {
+    padding-right: 0;
+  }
+
+  /* 动作/表情编辑器底部列表支持滚动 */
+  #expressionEditorLibrary .config-column {
+    height: 350px;
+    margin-bottom: 15px;
+  }
+
+  /* 按钮组调整 */
+  .btn-group {
+    flex-direction: column;
+  }
+
+  /* 模态框底部按钮优化 */
+  .modal-footer {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    height: auto !important;
+  }
+
+  .modal-footer > div {
+    display: contents !important; /* 解除 flex 容器限制 */
+  }
+
+  .modal-footer .btn {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 8px 4px !important;
+    font-size: 12px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: normal !important; /* 允许换行 */
+    line-height: 1.2 !important; /* 紧凑行高 */
+    text-align: center !important; /* 文字居中 */
+  }
+
+  /* 针对特定按钮的微调 */
+  #importProjectBtn,
+  #exportProjectBtn,
+  #importLayoutsBtn,
+  #exportLayoutsBtn,
+  #importExpressionsBtn,
+  #exportExpressionsBtn {
+    grid-column: auto;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 表单调整 */
+  .form-label {
+    font-size: var(--text-sm);
+  }
+
+  .form-input {
+    font-size: var(--text-sm);
+    padding: 10px 14px;
+  }
+
+  .input-sm {
+    width: 100%;
+  }
+
+  /* 模态框内容调整 */
+  .modal-header {
+    padding: 15px 20px;
+  }
+
+  .modal-body {
+    padding: var(--spacing-lg);
+  }
+
+  .modal-title {
+    font-size: var(--text-lg);
+  }
+
+  /* 自定义引号输入调整 */
+  .form-input#customQuoteOpen,
+  .form-input#customQuoteClose {
+    width: 80px !important;
+  }
+}

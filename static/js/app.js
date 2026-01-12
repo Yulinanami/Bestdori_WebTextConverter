@@ -145,6 +145,44 @@ function bindGlobalEvents() {
       }
     });
   }
+
+  // 移动端侧边栏切换逻辑
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const sidebar = document.querySelector(".app-sidebar");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+  function toggleSidebar() {
+    sidebar.classList.toggle("active");
+    if (sidebarOverlay) {
+      sidebarOverlay.classList.toggle("active");
+    }
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove("active");
+    if (sidebarOverlay) {
+      sidebarOverlay.classList.remove("active");
+    }
+  }
+
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener("click", toggleSidebar);
+
+    // 点击遮罩关闭
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener("click", closeSidebar);
+    }
+
+    // 点击导航项自动关闭（仅限移动端）
+    const navSteps = document.querySelectorAll(".nav-step");
+    navSteps.forEach((step) => {
+      step.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          closeSidebar();
+        }
+      });
+    });
+  }
 }
 
 // DOM加载完成后初始化应用
