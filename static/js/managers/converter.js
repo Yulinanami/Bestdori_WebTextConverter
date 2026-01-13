@@ -33,7 +33,9 @@ export const converter = {
     }
 
     const selectedQuotes = quoteManager.getSelectedQuotes();
-    const narratorName = document.getElementById("narratorName").value || " ";
+    // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
+    const narratorInput = document.getElementById("narratorName").value;
+    const narratorName = narratorInput.trim() ? narratorInput : "";
     const appendSpaces =
       parseInt(document.getElementById("appendSpaces").value, 10) || 0;
     const appendSpacesBeforeNewline =

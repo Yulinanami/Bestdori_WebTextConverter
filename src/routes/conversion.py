@@ -16,7 +16,14 @@ def convert_project():
         data = request.get_json()
         project_file = data.get("projectFile")
         quote_config = data.get("quoteConfig")
-        narrator_name = data.get("narratorName", " ")
+
+        # 从配置读取默认旁白名称
+        config_manager = current_app.config["CONFIG_MANAGER"]
+        parsing_config = config_manager.get_parsing_config()
+        default_narrator = parsing_config.get("default_narrator_name", " ")
+
+        # 如果前端未传入旁白名称，则使用配置中的默认值
+        narrator_name = data.get("narratorName") or default_narrator
         append_spaces = data.get("appendSpaces", 0)
         append_spaces_before_newline = data.get(
             "appendSpacesBeforeNewline", 0
@@ -32,7 +39,6 @@ def convert_project():
         logger.info(
             f"开始转换项目 - 旁白名称: '{narrator_name}', 结尾空格: {append_spaces}"
         )
-        config_manager = current_app.config["CONFIG_MANAGER"]
         avatar_mapping = config_manager.get_avatar_mapping()
         converter = ProjectConverter(avatar_mapping)
         result = converter.convert(
