@@ -23,17 +23,11 @@ class QuoteHandler:
 
 
 class ProjectConverter:
-    # 初始化转换器（准备引号处理器和少量 ID 映射规则）
-    def __init__(self):
+    # 初始化转换器（准备引号处理器和 ID 映射规则）
+    def __init__(self, avatar_mapping: Dict[int, int] = None):
         self.quote_handler = QuoteHandler()
-        self.special_id_mapping = {
-            229: 6,  # 纯田真奈
-            337: 1,  # 三角初华
-            338: 2,  # 若叶睦
-            339: 3,  # 八幡海铃
-            340: 4,  # 祐天寺若麦
-            341: 5,  # 丰川祥子
-        }
+        # 特殊角色 ID 映射：从配置文件读取，用于将新角色 ID 映射到已有头像 ID
+        self.special_id_mapping = avatar_mapping if avatar_mapping else {}
 
     # 把输入角色 ID 转成输出用的角色 ID（处理少数特殊映射）
     def _get_output_id(self, char_id: int) -> int:

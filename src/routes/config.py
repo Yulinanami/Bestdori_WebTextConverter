@@ -19,7 +19,8 @@ def get_config():
             "character_motions": config_manager.get_character_motions(),
             "character_expressions": config_manager.get_character_expressions(),
             "avatar_mapping": config_manager.get_avatar_mapping(),
-            "quick_fill_options": config_manager.config.get("quick_fill_options", [])
+            "patterns": config_manager.get_patterns(),
+            "quick_fill_options": config_manager.config.get("quick_fill_options", []),
         }
         logger.info(f"配置加载成功 - 包含 {len(config_data)} 个配置项")
         return jsonify(config_data)

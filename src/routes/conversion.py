@@ -18,7 +18,9 @@ def convert_project():
         quote_config = data.get("quoteConfig")
         narrator_name = data.get("narratorName", " ")
         append_spaces = data.get("appendSpaces", 0)
-        append_spaces_before_newline = data.get("appendSpacesBeforeNewline", 0)  # 换行前补空格
+        append_spaces_before_newline = data.get(
+            "appendSpacesBeforeNewline", 0
+        )  # 换行前补空格
 
         if not project_file or not isinstance(project_file, dict):
             if data.get("text") is not None:
@@ -30,7 +32,9 @@ def convert_project():
         logger.info(
             f"开始转换项目 - 旁白名称: '{narrator_name}', 结尾空格: {append_spaces}"
         )
-        converter = ProjectConverter()
+        config_manager = current_app.config["CONFIG_MANAGER"]
+        avatar_mapping = config_manager.get_avatar_mapping()
+        converter = ProjectConverter(avatar_mapping)
         result = converter.convert(
             project_file,
             quote_config,

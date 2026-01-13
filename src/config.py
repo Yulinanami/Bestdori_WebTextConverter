@@ -76,3 +76,7 @@ class ConfigManager:
     # 获取“角色ID -> 头像ID”的映射
     def get_avatar_mapping(self) -> Dict[int, int]:
         return self.config.get("avatar_mapping", {})
+
+    # 获取正则表达式配置（如说话人分隔符）
+    def get_patterns(self) -> Dict[str, str]:
+        return self.config.get("patterns", {})
