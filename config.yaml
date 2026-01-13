@@ -3313,10 +3313,9 @@ character_expressions:
       thinking02,
     ]
 
-# 旁白的最大名字长度限制，以及默认名字
+# 旁白默认名字
 parsing:
   default_narrator_name: " "
-  max_speaker_name_length: 50
 
 # 说话人名字和台词的分隔符正则表达式
 patterns:
