@@ -1,0 +1,116 @@
+name: Build Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact_name: WebTextConverter_Linux_x64
+            sep: ":"
+            ext: ""
+            cmd_pack: "tar -czvf"
+            archive_ext: ".tar.gz"
+          - os: windows-latest
+            artifact_name: WebTextConverter_Windows_x64
+            sep: ";"
+            ext: ".exe"
+            cmd_pack: "7z a -tzip"
+            archive_ext: ".zip"
+          - os: macos-latest
+            artifact_name: WebTextConverter_macOS_arm64
+            sep: ":"
+            ext: ""
+            cmd_pack: "tar -czvf"
+            archive_ext: ".tar.gz"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --name=WebTextConverter \
+            --icon=favicon.ico \
+            --add-data="templates${{ matrix.sep }}templates" \
+            --add-data="static${{ matrix.sep }}static" \
+            --add-data="config.yaml${{ matrix.sep }}." \
+            --hidden-import=waitress \
+            run.py
+
+      - name: Create release package
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PACKAGE_NAME="${{ matrix.artifact_name }}_${VERSION}"
+
+          # 建立打包目录并移动构建出的文件
+          mkdir -p "${PACKAGE_NAME}"
+
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            mv "dist/WebTextConverter.exe" "${PACKAGE_NAME}/WebTextConverter_${VERSION}.exe"
+          else
+            # Linux 和 macOS 下 PyInstaller 默认输出名为可执行文件或在无扩展名目录里
+            # PyInstaller on Mac/Linux generates executable inside dist/WebTextConverter or dist/WebTextConverter/WebTextConverter
+            if [ -d "dist/WebTextConverter" ]; then
+              mv dist/WebTextConverter/* "${PACKAGE_NAME}/"
+              mv "${PACKAGE_NAME}/WebTextConverter" "${PACKAGE_NAME}/WebTextConverter_${VERSION}"
+            else
+              mv "dist/WebTextConverter" "${PACKAGE_NAME}/WebTextConverter_${VERSION}"
+            fi
+          fi
+
+          # 复制配套文档和资产
+          cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
+          cp README.md "${PACKAGE_NAME}/"
+          cp -r assets "${PACKAGE_NAME}/" 2>/dev/null || true
+          cp -r example "${PACKAGE_NAME}/" 2>/dev/null || true
+
+          # 压缩打包
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
+          else
+            ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}_${{ steps.version.outputs.VERSION }}${{ matrix.archive_ext }}
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_name }}_${{ steps.version.outputs.VERSION }}${{ matrix.archive_ext }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
