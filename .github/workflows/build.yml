@@ -58,6 +58,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build executable
+        shell: bash
         run: |
           pyinstaller --name=WebTextConverter \
             --icon=favicon.ico \
