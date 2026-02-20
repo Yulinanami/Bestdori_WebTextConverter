@@ -13,6 +13,7 @@ import { live2dEditor } from "@editors/live2d/live2dEditor.js";
 import { expressionEditor } from "@editors/expression/expressionEditor.js";
 import { motionExpressionManager } from "@managers/motionExpressionManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
+import { mergerManager } from "@managers/mergerManager.js";
 import { modalService } from "@services/ModalService.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
@@ -43,7 +44,7 @@ function initializeApp() {
     ui.showStatus(
       `存储空间已满（当前：${size}）！请导出配置后点击"清除缓存"按钮清理数据，或删除浏览器中其他网站的数据。`,
       "error",
-      8000
+      8000,
     );
   };
 
@@ -93,6 +94,9 @@ function initializeApp() {
 
   // 初始化引号相关按钮
   quoteManager.init();
+
+  // 初始化文件合成器
+  mergerManager.init();
 
   // 加载配置
   configManager.init();

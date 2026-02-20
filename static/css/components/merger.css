@@ -1,0 +1,74 @@
+/* merger.css - 文件合成器相关样式 */
+
+.merger-mode-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.merger-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.merger-file-item {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.merger-file-item:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.merger-file-drag-handle {
+  cursor: grab;
+  color: var(--text-muted);
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.merger-file-drag-handle:active {
+  cursor: grabbing;
+}
+
+.merger-file-name {
+  flex: 1;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.merger-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.merger-file-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* 拖拽排序占位符 */
+.sortable-ghost {
+  opacity: 0.4;
+  background-color: var(--bg-hover);
+  border: 1px dashed var(--primary-color);
+}

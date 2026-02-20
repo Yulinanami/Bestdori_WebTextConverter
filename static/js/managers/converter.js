@@ -28,7 +28,7 @@ export const converter = {
       }
       projectFileToConvert = createProjectFileFromText(
         inputText,
-        state.get("currentConfig")
+        state.get("currentConfig"),
       );
     }
 
@@ -41,7 +41,7 @@ export const converter = {
     const appendSpacesBeforeNewline =
       parseInt(
         document.getElementById("appendSpacesBeforeNewline").value,
-        10
+        10,
       ) || 0;
 
     this.convertFromProjectFile(
@@ -49,7 +49,7 @@ export const converter = {
       selectedQuotes,
       narratorName,
       appendSpaces,
-      appendSpacesBeforeNewline
+      appendSpacesBeforeNewline,
     );
   },
 
@@ -59,7 +59,7 @@ export const converter = {
     selectedQuotes = [],
     narratorName,
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0
+    appendSpacesBeforeNewline = 0,
   ) {
     const buttonId = "convertBtn";
     try {
@@ -72,7 +72,7 @@ export const converter = {
         selectedQuotes,
         narratorName,
         appendSpaces,
-        appendSpacesBeforeNewline
+        appendSpacesBeforeNewline,
       );
       const result = data.result;
 
@@ -81,7 +81,7 @@ export const converter = {
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
       const resultSection = document.getElementById("resultSection");
-      resultSection.style.display = "block";
+      resultSection.classList.remove("hidden");
       ui.showStatus("转换完成！", "success");
       resultSection.scrollIntoView({ behavior: "smooth" });
 

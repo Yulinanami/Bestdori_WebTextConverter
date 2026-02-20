@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -205,7 +205,9 @@
           <div class="step-footer">
             <button
               class="btn btn-primary btn-lg"
-              onclick='document.querySelector("[data-step=\"2\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;2&quot;]').click()
+              "
             >
               下一步：编辑器 →
             </button>
@@ -288,13 +290,17 @@
           <div class="step-footer">
             <button
               class="btn btn-secondary"
-              onclick='document.querySelector("[data-step=\"1\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;1&quot;]').click()
+              "
             >
               ← 上一步
             </button>
             <button
               class="btn btn-primary btn-lg"
-              onclick='document.querySelector("[data-step=\"3\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;3&quot;]').click()
+              "
             >
               下一步：处理选项 →
             </button>
@@ -410,13 +416,17 @@
           <div class="step-footer">
             <button
               class="btn btn-secondary"
-              onclick='document.querySelector("[data-step=\"2\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;2&quot;]').click()
+              "
             >
               ← 上一步
             </button>
             <button
               class="btn btn-primary btn-lg"
-              onclick='document.querySelector("[data-step=\"4\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;4&quot;]').click()
+              "
             >
               下一步：转换导出 →
             </button>
@@ -477,12 +487,97 @@
                 </div>
               </div>
             </div>
+
+            <!-- 文件合成器 -->
+            <div class="card mt-20" id="mergerSection">
+              <div class="card-header">
+                <h3 class="card-title">文件合成器</h3>
+              </div>
+              <div class="card-body">
+                <p class="text-hint mb-15">
+                  上传多个转换后的 JSON
+                  或项目进度文件，拖拽调整顺序后合成为一个文件。这有助于分段调试长剧情。
+                </p>
+                <div class="file-upload mb-15" id="mergerFileUpload">
+                  <input
+                    type="file"
+                    accept=".json"
+                    id="mergerFileInput"
+                    multiple
+                  />
+                  <div class="file-upload-label">
+                    <div>
+                      <div class="file-upload-title">
+                        点击或拖拽上传多个 JSON 文件
+                      </div>
+                      <div class="file-upload-subtitle">
+                        按住 Ctrl / Shift 可多选文件
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="merger-file-list-container mb-15 hidden"
+                  id="mergerFileListContainer"
+                >
+                  <h4 class="font-medium mb-10 text-gray">
+                    已上传文件 (拖拽排序)：
+                  </h4>
+                  <ul class="merger-file-list" id="mergerFileList">
+                    <!-- JS动态插入文件项 -->
+                  </ul>
+                </div>
+
+                <button
+                  class="btn btn-primary btn-lg btn-block"
+                  id="mergeBtn"
+                  disabled
+                >
+                  <span id="mergeIcon"></span>
+                  <span id="mergeText">合成文件</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 合成结果 -->
+            <div class="card hidden mt-20" id="mergeResultSection">
+              <div class="card-header">
+                <h3 class="card-title">合并结果</h3>
+                <div class="flex flex-gap-sm">
+                  <button class="btn btn-success" id="downloadMergeBtn">
+                    下载合成 JSON
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    id="copyMergeBtn"
+                    title="复制合并后的 JSON"
+                  >
+                    复制内容
+                  </button>
+                  <button
+                    class="btn btn-primary hidden"
+                    id="gotoBestdoriMergeBtn"
+                    title="复制内容并跳转到 Bestdori"
+                  >
+                    跳转到 Bestdori
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="result-content">
+                  <pre><code class="language-json" id="mergeResultContent"></code></pre>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="step-footer">
             <button
               class="btn btn-secondary"
-              onclick='document.querySelector("[data-step=\"3\"]").click()'
+              onclick="
+                document.querySelector('[data-step=&quot;3&quot;]').click()
+              "
             >
               ← 上一步
             </button>

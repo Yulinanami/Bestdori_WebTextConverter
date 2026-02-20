@@ -18,6 +18,7 @@
 
 /* 5. 模态框样式 */
 @import url("components/modals.css");
+@import url("components/merger.css");
 
 /* 6. 视图特定样式 */
 @import url("components/views.css");
