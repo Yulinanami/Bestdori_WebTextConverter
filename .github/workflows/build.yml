@@ -58,15 +58,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build executable
-        shell: bash
-        run: |
-          pyinstaller --name=WebTextConverter \
-            --icon=favicon.ico \
-            --add-data="templates${{ matrix.sep }}templates" \
-            --add-data="static${{ matrix.sep }}static" \
-            --add-data="config.yaml${{ matrix.sep }}." \
-            --hidden-import=waitress \
-            run.py
+        run: pyinstaller --name=WebTextConverter --icon=favicon.ico --add-data="templates${{ matrix.sep }}templates" --add-data="static${{ matrix.sep }}static" --add-data="config.yaml${{ matrix.sep }}." --hidden-import=waitress run.py
 
       - name: Create release package
         shell: bash
@@ -74,21 +66,17 @@ jobs:
           VERSION="${{ steps.version.outputs.VERSION }}"
           PACKAGE_NAME="${{ matrix.artifact_name }}_${VERSION}"
 
-          # 建立打包目录并移动构建出的文件
+          # 建立打包目录并提取构建产物
           mkdir -p "${PACKAGE_NAME}"
 
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "dist/WebTextConverter.exe" "${PACKAGE_NAME}/WebTextConverter_${VERSION}.exe"
+          if [ -d "dist/WebTextConverter" ]; then
+            mv dist/WebTextConverter/* "${PACKAGE_NAME}/"
           else
-            # Linux 和 macOS 下 PyInstaller 默认输出名为可执行文件或在无扩展名目录里
-            # PyInstaller on Mac/Linux generates executable inside dist/WebTextConverter or dist/WebTextConverter/WebTextConverter
-            if [ -d "dist/WebTextConverter" ]; then
-              mv dist/WebTextConverter/* "${PACKAGE_NAME}/"
-              mv "${PACKAGE_NAME}/WebTextConverter" "${PACKAGE_NAME}/WebTextConverter_${VERSION}"
-            else
-              mv "dist/WebTextConverter" "${PACKAGE_NAME}/WebTextConverter_${VERSION}"
-            fi
+            mv "dist/WebTextConverter${{ matrix.ext }}" "${PACKAGE_NAME}/"
           fi
+
+          # 统一重命名主程序
+          mv "${PACKAGE_NAME}/WebTextConverter${{ matrix.ext }}" "${PACKAGE_NAME}/WebTextConverter_${VERSION}${{ matrix.ext }}"
 
           # 复制配套文档和资产
           cp LICENSE "${PACKAGE_NAME}/LICENSE.txt"
@@ -96,12 +84,8 @@ jobs:
           cp -r assets "${PACKAGE_NAME}/" 2>/dev/null || true
           cp -r example "${PACKAGE_NAME}/" 2>/dev/null || true
 
-          # 压缩打包
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
-          else
-            ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
-          fi
+          # 执行对应平台的压缩打包命令
+          ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
