@@ -1,6 +1,7 @@
 import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 export const projectManager = {
   // 保存当前编辑进度到内存状态（并可在保存后做回调）
@@ -20,18 +21,9 @@ export const projectManager = {
       return;
     }
     const dataStr = JSON.stringify(currentState, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
     const filename =
       currentState.projectName || `bestdori_project_${Date.now()}.json`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    FileUtils.downloadAsFile(dataStr, filename);
   },
 
   // 选择并导入一个“编辑进度 JSON”，成功就返回项目数据，取消则返回 null

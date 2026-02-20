@@ -7,6 +7,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 import { configUI } from "@managers/config/configUI.js";
 import { configData } from "@managers/config/configData.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 export const configManager = {
   defaultConfig: null,
@@ -69,7 +70,7 @@ export const configManager = {
             currentAvailableCostumes,
           );
 
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await FileUtils.delay(300);
           this.renderConfigList();
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
@@ -142,7 +143,7 @@ export const configManager = {
             }
           }
         });
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await FileUtils.delay(500);
         if (this.saveLocalConfig(newConfig)) {
           state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");

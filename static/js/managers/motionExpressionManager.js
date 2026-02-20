@@ -4,6 +4,7 @@ import {
   expressionManager,
 } from "@managers/genericConfigManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 // 管理动作/表情配置页面渲染列表、添加自定义项、删除项、保存到本地
 export const motionExpressionManager = {
@@ -49,7 +50,7 @@ export const motionExpressionManager = {
     DOMUtils.clearElement(listContainer);
     const allDefaultItems = manager.getAllDefaultItems();
     const allItems = Array.from(
-      new Set([...allDefaultItems, ...tempCustomItems])
+      new Set([...allDefaultItems, ...tempCustomItems]),
     ).sort();
     const fragment = document.createDocumentFragment();
     allItems.forEach((item) => {
@@ -80,7 +81,7 @@ export const motionExpressionManager = {
         const icon = DOMUtils.createElement(
           "span",
           { className: "material-symbols-outlined" },
-          "delete"
+          "delete",
         );
         removeBtn.appendChild(icon);
         itemEl.appendChild(removeBtn);
@@ -95,7 +96,7 @@ export const motionExpressionManager = {
   addItem(type) {
     const isMotion = type === "motion";
     const input = document.getElementById(
-      isMotion ? "customMotionInput" : "customExpressionInput"
+      isMotion ? "customMotionInput" : "customExpressionInput",
     );
     const manager = isMotion ? motionManager : expressionManager;
     const tempList = isMotion
@@ -126,11 +127,11 @@ export const motionExpressionManager = {
       const idToDelete = removeBtn.dataset.id;
       if (type === "motion") {
         this.tempCustomMotions = this.tempCustomMotions.filter(
-          (id) => id !== idToDelete
+          (id) => id !== idToDelete,
         );
       } else {
         this.tempCustomExpressions = this.tempCustomExpressions.filter(
-          (id) => id !== idToDelete
+          (id) => id !== idToDelete,
         );
       }
       this.renderList(type);
@@ -146,10 +147,10 @@ export const motionExpressionManager = {
         expressionManager.customItems = [...this.tempCustomExpressions];
         motionManager.saveCustomItems();
         expressionManager.saveCustomItems();
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await FileUtils.delay(300);
         ui.showStatus("动作/表情配置已保存！", "success");
       },
-      "保存中..."
+      "保存中...",
     );
   },
 
@@ -157,19 +158,19 @@ export const motionExpressionManager = {
   async reset() {
     if (
       confirm(
-        "确定要恢复默认列表吗？您在此窗口中添加或删除的所有自定义项都将被丢弃。"
+        "确定要恢复默认列表吗？您在此窗口中添加或删除的所有自定义项都将被丢弃。",
       )
     ) {
       await ui.withButtonLoading(
         "resetMotionExpressionBtn",
         async () => {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await FileUtils.delay(300);
           this.tempCustomMotions = [];
           this.tempCustomExpressions = [];
           this.renderLists();
           ui.showStatus("已在编辑器中恢复默认，请点击保存以生效。", "info");
         },
-        "恢复中..."
+        "恢复中...",
       );
     }
   },

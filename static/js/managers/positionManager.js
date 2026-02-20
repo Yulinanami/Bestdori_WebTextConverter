@@ -2,6 +2,7 @@
 import { DataUtils } from "@utils/DataUtils.js";
 import { ui } from "@utils/uiUtils.js";
 import { modalService } from "@services/ModalService.js";
+import { FileUtils } from "@utils/FileUtils.js";
 import { positionUI } from "@managers/position/positionUI.js";
 import { positionStore } from "@managers/position/positionStore.js";
 
@@ -67,7 +68,7 @@ export const positionManager = {
   toggleManualConfig() {
     const manualConfig = document.getElementById("manualPositionConfig");
     if (manualConfig) {
-      manualConfig.style.display = this.tempAutoPositionMode ? "none" : "block";
+      manualConfig.classList.toggle("hidden", this.tempAutoPositionMode);
     }
   },
 
@@ -83,18 +84,18 @@ export const positionManager = {
       async () => {
         this.autoPositionMode = this.tempAutoPositionMode;
         this.manualPositions = DataUtils.deepClone(this.tempManualPositions);
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await FileUtils.delay(300);
         positionStore.savePositionConfig(this);
         ui.showStatus("位置配置已保存！", "success");
       },
-      "保存中..."
+      "保存中...",
     );
   },
 
   // 重置为默认（启用自动站位；手动偏移清空）
   async resetPositions() {
     const confirmed = await modalService.confirm(
-      "确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？"
+      "确定要将所有角色的位置恢复为默认（中间）并清除偏移吗？",
     );
     if (confirmed) {
       await ui.withButtonLoading(
@@ -110,10 +111,10 @@ export const positionManager = {
           }
 
           this.toggleManualConfig();
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await FileUtils.delay(300);
           ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
         },
-        "重置中..."
+        "重置中...",
       );
     }
   },
@@ -123,7 +124,7 @@ export const positionManager = {
     return positionStore.getCharacterPositionConfig(
       this,
       characterName,
-      appearanceOrder
+      appearanceOrder,
     );
   },
 

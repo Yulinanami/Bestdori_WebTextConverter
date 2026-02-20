@@ -1,5 +1,6 @@
 import { ui } from "@utils/uiUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 function getTimestamp() {
   return Date.now() + Math.floor(Math.random() * 10000);
@@ -134,12 +135,7 @@ export const mergerManager = {
   },
 
   readFileAsText(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(e);
-      reader.readAsText(file);
-    });
+    return FileUtils.readFileAsText(file);
   },
 
   clearFiles() {
@@ -311,21 +307,12 @@ export const mergerManager = {
     if (!this.mergedResult) return;
 
     const dataStr = JSON.stringify(this.mergedResult, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
     const filename =
       this.mode === "bestdori"
         ? `merged_bestdori_${Date.now()}.json`
         : `merged_project_${Date.now()}.json`;
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    FileUtils.downloadAsFile(dataStr, filename);
   },
 
   async copyMergedResult() {

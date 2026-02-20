@@ -3,6 +3,7 @@ import { modalService } from "@services/ModalService.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
+import { FileUtils } from "@utils/FileUtils.js";
 import { costumeUI } from "@managers/costume/costumeUI.js";
 import { costumeData } from "@managers/costume/costumeData.js";
 
@@ -99,7 +100,7 @@ export const costumeManager = {
       characterKey,
       index,
       oldCostume,
-      safeDomId
+      safeDomId,
     );
   },
 
@@ -120,34 +121,34 @@ export const costumeManager = {
       async () => {
         state.set(
           "currentCostumes",
-          DataUtils.deepClone(this.tempCostumeChanges)
+          DataUtils.deepClone(this.tempCostumeChanges),
         );
 
         this.availableCostumes = DataUtils.deepClone(
-          this.tempAvailableCostumes
+          this.tempAvailableCostumes,
         );
 
         this.saveLocalCostumes(state.get("currentCostumes"));
         this.saveLocalAvailableCostumes();
 
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await FileUtils.delay(300);
         ui.showStatus("服装配置已保存！", "success");
       },
-      "保存中..."
+      "保存中...",
     );
   },
 
   // 重置为默认服装（内置角色重置，自定义角色保留）
   async resetCostumes() {
     const confirmed = await modalService.confirm(
-      "确定要恢复默认服装配置吗？这将只重置内置角色的服装设置，自定义角色的服装配置将保留。"
+      "确定要恢复默认服装配置吗？这将只重置内置角色的服装设置，自定义角色的服装配置将保留。",
     );
 
     if (confirmed) {
       await ui.withButtonLoading(
         "resetCostumesBtn",
         async () => {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await FileUtils.delay(300);
           const customCharacterCostumes = {};
           const customCharacterAvailableCostumes = {};
           Object.entries(state.get("currentConfig")).forEach(([name, _ids]) => {
@@ -182,7 +183,7 @@ export const costumeManager = {
           this.renderCostumeList();
           ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
         },
-        "恢复中..."
+        "恢复中...",
       );
     }
   },

@@ -2,6 +2,7 @@
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { apiService } from "@services/ApiService.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 // 允许上传的文件类型
 const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
@@ -36,7 +37,7 @@ export const fileHandler = {
       fileUpload.addEventListener(
         eventName,
         () => fileUpload.classList.add("dragover"),
-        false
+        false,
       );
     });
 
@@ -44,7 +45,7 @@ export const fileHandler = {
       fileUpload.addEventListener(
         eventName,
         () => fileUpload.classList.remove("dragover"),
-        false
+        false,
       );
     });
     fileUpload.addEventListener("drop", this.handleDrop.bind(this), false);
@@ -133,24 +134,17 @@ export const fileHandler = {
         try {
           const blob = await apiService.downloadResult(
             state.get("currentResult"),
-            filename
+            filename,
           );
 
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", filename);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          window.URL.revokeObjectURL(url);
+          FileUtils.downloadAsFile(blob, filename);
 
           ui.showStatus("文件下载成功！", "success");
         } catch (error) {
           ui.showStatus(error.message, "error");
         }
       },
-      "下载中..."
+      "下载中...",
     );
   },
 };

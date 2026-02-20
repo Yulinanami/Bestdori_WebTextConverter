@@ -2,6 +2,7 @@ import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
+import { FileUtils } from "@utils/FileUtils.js";
 import { positionManager } from "@managers/positionManager.js";
 import {
   motionManager,
@@ -111,16 +112,11 @@ export const configData = {
           version: "1.4",
         };
         const dataStr = JSON.stringify(fullConfig, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = this.generateFilename("bestdori_config", "json");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        await FileUtils.delay(300);
+        FileUtils.downloadAsFile(
+          dataStr,
+          this.generateFilename("bestdori_config", "json"),
+        );
         ui.showStatus("所有配置已导出", "success");
       },
       "导出中...",
@@ -137,88 +133,86 @@ export const configData = {
   },
 
   // 导入配置文件（读取 JSON，并分发给各个子系统）
-  importConfig(manager, file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const config = JSON.parse(e.target.result);
+  async importConfig(manager, file) {
+    try {
+      const text = await FileUtils.readFileAsText(file);
+      const config = JSON.parse(text);
+      this._applyImportedConfig(config, manager);
+      ui.showStatus("配置导入成功", "success");
+    } catch (error) {
+      console.error("配置导入失败:", error);
+      ui.showStatus(`配置文件格式错误: ${error.message}`, "error");
+    }
+  },
 
-        if (!this.validateConfig(config)) {
-          throw new Error("配置文件包含不安全的数据，导入已被阻止");
-        }
+  // 校验并将导入的配置分发给各个子系统
+  _applyImportedConfig(config, manager) {
+    if (!this.validateConfig(config)) {
+      throw new Error("配置文件包含不安全的数据，导入已被阻止");
+    }
+    if (!config.character_mapping) {
+      throw new Error("配置文件中没有有效数据");
+    }
 
-        if (!config.character_mapping) {
-          throw new Error("配置文件中没有有效数据");
-        }
+    // 角色映射
+    state.set("currentConfig", config.character_mapping);
+    this.saveLocalConfig(config.character_mapping);
 
-        state.set("currentConfig", config.character_mapping);
-        this.saveLocalConfig(config.character_mapping);
+    // 自定义引号
+    if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
+      state.set("customQuotes", config.custom_quotes);
+      quoteManager.saveCustomQuotes();
+    }
 
-        if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
-          state.set("customQuotes", config.custom_quotes);
-          quoteManager.saveCustomQuotes();
-        }
+    // 服装
+    if (
+      config.costume_mapping ||
+      config.available_costumes ||
+      typeof config.enable_live2d === "boolean"
+    ) {
+      costumeManager.importCostumes(config);
+    }
 
-        if (
-          config.costume_mapping ||
-          config.available_costumes ||
-          typeof config.enable_live2d === "boolean"
-        ) {
-          costumeManager.importCostumes(config);
-        }
+    // 位置
+    if (config.position_config) {
+      positionManager.importPositions(config.position_config);
+    }
 
-        if (config.position_config) {
-          positionManager.importPositions(config.position_config);
-        }
+    // 动作
+    if (config.custom_motions && Array.isArray(config.custom_motions)) {
+      motionManager.customItems = [...config.custom_motions];
+      motionManager.saveCustomItems();
+    }
 
-        if (config.custom_motions && Array.isArray(config.custom_motions)) {
-          motionManager.customItems = [...config.custom_motions];
-          motionManager.saveCustomItems();
-        }
+    // 表情
+    if (config.custom_expressions && Array.isArray(config.custom_expressions)) {
+      expressionManager.customItems = [...config.custom_expressions];
+      expressionManager.saveCustomItems();
+    }
 
-        if (
-          config.custom_expressions &&
-          Array.isArray(config.custom_expressions)
-        ) {
-          expressionManager.customItems = [...config.custom_expressions];
-          expressionManager.saveCustomItems();
-        }
+    // 快速填充选项
+    if (config.custom_quick_fill && Array.isArray(config.custom_quick_fill)) {
+      storageService.set(
+        STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+        config.custom_quick_fill,
+      );
+    }
 
-        if (
-          config.custom_quick_fill &&
-          Array.isArray(config.custom_quick_fill)
-        ) {
-          storageService.set(
-            STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-            config.custom_quick_fill,
-          );
-        }
+    // 刷新 UI
+    manager.renderConfigList();
+    quoteManager.renderQuoteOptions();
 
-        manager.renderConfigList();
-        quoteManager.renderQuoteOptions();
-
-        this.applyNumericSetting(
-          STORAGE_KEYS.AUTO_APPEND_SPACES,
-          "appendSpaces",
-          config.auto_append_spaces,
-        );
-
-        this.applyNumericSetting(
-          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-          "appendSpacesBeforeNewline",
-          config.auto_append_spaces_before_newline,
-        );
-
-        ui.showStatus("配置导入成功", "success");
-      } catch (error) {
-        console.error("配置导入失败:", error);
-        ui.showStatus(`配置文件格式错误: ${error.message}`, "error");
-      }
-    };
-    reader.onerror = () => {
-      ui.showStatus("文件读取失败", "error");
-    };
-    reader.readAsText(file);
+    // 数字设置
+    this.applyNumericSetting(
+      STORAGE_KEYS.AUTO_APPEND_SPACES,
+      "appendSpaces",
+      config.auto_append_spaces,
+    );
+    this.applyNumericSetting(
+      STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+      "appendSpacesBeforeNewline",
+      config.auto_append_spaces_before_newline,
+    );
   },
 
   // 清空本地保存的所有数据（相当于恢复出厂设置）
@@ -263,7 +257,7 @@ export const configData = {
 
         storageService.removeMultiple(keysToRemove);
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await FileUtils.delay(500);
         await modalService.alert("缓存已成功清除！网页即将重新加载。");
         location.reload();
       },

@@ -2,6 +2,7 @@
 
 import { modalService } from "@services/ModalService.js";
 import { ui } from "@utils/uiUtils.js";
+import { FileUtils } from "@utils/FileUtils.js";
 
 export const EditorHelper = {
   // 打开编辑器的通用流程（先跑 beforeOpen/afterOpen，再打开弹窗）
@@ -19,7 +20,7 @@ export const EditorHelper = {
       buttonId,
       async () => {
         // 等待一小段时间，让 UI 更新
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await FileUtils.delay(100);
 
         // 备份当前状态
         editor.backupState();
@@ -37,7 +38,7 @@ export const EditorHelper = {
         // 打开模态框
         modalService.open(modalId);
       },
-      loadingText
+      loadingText,
     );
   },
 
@@ -91,9 +92,7 @@ export const EditorHelper = {
       // 确保加载动画至少显示了最小时间
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minDisplayTime) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, minDisplayTime - elapsedTime)
-        );
+        await FileUtils.delay(minDisplayTime - elapsedTime);
       }
     } finally {
       // 在关闭模态框之前恢复按钮状态
