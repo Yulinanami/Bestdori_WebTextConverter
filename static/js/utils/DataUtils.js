@@ -18,8 +18,7 @@ export const DataUtils = {
     const orderArray = Array.isArray(orders) ? orders : [orders];
 
     return [...arr].sort((a, b) => {
-      for (let i = 0; i < keyArray.length; i++) {
-        const key = keyArray[i];
+      for (const [i, key] of keyArray.entries()) {
         const order = orderArray[i] || "asc";
         const aVal = typeof key === "function" ? key(a) : a[key];
         const bVal = typeof key === "function" ? key(b) : b[key];

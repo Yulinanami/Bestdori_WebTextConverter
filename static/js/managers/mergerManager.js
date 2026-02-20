@@ -85,7 +85,7 @@ export const mergerManager = {
         handle: ".merger-file-drag-handle",
         ghostClass: "sortable-ghost",
         onEnd: (evt) => {
-          // Update internal array
+          // 同步内部数组顺序
           const movedItem = this.files.splice(evt.oldIndex, 1)[0];
           this.files.splice(evt.newIndex, 0, movedItem);
         },
@@ -96,9 +96,8 @@ export const mergerManager = {
   async handleFilesUpload(fileList) {
     if (!fileList || fileList.length === 0) return;
 
-    // Read and parse each file
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
+    // 逐个读取并解析文件
+    for (const file of Array.from(fileList)) {
       if (!file.name.endsWith(".json")) {
         ui.showStatus(`文件 ${file.name} 不是 JSON 格式。`, "warning");
         continue;
@@ -108,7 +107,7 @@ export const mergerManager = {
         const content = await this.readFileAsText(file);
         const data = JSON.parse(content);
 
-        // Basic validation
+        // 基本校验
         if (!data.actions || !Array.isArray(data.actions)) {
           ui.showStatus(
             `文件 ${file.name} 格式不正确，缺少 actions 数组。`,
@@ -127,7 +126,7 @@ export const mergerManager = {
       }
     }
 
-    // reset input so same files can be selected again
+    // 重置 input 以便再次选择相同文件
     const input = document.getElementById("mergerFileInput");
     if (input) input.value = "";
 
@@ -184,7 +183,7 @@ export const mergerManager = {
         list.appendChild(li);
       });
 
-      // Setup delete event listener globally once
+      // 只绑定一次全局删除事件
       if (!this._deleteEventBound) {
         document.addEventListener("remove-merger-file", (e) => {
           this.removeFile(e.detail);
@@ -203,19 +202,14 @@ export const mergerManager = {
       return;
     }
 
-    let mergedData = {};
     const baseData = this.files[0].data;
 
-    // Type checking
+    // 类型检查：确保所有文件是同一类型
     const isFirstProject = !!baseData.version;
-    let allSameType = true;
-    for (let i = 1; i < this.files.length; i++) {
-      const isProject = !!this.files[i].data.version;
-      if (isProject !== isFirstProject) {
-        allSameType = false;
-        break;
-      }
-    }
+    const allSameType = this.files.slice(1).every((file) => {
+      const isProject = !!file.data.version;
+      return isProject === isFirstProject;
+    });
 
     if (!allSameType) {
       this.clearFiles();
@@ -228,58 +222,70 @@ export const mergerManager = {
 
     this.mode = isFirstProject ? "project" : "bestdori";
 
-    if (this.mode === "bestdori") {
-      // Merge as Bestdori JSON
-      mergedData = {
-        server: baseData.server ?? 0,
-        voice: baseData.voice ?? "",
-        background: baseData.background ?? null,
-        bgm: baseData.bgm ?? null,
-        actions: [],
-      };
-
-      this.files.forEach((file) => {
-        mergedData.actions = mergedData.actions.concat(file.data.actions || []);
-      });
-    } else {
-      // Merge as Project File
-      mergedData = {
-        version: baseData.version ?? "1.0",
-        projectName: baseData.projectName ?? "Merged_Project",
-        globalSettings: baseData.globalSettings ?? {},
-        actions: [],
-      };
-
-      this.files.forEach((file) => {
-        const fileActions = file.data.actions || [];
-        // Deep clone to avoid mutating original
-        const clonedActions = JSON.parse(JSON.stringify(fileActions));
-
-        // Regenerate IDs
-        clonedActions.forEach((action, index) => {
-          const timestamp = getTimestamp() + index;
-          if (action.type === "talk") {
-            action.id = `action-id-${timestamp}-${index}`;
-          } else if (action.type === "layout") {
-            const charId = action.characterId || 0;
-            action.id = `layout-action-${timestamp}-${charId}-${index}`;
-          } else {
-            action.id = `action-${timestamp}-${index}`;
-          }
-        });
-
-        mergedData.actions = mergedData.actions.concat(clonedActions);
-      });
-    }
+    const mergedData =
+      this.mode === "bestdori"
+        ? this._mergeBestdoriFiles(baseData)
+        : this._mergeProjectFiles(baseData);
 
     this.mergedResult = mergedData;
+    this._displayMergeResult(mergedData);
+  },
 
-    // Show result
+  // 合并 Bestdori JSON 文件
+  _mergeBestdoriFiles(baseData) {
+    const mergedData = {
+      server: baseData.server ?? 0,
+      voice: baseData.voice ?? "",
+      background: baseData.background ?? null,
+      bgm: baseData.bgm ?? null,
+      actions: [],
+    };
+
+    this.files.forEach((file) => {
+      mergedData.actions = mergedData.actions.concat(file.data.actions || []);
+    });
+
+    return mergedData;
+  },
+
+  // 合并编辑进度文件
+  _mergeProjectFiles(baseData) {
+    const mergedData = {
+      version: baseData.version ?? "1.0",
+      projectName: baseData.projectName ?? "Merged_Project",
+      globalSettings: baseData.globalSettings ?? {},
+      actions: [],
+    };
+
+    this.files.forEach((file) => {
+      const clonedActions = DataUtils.deepClone(file.data.actions || []);
+
+      // 重新生成 ID 避免冲突
+      clonedActions.forEach((action, index) => {
+        const timestamp = getTimestamp() + index;
+        if (action.type === "talk") {
+          action.id = `action-id-${timestamp}-${index}`;
+        } else if (action.type === "layout") {
+          const charId = action.characterId || 0;
+          action.id = `layout-action-${timestamp}-${charId}-${index}`;
+        } else {
+          action.id = `action-${timestamp}-${index}`;
+        }
+      });
+
+      mergedData.actions = mergedData.actions.concat(clonedActions);
+    });
+
+    return mergedData;
+  },
+
+  // 展示合并结果
+  _displayMergeResult(mergedData) {
     const resultSec = document.getElementById("mergeResultSection");
     const resultContent = document.getElementById("mergeResultContent");
     const jsonStr = JSON.stringify(mergedData, null, 2);
 
-    // Toggle action buttons based on mode
+    // 根据模式切换操作按钮
     const copyBtn = document.getElementById("copyMergeBtn");
     const gotoBtn = document.getElementById("gotoBestdoriMergeBtn");
     if (this.mode === "project") {
@@ -292,7 +298,6 @@ export const mergerManager = {
 
     if (resultSec && resultContent) {
       resultContent.textContent = jsonStr;
-      // Apply syntax highlight if Prism is available
       if (window.Prism) {
         window.Prism.highlightElement(resultContent);
       }

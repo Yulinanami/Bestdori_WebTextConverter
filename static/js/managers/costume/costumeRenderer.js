@@ -13,7 +13,7 @@ export const costumeRenderer = {
     const characterEntries = DataUtils.sortBy(
       Object.entries(state.get("currentConfig")),
       ([, ids]) => ids?.[0] ?? Infinity,
-      "asc"
+      "asc",
     );
 
     characterEntries.forEach(([name, ids]) => {
@@ -41,10 +41,10 @@ export const costumeRenderer = {
           class: "config-avatar-img",
         });
 
-        img.addEventListener("error", function () {
-          this.style.display = "none";
-          this.parentElement.textContent = name.charAt(0);
-          this.parentElement.classList.add("fallback");
+        img.addEventListener("error", () => {
+          img.style.display = "none";
+          img.parentElement.textContent = name.charAt(0);
+          img.parentElement.classList.add("fallback");
         });
 
         DOMUtils.clearElement(avatarDiv);
@@ -54,12 +54,11 @@ export const costumeRenderer = {
         avatarDiv.classList.add("fallback");
       }
 
-      costumeItem.querySelector(
-        ".costume-character-name"
-      ).textContent = `${name} (ID: ${primaryId})`;
+      costumeItem.querySelector(".costume-character-name").textContent =
+        `${name} (ID: ${primaryId})`;
 
       const toggleBtn = costumeItem.querySelector(
-        ".toggle-costume-details-btn"
+        ".toggle-costume-details-btn",
       );
 
       toggleBtn.dataset.safeDomId = safeDomId;
@@ -76,7 +75,7 @@ export const costumeRenderer = {
             (costume) =>
               `<option value="${costume}" ${
                 costume === currentCostume ? "selected" : ""
-              }>${costume}</option>`
+              }>${costume}</option>`,
           )
           .join("");
 
@@ -89,7 +88,7 @@ export const costumeRenderer = {
       listItems.innerHTML = this.renderCostumeListItems(
         characterKey,
         availableForCharacter,
-        safeDomId
+        safeDomId,
       );
 
       fragment.appendChild(costumeItem);
@@ -118,7 +117,7 @@ export const costumeRenderer = {
                 </button>
             </div>
         </div>
-    `
+    `,
       )
       .join("");
   },
@@ -131,11 +130,11 @@ export const costumeRenderer = {
       listContainer.innerHTML = this.renderCostumeListItems(
         characterKey,
         costumes,
-        safeDomId
+        safeDomId,
       );
     }
     const costumeDetailsContainer = document.getElementById(
-      `costume-details-${safeDomId}`
+      `costume-details-${safeDomId}`,
     );
     if (costumeDetailsContainer) {
       const select = costumeDetailsContainer.querySelector(".costume-select");

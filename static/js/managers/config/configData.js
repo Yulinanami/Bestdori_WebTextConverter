@@ -3,7 +3,10 @@ import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
 import { positionManager } from "@managers/positionManager.js";
-import { motionManager, expressionManager } from "@managers/genericConfigManager.js";
+import {
+  motionManager,
+  expressionManager,
+} from "@managers/genericConfigManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
 import { modalService } from "@services/ModalService.js";
@@ -12,7 +15,10 @@ import { modalService } from "@services/ModalService.js";
 export const configData = {
   // 生成一个带时间戳的文件名（用于导出下载）
   generateFilename(prefix = "file", extension = "json") {
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "");
     return `${prefix}_${timestamp}.${extension}`;
   },
 
@@ -95,11 +101,11 @@ export const configData = {
             storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [],
           auto_append_spaces: storageService.get(
             STORAGE_KEYS.AUTO_APPEND_SPACES,
-            0
+            0,
           ),
           auto_append_spaces_before_newline: storageService.get(
             STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-            0
+            0,
           ),
           export_date: new Date().toISOString(),
           version: "1.4",
@@ -117,7 +123,7 @@ export const configData = {
         URL.revokeObjectURL(url);
         ui.showStatus("所有配置已导出", "success");
       },
-      "导出中..."
+      "导出中...",
     );
   },
 
@@ -184,7 +190,7 @@ export const configData = {
         ) {
           storageService.set(
             STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-            config.custom_quick_fill
+            config.custom_quick_fill,
           );
         }
 
@@ -194,13 +200,13 @@ export const configData = {
         this.applyNumericSetting(
           STORAGE_KEYS.AUTO_APPEND_SPACES,
           "appendSpaces",
-          config.auto_append_spaces
+          config.auto_append_spaces,
         );
 
         this.applyNumericSetting(
           STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
           "appendSpacesBeforeNewline",
-          config.auto_append_spaces_before_newline
+          config.auto_append_spaces_before_newline,
         );
 
         ui.showStatus("配置导入成功", "success");
@@ -226,7 +232,7 @@ export const configData = {
         "  - 自动添加空格的配置\n" +
         "  - Live2D 布局和位置设置\n" +
         "  - 编辑器偏好设置\n\n" +
-        "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？"
+        "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？",
     );
 
     if (!confirmed) {
@@ -255,14 +261,13 @@ export const configData = {
           STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
         ];
 
-        console.log("正在清除以下本地缓存:", keysToRemove);
         storageService.removeMultiple(keysToRemove);
 
         await new Promise((resolve) => setTimeout(resolve, 500));
         await modalService.alert("缓存已成功清除！网页即将重新加载。");
         location.reload();
       },
-      "清除中..."
+      "清除中...",
     );
   },
 };

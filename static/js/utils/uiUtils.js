@@ -10,7 +10,7 @@ export const ui = {
   // 显示顶部进度条，并设置进度百分比
   showProgress(percent) {
     document.getElementById("progressContainer").style.display = "block";
-    document.getElementById("progressFill").style.width = percent + "%";
+    document.getElementById("progressFill").style.width = `${percent}%`;
   },
 
   // 隐藏顶部进度条
@@ -111,7 +111,7 @@ export const ui = {
       if (copied) {
         this.showStatus(
           "JSON 已复制到剪贴板，正在跳转到 Bestdori...",
-          "success"
+          "success",
         );
       }
     }

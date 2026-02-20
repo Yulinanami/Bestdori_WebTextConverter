@@ -9,7 +9,7 @@ function setSpeakerKey(card, speakers = []) {
 
 export function createSpeakerRenderers(
   editor,
-  { templates, characterNameMap }
+  { templates, characterNameMap },
 ) {
   // renderSingleCard负责画一个卡片，updateCard负责就地更新卡片
   const renderSingleCard = (action, globalIndex = -1) => {
@@ -20,28 +20,30 @@ export function createSpeakerRenderers(
       const dialogueItem = cardElement.firstElementChild;
       dialogueItem.dataset.id = action.id;
       const avatarContainer = dialogueItem.querySelector(
-        ".speaker-avatar-container"
+        ".speaker-avatar-container",
       );
       const avatarDiv = dialogueItem.querySelector(".dialogue-avatar");
       const speakerNameDiv = dialogueItem.querySelector(".speaker-name");
       const multiSpeakerBadge = dialogueItem.querySelector(
-        ".multi-speaker-badge"
+        ".multi-speaker-badge",
       );
 
       if (action.speakers && action.speakers.length > 0) {
         const firstSpeaker = action.speakers[0];
+        avatarContainer.classList.remove("hidden");
         avatarContainer.style.display = "flex";
-        speakerNameDiv.style.display = "block";
+        speakerNameDiv.classList.remove("hidden");
         dialogueItem.classList.remove("narrator");
         editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           firstSpeaker.characterId,
-          firstSpeaker.name
+          firstSpeaker.name,
         );
         const allNames = action.speakers.map((s) => s.name).join(" & ");
         speakerNameDiv.textContent = allNames;
 
         if (action.speakers.length > 1) {
+          multiSpeakerBadge.classList.remove("hidden");
           multiSpeakerBadge.style.display = "flex";
           multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
           avatarContainer.style.cursor = "pointer";
@@ -50,13 +52,13 @@ export function createSpeakerRenderers(
             editor.showMultiSpeakerPopover(action.id, avatarContainer);
           });
         } else {
-          multiSpeakerBadge.style.display = "none";
+          multiSpeakerBadge.classList.add("hidden");
           avatarContainer.style.cursor = "default";
         }
       } else {
-        avatarContainer.style.display = "none";
-        speakerNameDiv.style.display = "none";
-        multiSpeakerBadge.style.display = "none";
+        avatarContainer.classList.add("hidden");
+        speakerNameDiv.classList.add("hidden");
+        multiSpeakerBadge.classList.add("hidden");
         dialogueItem.classList.add("narrator");
       }
 
@@ -81,7 +83,7 @@ export function createSpeakerRenderers(
       editorService.updateCharacterAvatar(
         { querySelector: () => avatarDiv },
         characterId,
-        characterName
+        characterName,
       );
       editor.renderLayoutCardControls(cardElement, action, characterName, {
         showToggleButton: false,
@@ -126,9 +128,12 @@ export function createSpeakerRenderers(
 
       if (action.speakers && action.speakers.length > 0) {
         const firstSpeaker = action.speakers[0];
-        if (avatarContainer) avatarContainer.style.display = "flex";
+        if (avatarContainer) {
+          avatarContainer.classList.remove("hidden");
+          avatarContainer.style.display = "flex";
+        }
         if (speakerNameDiv) {
-          speakerNameDiv.style.display = "block";
+          speakerNameDiv.classList.remove("hidden");
           speakerNameDiv.textContent = action.speakers
             .map((s) => s.name)
             .join(" & ");
@@ -141,27 +146,28 @@ export function createSpeakerRenderers(
           editorService.updateCharacterAvatar(
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
-            firstSpeaker.name
+            firstSpeaker.name,
           );
           avatarDiv.dataset.characterId = String(
-            firstSpeaker.characterId || ""
+            firstSpeaker.characterId || "",
           );
         }
 
         if (action.speakers.length > 1) {
           if (multiSpeakerBadge) {
+            multiSpeakerBadge.classList.remove("hidden");
             multiSpeakerBadge.style.display = "flex";
             multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
           }
           if (avatarContainer) avatarContainer.style.cursor = "pointer";
         } else if (multiSpeakerBadge) {
-          multiSpeakerBadge.style.display = "none";
+          multiSpeakerBadge.classList.add("hidden");
           if (avatarContainer) avatarContainer.style.cursor = "default";
         }
       } else {
-        if (avatarContainer) avatarContainer.style.display = "none";
-        if (speakerNameDiv) speakerNameDiv.style.display = "none";
-        if (multiSpeakerBadge) multiSpeakerBadge.style.display = "none";
+        if (avatarContainer) avatarContainer.classList.add("hidden");
+        if (speakerNameDiv) speakerNameDiv.classList.add("hidden");
+        if (multiSpeakerBadge) multiSpeakerBadge.classList.add("hidden");
         card.classList.add("narrator");
         if (avatarDiv) {
           DOMUtils.clearElement(avatarDiv);
@@ -197,7 +203,7 @@ export function createSpeakerRenderers(
         editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           characterId,
-          characterName
+          characterName,
         );
         avatarDiv.dataset.characterId = String(characterId || "");
       }

@@ -11,7 +11,7 @@ export const positionUI = {
     avatarId,
     avatarPath,
     currentPosition,
-    currentOffset
+    currentOffset,
   ) {
     const item = DOMUtils.createElement("div", {
       class: "position-config-item",
@@ -21,12 +21,12 @@ export const positionUI = {
       name,
       primaryId,
       avatarId,
-      avatarPath
+      avatarPath,
     );
     const controlsDiv = this.createPositionControls(
       name,
       currentPosition,
-      currentOffset
+      currentOffset,
     );
 
     DOMUtils.appendChildren(item, [infoDiv, controlsDiv]);
@@ -56,10 +56,10 @@ export const positionUI = {
         class: "config-avatar-img",
       });
 
-      img.addEventListener("error", function () {
-        this.style.display = "none";
-        this.parentElement.textContent = name.charAt(0);
-        this.parentElement.classList.add("fallback");
+      img.addEventListener("error", () => {
+        img.style.display = "none";
+        img.parentElement.textContent = name.charAt(0);
+        img.parentElement.classList.add("fallback");
       });
 
       avatarDiv.appendChild(img);
@@ -99,7 +99,7 @@ export const positionUI = {
           option.selected = true;
         }
         select.appendChild(option);
-      }
+      },
     );
 
     controlsDiv.appendChild(select);
@@ -153,7 +153,7 @@ export const positionUI = {
         const idA = idsA && idsA.length > 0 ? idsA[0] : Infinity;
         const idB = idsB && idsB.length > 0 ? idsB[0] : Infinity;
         return idA - idB;
-      }
+      },
     );
     characters.forEach(([name, ids]) => {
       if (!ids || ids.length === 0) return;
@@ -174,7 +174,7 @@ export const positionUI = {
         avatarId,
         avatarPath,
         currentPosition,
-        currentOffset
+        currentOffset,
       );
       fragment.appendChild(item);
     });

@@ -91,11 +91,9 @@ class StorageService {
   // 估算 localStorage 当前占用大小（字节）
   getSize() {
     let size = 0;
-    for (let key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
-        size += localStorage[key].length + key.length;
-      }
-    }
+    Object.entries(localStorage).forEach(([key, value]) => {
+      size += value.length + key.length;
+    });
     return size;
   }
 
@@ -106,7 +104,7 @@ class StorageService {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
   }
 }
 

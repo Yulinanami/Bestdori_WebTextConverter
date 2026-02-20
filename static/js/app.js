@@ -21,7 +21,7 @@ import "@managers/navigationManager.js"; // 初始化导航
 import "@managers/themeManager.js"; // 初始化主题
 
 // 让一个数字输入框“自动保存到本地”，下次打开还能记住
-function initializeNumericInput({ elementId, storageKey }) {
+const initializeNumericInput = ({ elementId, storageKey }) => {
   const input = document.getElementById(elementId);
   if (!input) return;
 
@@ -32,10 +32,10 @@ function initializeNumericInput({ elementId, storageKey }) {
     const value = parseInt(e.target.value, 10) || 0;
     storageService.set(storageKey, value);
   });
-}
+};
 
 // 初始化整个应用（按顺序启动各模块）
-function initializeApp() {
+const initializeApp = () => {
   // 初始化服务层
   modalService.init();
 
@@ -104,31 +104,22 @@ function initializeApp() {
 
   // 加载服装配置
   costumeManager.loadCostumeConfig();
-}
+};
 // 绑定“全局按钮/输入框”的事件（不属于某个具体模块的那种）
-function bindGlobalEvents() {
-  const gotoBtn = document.getElementById("gotoBestdoriBtn");
-  if (gotoBtn) {
-    gotoBtn.addEventListener("click", () => ui.goToBestdori());
-  }
+const bindGlobalEvents = () => {
+  document
+    .getElementById("gotoBestdoriBtn")
+    ?.addEventListener("click", () => ui.goToBestdori());
+  document
+    .getElementById("helpBtn")
+    ?.addEventListener("click", () => ui.openModal("helpModal"));
 
-  const helpBtn = document.getElementById("helpBtn");
-  if (helpBtn) {
-    helpBtn.addEventListener("click", () => ui.openModal("helpModal"));
-  }
-
-  const shutdownBtn = document.getElementById("shutdownBtn");
-  if (shutdownBtn) {
-    shutdownBtn.addEventListener("click", () => {
-      if (confirm("确定要关闭应用程序吗？")) {
-        ui.showStatus("正在关闭服务器...", "info");
-
-        // 调用关闭API
-        apiService.shutdownServer();
-
-        // 延迟一小段时间后，向用户显示最终信息
-        setTimeout(() => {
-          document.body.innerHTML = `
+  document.getElementById("shutdownBtn")?.addEventListener("click", () => {
+    if (confirm("确定要关闭应用程序吗？")) {
+      ui.showStatus("正在关闭服务器...", "info");
+      apiService.shutdownServer();
+      setTimeout(() => {
+        document.body.innerHTML = `
           <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background: var(--secondary-gradient); color: var(--text-primary);">
             <div>
               <h1 style="font-size: 2rem; margin-bottom: 1rem;">程序已关闭</h1>
@@ -136,58 +127,42 @@ function bindGlobalEvents() {
             </div>
           </div>
         `;
-        }, 500); // 500ms的延迟确保请求有足够时间发出
-      }
-    });
-  }
+      }, 500);
+    }
+  });
 
-  const inputText = document.getElementById("inputText");
-  if (inputText) {
-    inputText.addEventListener("input", () => {
-      if (state.get("projectFile")) {
-        state.set("projectFile", null);
-      }
-    });
-  }
+  document.getElementById("inputText")?.addEventListener("input", () => {
+    if (state.get("projectFile")) {
+      state.set("projectFile", null);
+    }
+  });
 
   // 移动端侧边栏切换逻辑
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebar = document.querySelector(".app-sidebar");
   const sidebarOverlay = document.getElementById("sidebarOverlay");
 
-  function toggleSidebar() {
-    sidebar.classList.toggle("active");
-    if (sidebarOverlay) {
-      sidebarOverlay.classList.toggle("active");
-    }
-  }
+  const toggleSidebar = () => {
+    sidebar?.classList.toggle("active");
+    sidebarOverlay?.classList.toggle("active");
+  };
 
-  function closeSidebar() {
-    sidebar.classList.remove("active");
-    if (sidebarOverlay) {
-      sidebarOverlay.classList.remove("active");
-    }
-  }
+  const closeSidebar = () => {
+    sidebar?.classList.remove("active");
+    sidebarOverlay?.classList.remove("active");
+  };
 
   if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener("click", toggleSidebar);
+    sidebarOverlay?.addEventListener("click", closeSidebar);
 
-    // 点击遮罩关闭
-    if (sidebarOverlay) {
-      sidebarOverlay.addEventListener("click", closeSidebar);
-    }
-
-    // 点击导航项自动关闭（仅限移动端）
-    const navSteps = document.querySelectorAll(".nav-step");
-    navSteps.forEach((step) => {
+    document.querySelectorAll(".nav-step").forEach((step) => {
       step.addEventListener("click", () => {
-        if (window.innerWidth <= 768) {
-          closeSidebar();
-        }
+        if (window.innerWidth <= 768) closeSidebar();
       });
     });
   }
-}
+};
 
 // DOM加载完成后初始化应用
 document.addEventListener("DOMContentLoaded", initializeApp);

@@ -45,14 +45,13 @@ export const projectManager = {
           if (typeof action.type !== "string") return false;
           if (action.type === "talk") {
             return (
-              Array.isArray(action.speakers) &&
-              typeof action.text === "string"
+              Array.isArray(action.speakers) && typeof action.text === "string"
             );
           }
           if (action.type === "layout") {
             return (
               typeof action.layoutType === "string" &&
-              action.hasOwnProperty("characterId")
+              Object.hasOwn(action, "characterId")
             );
           }
           return false;
@@ -74,7 +73,7 @@ export const projectManager = {
             const importedProject = JSON.parse(event.target.result);
             if (!isValidProjectFile(importedProject)) {
               throw new Error(
-                "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。"
+                "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。",
               );
             }
             ui.showStatus("项目导入成功！", "success");

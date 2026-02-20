@@ -46,9 +46,7 @@ export const configManager = {
   // 恢复默认角色列表（会清掉自定义角色；服装尽量保留已有角色的设置）
   async resetConfig() {
     const confirmed = await modalService.confirm(
-      "【警告】此操作将恢复为系统默认角色列表。\n\n" +
-        "所有自定义添加的角色及其服装配置都将被删除。\n\n" +
-        "确定要继续吗？"
+      `【警告】此操作将恢复为系统默认角色列表。\n\n所有自定义添加的角色及其服装配置都将被删除。\n\n确定要继续吗？`,
     );
 
     if (confirmed) {
@@ -68,7 +66,7 @@ export const configManager = {
 
           await this.updateCostumesAfterConfigReset(
             currentCostumes,
-            currentAvailableCostumes
+            currentAvailableCostumes,
           );
 
           await new Promise((resolve) => setTimeout(resolve, 300));
@@ -76,7 +74,7 @@ export const configManager = {
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
         },
-        "重置中..."
+        "重置中...",
       );
     }
   },
@@ -84,7 +82,7 @@ export const configManager = {
   // 重置角色列表后：把服装配置“对齐到新角色表”（已有角色尽量保留）
   async updateCostumesAfterConfigReset(
     previousCostumes,
-    previousAvailableCostumes
+    previousAvailableCostumes,
   ) {
     const newCostumes = {};
     const newAvailableCostumes = {};
@@ -92,7 +90,7 @@ export const configManager = {
       const characterKey = costumeManager.getCharacterKey(name);
       const primaryId = ids[0];
 
-      if (previousCostumes.hasOwnProperty(characterKey)) {
+      if (Object.hasOwn(previousCostumes, characterKey)) {
         newCostumes[characterKey] = previousCostumes[characterKey];
         newAvailableCostumes[characterKey] =
           previousAvailableCostumes[characterKey] || [];
@@ -152,7 +150,7 @@ export const configManager = {
           ui.showStatus("配置保存失败，可能是存储空间不足", "error");
         }
       },
-      "保存中..."
+      "保存中...",
     );
   },
 
@@ -183,54 +181,37 @@ export const configManager = {
 
   // 绑定配置页面上的按钮（新增/保存/重置/导入/导出/清缓存）
   bindActionButtons() {
-    const addBtn = document.getElementById("addConfigBtn");
-    if (addBtn) {
-      addBtn.addEventListener("click", this.addConfigItem.bind(this));
-    }
+    document
+      .getElementById("addConfigBtn")
+      ?.addEventListener("click", () => this.addConfigItem());
+    document
+      .getElementById("saveConfigBtn")
+      ?.addEventListener("click", () => this.saveConfig());
+    document
+      .getElementById("resetConfigBtn")
+      ?.addEventListener("click", () => this.resetConfig());
+    document
+      .getElementById("exportConfigBtn")
+      ?.addEventListener("click", () => this.exportConfig());
 
-    const saveBtn = document.getElementById("saveConfigBtn");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", this.saveConfig.bind(this));
-    }
-
-    const resetBtn = document.getElementById("resetConfigBtn");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", this.resetConfig.bind(this));
-    }
-
-    const exportBtn = document.getElementById("exportConfigBtn");
-    if (exportBtn) {
-      exportBtn.addEventListener("click", this.exportConfig.bind(this));
-    }
-
-    const importBtn = document.getElementById("importConfigBtn");
-    if (importBtn) {
-      importBtn.addEventListener("click", () => {
-        const importInput = document.getElementById("importConfigInput");
-        if (importInput) {
-          importInput.click();
-        }
+    document
+      .getElementById("importConfigBtn")
+      ?.addEventListener("click", () => {
+        document.getElementById("importConfigInput")?.click();
       });
-    }
 
-    const importInput = document.getElementById("importConfigInput");
-    if (importInput) {
-      importInput.addEventListener("change", (e) => {
-        const files = e.target.files;
-        const file = files && files[0];
+    document
+      .getElementById("importConfigInput")
+      ?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
         if (file) {
           this.importConfig(file);
           e.target.value = "";
         }
       });
-    }
 
-    const clearCacheBtn = document.getElementById("clearCacheBtn");
-    if (clearCacheBtn) {
-      clearCacheBtn.addEventListener(
-        "click",
-        this.clearLocalStorage.bind(this)
-      );
-    }
+    document
+      .getElementById("clearCacheBtn")
+      ?.addEventListener("click", () => this.clearLocalStorage());
   },
 };

@@ -8,45 +8,12 @@ class ModalService {
     this.specialHandlers = {}; // 某些弹窗需要“自定义关闭方式”时放这里
   }
 
-  // 初始化：绑定关闭按钮等一次性事件（只做一次）
   init() {
     if (this.initialized) return;
 
-    /*
-     * 取消点击背景关闭模态框的功能，以防止意外关闭导致数据丢失。
-     */
-    // window.addEventListener("click", (event) => {
-    //   const modals = document.querySelectorAll(".modal");
-    //   modals.forEach((modal) => {
-    //     if (event.target === modal && this.openModals.has(modal.id)) {
-    //       if (this.specialHandlers[modal.id]) {
-    //         this.specialHandlers[modal.id]();
-    //       } else {
-    //         this.close(modal.id);
-    //       }
-    //     }
-    //   });
-    // });
-
-    /*
-     * 取消按 ESC 键关闭模态框的功能，以防止意外关闭。
-     */
-    // window.addEventListener("keydown", (event) => {
-    //   if (event.key === "Escape" && this.openModals.size > 0) {
-    //     const lastModal = Array.from(this.openModals).pop();
-    //     if (this.specialHandlers[lastModal]) {
-    //       this.specialHandlers[lastModal]();
-    //     } else {
-    //       this.close(lastModal);
-    //     }
-    //   }
-    // });
-
-    // 绑定页面上所有“关闭弹窗”的按钮
     this._bindCloseButtons();
 
     this.initialized = true;
-    console.log("[ModalService] 已初始化");
   }
 
   // 给所有关闭按钮绑定点击事件（点了就关闭所在弹窗）
@@ -85,8 +52,6 @@ class ModalService {
     if (options.onOpen) {
       options.onOpen();
     }
-
-    console.log(`[ModalService] 打开模态框: ${modalId}`);
   }
 
   // 关闭指定弹窗（可传 beforeClose 来拦截关闭，比如未保存时提示）
@@ -99,7 +64,6 @@ class ModalService {
 
     // 执行关闭前回调
     if (beforeClose && beforeClose() === false) {
-      console.log(`[ModalService] 取消关闭模态框: ${modalId}`);
       return;
     }
 
@@ -113,8 +77,6 @@ class ModalService {
     if (this.openModals.size === 0) {
       document.body.classList.remove("modal-open");
     }
-
-    console.log(`[ModalService] 关闭模态框: ${modalId}`);
   }
 
   // 弹出“确认/取消”的对话框（返回 Promise<boolean>）
