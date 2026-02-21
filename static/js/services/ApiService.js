@@ -95,7 +95,7 @@ class ApiService {
     quoteConfig = [],
     narratorName = " ",
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0
+    appendSpacesBeforeNewline = 0,
   ) {
     return await this.post("/api/convert", {
       projectFile,
@@ -114,6 +114,11 @@ class ApiService {
     return await this.post("/api/upload", formData);
   }
 
+  // 把多个文件数据发送到后端进行合并
+  async mergeFiles(mode, files) {
+    return await this.post("/api/merge", { mode, files });
+  }
+
   // 让后端生成一个可下载的 JSON 文件（返回 blob）
   async downloadResult(content, filename) {
     try {
@@ -123,7 +128,7 @@ class ApiService {
         {
           responseType: "blob",
           timeout: this.timeout,
-        }
+        },
       );
       return response.data;
     } catch (error) {

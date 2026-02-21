@@ -1,10 +1,6 @@
 import { ui } from "@utils/uiUtils.js";
-import { DataUtils } from "@utils/DataUtils.js";
 import { FileUtils } from "@utils/FileUtils.js";
-
-function getTimestamp() {
-  return Date.now() + Math.floor(Math.random() * 10000);
-}
+import { apiService } from "@services/ApiService.js";
 
 export const mergerManager = {
   mode: "bestdori", // "bestdori" or "project"
@@ -192,7 +188,8 @@ export const mergerManager = {
     }
   },
 
-  mergeFiles() {
+  // 合并文件：前端负责类型验证，后端负责实际合并
+  async mergeFiles() {
     if (this.files.length < 1) {
       ui.showStatus("请至少上传一个文件。", "warning");
       return;
@@ -200,7 +197,7 @@ export const mergerManager = {
 
     const baseData = this.files[0].data;
 
-    // 类型检查：确保所有文件是同一类型
+    // 类型检查：确保所有文件是同一类型（保留在前端）
     const isFirstProject = !!baseData.version;
     const allSameType = this.files.slice(1).every((file) => {
       const isProject = !!file.data.version;
@@ -218,61 +215,19 @@ export const mergerManager = {
 
     this.mode = isFirstProject ? "project" : "bestdori";
 
-    const mergedData =
-      this.mode === "bestdori"
-        ? this._mergeBestdoriFiles(baseData)
-        : this._mergeProjectFiles(baseData);
+    // 调用后端 API 执行合并
+    try {
+      const filesPayload = this.files.map((f) => ({
+        name: f.name,
+        data: f.data,
+      }));
 
-    this.mergedResult = mergedData;
-    this._displayMergeResult(mergedData);
-  },
-
-  // 合并 Bestdori JSON 文件
-  _mergeBestdoriFiles(baseData) {
-    const mergedData = {
-      server: baseData.server ?? 0,
-      voice: baseData.voice ?? "",
-      background: baseData.background ?? null,
-      bgm: baseData.bgm ?? null,
-      actions: [],
-    };
-
-    this.files.forEach((file) => {
-      mergedData.actions = mergedData.actions.concat(file.data.actions || []);
-    });
-
-    return mergedData;
-  },
-
-  // 合并编辑进度文件
-  _mergeProjectFiles(baseData) {
-    const mergedData = {
-      version: baseData.version ?? "1.0",
-      projectName: baseData.projectName ?? "Merged_Project",
-      globalSettings: baseData.globalSettings ?? {},
-      actions: [],
-    };
-
-    this.files.forEach((file) => {
-      const clonedActions = DataUtils.deepClone(file.data.actions || []);
-
-      // 重新生成 ID 避免冲突
-      clonedActions.forEach((action, index) => {
-        const timestamp = getTimestamp() + index;
-        if (action.type === "talk") {
-          action.id = `action-id-${timestamp}-${index}`;
-        } else if (action.type === "layout") {
-          const charId = action.characterId || 0;
-          action.id = `layout-action-${timestamp}-${charId}-${index}`;
-        } else {
-          action.id = `action-${timestamp}-${index}`;
-        }
-      });
-
-      mergedData.actions = mergedData.actions.concat(clonedActions);
-    });
-
-    return mergedData;
+      const response = await apiService.mergeFiles(this.mode, filesPayload);
+      this.mergedResult = response.result;
+      this._displayMergeResult(this.mergedResult);
+    } catch (error) {
+      ui.showStatus(`合并失败: ${error.message}`, "error");
+    }
   },
 
   // 展示合并结果
