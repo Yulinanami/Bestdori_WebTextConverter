@@ -30,7 +30,7 @@ export function attachLive2dTimeline(editor) {
         if (e.target.closest(".toggle-position-btn")) {
           const toggleBtn = card.querySelector(".toggle-position-btn");
           const toPositionContainer = card.querySelector(
-            ".to-position-container"
+            ".to-position-container",
           );
           const mainPositionLabel = card.querySelector(".main-position-label");
           const mainOffsetLabel = card.querySelector(".main-offset-label");
@@ -47,10 +47,10 @@ export function attachLive2dTimeline(editor) {
             // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
             editor._executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
-                (a) => a.id === actionId
+                (a) => a.id === actionId,
               );
               if (currentAction && currentAction.position) {
-                delete currentAction._independentToPosition;
+                delete currentAction.customToPosition;
                 if (!currentAction.position.to) currentAction.position.to = {};
                 currentAction.position.to.side =
                   currentAction.position.from?.side || "center";
@@ -61,7 +61,7 @@ export function attachLive2dTimeline(editor) {
 
             // 更新主位置UI显示（根据卡片类型决定显示 from 还是 to）
             const action = editor.projectFileState.actions.find(
-              (a) => a.id === actionId
+              (a) => a.id === actionId,
             );
             if (action) {
               const isMove = action.layoutType === "move";
@@ -86,16 +86,16 @@ export function attachLive2dTimeline(editor) {
             // 设置独立配置标记，阻止自动同步
             editor._executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
-                (a) => a.id === actionId
+                (a) => a.id === actionId,
               );
               if (currentAction) {
-                currentAction._independentToPosition = true;
+                currentAction.customToPosition = true;
               }
             });
 
             // 初始化位置UI显示
             const action = editor.projectFileState.actions.find(
-              (a) => a.id === actionId
+              (a) => a.id === actionId,
             );
             if (action) {
               // 主位置（起点）显示 from 的值
@@ -144,8 +144,8 @@ export function attachLive2dTimeline(editor) {
       const configEntries = editorService.getCurrentConfig() || {};
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
-          ids.map((id) => [id, name])
-        )
+          ids.map((id) => [id, name]),
+        ),
       );
       const { renderSingleCard, updateCard, contextSignature } =
         createLive2dRenderers(editor, { templates, characterNameMap });
@@ -171,7 +171,7 @@ export function attachLive2dTimeline(editor) {
             setTimeout(() => {
               const scrollContainer = editor.domCache.timeline;
               const header = scrollContainer?.querySelector(
-                `.timeline-group-header[data-group-idx="${index}"]`
+                `.timeline-group-header[data-group-idx="${index}"]`,
               );
               if (scrollContainer && header) {
                 scrollContainer.scrollTo({

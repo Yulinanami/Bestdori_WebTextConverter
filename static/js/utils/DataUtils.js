@@ -64,7 +64,7 @@ export const DataUtils = {
         positionTo: position.to || null,
         initialState: action.initialState || null,
         delay: action.delay,
-        independent: action._independentToPosition || false,
+        independent: action.customToPosition || false,
       });
     }
 

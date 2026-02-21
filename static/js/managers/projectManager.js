@@ -25,7 +25,6 @@ export const projectManager = {
     const exportData = DataUtils.deepClone(currentState);
     if (Array.isArray(exportData.actions)) {
       exportData.actions.forEach((action) => {
-        delete action._independentToPosition;
         delete action.characterStates;
       });
     }

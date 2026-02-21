@@ -30,7 +30,7 @@ export const LayoutPropertyMixin = {
       if (!action.position) action.position = {};
 
       // 未展开时的行为
-      if (!action._independentToPosition) {
+      if (!action.customToPosition) {
         // 移动类型：主位置是终点，修改 to，from 保持不变
         if (action.layoutType === "move") {
           if (!action.position.to) action.position.to = {};
@@ -53,7 +53,7 @@ export const LayoutPropertyMixin = {
       if (!action.position) action.position = {};
 
       // 未展开时的行为
-      if (!action._independentToPosition) {
+      if (!action.customToPosition) {
         // 移动类型：主位置是终点，修改 to，from 保持不变
         if (action.layoutType === "move") {
           if (!action.position.to) action.position.to = {};
@@ -87,7 +87,7 @@ export const LayoutPropertyMixin = {
 
       // 找到匹配的处理器并执行
       const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
-        controlClassName.includes(key)
+        controlClassName.includes(key),
       );
 
       if (handlerKey) {
@@ -113,7 +113,7 @@ export const LayoutPropertyMixin = {
     // 主位置显示逻辑：
     // - 展开时：所有类型都显示起点（from）
     // - 未展开时：移动显示终点（to），登场/退场显示起点（from）
-    const isExpanded = action._independentToPosition;
+    const isExpanded = action.customToPosition;
     const isMove = action.layoutType === "move";
     const currentPosition =
       isExpanded || !isMove
@@ -143,7 +143,7 @@ export const LayoutPropertyMixin = {
         if (action.costume && !availableCostumes.includes(action.costume)) {
           const option = new Option(
             `${action.costume} (自定义)`,
-            action.costume
+            action.costume,
           );
           costumeSelect.add(option, 0);
         }
@@ -162,7 +162,7 @@ export const LayoutPropertyMixin = {
         Object.entries(editorService.positionManager.positionNames).forEach(
           ([value, name]) => {
             positionSelect.add(new Option(name, value));
-          }
+          },
         );
         positionSelect.dataset.optionsReady = "true";
       }
@@ -186,13 +186,13 @@ export const LayoutPropertyMixin = {
       Object.entries(editorService.positionManager.positionNames).forEach(
         ([value, name]) => {
           toPositionSelect.add(new Option(name, value));
-        }
+        },
       );
       toPositionSelect.dataset.optionsReady = "true";
     }
 
-    // 根据 _independentToPosition 标记决定是否显示第二个位置行
-    if (action._independentToPosition) {
+    // 根据 customToPosition 标记决定是否显示第二个位置行
+    if (action.customToPosition) {
       // 展开模式：修改标签为"起点"，显示终点配置
       if (toPositionContainer) {
         toPositionContainer.style.display = "grid";
