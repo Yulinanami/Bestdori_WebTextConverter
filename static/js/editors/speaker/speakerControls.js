@@ -8,10 +8,10 @@ export function attachSpeakerControls(editor) {
     // 从本地读取“多选/编辑模式”的开关状态
     loadModePreferences() {
       const savedMultiSelect = storageService.get(
-        STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE
+        STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
       );
       const savedTextEdit = storageService.get(
-        STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE
+        STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
       );
       this.isMultiSelectMode = savedMultiSelect === true;
       this.isTextEditMode = savedTextEdit === true;
@@ -23,7 +23,7 @@ export function attachSpeakerControls(editor) {
       this._updateTextEditButtonUI();
       this.domCache.canvas?.classList.toggle(
         "text-edit-mode-active",
-        this.isTextEditMode
+        this.isTextEditMode,
       );
     },
 
@@ -48,12 +48,12 @@ export function attachSpeakerControls(editor) {
       this.isMultiSelectMode = !this.isMultiSelectMode;
       storageService.set(
         STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
-        this.isMultiSelectMode
+        this.isMultiSelectMode,
       );
       this._updateMultiSelectButtonUI();
       editorService.clearSelection();
       this.domCache.canvas?.dispatchEvent(
-        new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
+        new CustomEvent("selectionchange", { detail: { selectedIds: [] } }),
       );
     },
 
@@ -62,7 +62,7 @@ export function attachSpeakerControls(editor) {
       this.isTextEditMode = !this.isTextEditMode;
       storageService.set(
         STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
-        this.isTextEditMode
+        this.isTextEditMode,
       );
       this.applyModeUIState();
     },
@@ -70,7 +70,7 @@ export function attachSpeakerControls(editor) {
     // 点击“编辑”按钮：弹窗修改这条对话的文本
     _handleTextEdit(actionId) {
       const action = this.projectFileState.actions.find(
-        (a) => a.id === actionId
+        (a) => a.id === actionId,
       );
       if (!action) return;
       const newText = prompt("编辑对话内容:", action.text);
@@ -79,7 +79,7 @@ export function attachSpeakerControls(editor) {
         const trimmedText = newText.trim();
         this._executeCommand((currentState) => {
           const actionToUpdate = currentState.actions.find(
-            (a) => a.id === actionId
+            (a) => a.id === actionId,
           );
 
           if (actionToUpdate) {
@@ -136,7 +136,7 @@ export function attachSpeakerControls(editor) {
           editorService.selectionManager.selectRange(
             id,
             this.domCache.canvas,
-            ".dialogue-item, .layout-item"
+            ".dialogue-item, .layout-item",
           );
         } else {
           const isAlreadyOnlySelected =
@@ -157,24 +157,24 @@ export function attachSpeakerControls(editor) {
           detail: {
             selectedIds: editorService.selectionManager.getSelectedIds(),
           },
-        })
+        }),
       );
     },
 
     // 删除一条对话卡片（会二次确认）
     async _handleCardDelete(actionId) {
       const action = this.projectFileState.actions.find(
-        (a) => a.id === actionId
+        (a) => a.id === actionId,
       );
       if (!action) return;
 
       const confirmed = await modalService.confirm(
-        `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`
+        `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`,
       );
       if (confirmed) {
         this._executeCommand((currentState) => {
           const index = currentState.actions.findIndex(
-            (a) => a.id === actionId
+            (a) => a.id === actionId,
           );
           if (index > -1) {
             currentState.actions.splice(index, 1);
@@ -190,7 +190,7 @@ export function attachSpeakerControls(editor) {
         const trimmedText = newText.trim();
         this._executeCommand((currentState) => {
           const currentIndex = currentState.actions.findIndex(
-            (a) => a.id === actionId
+            (a) => a.id === actionId,
           );
           if (currentIndex > -1) {
             const newAction = {
@@ -198,7 +198,6 @@ export function attachSpeakerControls(editor) {
               type: "talk",
               text: trimmedText,
               speakers: [],
-              characterStates: {},
             };
             currentState.actions.splice(currentIndex + 1, 0, newAction);
           }
@@ -231,7 +230,7 @@ export function attachSpeakerControls(editor) {
       if (this._selectionChangeHandler) {
         canvas.removeEventListener(
           "selectionchange",
-          this._selectionChangeHandler
+          this._selectionChangeHandler,
         );
       }
       this._selectionChangeHandler = (e) => {
@@ -239,7 +238,7 @@ export function attachSpeakerControls(editor) {
 
         const selectedIds = new Set(e.detail.selectedIds);
         const allCards = canvas.querySelectorAll(
-          ".dialogue-item, .layout-item"
+          ".dialogue-item, .layout-item",
         );
         allCards.forEach((card) => {
           if (selectedIds.has(card.dataset.id)) {

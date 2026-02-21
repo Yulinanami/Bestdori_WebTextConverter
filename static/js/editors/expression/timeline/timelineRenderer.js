@@ -31,8 +31,8 @@ export function renderTimeline(editor) {
   const configSignature = DataUtils.shallowSignature(configEntries);
   const characterNameMap = new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
-      ids.map((id) => [id, name])
-    )
+      ids.map((id) => [id, name]),
+    ),
   );
 
   // 渲染卡片底部：决定显示“设置按钮”还是直接显示分配区
@@ -49,7 +49,7 @@ export function renderTimeline(editor) {
 
     const setupButton = DOMUtils.createButton(
       "设置动作/表情",
-      "btn btn-secondary btn-sm setup-expressions-btn"
+      "btn btn-secondary btn-sm setup-expressions-btn",
     );
     footer.appendChild(setupButton);
   };
@@ -78,9 +78,9 @@ export function renderTimeline(editor) {
               characterName,
               {
                 showToggleButton: false,
-              }
+              },
             ),
-        }
+        },
       );
     } else {
       return null;
@@ -117,14 +117,17 @@ export function renderTimeline(editor) {
         }
         if (
           avatarDiv &&
-          avatarDiv.dataset.characterId !== String(firstSpeaker.characterId || "")
+          avatarDiv.dataset.characterId !==
+            String(firstSpeaker.characterId || "")
         ) {
           editorService.updateCharacterAvatar(
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
-            firstSpeaker.name
+            firstSpeaker.name,
           );
-          avatarDiv.dataset.characterId = String(firstSpeaker.characterId || "");
+          avatarDiv.dataset.characterId = String(
+            firstSpeaker.characterId || "",
+          );
         }
       } else {
         if (nameDiv) nameDiv.textContent = "旁白";
@@ -162,10 +165,15 @@ export function renderTimeline(editor) {
         editorService.updateCharacterAvatar(
           { querySelector: () => avatarDiv },
           characterId,
-          characterName
+          characterName,
         );
         avatarDiv.dataset.characterId = String(characterId || "");
       }
+
+      // 同步布局属性控件（位置、偏移、服装等）到最新状态
+      editor.renderLayoutCardControls(card, action, characterName, {
+        showToggleButton: false,
+      });
     } else {
       return false;
     }
@@ -199,7 +207,7 @@ export function renderTimeline(editor) {
         setTimeout(() => {
           const scrollContainer = editor.domCache.timeline;
           const header = scrollContainer?.querySelector(
-            `.timeline-group-header[data-group-idx="${index}"]`
+            `.timeline-group-header[data-group-idx="${index}"]`,
           );
           if (
             scrollContainer &&

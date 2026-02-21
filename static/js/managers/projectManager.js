@@ -20,7 +20,17 @@ export const projectManager = {
       ui.showStatus("没有可导出的内容。", "error");
       return;
     }
-    const dataStr = JSON.stringify(currentState, null, 2);
+
+    // 深拷贝后清理掉运行时/废弃字段，避免泄漏到导出文件
+    const exportData = DataUtils.deepClone(currentState);
+    if (Array.isArray(exportData.actions)) {
+      exportData.actions.forEach((action) => {
+        delete action._independentToPosition;
+        delete action.characterStates;
+      });
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2);
     const filename =
       currentState.projectName || `bestdori_project_${Date.now()}.json`;
     FileUtils.downloadAsFile(dataStr, filename);

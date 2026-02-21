@@ -7,7 +7,7 @@ function buildCharacterMap(characterConfig = {}) {
     Object.entries(characterConfig).map(([name, ids]) => [
       name,
       { characterId: ids?.[0], name },
-    ])
+    ]),
   );
 }
 
@@ -59,7 +59,6 @@ export function createProjectFileFromText(text, characterConfig = {}) {
         type: "talk",
         text: cleanText,
         speakers,
-        characterStates: {},
       };
     }),
   };
