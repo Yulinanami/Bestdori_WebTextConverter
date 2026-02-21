@@ -165,11 +165,7 @@ export const configData = {
     }
 
     // 服装
-    if (
-      config.costume_mapping ||
-      config.available_costumes ||
-      typeof config.enable_live2d === "boolean"
-    ) {
+    if (config.costume_mapping || config.available_costumes) {
       costumeManager.importCostumes(config);
     }
 
