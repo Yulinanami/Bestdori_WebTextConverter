@@ -51,7 +51,7 @@ class NavigationManager {
     this.initializeStepContent(stepNum);
 
     // 滚动到页面顶部
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   // 每个步骤需要“进场初始化”时，就在这里写对应的加载逻辑

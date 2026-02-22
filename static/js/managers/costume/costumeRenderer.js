@@ -12,50 +12,49 @@ export const costumeRenderer = {
     const fragment = document.createDocumentFragment();
     const characterEntries = DataUtils.sortBy(
       Object.entries(state.get("currentConfig")),
-      ([, ids]) => ids?.[0] ?? Infinity,
+      ([, characterIds]) => characterIds?.[0] ?? Infinity,
       "asc",
     );
 
-    characterEntries.forEach(([name, ids]) => {
-      if (!ids || ids.length === 0) return;
+    characterEntries.forEach(([characterName, characterIds]) => {
+      if (!characterIds || characterIds.length === 0) return;
 
       const clone = template.content.cloneNode(true);
       const costumeItem = clone.querySelector(".costume-config-item");
-      const primaryId = ids[0];
-      const characterKey = manager.getCharacterKey(name);
-      const safeDomId = manager.getSafeDomId(name);
-      const avatarId = configManager.getAvatarId(primaryId);
-      const availableForCharacter =
-        manager.tempAvailableCostumes[characterKey] || [];
-      const currentCostume = manager.tempCostumeChanges[characterKey] || "";
+      const primaryCharacterId = characterIds[0];
+      const safeDomId = manager.getSafeDomId(characterName);
+      const avatarId = configManager.getAvatarId(primaryCharacterId);
+      const availableCostumesForCharacter =
+        manager.tempAvailableCostumes[characterName] || [];
+      const selectedCostumeId = manager.tempCostumeChanges[characterName] || "";
 
       const avatarDiv = costumeItem.querySelector(".config-avatar");
-      avatarDiv.dataset.id = primaryId;
+      avatarDiv.dataset.id = primaryCharacterId;
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
 
       if (avatarId > 0) {
         const img = DOMUtils.createElement("img", {
           src: avatarPath,
-          alt: name,
+          alt: characterName,
           class: "config-avatar-img",
         });
 
         img.addEventListener("error", () => {
           img.style.display = "none";
-          img.parentElement.textContent = name.charAt(0);
+          img.parentElement.textContent = characterName.charAt(0);
           img.parentElement.classList.add("fallback");
         });
 
         DOMUtils.clearElement(avatarDiv);
         avatarDiv.appendChild(img);
       } else {
-        avatarDiv.textContent = name.charAt(0);
+        avatarDiv.textContent = characterName.charAt(0);
         avatarDiv.classList.add("fallback");
       }
 
       costumeItem.querySelector(".costume-character-name").textContent =
-        `${name} (ID: ${primaryId})`;
+        `${characterName} (ID: ${primaryCharacterId})`;
 
       const toggleBtn = costumeItem.querySelector(
         ".toggle-costume-details-btn",
@@ -66,28 +65,28 @@ export const costumeRenderer = {
       const detailsDiv = costumeItem.querySelector(".costume-details");
       detailsDiv.id = `costume-details-${safeDomId}`;
       const select = costumeItem.querySelector(".costume-select");
-      select.dataset.characterKey = characterKey;
+      select.dataset.characterName = characterName;
 
       select.innerHTML =
         `<option value="">无服装</option>` +
-        availableForCharacter
+        availableCostumesForCharacter
           .map(
-            (costume) =>
-              `<option value="${costume}" ${
-                costume === currentCostume ? "selected" : ""
-              }>${costume}</option>`,
+            (costumeId) =>
+              `<option value="${costumeId}" ${
+                costumeId === selectedCostumeId ? "selected" : ""
+              }>${costumeId}</option>`,
           )
           .join("");
 
       const addBtn = costumeItem.querySelector(".add-costume-btn");
-      addBtn.dataset.characterKey = characterKey;
+      addBtn.dataset.characterName = characterName;
       addBtn.dataset.safeDomId = safeDomId;
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
 
       listItems.innerHTML = this.renderCostumeListItems(
-        characterKey,
-        availableForCharacter,
+        characterName,
+        availableCostumesForCharacter,
         safeDomId,
       );
 
@@ -98,21 +97,21 @@ export const costumeRenderer = {
   },
 
   // 生成“某个角色的可用服装列表”HTML（用于 innerHTML）
-  renderCostumeListItems(characterKey, costumes, safeDomId) {
-    if (!costumes || costumes.length === 0) {
+  renderCostumeListItems(characterName, availableCostumeIds, safeDomId) {
+    if (!availableCostumeIds || availableCostumeIds.length === 0) {
       return '<div class="empty-costume-list">暂无可用服装</div>';
     }
 
-    return costumes
+    return availableCostumeIds
       .map(
-        (costume, index) => `
+        (costumeId, index) => `
         <div class="costume-list-item">
-            <span>${costume}</span>
+            <span>${costumeId}</span>
             <div class="costume-item-actions">
-                <button class="btn btn-icon-action edit-costume-btn" title="编辑服装ID" data-character-key="${characterKey}" data-index="${index}" data-costume="${costume}" data-safe-dom-id="${safeDomId}">
+                <button class="btn btn-icon-action edit-costume-btn" title="编辑服装ID" data-character-name="${characterName}" data-index="${index}" data-costume="${costumeId}" data-safe-dom-id="${safeDomId}">
                     <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="btn btn-icon-action btn-icon-danger delete-costume-btn" title="删除此服装" data-character-key="${characterKey}" data-index="${index}" data-safe-dom-id="${safeDomId}">
+                <button class="btn btn-icon-action btn-icon-danger delete-costume-btn" title="删除此服装" data-character-name="${characterName}" data-index="${index}" data-safe-dom-id="${safeDomId}">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
@@ -123,13 +122,14 @@ export const costumeRenderer = {
   },
 
   // 更新某个角色的局部 UI（服装列表区域 + 下拉框选项）
-  updateCostumeListUI(manager, characterKey, safeDomId) {
+  updateCostumeListUI(manager, characterName, safeDomId) {
     const listContainer = document.getElementById(`costume-list-${safeDomId}`);
     if (listContainer) {
-      const costumes = manager.tempAvailableCostumes[characterKey] || [];
+      const availableCostumesForCharacter =
+        manager.tempAvailableCostumes[characterName] || [];
       listContainer.innerHTML = this.renderCostumeListItems(
-        characterKey,
-        costumes,
+        characterName,
+        availableCostumesForCharacter,
         safeDomId,
       );
     }
@@ -138,10 +138,11 @@ export const costumeRenderer = {
     );
     if (costumeDetailsContainer) {
       const select = costumeDetailsContainer.querySelector(".costume-select");
-      if (select && select.dataset.characterKey === characterKey) {
-        const currentValue = manager.tempCostumeChanges[characterKey] || "";
-        const availableForCharacter =
-          manager.tempAvailableCostumes[characterKey] || [];
+      if (select && select.dataset.characterName === characterName) {
+        const selectedCostumeId =
+          manager.tempCostumeChanges[characterName] || "";
+        const availableCostumesForCharacter =
+          manager.tempAvailableCostumes[characterName] || [];
 
         DOMUtils.clearElement(select);
 
@@ -149,11 +150,11 @@ export const costumeRenderer = {
         emptyOption.textContent = "无服装";
         select.appendChild(emptyOption);
 
-        availableForCharacter.forEach((costume) => {
-          const option = DOMUtils.createElement("option", { value: costume });
-          option.textContent = costume;
+        availableCostumesForCharacter.forEach((costumeId) => {
+          const option = DOMUtils.createElement("option", { value: costumeId });
+          option.textContent = costumeId;
 
-          if (costume === currentValue) {
+          if (costumeId === selectedCostumeId) {
             option.selected = true;
           }
           select.appendChild(option);

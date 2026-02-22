@@ -19,10 +19,10 @@ export const costumeUI = {
   },
 
   // 渲染某个角色的服装条目（返回 HTML 字符串）
-  renderCostumeListItems(characterKey, costumes, safeDomId) {
+  renderCostumeListItems(characterName, costumeIds, safeDomId) {
     return costumeRenderer.renderCostumeListItems(
-      characterKey,
-      costumes,
+      characterName,
+      costumeIds,
       safeDomId
     );
   },
@@ -33,37 +33,37 @@ export const costumeUI = {
   },
 
   // 弹窗输入并添加服装 ID
-  addNewCostume(manager, characterKey, safeDomId) {
+  addNewCostume(manager, characterName, safeDomId) {
     return costumeInteractions.addNewCostume(
       manager,
-      characterKey,
+      characterName,
       safeDomId
     );
   },
 
   // 弹窗输入并编辑服装 ID
-  editCostume(manager, characterKey, index, oldCostume, safeDomId) {
+  editCostume(manager, characterName, index, oldCostumeId, safeDomId) {
     return costumeInteractions.editCostume(
       manager,
-      characterKey,
+      characterName,
       index,
-      oldCostume,
+      oldCostumeId,
       safeDomId
     );
   },
 
   // 删除某个服装 ID
-  deleteCostume(manager, characterKey, index, safeDomId) {
+  deleteCostume(manager, characterName, index, safeDomId) {
     return costumeInteractions.deleteCostume(
       manager,
-      characterKey,
+      characterName,
       index,
       safeDomId
     );
   },
 
   // 更新某个角色的局部 UI（列表 + select）
-  updateCostumeListUI(manager, characterKey, safeDomId) {
-    costumeRenderer.updateCostumeListUI(manager, characterKey, safeDomId);
+  updateCostumeListUI(manager, characterName, safeDomId) {
+    costumeRenderer.updateCostumeListUI(manager, characterName, safeDomId);
   },
 };

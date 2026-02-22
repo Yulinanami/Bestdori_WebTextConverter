@@ -8,58 +8,66 @@ export const costumeInteractions = {
   bindCostumeListEvents(manager) {
     const costumeList = document.getElementById("costumeList");
     if (costumeList) {
-      costumeList.addEventListener("click", (e) => {
-        const target = e.target;
-        const toggleBtn = target.closest(".toggle-costume-details-btn");
+      costumeList.addEventListener("click", (event) => {
+        const clickedElement = event.target;
+        const toggleBtn = clickedElement.closest(".toggle-costume-details-btn");
         if (toggleBtn) {
           const safeDomId = toggleBtn.dataset.safeDomId;
           this.toggleCostumeDetails(safeDomId);
           return;
         }
 
-        const addBtn = target.closest(".add-costume-btn");
+        const addBtn = clickedElement.closest(".add-costume-btn");
         if (addBtn) {
-          const { characterKey, safeDomId } = addBtn.dataset;
-          this.addNewCostume(manager, characterKey, safeDomId);
+          const { characterName, safeDomId } = addBtn.dataset;
+          this.addNewCostume(manager, characterName, safeDomId);
           return;
         }
 
-        const dbBtn = target.closest(".open-live2d-db-btn");
+        const dbBtn = clickedElement.closest(".open-live2d-db-btn");
         if (dbBtn) {
           this.openLive2DDatabase();
           return;
         }
 
-        const editBtn = target.closest(".edit-costume-btn");
+        const editBtn = clickedElement.closest(".edit-costume-btn");
         if (editBtn) {
-          const { characterKey, index, costume, safeDomId } = editBtn.dataset;
+          const {
+            characterName,
+            index,
+            costume: oldCostumeId,
+            safeDomId,
+          } = editBtn.dataset;
+          const costumeIndex = parseInt(index, 10);
           this.editCostume(
             manager,
-            characterKey,
-            parseInt(index),
-            costume,
+            characterName,
+            costumeIndex,
+            oldCostumeId,
             safeDomId
           );
           return;
         }
 
-        const deleteBtn = target.closest(".delete-costume-btn");
+        const deleteBtn = clickedElement.closest(".delete-costume-btn");
         if (deleteBtn) {
-          const { characterKey, index, safeDomId } = deleteBtn.dataset;
+          const { characterName, index, safeDomId } = deleteBtn.dataset;
+          const costumeIndex = parseInt(index, 10);
           this.deleteCostume(
             manager,
-            characterKey,
-            parseInt(index),
+            characterName,
+            costumeIndex,
             safeDomId
           );
           return;
         }
       });
-      costumeList.addEventListener("change", (e) => {
-        const select = e.target.closest(".costume-select");
+      costumeList.addEventListener("change", (event) => {
+        const select = event.target.closest(".costume-select");
         if (select) {
-          const key = select.dataset.characterKey;
-          manager.tempCostumeChanges[key] = select.value;
+          const characterName = select.dataset.characterName;
+          const selectedCostumeId = select.value;
+          manager.tempCostumeChanges[characterName] = selectedCostumeId;
         }
       });
     }
@@ -104,59 +112,66 @@ export const costumeInteractions = {
   },
 
   // 新增：弹窗输入一个服装 ID，并加入临时列表
-  async addNewCostume(manager, characterKey, safeDomId) {
+  async addNewCostume(manager, characterName, safeDomId) {
     const costumeId = await modalService.prompt("请输入新的服装ID：");
     if (costumeId && costumeId.trim()) {
-      const trimmedId = costumeId.trim();
+      const trimmedCostumeId = costumeId.trim();
 
-      if (!manager.tempAvailableCostumes[characterKey]) {
-        manager.tempAvailableCostumes[characterKey] = [];
+      if (!manager.tempAvailableCostumes[characterName]) {
+        manager.tempAvailableCostumes[characterName] = [];
       }
 
-      if (manager.tempAvailableCostumes[characterKey].includes(trimmedId)) {
+      if (manager.tempAvailableCostumes[characterName].includes(trimmedCostumeId)) {
         ui.showStatus("该服装ID已存在", "error");
         return;
       }
 
-      manager.tempAvailableCostumes[characterKey].push(trimmedId);
-      costumeRenderer.updateCostumeListUI(manager, characterKey, safeDomId);
-      ui.showStatus(`已在临时列表添加服装: ${trimmedId}`, "info");
+      manager.tempAvailableCostumes[characterName].push(trimmedCostumeId);
+      costumeRenderer.updateCostumeListUI(manager, characterName, safeDomId);
+      ui.showStatus(`已在临时列表添加服装: ${trimmedCostumeId}`, "info");
     }
   },
 
   // 编辑：把某个服装 ID 改成新值（会检查重复）
-  async editCostume(manager, characterKey, index, oldCostume, safeDomId) {
-    const newCostume = await modalService.prompt("编辑服装ID：", oldCostume);
-    if (newCostume && newCostume.trim() && newCostume !== oldCostume) {
-      const trimmedId = newCostume.trim();
+  async editCostume(manager, characterName, index, oldCostumeId, safeDomId) {
+    const editedCostumeId = await modalService.prompt(
+      "编辑服装ID：",
+      oldCostumeId
+    );
+    if (
+      editedCostumeId &&
+      editedCostumeId.trim() &&
+      editedCostumeId !== oldCostumeId
+    ) {
+      const trimmedCostumeId = editedCostumeId.trim();
 
-      if (manager.tempAvailableCostumes[characterKey].includes(trimmedId)) {
+      if (manager.tempAvailableCostumes[characterName].includes(trimmedCostumeId)) {
         ui.showStatus("该服装ID已存在", "error");
         return;
       }
 
-      manager.tempAvailableCostumes[characterKey][index] = trimmedId;
-      if (manager.tempCostumeChanges[characterKey] === oldCostume) {
-        manager.tempCostumeChanges[characterKey] = trimmedId;
+      manager.tempAvailableCostumes[characterName][index] = trimmedCostumeId;
+      if (manager.tempCostumeChanges[characterName] === oldCostumeId) {
+        manager.tempCostumeChanges[characterName] = trimmedCostumeId;
       }
 
-      costumeRenderer.updateCostumeListUI(manager, characterKey, safeDomId);
+      costumeRenderer.updateCostumeListUI(manager, characterName, safeDomId);
     }
   },
 
   // 删除：从临时列表移除某个服装 ID（会二次确认）
-  async deleteCostume(manager, characterKey, index, safeDomId) {
-    const costume = manager.tempAvailableCostumes[characterKey][index];
+  async deleteCostume(manager, characterName, index, safeDomId) {
+    const costumeIdToDelete = manager.tempAvailableCostumes[characterName][index];
     const confirmed = await modalService.confirm(
-      `确定要删除服装 "${costume}" 吗？`
+      `确定要删除服装 "${costumeIdToDelete}" 吗？`
     );
 
     if (confirmed) {
-      manager.tempAvailableCostumes[characterKey].splice(index, 1);
-      if (manager.tempCostumeChanges[characterKey] === costume) {
-        manager.tempCostumeChanges[characterKey] = "";
+      manager.tempAvailableCostumes[characterName].splice(index, 1);
+      if (manager.tempCostumeChanges[characterName] === costumeIdToDelete) {
+        manager.tempCostumeChanges[characterName] = "";
       }
-      costumeRenderer.updateCostumeListUI(manager, characterKey, safeDomId);
+      costumeRenderer.updateCostumeListUI(manager, characterName, safeDomId);
     }
   },
 };

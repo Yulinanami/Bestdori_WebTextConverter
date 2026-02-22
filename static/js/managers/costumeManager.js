@@ -23,22 +23,17 @@ export const costumeManager = {
     costumeUI.bindCostumeListEvents(this);
   },
 
-  // 把角色名转成“内部使用的 key”（目前就直接用角色名）
-  getCharacterKey(characterName) {
-    return characterName;
-  },
-
   // 把角色名转成“安全的 DOM id”（用于 querySelector/id）
   getSafeDomId(characterName) {
     return characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "_");
   },
 
-  // 把“按角色ID存”的可用服装表，转换成“按角色名 key 存”
+  // 把“按角色ID存”的可用服装表，转换成“按角色名存”
   convertAvailableCostumesToNameBased() {
     return costumeData.convertAvailableCostumesToNameBased(this);
   },
 
-  // 把“按角色ID存”的默认服装表，转换成“按角色名 key 存”
+  // 把“按角色ID存”的默认服装表，转换成“按角色名存”
   convertDefaultCostumesToNameBased() {
     return costumeData.convertDefaultCostumesToNameBased(this);
   },
@@ -79,8 +74,12 @@ export const costumeManager = {
   },
 
   // 渲染某个角色的“服装列表项”HTML（用于更新局部 UI）
-  renderCostumeListItems(characterKey, costumes, safeDomId) {
-    return costumeUI.renderCostumeListItems(characterKey, costumes, safeDomId);
+  renderCostumeListItems(characterName, costumeIds, safeDomId) {
+    return costumeUI.renderCostumeListItems(
+      characterName,
+      costumeIds,
+      safeDomId,
+    );
   },
 
   // 展开/收起某个角色的“服装管理详情”面板
@@ -89,29 +88,29 @@ export const costumeManager = {
   },
 
   // 添加一个新的服装 ID 到临时列表
-  addNewCostume(characterKey, safeDomId) {
-    return costumeUI.addNewCostume(this, characterKey, safeDomId);
+  addNewCostume(characterName, safeDomId) {
+    return costumeUI.addNewCostume(this, characterName, safeDomId);
   },
 
   // 编辑临时列表中的某个服装 ID
-  editCostume(characterKey, index, oldCostume, safeDomId) {
+  editCostume(characterName, index, oldCostumeId, safeDomId) {
     return costumeUI.editCostume(
       this,
-      characterKey,
+      characterName,
       index,
-      oldCostume,
+      oldCostumeId,
       safeDomId,
     );
   },
 
   // 从临时列表删除一个服装 ID
-  deleteCostume(characterKey, index, safeDomId) {
-    return costumeUI.deleteCostume(this, characterKey, index, safeDomId);
+  deleteCostume(characterName, index, safeDomId) {
+    return costumeUI.deleteCostume(this, characterName, index, safeDomId);
   },
 
   // 刷新某个角色的局部 UI（列表 + 下拉框选项）
-  updateCostumeListUI(characterKey, safeDomId) {
-    costumeUI.updateCostumeListUI(this, characterKey, safeDomId);
+  updateCostumeListUI(characterName, safeDomId) {
+    costumeUI.updateCostumeListUI(this, characterName, safeDomId);
   },
 
   // 保存临时更改：写入 state + localStorage
@@ -151,33 +150,33 @@ export const costumeManager = {
           await FileUtils.delay(300);
           const customCharacterCostumes = {};
           const customCharacterAvailableCostumes = {};
-          Object.entries(state.get("currentConfig")).forEach(([name, _ids]) => {
-            if (!this.builtInCharacters.has(name)) {
-              const characterKey = this.getCharacterKey(name);
+          Object.entries(state.get("currentConfig")).forEach(
+            ([characterName]) => {
+              if (!this.builtInCharacters.has(characterName)) {
+                if (this.tempCostumeChanges[characterName] !== undefined) {
+                  customCharacterCostumes[characterName] =
+                    this.tempCostumeChanges[characterName];
+                }
 
-              if (this.tempCostumeChanges[characterKey] !== undefined) {
-                customCharacterCostumes[characterKey] =
-                  this.tempCostumeChanges[characterKey];
+                if (this.tempAvailableCostumes[characterName]) {
+                  customCharacterAvailableCostumes[characterName] = [
+                    ...this.tempAvailableCostumes[characterName],
+                  ];
+                }
               }
+            },
+          );
 
-              if (this.tempAvailableCostumes[characterKey]) {
-                customCharacterAvailableCostumes[characterKey] = [
-                  ...this.tempAvailableCostumes[characterKey],
-                ];
-              }
-            }
-          });
-
-          const defaultCostumesNameBased =
+          const defaultCostumesByName =
             this.convertDefaultCostumesToNameBased();
-          const defaultAvailableCostumesNameBased =
+          const defaultAvailableCostumesByName =
             this.convertAvailableCostumesToNameBased();
           this.tempCostumeChanges = {
-            ...defaultCostumesNameBased,
+            ...defaultCostumesByName,
             ...customCharacterCostumes,
           };
           this.tempAvailableCostumes = {
-            ...defaultAvailableCostumesNameBased,
+            ...defaultAvailableCostumesByName,
             ...customCharacterAvailableCostumes,
           };
           this.renderCostumeList();

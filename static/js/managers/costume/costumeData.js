@@ -5,93 +5,99 @@ import { ui } from "@utils/uiUtils.js";
 
 // 服装数据的仓库：负责转换数据结构/读写本地/从后端加载
 export const costumeData = {
-  // 把“可用服装(按角色ID)”转换成“可用服装(按角色名 key)”
+  // 把“可用服装(按角色ID)”转换成“可用服装(按角色名)”
   convertAvailableCostumesToNameBased(manager) {
-    const nameBased = {};
-    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
-      if (ids && ids.length > 0) {
-        const primaryId = ids[0];
-        const characterKey = manager.getCharacterKey(name);
+    const availableCostumesByName = {};
+    Object.entries(state.get("currentConfig")).forEach(
+      ([characterName, characterIds]) => {
+        if (characterIds && characterIds.length > 0) {
+          const primaryCharacterId = characterIds[0];
 
-        const isCustomCharacter =
-          !manager.builtInCharacters || !manager.builtInCharacters.has(name);
+          const isCustomCharacter =
+            !manager.builtInCharacters ||
+            !manager.builtInCharacters.has(characterName);
 
-        if (isCustomCharacter) {
-          nameBased[characterKey] = [];
-        } else if (manager.defaultAvailableCostumes[primaryId]) {
-          nameBased[characterKey] = [
-            ...manager.defaultAvailableCostumes[primaryId],
-          ];
-        } else {
-          nameBased[characterKey] = [];
-        }
+          if (isCustomCharacter) {
+            availableCostumesByName[characterName] = [];
+          } else if (manager.defaultAvailableCostumes[primaryCharacterId]) {
+            availableCostumesByName[characterName] = [
+              ...manager.defaultAvailableCostumes[primaryCharacterId],
+            ];
+          } else {
+            availableCostumesByName[characterName] = [];
+          }
 
-        if (!isCustomCharacter) {
-          const defaultCostume = manager.defaultCostumes[primaryId];
+          if (!isCustomCharacter) {
+            const defaultCostumeId =
+              manager.defaultCostumes[primaryCharacterId];
 
-          if (
-            defaultCostume &&
-            !nameBased[characterKey].includes(defaultCostume)
-          ) {
-            nameBased[characterKey].push(defaultCostume);
+            if (
+              defaultCostumeId &&
+              !availableCostumesByName[characterName].includes(defaultCostumeId)
+            ) {
+              availableCostumesByName[characterName].push(defaultCostumeId);
+            }
           }
         }
-      }
-    });
+      },
+    );
 
-    return nameBased;
+    return availableCostumesByName;
   },
 
-  // 把“默认服装(按角色ID)”转换成“默认服装(按角色名 key)”
+  // 把“默认服装(按角色ID)”转换成“默认服装(按角色名)”
   convertDefaultCostumesToNameBased(manager) {
-    const nameBased = {};
-    Object.entries(state.get("currentConfig")).forEach(([name, ids]) => {
-      if (ids && ids.length > 0) {
-        const primaryId = ids[0];
-        const characterKey = manager.getCharacterKey(name);
+    const defaultCostumesByName = {};
+    Object.entries(state.get("currentConfig")).forEach(
+      ([characterName, characterIds]) => {
+        if (characterIds && characterIds.length > 0) {
+          const primaryCharacterId = characterIds[0];
 
-        const isCustomCharacter =
-          !manager.builtInCharacters || !manager.builtInCharacters.has(name);
+          const isCustomCharacter =
+            !manager.builtInCharacters ||
+            !manager.builtInCharacters.has(characterName);
 
-        if (isCustomCharacter) {
-          nameBased[characterKey] = "";
-        } else {
-          const defaultCostume = manager.defaultCostumes[primaryId];
-
-          if (defaultCostume) {
-            const availableList =
-              manager.defaultAvailableCostumes[primaryId] || [];
-            if (availableList.includes(defaultCostume)) {
-              nameBased[characterKey] = defaultCostume;
-            } else {
-              nameBased[characterKey] = availableList[0] || "";
-            }
+          if (isCustomCharacter) {
+            defaultCostumesByName[characterName] = "";
           } else {
-            nameBased[characterKey] = "";
+            const defaultCostumeId = manager.defaultCostumes[primaryCharacterId];
+
+            if (defaultCostumeId) {
+              const availableCostumes =
+                manager.defaultAvailableCostumes[primaryCharacterId] || [];
+              if (availableCostumes.includes(defaultCostumeId)) {
+                defaultCostumesByName[characterName] = defaultCostumeId;
+              } else {
+                defaultCostumesByName[characterName] =
+                  availableCostumes[0] || "";
+              }
+            } else {
+              defaultCostumesByName[characterName] = "";
+            }
           }
         }
-      }
-    });
+      },
+    );
 
-    return nameBased;
+    return defaultCostumesByName;
   },
 
   // 从后端加载默认服装配置，并结合本地保存的数据初始化 manager
   async loadCostumeConfig(manager) {
     try {
-      const costumeDataResponse = await apiService.getCostumes();
-      manager.defaultAvailableCostumes = costumeDataResponse.available_costumes;
-      manager.defaultCostumes = costumeDataResponse.default_costumes;
+      const costumeConfigResponse = await apiService.getCostumes();
+      manager.defaultAvailableCostumes = costumeConfigResponse.available_costumes;
+      manager.defaultCostumes = costumeConfigResponse.default_costumes;
 
-      const configData =
+      const baseConfigData =
         state.get("configData") || (await apiService.getConfig());
       manager.builtInCharacters = new Set(
-        Object.keys(configData.character_mapping)
+        Object.keys(baseConfigData.character_mapping)
       );
 
-      const savedCostumes = this.loadLocalCostumes();
-      if (savedCostumes) {
-        state.set("currentCostumes", savedCostumes);
+      const savedSelectedCostumes = this.loadLocalCostumes();
+      if (savedSelectedCostumes) {
+        state.set("currentCostumes", savedSelectedCostumes);
       } else {
         state.set(
           "currentCostumes",
@@ -99,9 +105,9 @@ export const costumeData = {
         );
       }
 
-      const savedAvailableCostumes = this.loadLocalAvailableCostumes();
-      if (savedAvailableCostumes) {
-        manager.availableCostumes = savedAvailableCostumes;
+      const savedAvailableCostumeMap = this.loadLocalAvailableCostumes();
+      if (savedAvailableCostumeMap) {
+        manager.availableCostumes = savedAvailableCostumeMap;
       } else {
         manager.availableCostumes =
           this.convertAvailableCostumesToNameBased(manager);
@@ -131,7 +137,9 @@ export const costumeData = {
   saveLocalAvailableCostumes(manager) {
     const hasValidData =
       Object.keys(manager.availableCostumes).length > 0 &&
-      Object.values(manager.availableCostumes).some((list) => Array.isArray(list));
+      Object.values(manager.availableCostumes).some((costumeList) =>
+        Array.isArray(costumeList)
+      );
 
     if (!hasValidData) {
       console.warn("尝试保存空的可用服装列表，操作已取消");

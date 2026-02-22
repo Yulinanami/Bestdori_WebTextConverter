@@ -54,8 +54,8 @@ export const configManager = {
       await ui.withButtonLoading(
         "resetConfigBtn",
         async () => {
-          const currentCostumes = { ...state.get("currentCostumes") };
-          const currentAvailableCostumes = {
+          const previousSelectedCostumes = { ...state.get("currentCostumes") };
+          const previousAvailableCostumeMap = {
             ...costumeManager.availableCostumes,
           };
 
@@ -66,8 +66,8 @@ export const configManager = {
           state.set("customQuotes", []);
 
           await this.updateCostumesAfterConfigReset(
-            currentCostumes,
-            currentAvailableCostumes,
+            previousSelectedCostumes,
+            previousAvailableCostumeMap,
           );
 
           await FileUtils.delay(300);
@@ -82,29 +82,31 @@ export const configManager = {
 
   // 重置角色列表后：把服装配置“对齐到新角色表”（已有角色尽量保留）
   async updateCostumesAfterConfigReset(
-    previousCostumes,
-    previousAvailableCostumes,
+    previousSelectedCostumes,
+    previousAvailableCostumeMap,
   ) {
-    const newCostumes = {};
-    const newAvailableCostumes = {};
-    Object.entries(this.defaultConfig).forEach(([name, ids]) => {
-      const characterKey = costumeManager.getCharacterKey(name);
-      const primaryId = ids[0];
+    const updatedSelectedCostumes = {};
+    const updatedAvailableCostumes = {};
+    Object.entries(this.defaultConfig).forEach(
+      ([characterName, characterIds]) => {
+        const primaryCharacterId = characterIds[0];
 
-      if (Object.hasOwn(previousCostumes, characterKey)) {
-        newCostumes[characterKey] = previousCostumes[characterKey];
-        newAvailableCostumes[characterKey] =
-          previousAvailableCostumes[characterKey] || [];
-      } else {
-        newCostumes[characterKey] =
-          costumeManager.defaultCostumes[primaryId] || "";
-        newAvailableCostumes[characterKey] =
-          costumeManager.defaultAvailableCostumes[primaryId] || [];
-      }
-    });
-    state.set("currentCostumes", newCostumes);
-    costumeManager.availableCostumes = newAvailableCostumes;
-    costumeManager.saveLocalCostumes(newCostumes);
+        if (Object.hasOwn(previousSelectedCostumes, characterName)) {
+          updatedSelectedCostumes[characterName] =
+            previousSelectedCostumes[characterName];
+          updatedAvailableCostumes[characterName] =
+            previousAvailableCostumeMap[characterName] || [];
+        } else {
+          updatedSelectedCostumes[characterName] =
+            costumeManager.defaultCostumes[primaryCharacterId] || "";
+          updatedAvailableCostumes[characterName] =
+            costumeManager.defaultAvailableCostumes[primaryCharacterId] || [];
+        }
+      },
+    );
+    state.set("currentCostumes", updatedSelectedCostumes);
+    costumeManager.availableCostumes = updatedAvailableCostumes;
+    costumeManager.saveLocalCostumes(updatedSelectedCostumes);
     costumeManager.saveLocalAvailableCostumes();
   },
 
@@ -114,8 +116,8 @@ export const configManager = {
   },
 
   // 更新某一行的头像显示
-  updateConfigAvatar(avatarWrapper, id, name) {
-    configUI.updateConfigAvatar(this, avatarWrapper, id, name);
+  updateConfigAvatar(avatarWrapper, characterId, characterName) {
+    configUI.updateConfigAvatar(this, avatarWrapper, characterId, characterName);
   },
 
   // 新增一行配置项（空白行）
@@ -131,15 +133,15 @@ export const configManager = {
         const configItems = document.querySelectorAll(".config-item");
         const newConfig = {};
         configItems.forEach((item) => {
-          const name = item.querySelector(".config-name").value.trim();
-          const idsStr = item.querySelector(".config-ids").value.trim();
-          if (name && idsStr) {
-            const ids = idsStr
+          const characterName = item.querySelector(".config-name").value.trim();
+          const characterIdsText = item.querySelector(".config-ids").value.trim();
+          if (characterName && characterIdsText) {
+            const characterIds = characterIdsText
               .split(",")
-              .map((id) => parseInt(id.trim()))
+              .map((idText) => parseInt(idText.trim(), 10))
               .filter((id) => !isNaN(id));
-            if (ids.length > 0) {
-              newConfig[name] = ids;
+            if (characterIds.length > 0) {
+              newConfig[characterName] = characterIds;
             }
           }
         });
@@ -171,10 +173,12 @@ export const configManager = {
   },
 
   // 用角色 ID 反查角色名（用于显示）
-  getCharacterNameById(id) {
-    for (const [name, ids] of Object.entries(state.get("currentConfig"))) {
-      if (ids.includes(id)) {
-        return name;
+  getCharacterNameById(characterId) {
+    for (const [characterName, characterIds] of Object.entries(
+      state.get("currentConfig"),
+    )) {
+      if (characterIds.includes(characterId)) {
+        return characterName;
       }
     }
     return null;
@@ -203,11 +207,11 @@ export const configManager = {
 
     document
       .getElementById("importConfigInput")
-      ?.addEventListener("change", (e) => {
-        const file = e.target.files?.[0];
+      ?.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
         if (file) {
           this.importConfig(file);
-          e.target.value = "";
+          event.target.value = "";
         }
       });
 
