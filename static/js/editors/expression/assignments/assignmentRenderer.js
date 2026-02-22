@@ -7,7 +7,7 @@ export const assignmentRenderer = {
   showExpressionSetupUI(editor, cardElement) {
     const actionId = cardElement.dataset.id;
     const action = editor.projectFileState.actions.find(
-      (a) => a.id === actionId
+      (actionItem) => actionItem.id === actionId
     );
     if (!action) return;
 
@@ -22,17 +22,17 @@ export const assignmentRenderer = {
       });
       assignmentsContainer.dataset.actionId = action.id;
 
-      const char = {
+      const characterInfo = {
         id: action.characterId,
         name:
           action.characterName ||
           editorService.getCharacterNameById(action.characterId),
       };
 
-      if (char.name) {
+      if (characterInfo.name) {
         const initialState = action.initialState || {};
         const motionData = {
-          character: char.id,
+          character: characterInfo.id,
           motion: initialState.motion || "",
           expression: initialState.expression || "",
           delay: action.delay || 0,
@@ -97,35 +97,35 @@ export const assignmentRenderer = {
     if (action.type === "talk") {
       availableCharacters = editor._getStagedCharacters();
     } else if (action.type === "layout") {
-      const char = {
+      const characterInfo = {
         id: action.characterId,
         name:
           action.characterName ||
           editorService.getCharacterNameById(action.characterId),
       };
-      if (char.name) {
-        availableCharacters = [char];
+      if (characterInfo.name) {
+        availableCharacters = [characterInfo];
       }
     }
 
-    availableCharacters.forEach((char) => {
+    availableCharacters.forEach((characterInfo) => {
       const optionTemplate = document.getElementById(
         "motion-character-option-template"
       );
       const option = optionTemplate.content.cloneNode(true);
       const optionElement = option.querySelector(".character-selector-item");
 
-      optionElement.dataset.characterId = char.id;
-      optionElement.dataset.characterName = char.name;
+      optionElement.dataset.characterId = characterInfo.id;
+      optionElement.dataset.characterName = characterInfo.name;
 
       const avatarDiv = option.querySelector(".dialogue-avatar");
       editorService.updateCharacterAvatar(
         { querySelector: () => avatarDiv },
-        char.id,
-        char.name
+        characterInfo.id,
+        characterInfo.name
       );
 
-      option.querySelector(".character-name").textContent = char.name;
+      option.querySelector(".character-name").textContent = characterInfo.name;
       listContainer.appendChild(option);
     });
 
@@ -167,23 +167,23 @@ export const assignmentRenderer = {
     const motionValue = itemElement.querySelector(
       ".motion-drop-zone .drop-zone-value"
     );
-    const motionClearBtn = itemElement.querySelector(
+    const motionClearButton = itemElement.querySelector(
       ".motion-drop-zone .clear-state-btn"
     );
     motionValue.textContent = motionData.motion || "--";
-    if (motionClearBtn) {
-      DOMUtils.toggleDisplay(motionClearBtn, !!motionData.motion);
+    if (motionClearButton) {
+      DOMUtils.toggleDisplay(motionClearButton, !!motionData.motion);
     }
 
     const expressionValue = itemElement.querySelector(
       ".expression-drop-zone .drop-zone-value"
     );
-    const expressionClearBtn = itemElement.querySelector(
+    const expressionClearButton = itemElement.querySelector(
       ".expression-drop-zone .clear-state-btn"
     );
     expressionValue.textContent = motionData.expression || "--";
-    if (expressionClearBtn) {
-      DOMUtils.toggleDisplay(expressionClearBtn, !!motionData.expression);
+    if (expressionClearButton) {
+      DOMUtils.toggleDisplay(expressionClearButton, !!motionData.expression);
     }
 
     const delayInput = itemElement.querySelector(".assignment-delay-input");

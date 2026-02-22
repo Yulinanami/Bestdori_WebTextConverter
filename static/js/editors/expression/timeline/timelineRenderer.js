@@ -86,34 +86,39 @@ export function renderTimeline(editor) {
       return null;
     }
 
-    const card =
+    const renderedCard =
       cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
         ? cardElement.firstElementChild
         : cardElement;
-    if (!card) return null;
+    if (!renderedCard) return null;
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = renderedCard.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
-    renderFooter(card, action);
+    renderFooter(renderedCard, action);
 
-    return card;
+    return renderedCard;
   };
 
   // 尝试就地更新卡片内容（返回 false 表示需要整张重画）
-  const updateCard = (action, card, globalIndex = -1) => {
-    if (!card) return false;
+  const updateCard = (action, cardElement, globalIndex = -1) => {
+    if (!cardElement) return false;
 
-    if (action.type === "talk" && card.classList.contains("talk-item")) {
-      const nameDiv = card.querySelector(".speaker-name");
-      const avatarDiv = card.querySelector(".dialogue-avatar");
-      const preview = card.querySelector(".dialogue-preview-text");
+    if (
+      action.type === "talk" &&
+      cardElement.classList.contains("talk-item")
+    ) {
+      const nameDiv = cardElement.querySelector(".speaker-name");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
+      const preview = cardElement.querySelector(".dialogue-preview-text");
 
       if (action.speakers && action.speakers.length > 0) {
         const firstSpeaker = action.speakers[0];
         if (nameDiv) {
-          nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
+          nameDiv.textContent = action.speakers
+            .map((speaker) => speaker.name)
+            .join(" & ");
         }
         if (
           avatarDiv &&
@@ -142,22 +147,22 @@ export function renderTimeline(editor) {
       }
     } else if (
       action.type === "layout" &&
-      card.classList.contains("layout-item")
+      cardElement.classList.contains("layout-item")
     ) {
-      card.dataset.id = action.id;
-      card.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+      cardElement.dataset.id = action.id;
+      cardElement.dataset.layoutType = action.layoutType;
+      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
 
       const characterId = action.characterId;
       const characterName =
         action.characterName || characterNameMap.get(action.characterId);
-      const nameDiv = card.querySelector(".speaker-name");
+      const nameDiv = cardElement.querySelector(".speaker-name");
       if (nameDiv) {
         nameDiv.textContent =
           characterName || `未知角色 (ID: ${characterId ?? "?"})`;
       }
 
-      const avatarDiv = card.querySelector(".dialogue-avatar");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
       if (
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
@@ -171,19 +176,19 @@ export function renderTimeline(editor) {
       }
 
       // 同步布局属性控件（位置、偏移、服装等）到最新状态
-      editor.renderLayoutCardControls(card, action, characterName, {
+      editor.renderLayoutCardControls(cardElement, action, characterName, {
         showToggleButton: false,
       });
     } else {
       return false;
     }
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = cardElement.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
 
-    renderFooter(card, action);
+    renderFooter(cardElement, action);
     return true;
   };
 

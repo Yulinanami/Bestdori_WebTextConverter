@@ -16,30 +16,30 @@ export function attachLive2dTimeline(editor) {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
 
-      timeline.onclick = (e) => {
-        const card = e.target.closest(".layout-item");
-        if (!card) return;
+      timeline.onclick = (clickEvent) => {
+        const layoutCard = clickEvent.target.closest(".layout-item");
+        if (!layoutCard) return;
 
         // 删除卡片
-        if (e.target.matches(".layout-remove-btn")) {
-          editor._deleteLayoutAction(card.dataset.id);
+        if (clickEvent.target.matches(".layout-remove-btn")) {
+          editor._deleteLayoutAction(layoutCard.dataset.id);
           return;
         }
 
         // 切换 to 位置信息是否独立配置
-        if (e.target.closest(".toggle-position-btn")) {
-          const toggleBtn = card.querySelector(".toggle-position-btn");
-          const toPositionContainer = card.querySelector(
+        if (clickEvent.target.closest(".toggle-position-btn")) {
+          const toggleButton = layoutCard.querySelector(".toggle-position-btn");
+          const toPositionContainer = layoutCard.querySelector(
             ".to-position-container",
           );
-          const mainPositionLabel = card.querySelector(".main-position-label");
-          const mainOffsetLabel = card.querySelector(".main-offset-label");
-          const isExpanded = toggleBtn.classList.contains("expanded");
-          const actionId = card.dataset.id;
+          const mainPositionLabel = layoutCard.querySelector(".main-position-label");
+          const mainOffsetLabel = layoutCard.querySelector(".main-offset-label");
+          const isExpanded = toggleButton.classList.contains("expanded");
+          const actionId = layoutCard.dataset.id;
 
           if (isExpanded) {
             // 收起：修改标签为"位置"，隐藏终点容器，清除独立配置标记
-            toggleBtn.classList.remove("expanded");
+            toggleButton.classList.remove("expanded");
             if (mainPositionLabel) mainPositionLabel.textContent = "位置:";
             if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
             toPositionContainer.style.display = "none";
@@ -47,7 +47,7 @@ export function attachLive2dTimeline(editor) {
             // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
             editor._executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
-                (a) => a.id === actionId,
+                (actionItem) => actionItem.id === actionId,
               );
               if (currentAction && currentAction.position) {
                 delete currentAction.customToPosition;
@@ -61,7 +61,7 @@ export function attachLive2dTimeline(editor) {
 
             // 更新主位置UI显示（根据卡片类型决定显示 from 还是 to）
             const action = editor.projectFileState.actions.find(
-              (a) => a.id === actionId,
+              (actionItem) => actionItem.id === actionId,
             );
             if (action) {
               const isMove = action.layoutType === "move";
@@ -73,12 +73,14 @@ export function attachLive2dTimeline(editor) {
                 ? action.position?.to?.offsetX || 0
                 : action.position?.from?.offsetX || 0;
 
-              card.querySelector(".layout-position-select").value = displaySide;
-              card.querySelector(".layout-offset-input").value = displayOffsetX;
+              layoutCard.querySelector(".layout-position-select").value =
+                displaySide;
+              layoutCard.querySelector(".layout-offset-input").value =
+                displayOffsetX;
             }
           } else {
             // 展开：修改标签为"起点"，显示终点容器，设置独立标记
-            toggleBtn.classList.add("expanded");
+            toggleButton.classList.add("expanded");
             if (mainPositionLabel) mainPositionLabel.textContent = "起点:";
             if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
             toPositionContainer.style.display = "grid";
@@ -86,7 +88,7 @@ export function attachLive2dTimeline(editor) {
             // 设置独立配置标记，阻止自动同步
             editor._executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
-                (a) => a.id === actionId,
+                (actionItem) => actionItem.id === actionId,
               );
               if (currentAction) {
                 currentAction.customToPosition = true;
@@ -95,14 +97,16 @@ export function attachLive2dTimeline(editor) {
 
             // 初始化位置UI显示
             const action = editor.projectFileState.actions.find(
-              (a) => a.id === actionId,
+              (actionItem) => actionItem.id === actionId,
             );
             if (action) {
               // 主位置（起点）显示 from 的值
               const fromSide = action.position?.from?.side || "center";
               const fromOffsetX = action.position?.from?.offsetX || 0;
-              card.querySelector(".layout-position-select").value = fromSide;
-              card.querySelector(".layout-offset-input").value = fromOffsetX;
+              layoutCard.querySelector(".layout-position-select").value =
+                fromSide;
+              layoutCard.querySelector(".layout-offset-input").value =
+                fromOffsetX;
 
               // 终点位置显示 to 的值
               const toSide =
@@ -113,17 +117,22 @@ export function attachLive2dTimeline(editor) {
                 action.position?.to?.offsetX ??
                 action.position?.from?.offsetX ??
                 0;
-              card.querySelector(".layout-position-select-to").value = toSide;
-              card.querySelector(".layout-offset-input-to").value = toOffsetX;
+              layoutCard.querySelector(".layout-position-select-to").value =
+                toSide;
+              layoutCard.querySelector(".layout-offset-input-to").value =
+                toOffsetX;
             }
           }
         }
       };
 
-      timeline.onchange = (e) => {
-        const card = e.target.closest(".layout-item");
-        if (!card || !e.target.matches("select, input")) return;
-        editor._updateLayoutActionProperty(card.dataset.id, e.target);
+      timeline.onchange = (changeEvent) => {
+        const layoutCard = changeEvent.target.closest(".layout-item");
+        if (!layoutCard || !changeEvent.target.matches("select, input")) return;
+        editor._updateLayoutActionProperty(
+          layoutCard.dataset.id,
+          changeEvent.target
+        );
       };
     },
 

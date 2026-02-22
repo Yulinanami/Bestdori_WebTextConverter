@@ -3,54 +3,54 @@
 export const DOMUtils = {
   // 创建一个元素，并顺便设置属性/事件/子节点
   createElement(tag, attrs = {}, children = null) {
-    const element = document.createElement(tag);
+    const createdElement = document.createElement(tag);
 
     // 设置属性
     Object.entries(attrs).forEach(([key, value]) => {
       if (key === "className") {
-        element.className = value;
+        createdElement.className = value;
       } else if (key === "style" && typeof value === "object") {
-        Object.assign(element.style, value);
+        Object.assign(createdElement.style, value);
       } else if (key.startsWith("on") && typeof value === "function") {
         const eventName = key.slice(2).toLowerCase();
-        element.addEventListener(eventName, value);
+        createdElement.addEventListener(eventName, value);
       } else if (key === "dataset" && typeof value === "object") {
         Object.entries(value).forEach(([dataKey, dataValue]) => {
-          element.dataset[dataKey] = dataValue;
+          createdElement.dataset[dataKey] = dataValue;
         });
       } else {
-        element.setAttribute(key, value);
+        createdElement.setAttribute(key, value);
       }
     });
 
     // 添加子元素
     if (children) {
       if (typeof children === "string") {
-        element.textContent = children;
+        createdElement.textContent = children;
       } else if (Array.isArray(children)) {
         children.forEach((child) => {
           if (child instanceof Element) {
-            element.appendChild(child);
+            createdElement.appendChild(child);
           } else if (typeof child === "string") {
-            element.appendChild(document.createTextNode(child));
+            createdElement.appendChild(document.createTextNode(child));
           }
         });
       } else if (children instanceof Element) {
-        element.appendChild(children);
+        createdElement.appendChild(children);
       }
     }
 
-    return element;
+    return createdElement;
   },
 
   // 清空一个元素的内容（可传元素或元素 id）
   clearElement(elementOrId) {
-    const element =
+    const targetElement =
       typeof elementOrId === "string"
         ? document.getElementById(elementOrId)
         : elementOrId;
-    if (element) {
-      element.innerHTML = "";
+    if (targetElement) {
+      targetElement.innerHTML = "";
     }
   },
 
@@ -67,12 +67,12 @@ export const DOMUtils = {
 
   // 显示/隐藏一个元素（display: block/none）
   toggleDisplay(elementOrId, show) {
-    const element =
+    const targetElement =
       typeof elementOrId === "string"
         ? document.getElementById(elementOrId)
         : elementOrId;
-    if (element) {
-      element.style.display = show ? "block" : "none";
+    if (targetElement) {
+      targetElement.style.display = show ? "block" : "none";
     }
   },
 

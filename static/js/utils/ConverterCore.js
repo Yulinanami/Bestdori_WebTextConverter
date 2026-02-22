@@ -20,8 +20,8 @@ function getSpeakerPattern() {
     try {
       // 从配置字符串创建正则表达式，添加 s 标志以支持跨行匹配
       return new RegExp(patternStr, "s");
-    } catch (e) {
-      console.warn("无效的 speaker_pattern 正则表达式，使用默认值:", e);
+    } catch (error) {
+      console.warn("无效的 speaker_pattern 正则表达式，使用默认值:", error);
     }
   }
 
@@ -33,7 +33,7 @@ function getSpeakerPattern() {
 export function createProjectFileFromText(text, characterConfig = {}) {
   const segments = text
     .split(/\n\s*\n/)
-    .map((s) => s.trim())
+    .map((segment) => segment.trim())
     .filter(Boolean);
 
   const characterMap = buildCharacterMap(characterConfig);

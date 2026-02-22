@@ -6,7 +6,7 @@ import { state } from "@managers/stateManager.js";
 // 把服装数据渲染成页面 DOM，并在数据变更时更新 UI
 export const costumeRenderer = {
   // 渲染整个服装配置列表（每个角色一块）
-  renderCostumeList(manager) {
+  renderCostumeList(costumeManager) {
     const costumeList = document.getElementById("costumeList");
     const template = document.getElementById("costume-item-template");
     const fragment = document.createDocumentFragment();
@@ -22,11 +22,12 @@ export const costumeRenderer = {
       const clone = template.content.cloneNode(true);
       const costumeItem = clone.querySelector(".costume-config-item");
       const primaryCharacterId = characterIds[0];
-      const safeDomId = manager.getSafeDomId(characterName);
+      const safeDomId = costumeManager.getSafeDomId(characterName);
       const avatarId = configManager.getAvatarId(primaryCharacterId);
       const availableCostumesForCharacter =
-        manager.tempAvailableCostumes[characterName] || [];
-      const selectedCostumeId = manager.tempCostumeChanges[characterName] || "";
+        costumeManager.tempAvailableCostumes[characterName] || [];
+      const selectedCostumeId =
+        costumeManager.tempCostumeChanges[characterName] || "";
 
       const avatarDiv = costumeItem.querySelector(".config-avatar");
       avatarDiv.dataset.id = primaryCharacterId;
@@ -56,12 +57,12 @@ export const costumeRenderer = {
       costumeItem.querySelector(".costume-character-name").textContent =
         `${characterName} (ID: ${primaryCharacterId})`;
 
-      const toggleBtn = costumeItem.querySelector(
+      const toggleButton = costumeItem.querySelector(
         ".toggle-costume-details-btn",
       );
 
-      toggleBtn.dataset.safeDomId = safeDomId;
-      toggleBtn.querySelector("span").id = `toggle-${safeDomId}`;
+      toggleButton.dataset.safeDomId = safeDomId;
+      toggleButton.querySelector("span").id = `toggle-${safeDomId}`;
       const detailsDiv = costumeItem.querySelector(".costume-details");
       detailsDiv.id = `costume-details-${safeDomId}`;
       const select = costumeItem.querySelector(".costume-select");
@@ -78,9 +79,9 @@ export const costumeRenderer = {
           )
           .join("");
 
-      const addBtn = costumeItem.querySelector(".add-costume-btn");
-      addBtn.dataset.characterName = characterName;
-      addBtn.dataset.safeDomId = safeDomId;
+      const addButton = costumeItem.querySelector(".add-costume-btn");
+      addButton.dataset.characterName = characterName;
+      addButton.dataset.safeDomId = safeDomId;
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
 
@@ -122,11 +123,11 @@ export const costumeRenderer = {
   },
 
   // 更新某个角色的局部 UI（服装列表区域 + 下拉框选项）
-  updateCostumeListUI(manager, characterName, safeDomId) {
+  updateCostumeListUI(costumeManager, characterName, safeDomId) {
     const listContainer = document.getElementById(`costume-list-${safeDomId}`);
     if (listContainer) {
       const availableCostumesForCharacter =
-        manager.tempAvailableCostumes[characterName] || [];
+        costumeManager.tempAvailableCostumes[characterName] || [];
       listContainer.innerHTML = this.renderCostumeListItems(
         characterName,
         availableCostumesForCharacter,
@@ -140,9 +141,9 @@ export const costumeRenderer = {
       const select = costumeDetailsContainer.querySelector(".costume-select");
       if (select && select.dataset.characterName === characterName) {
         const selectedCostumeId =
-          manager.tempCostumeChanges[characterName] || "";
+          costumeManager.tempCostumeChanges[characterName] || "";
         const availableCostumesForCharacter =
-          manager.tempAvailableCostumes[characterName] || [];
+          costumeManager.tempAvailableCostumes[characterName] || [];
 
         DOMUtils.clearElement(select);
 

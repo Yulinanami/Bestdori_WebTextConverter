@@ -5,10 +5,12 @@ export function attachSpeakerPopover(editor) {
   Object.assign(editor, {
     // 显示多说话人弹窗（定位在 targetElement 附近）
     showMultiSpeakerPopover(actionId, targetElement) {
-      DOMUtils.getElements("#speaker-popover").forEach((p) => p.remove());
+      DOMUtils.getElements("#speaker-popover").forEach((popoverElement) =>
+        popoverElement.remove()
+      );
 
       const action = editor.projectFileState.actions.find(
-        (a) => a.id === actionId
+        (actionItem) => actionItem.id === actionId
       );
       if (!action) return;
 
@@ -34,7 +36,7 @@ export function attachSpeakerPopover(editor) {
           speaker.name
         );
 
-        const deleteBtn = DOMUtils.createElement(
+        const deleteButton = DOMUtils.createElement(
           "button",
           {
             className: "speaker-delete-btn",
@@ -50,8 +52,8 @@ export function attachSpeakerPopover(editor) {
               fontSize: "16px",
               lineHeight: "1",
             },
-            onClick: (e) => {
-              e.stopPropagation();
+            onClick: (clickEvent) => {
+              clickEvent.stopPropagation();
               editor.removeSpeakerFromAction(actionId, speaker.characterId);
               popover.remove();
             },
@@ -69,7 +71,7 @@ export function attachSpeakerPopover(editor) {
               borderRadius: "5px",
             },
           },
-          [nameSpan, deleteBtn]
+          [nameSpan, deleteButton]
         );
       });
 
@@ -83,8 +85,8 @@ export function attachSpeakerPopover(editor) {
       setTimeout(() => {
         document.addEventListener(
           "click",
-          function onClickOutside(e) {
-            if (!popover.contains(e.target)) {
+          function onClickOutside(clickEvent) {
+            if (!popover.contains(clickEvent.target)) {
               popover.remove();
               document.removeEventListener("click", onClickOutside);
             }

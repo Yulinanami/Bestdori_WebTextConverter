@@ -26,11 +26,13 @@ export function attachSpeakerState(editor) {
       const selectedIds = editorService.selectionManager.getSelectedIds();
       const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
       this._executeCommand((currentState) => {
-        targetIds.forEach((id) => {
-          const actionToUpdate = currentState.actions.find((a) => a.id === id);
+        targetIds.forEach((targetActionId) => {
+          const actionToUpdate = currentState.actions.find(
+            (actionItem) => actionItem.id === targetActionId
+          );
           if (actionToUpdate) {
             const speakerExists = actionToUpdate.speakers.some(
-              (s) => s.characterId === newSpeaker.characterId
+              (speaker) => speaker.characterId === newSpeaker.characterId
             );
             if (!speakerExists) {
               actionToUpdate.speakers.push(newSpeaker);
@@ -48,10 +50,12 @@ export function attachSpeakerState(editor) {
     // 从一条对话里移除某个说话人
     removeSpeakerFromAction(actionId, characterIdToRemove) {
       this._executeCommand((currentState) => {
-        const action = currentState.actions.find((a) => a.id === actionId);
+        const action = currentState.actions.find(
+          (actionItem) => actionItem.id === actionId
+        );
         if (action) {
           action.speakers = action.speakers.filter(
-            (s) => s.characterId !== characterIdToRemove
+            (speaker) => speaker.characterId !== characterIdToRemove
           );
         }
       });
@@ -60,7 +64,9 @@ export function attachSpeakerState(editor) {
     // 清空一条对话的所有说话人（变成旁白）
     removeAllSpeakersFromAction(actionId) {
       this._executeCommand((currentState) => {
-        const action = currentState.actions.find((a) => a.id === actionId);
+        const action = currentState.actions.find(
+          (actionItem) => actionItem.id === actionId
+        );
         if (action) {
           action.speakers = [];
         }
@@ -73,9 +79,9 @@ export function attachSpeakerState(editor) {
         return;
       }
 
-      const resetBtn = document.getElementById("resetSpeakersBtn");
-      const originalText = resetBtn?.textContent;
-      if (resetBtn) resetBtn.textContent = "恢复中...";
+      const resetButton = document.getElementById("resetSpeakersBtn");
+      const originalText = resetButton?.textContent;
+      if (resetButton) resetButton.textContent = "恢复中...";
 
       try {
         const rawText = document.getElementById("inputText").value;
@@ -93,7 +99,7 @@ export function attachSpeakerState(editor) {
       } catch (error) {
         ui.showStatus(`恢复失败: ${error.message}`, "error");
       } finally {
-        if (resetBtn && originalText) resetBtn.textContent = originalText;
+        if (resetButton && originalText) resetButton.textContent = originalText;
       }
     },
   });

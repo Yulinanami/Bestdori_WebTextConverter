@@ -27,10 +27,14 @@ export const motionExpressionManager = {
       ?.addEventListener("click", () => this.save());
     document
       .getElementById("motionList")
-      ?.addEventListener("click", (e) => this.handleDelete(e, "motion"));
+      ?.addEventListener("click", (clickEvent) =>
+        this.handleDelete(clickEvent, "motion")
+      );
     document
       .getElementById("expressionList")
-      ?.addEventListener("click", (e) => this.handleDelete(e, "expression"));
+      ?.addEventListener("click", (clickEvent) =>
+        this.handleDelete(clickEvent, "expression")
+      );
   },
 
   // 一次性刷新“动作列表 + 表情列表”
@@ -42,40 +46,40 @@ export const motionExpressionManager = {
   // 刷新某一个列表（动作或表情）
   renderList(type) {
     const isMotion = type === "motion";
-    const manager = isMotion ? motionManager : expressionManager;
+    const targetConfigManager = isMotion ? motionManager : expressionManager;
     const listContainer = document.getElementById(`${type}List`);
     const tempCustomItems = isMotion
       ? this.tempCustomMotions
       : this.tempCustomExpressions;
     DOMUtils.clearElement(listContainer);
-    const allDefaultItems = manager.getAllDefaultItems();
+    const allDefaultItems = targetConfigManager.getAllDefaultItems();
     const allItems = Array.from(
       new Set([...allDefaultItems, ...tempCustomItems]),
     ).sort();
     const fragment = document.createDocumentFragment();
-    allItems.forEach((item) => {
+    allItems.forEach((itemId) => {
       const isCustom =
-        !allDefaultItems.has(item) && tempCustomItems.includes(item);
-      const itemEl = document.createElement("div");
-      itemEl.className = "config-list-item";
+        !allDefaultItems.has(itemId) && tempCustomItems.includes(itemId);
+      const listItemElement = document.createElement("div");
+      listItemElement.className = "config-list-item";
 
       if (isCustom) {
-        itemEl.classList.add("is-custom");
+        listItemElement.classList.add("is-custom");
       }
-      const isDeletable = tempCustomItems.includes(item);
+      const isDeletable = tempCustomItems.includes(itemId);
 
       // 创建这一行的“名称”和“删除按钮”
       const nameSpan = DOMUtils.createElement("span", {
         class: "item-name",
       });
-      nameSpan.textContent = item;
-      itemEl.appendChild(nameSpan);
+      nameSpan.textContent = itemId;
+      listItemElement.appendChild(nameSpan);
 
       // 自定义项允许删除：显示删除按钮
       if (isDeletable) {
-        const removeBtn = DOMUtils.createElement("button", {
+        const removeButton = DOMUtils.createElement("button", {
           className: "btn-icon-action btn-icon-danger remove-btn",
-          "data-id": item,
+          "data-id": itemId,
           title: "删除此项",
         });
         const icon = DOMUtils.createElement(
@@ -83,11 +87,11 @@ export const motionExpressionManager = {
           { className: "material-symbols-outlined" },
           "delete",
         );
-        removeBtn.appendChild(icon);
-        itemEl.appendChild(removeBtn);
+        removeButton.appendChild(icon);
+        listItemElement.appendChild(removeButton);
       }
 
-      fragment.appendChild(itemEl);
+      fragment.appendChild(listItemElement);
     });
     listContainer.appendChild(fragment);
   },
@@ -95,36 +99,36 @@ export const motionExpressionManager = {
   // 添加自定义动作或表情项
   addItem(type) {
     const isMotion = type === "motion";
-    const input = document.getElementById(
+    const idInput = document.getElementById(
       isMotion ? "customMotionInput" : "customExpressionInput",
     );
-    const manager = isMotion ? motionManager : expressionManager;
+    const targetConfigManager = isMotion ? motionManager : expressionManager;
     const tempList = isMotion
       ? this.tempCustomMotions
       : this.tempCustomExpressions;
-    const trimmedId = input.value.trim();
+    const trimmedId = idInput.value.trim();
 
     if (!trimmedId) {
-      ui.showStatus(`${manager.name}ID不能为空！`, "error");
+      ui.showStatus(`${targetConfigManager.name}ID不能为空！`, "error");
       return;
     }
 
-    const allKnownItems = new Set(manager.getAllKnownItems());
+    const allKnownItems = new Set(targetConfigManager.getAllKnownItems());
     if (allKnownItems.has(trimmedId) || tempList.includes(trimmedId)) {
-      ui.showStatus(`该${manager.name}ID已存在！`, "error");
+      ui.showStatus(`该${targetConfigManager.name}ID已存在！`, "error");
       return;
     }
 
     tempList.push(trimmedId);
-    input.value = "";
+    idInput.value = "";
     this.renderList(type);
   },
 
   // 处理删除自定义项的点击事件
-  handleDelete(e, type) {
-    const removeBtn = e.target.closest(".remove-btn");
-    if (removeBtn) {
-      const idToDelete = removeBtn.dataset.id;
+  handleDelete(clickEvent, type) {
+    const removeButton = clickEvent.target.closest(".remove-btn");
+    if (removeButton) {
+      const idToDelete = removeButton.dataset.id;
       if (type === "motion") {
         this.tempCustomMotions = this.tempCustomMotions.filter(
           (id) => id !== idToDelete,

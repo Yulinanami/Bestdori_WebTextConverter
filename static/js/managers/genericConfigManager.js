@@ -27,8 +27,8 @@ class GenericConfigManager {
     try {
       const saved = localStorage.getItem(this.localStorageKey);
       return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error(`加载自定义 ${this.name} 失败:`, e);
+    } catch (error) {
+      console.error(`加载自定义 ${this.name} 失败:`, error);
       return [];
     }
   }
@@ -40,7 +40,7 @@ class GenericConfigManager {
         this.localStorageKey,
         JSON.stringify(this.customItems)
       );
-    } catch (e) {
+    } catch (error) {
       ui.showStatus(`保存自定义 ${this.name} 失败`, "error");
     }
   }
@@ -48,8 +48,8 @@ class GenericConfigManager {
   // 获取“所有角色默认项”的去重集合（Set）
   getAllDefaultItems() {
     const defaultItems = new Set();
-    Object.values(this.characterItems).forEach((list) => {
-      list.forEach((item) => defaultItems.add(item));
+    Object.values(this.characterItems).forEach((itemList) => {
+      itemList.forEach((itemId) => defaultItems.add(itemId));
     });
     return defaultItems;
   }
@@ -64,8 +64,8 @@ class GenericConfigManager {
   // 获取“所有已知项目”（默认 + 自定义，去重后排序）
   getAllKnownItems() {
     const allItems = new Set(this.customItems);
-    Object.values(this.characterItems).forEach((list) => {
-      list.forEach((item) => allItems.add(item));
+    Object.values(this.characterItems).forEach((itemList) => {
+      itemList.forEach((itemId) => allItems.add(itemId));
     });
     return Array.from(allItems).sort();
   }

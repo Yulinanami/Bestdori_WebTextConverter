@@ -9,7 +9,7 @@ export const FileUtils = {
   readFileAsText(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
+      reader.onload = (loadEvent) => resolve(loadEvent.target.result);
       reader.onerror = () => reject(new Error("文件读取失败"));
       reader.readAsText(file);
     });
@@ -20,12 +20,12 @@ export const FileUtils = {
       data instanceof Blob ? data : new Blob([data], { type: mimeType });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
     URL.revokeObjectURL(url);
   },
 };

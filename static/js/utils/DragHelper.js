@@ -34,11 +34,11 @@ export const DragHelper = {
   createOnEndHandler(params) {
     const { editor, getGroupingEnabled, groupSize = 50, executeFn } = params;
 
-    return (evt) => {
-      if (evt.from === evt.to) {
+    return (sortableEvent) => {
+      if (sortableEvent.from === sortableEvent.to) {
         const isGroupingEnabled = getGroupingEnabled();
-        let localOldIndex = evt.oldIndex;
-        let localNewIndex = evt.newIndex;
+        let localOldIndex = sortableEvent.oldIndex;
+        let localNewIndex = sortableEvent.newIndex;
 
         if (
           isGroupingEnabled &&
@@ -77,20 +77,21 @@ export const DragHelper = {
       groupSize = 50,
     } = params;
 
-    return (evt) => {
-      const item = evt.item;
+    return (sortableEvent) => {
+      const draggedItem = sortableEvent.item;
 
       // 验证拖拽项
-      if (!validateItem(item)) {
-        item.remove();
+      if (!validateItem(draggedItem)) {
+        draggedItem.remove();
         return;
       }
 
       const isGroupingEnabled = getGroupingEnabled();
       let localInsertIndex =
-        evt.newDraggableIndex !== undefined && evt.newDraggableIndex !== null
-          ? evt.newDraggableIndex
-          : evt.newIndex;
+        sortableEvent.newDraggableIndex !== undefined &&
+        sortableEvent.newDraggableIndex !== null
+          ? sortableEvent.newDraggableIndex
+          : sortableEvent.newIndex;
 
       if (
         localInsertIndex === undefined ||
@@ -117,7 +118,7 @@ export const DragHelper = {
       );
 
       // 提取数据
-      const data = extractData(item);
+      const data = extractData(draggedItem);
 
       // 执行添加
       if (data) {
@@ -125,8 +126,12 @@ export const DragHelper = {
       }
 
       // 移除拖拽项（仅当它不属于源列表时，避免误删原始节点）
-      if (item && item.parentNode && item.parentNode !== evt.from) {
-        item.remove();
+      if (
+        draggedItem &&
+        draggedItem.parentNode &&
+        draggedItem.parentNode !== sortableEvent.from
+      ) {
+        draggedItem.remove();
       }
     };
   },

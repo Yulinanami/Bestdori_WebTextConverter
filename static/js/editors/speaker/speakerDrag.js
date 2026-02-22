@@ -5,12 +5,16 @@ import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 export function attachSpeakerDrag(editor, baseEditor) {
   Object.assign(editor, {
     // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
-    handleDragScrolling: (e) => {
+    handleDragScrolling: (dragEvent) => {
       const containers = [
         editor.domCache.canvas,
         editor.domCache.characterList,
       ];
-      ScrollAnimationMixin.handleDragScrolling.call(editor, e, containers);
+      ScrollAnimationMixin.handleDragScrolling.call(
+        editor,
+        dragEvent,
+        containers
+      );
     },
 
     // 根据鼠标 Y 坐标，找出最接近的对话卡片（用于决定把角色丢给哪条对话）
@@ -22,14 +26,14 @@ export function attachSpeakerDrag(editor, baseEditor) {
       let closestCard = null;
       let minDistance = Infinity;
 
-      for (const card of cards) {
-        const rect = card.getBoundingClientRect();
+      for (const dialogueCard of cards) {
+        const rect = dialogueCard.getBoundingClientRect();
         const cardCenterY = rect.top + rect.height / 2;
         const distance = Math.abs(y - cardCenterY);
 
         if (distance < minDistance) {
           minDistance = distance;
-          closestCard = card;
+          closestCard = dialogueCard;
         }
       }
       // 添加一个阈值，如果拖拽位置离任何卡片都太远，则不视为有效目标
@@ -65,8 +69,10 @@ export function attachSpeakerDrag(editor, baseEditor) {
               put: true, // 可接收拖回
             },
             sort: false,
-            onMove: (evt) => {
-              return !evt.related.closest("#speakerEditorCharacterList");
+            onMove: (sortableMoveEvent) => {
+              return !sortableMoveEvent.related.closest(
+                "#speakerEditorCharacterList"
+              );
             },
             onStart: () => {
               document.addEventListener("dragover", editor.handleDragScrolling);
@@ -78,8 +84,8 @@ export function attachSpeakerDrag(editor, baseEditor) {
               );
               editor.stopScrolling();
             },
-          onAdd: (evt) => {
-            const cardItem = evt.item;
+          onAdd: (sortableAddEvent) => {
+            const cardItem = sortableAddEvent.item;
             const actionId = cardItem.dataset.id;
 
             if (actionId) {
@@ -132,10 +138,10 @@ export function attachSpeakerDrag(editor, baseEditor) {
       });
 
       // 当“角色”拖到画布上时：把角色设置成目标对话的说话人
-      const onAddHandler = (evt) => {
-        const characterItem = evt.item;
+      const onAddHandler = (sortableAddEvent) => {
+        const characterItem = sortableAddEvent.item;
         characterItem.style.display = "none";
-        const dropY = evt.originalEvent.clientY;
+        const dropY = sortableAddEvent.originalEvent.clientY;
         const targetCard = editor._findClosestCard(dropY);
 
         if (!targetCard) {
@@ -160,13 +166,13 @@ export function attachSpeakerDrag(editor, baseEditor) {
             canvas,
             DragHelper.createSortableConfig({
               group: "shared-speakers",
-              onEnd: (evt) => {
+              onEnd: (sortableEvent) => {
                 document.removeEventListener(
                   "dragover",
                   editor.handleDragScrolling
                 );
                 editor.stopScrolling();
-                onEndHandler(evt);
+                onEndHandler(sortableEvent);
               },
               onAdd: onAddHandler,
               extraConfig: {

@@ -6,7 +6,7 @@ export const assignmentStore = {
   addMotionAssignment(editor, action, character) {
     editor._executeCommand((currentState) => {
       const currentAction = currentState.actions.find(
-        (a) => a.id === action.id
+        (actionItem) => actionItem.id === action.id
       );
       if (!currentAction) return;
 
@@ -26,7 +26,9 @@ export const assignmentStore = {
   // 更新 layout action 的 initialState（motion/expression）
   updateLayoutInitialState(editor, actionId, updates) {
     editor._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
+      const action = currentState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
       if (!action || action.type !== "layout") return;
 
       if (!action.initialState) {
@@ -40,7 +42,9 @@ export const assignmentStore = {
   // 更新 talk action 的 motions[index]
   updateMotionAssignment(editor, actionId, assignmentIndex, updates) {
     editor._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
+      const action = currentState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
       if (!action || !action.motions || !action.motions[assignmentIndex])
         return;
 
@@ -51,7 +55,9 @@ export const assignmentStore = {
   // 删除 talk action 的 motions[index]
   removeMotionAssignment(editor, actionId, assignmentIndex) {
     editor._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
+      const action = currentState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
       if (!action || !action.motions) return;
 
       action.motions.splice(assignmentIndex, 1);
@@ -76,13 +82,15 @@ export const assignmentStore = {
   // 确保 layout action 至少有一个 initialState（用于显示分配 UI）
   ensureLayoutAssignment(editor, actionId) {
     const action = editor.projectFileState.actions.find(
-      (a) => a.id === actionId
+      (actionItem) => actionItem.id === actionId
     );
     if (!action || action.type !== "layout") return false;
     if (this.actionHasExpressionData(action)) return false;
 
     editor._executeCommand((currentState) => {
-      const layoutAction = currentState.actions.find((a) => a.id === actionId);
+      const layoutAction = currentState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
       if (!layoutAction || layoutAction.type !== "layout") return;
 
       const baseState = layoutAction.initialState || {};
@@ -102,14 +110,17 @@ export const assignmentStore = {
     if (editor.projectFileState && editor.projectFileState.actions) {
       editor.projectFileState.actions.forEach((action) => {
         if (action.type === "layout" && action.layoutType === "appear") {
-          const charName =
+          const characterName =
             action.characterName ||
             editorService.getCharacterNameById(action.characterId);
-          if (charName && !appearedCharacterNames.has(charName)) {
-            appearedCharacterNames.add(charName);
+          if (
+            characterName &&
+            !appearedCharacterNames.has(characterName)
+          ) {
+            appearedCharacterNames.add(characterName);
             characters.push({
               id: action.characterId,
-              name: charName,
+              name: characterName,
             });
           }
         }

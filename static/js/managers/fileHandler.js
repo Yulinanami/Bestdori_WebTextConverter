@@ -15,9 +15,9 @@ export const fileHandler = {
       fileInput.addEventListener("change", this.handleFileUpload.bind(this));
     }
 
-    const downloadBtn = document.getElementById("downloadBtn");
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", this.downloadResult.bind(this));
+    const downloadButton = document.getElementById("downloadBtn");
+    if (downloadButton) {
+      downloadButton.addEventListener("click", this.downloadResult.bind(this));
     }
 
     this.setupFileDragDrop();
@@ -52,17 +52,17 @@ export const fileHandler = {
   },
 
   // 拦截浏览器默认拖拽行为（避免打开文件/跳转页面）
-  preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
+  preventDefaults(event) {
+    event.preventDefault();
+    event.stopPropagation();
   },
 
   // 拖拽松手时：把文件交给统一的上传处理
-  handleDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const dt = e.dataTransfer;
-    const files = dt.files;
+  handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dataTransfer = event.dataTransfer;
+    const files = dataTransfer.files;
     if (files.length > 0) {
       document.getElementById("fileInput").files = files;
       this.handleFileUpload({ target: { files: files } });

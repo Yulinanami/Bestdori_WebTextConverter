@@ -21,44 +21,45 @@ export const positionManager = {
     positionStore.loadPositionConfig(this);
     const autoCheckbox = document.getElementById("autoPositionCheckbox");
     if (autoCheckbox) {
-      autoCheckbox.addEventListener("change", (e) => {
-        this.tempAutoPositionMode = e.target.checked;
+      autoCheckbox.addEventListener("change", (changeEvent) => {
+        this.tempAutoPositionMode = changeEvent.target.checked;
         this.toggleManualConfig();
       });
     }
-    const saveBtn = document.getElementById("savePositionsBtn");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", () => this.savePositions());
+    const saveButton = document.getElementById("savePositionsBtn");
+    if (saveButton) {
+      saveButton.addEventListener("click", () => this.savePositions());
     }
-    const resetBtn = document.getElementById("resetPositionsBtn");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", () => this.resetPositions());
+    const resetButton = document.getElementById("resetPositionsBtn");
+    if (resetButton) {
+      resetButton.addEventListener("click", () => this.resetPositions());
     }
     const positionList = document.getElementById("positionList");
     if (positionList) {
-      positionList.addEventListener("change", (e) => {
-        if (e.target.classList.contains("position-select")) {
-          const charName = e.target.dataset.character;
-          if (!this.tempManualPositions[charName]) {
-            this.tempManualPositions[charName] = {
+      positionList.addEventListener("change", (changeEvent) => {
+        if (changeEvent.target.classList.contains("position-select")) {
+          const characterName = changeEvent.target.dataset.character;
+          if (!this.tempManualPositions[characterName]) {
+            this.tempManualPositions[characterName] = {
               position: "center",
               offset: 0,
             };
           }
-          this.tempManualPositions[charName].position = e.target.value;
+          this.tempManualPositions[characterName].position =
+            changeEvent.target.value;
         }
       });
-      positionList.addEventListener("input", (e) => {
-        if (e.target.classList.contains("position-offset-input")) {
-          const charName = e.target.dataset.character;
-          const offset = parseInt(e.target.value) || 0;
-          if (!this.tempManualPositions[charName]) {
-            this.tempManualPositions[charName] = {
+      positionList.addEventListener("input", (inputEvent) => {
+        if (inputEvent.target.classList.contains("position-offset-input")) {
+          const characterName = inputEvent.target.dataset.character;
+          const offset = parseInt(inputEvent.target.value) || 0;
+          if (!this.tempManualPositions[characterName]) {
+            this.tempManualPositions[characterName] = {
               position: "center",
               offset: 0,
             };
           }
-          this.tempManualPositions[charName].offset = offset;
+          this.tempManualPositions[characterName].offset = offset;
         }
       });
     }

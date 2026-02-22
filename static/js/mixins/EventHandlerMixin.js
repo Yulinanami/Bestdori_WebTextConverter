@@ -30,11 +30,11 @@ export const EventHandlerMixin = {
       ?.addEventListener("click", () => this.exportProject());
 
     // 关闭弹窗时：如果有未保存更改就先确认
-    const handleCloseAttempt = (e) => {
+    const handleCloseAttempt = (closeEvent) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
         if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-          e.stopPropagation();
-          e.preventDefault();
+          closeEvent.stopPropagation();
+          closeEvent.preventDefault();
           return;
         }
       }
@@ -45,33 +45,34 @@ export const EventHandlerMixin = {
       ?.addEventListener("click", handleCloseAttempt, true);
 
     // 历史栈变化时：更新撤销/重做按钮是否可点
-    document.addEventListener("historychange", (e) => {
+    document.addEventListener("historychange", (historyChangeEvent) => {
       if (this.domCache.undoBtn)
-        this.domCache.undoBtn.disabled = !e.detail.canUndo;
+        this.domCache.undoBtn.disabled = !historyChangeEvent.detail.canUndo;
       if (this.domCache.redoBtn)
-        this.domCache.redoBtn.disabled = !e.detail.canRedo;
+        this.domCache.redoBtn.disabled = !historyChangeEvent.detail.canRedo;
     });
 
     // 快捷键：Ctrl/Cmd+Z 撤销，Ctrl/Cmd+Y 或 Ctrl/Cmd+Shift+Z 重做
-    this.domCache.modal?.addEventListener("keydown", (e) => {
+    this.domCache.modal?.addEventListener("keydown", (keyboardEvent) => {
       // 忽略在输入框中的按键
       if (
-        e.target.tagName === "INPUT" ||
-        e.target.tagName === "SELECT" ||
-        e.target.tagName === "TEXTAREA"
+        keyboardEvent.target.tagName === "INPUT" ||
+        keyboardEvent.target.tagName === "SELECT" ||
+        keyboardEvent.target.tagName === "TEXTAREA"
       ) {
         return;
       }
 
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "z") {
-          e.preventDefault();
+      if (keyboardEvent.ctrlKey || keyboardEvent.metaKey) {
+        if (keyboardEvent.key === "z") {
+          keyboardEvent.preventDefault();
           historyManager.undo();
         } else if (
-          e.key === "y" ||
-          (e.shiftKey && (e.key === "z" || e.key === "Z"))
+          keyboardEvent.key === "y" ||
+          (keyboardEvent.shiftKey &&
+            (keyboardEvent.key === "z" || keyboardEvent.key === "Z"))
         ) {
-          e.preventDefault();
+          keyboardEvent.preventDefault();
           historyManager.redo();
         }
       }

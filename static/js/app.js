@@ -22,15 +22,15 @@ import "@managers/themeManager.js"; // 初始化主题
 
 // 让一个数字输入框“自动保存到本地”，下次打开还能记住
 const initializeNumericInput = ({ elementId, storageKey }) => {
-  const input = document.getElementById(elementId);
-  if (!input) return;
+  const numericInput = document.getElementById(elementId);
+  if (!numericInput) return;
 
   const savedValue = storageService.get(storageKey, 0);
-  input.value = savedValue;
+  numericInput.value = savedValue;
 
-  input.addEventListener("input", (e) => {
-    const value = parseInt(e.target.value, 10) || 0;
-    storageService.set(storageKey, value);
+  numericInput.addEventListener("input", (inputEvent) => {
+    const numericValue = parseInt(inputEvent.target.value, 10) || 0;
+    storageService.set(storageKey, numericValue);
   });
 };
 

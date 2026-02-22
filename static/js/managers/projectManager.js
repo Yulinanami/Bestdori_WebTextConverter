@@ -62,8 +62,8 @@ export const projectManager = {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = ".json";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
+      input.onchange = (changeEvent) => {
+        const file = changeEvent.target.files[0];
         if (!file) {
           resolve(null);
           return;
@@ -79,8 +79,8 @@ export const projectManager = {
             }
             ui.showStatus("项目导入成功！", "success");
             resolve(importedProject);
-          } catch (err) {
-            ui.showStatus(`导入失败: ${err.message}`, "error");
+          } catch (error) {
+            ui.showStatus(`导入失败: ${error.message}`, "error");
             resolve(null);
           }
         };

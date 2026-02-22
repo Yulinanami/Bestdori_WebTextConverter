@@ -5,13 +5,17 @@ import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 export function attachExpressionDrag(editor, baseEditor) {
   Object.assign(editor, {
     // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
-    handleDragScrolling: (e) => {
+    handleDragScrolling: (dragEvent) => {
       const containers = [
         editor.domCache.timeline,
         editor.domCache.motionList,
         editor.domCache.expressionList,
       ];
-      ScrollAnimationMixin.handleDragScrolling.call(editor, e, containers);
+      ScrollAnimationMixin.handleDragScrolling.call(
+        editor,
+        dragEvent,
+        containers
+      );
     },
 
     // 初始化：让时间线支持拖拽排序（move action 的顺序）
@@ -43,13 +47,13 @@ export function attachExpressionDrag(editor, baseEditor) {
           timeline,
           DragHelper.createSortableConfig({
             group: "timeline-cards",
-            onEnd: (evt) => {
+            onEnd: (sortableEvent) => {
               document.removeEventListener(
                 "dragover",
                 editor.handleDragScrolling
               );
               editor.stopScrolling();
-              onEndHandler(evt);
+              onEndHandler(sortableEvent);
             },
             extraConfig: {
               sort: true,

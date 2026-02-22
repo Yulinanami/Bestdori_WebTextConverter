@@ -29,31 +29,31 @@ export const quickFill = {
     ].sort();
 
     allOptions.forEach((option) => {
-      const item = DOMUtils.createButton(option, "quick-fill-item");
-      item.dataset.type = type;
-      item.dataset.value = option;
+      const optionButton = DOMUtils.createButton(option, "quick-fill-item");
+      optionButton.dataset.type = type;
+      optionButton.dataset.value = option;
 
       if (
         editor.quickFillOptions.custom.includes(option) &&
         !defaultOptions.has(option)
       ) {
-        const deleteBtn = DOMUtils.createElement("button", {
+        const deleteButton = DOMUtils.createElement("button", {
           className: "quick-fill-delete-btn",
           title: "删除此项",
         });
-        deleteBtn.dataset.value = option;
+        deleteButton.dataset.value = option;
 
         const icon = DOMUtils.createElement(
           "span",
           { className: "material-symbols-outlined" },
           "delete"
         );
-        deleteBtn.appendChild(icon);
+        deleteButton.appendChild(icon);
 
-        item.appendChild(deleteBtn);
+        optionButton.appendChild(deleteButton);
       }
 
-      dropdown.appendChild(item);
+      dropdown.appendChild(optionButton);
     });
 
     if (allOptions.length > 0) {
@@ -76,12 +76,12 @@ export const quickFill = {
     const dropdown = document.getElementById(dropdownId);
     if (!dropdown) return;
 
-    const btn = dropdown.previousElementSibling;
+    const toggleButton = dropdown.previousElementSibling;
     const isActive = !dropdown.classList.contains("hidden");
     if (isActive) {
-      if (btn) btn.classList.remove("active");
+      if (toggleButton) toggleButton.classList.remove("active");
     } else {
-      if (btn) btn.classList.add("active");
+      if (toggleButton) toggleButton.classList.add("active");
     }
 
     dropdown.classList.toggle("hidden");
@@ -89,10 +89,10 @@ export const quickFill = {
       setTimeout(() => {
         document.addEventListener(
           "click",
-          function onClickOutside(e) {
-            if (!dropdown.parentElement.contains(e.target)) {
+          function onClickOutside(clickEvent) {
+            if (!dropdown.parentElement.contains(clickEvent.target)) {
               dropdown.classList.add("hidden");
-              if (btn) btn.classList.remove("active");
+              if (toggleButton) toggleButton.classList.remove("active");
               document.removeEventListener("click", onClickOutside);
             }
           },
@@ -106,11 +106,11 @@ export const quickFill = {
   handleQuickFillSelect(type, value) {
     const inputId =
       type === "motion" ? "motionSearchInput" : "expressionSearchInput";
-    const input = document.getElementById(inputId);
-    if (input) {
-      input.value = value;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.focus();
+    const searchInput = document.getElementById(inputId);
+    if (searchInput) {
+      searchInput.value = value;
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      searchInput.focus();
     }
     quickFill.toggleQuickFillDropdown(type);
   },

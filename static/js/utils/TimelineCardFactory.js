@@ -7,26 +7,28 @@ export function createTalkCard(
   action,
   { templateId = "timeline-talk-card-template", template } = {}
 ) {
-  const tpl = template || document.getElementById(templateId);
-  if (!tpl) {
+  const templateElement = template || document.getElementById(templateId);
+  if (!templateElement) {
     console.warn(`[TimelineCardFactory] 模板不存在: ${templateId}`);
     return null;
   }
 
-  const card = tpl.content.cloneNode(true);
-  const item = card.querySelector(".timeline-item");
-  if (item) {
-    item.dataset.id = action.id;
+  const cardFragment = templateElement.content.cloneNode(true);
+  const timelineItem = cardFragment.querySelector(".timeline-item");
+  if (timelineItem) {
+    timelineItem.dataset.id = action.id;
   }
 
-  const nameDiv = card.querySelector(".speaker-name");
-  const avatarDiv = card.querySelector(".dialogue-avatar");
-  const preview = card.querySelector(".dialogue-preview-text");
+  const nameDiv = cardFragment.querySelector(".speaker-name");
+  const avatarDiv = cardFragment.querySelector(".dialogue-avatar");
+  const preview = cardFragment.querySelector(".dialogue-preview-text");
 
   if (action.speakers && action.speakers.length > 0) {
     const firstSpeaker = action.speakers[0];
     if (nameDiv) {
-      nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
+      nameDiv.textContent = action.speakers
+        .map((speaker) => speaker.name)
+        .join(" & ");
     }
     if (avatarDiv) {
       editorService.updateCharacterAvatar(
@@ -47,7 +49,7 @@ export function createTalkCard(
     preview.textContent = action.text;
   }
 
-  return card;
+  return cardFragment;
 }
 
 // 创建一张“布局卡片”（layout），并调用 renderLayoutControls 去渲染控件
@@ -60,33 +62,33 @@ export function createLayoutCard(
     layoutOptions = {},
   } = {}
 ) {
-  const tpl = template || document.getElementById(templateId);
-  if (!tpl) {
+  const templateElement = template || document.getElementById(templateId);
+  if (!templateElement) {
     console.warn(`[TimelineCardFactory] 模板不存在: ${templateId}`);
     return null;
   }
 
-  const card = tpl.content.cloneNode(true);
-  const item = card.querySelector(".timeline-item");
-  if (!item) {
-    return card;
+  const cardFragment = templateElement.content.cloneNode(true);
+  const timelineItem = cardFragment.querySelector(".timeline-item");
+  if (!timelineItem) {
+    return cardFragment;
   }
 
-  item.dataset.id = action.id;
-  item.dataset.layoutType = action.layoutType;
-  DOMUtils.applyLayoutTypeClass(item, action.layoutType);
+  timelineItem.dataset.id = action.id;
+  timelineItem.dataset.layoutType = action.layoutType;
+  DOMUtils.applyLayoutTypeClass(timelineItem, action.layoutType);
 
   const characterId = action.characterId;
   const characterName =
     action.characterName || editorService.getCharacterNameById(characterId);
 
-  const nameDiv = card.querySelector(".speaker-name");
+  const nameDiv = cardFragment.querySelector(".speaker-name");
   if (nameDiv) {
     nameDiv.textContent =
       characterName || `未知角色 (ID: ${characterId ?? "?"})`;
   }
 
-  const avatarDiv = card.querySelector(".dialogue-avatar");
+  const avatarDiv = cardFragment.querySelector(".dialogue-avatar");
   if (avatarDiv) {
     editorService.updateCharacterAvatar(
       { querySelector: () => avatarDiv },
@@ -96,8 +98,8 @@ export function createLayoutCard(
   }
 
   if (typeof renderLayoutControls === "function") {
-    renderLayoutControls(card, action, characterName, layoutOptions);
+    renderLayoutControls(cardFragment, action, characterName, layoutOptions);
   }
 
-  return card;
+  return cardFragment;
 }

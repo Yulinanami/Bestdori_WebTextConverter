@@ -4,7 +4,7 @@ import { DataUtils } from "@utils/DataUtils.js";
 // 配置 UI 层
 export const configUI = {
   // 绑定配置列表的删除按钮、输入变化等事件
-  bindConfigListInteractions(manager) {
+  bindConfigListInteractions(configManager) {
     const configList = document.getElementById("configList");
     if (configList) {
       configList.addEventListener("click", (event) => {
@@ -22,15 +22,20 @@ export const configUI = {
         );
 
         const nameInput = configItem.querySelector(".config-name");
-        const name = nameInput.value || "?";
+        const characterName = nameInput.value || "?";
 
         if (event.target.classList.contains("config-ids")) {
-          const newIds = event.target.value
+          const updatedCharacterIds = event.target.value
             .split(",")
             .map((id) => parseInt(id.trim()))
             .filter((id) => !isNaN(id));
-          const newPrimaryId = newIds.length > 0 ? newIds[0] : 0;
-          manager.updateConfigAvatar(avatarWrapper, newPrimaryId, name);
+          const updatedPrimaryId =
+            updatedCharacterIds.length > 0 ? updatedCharacterIds[0] : 0;
+          configManager.updateConfigAvatar(
+            avatarWrapper,
+            updatedPrimaryId,
+            characterName
+          );
         } else if (event.target.classList.contains("config-name")) {
           const avatar = avatarWrapper.querySelector(".config-avatar");
           if (avatar.classList.contains("fallback")) {
@@ -42,17 +47,17 @@ export const configUI = {
   },
 
   // 把配置按角色 ID 排序后渲染到页面
-  renderConfigList(manager) {
+  renderConfigList(configManager) {
     const sortedConfig = DataUtils.sortBy(
-      Object.entries(manager.getCurrentConfig()),
+      Object.entries(configManager.getCurrentConfig()),
       ([, ids]) => ids?.[0] ?? Infinity,
       "asc"
     );
-    this.renderNormalConfigList(manager, sortedConfig);
+    this.renderNormalConfigList(configManager, sortedConfig);
   },
 
   // 按给定的数据渲染列表（使用 template 克隆 DOM）
-  renderNormalConfigList(manager, sortedConfig) {
+  renderNormalConfigList(configManager, sortedConfig) {
     const configList = document.getElementById("configList");
     const template =
       this.configItemTemplate ||
@@ -66,7 +71,7 @@ export const configUI = {
       const configItem = clone.querySelector(".config-item");
       const primaryId = ids?.[0] ?? 0;
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
-      manager.updateConfigAvatar(avatarWrapper, primaryId, name);
+      configManager.updateConfigAvatar(avatarWrapper, primaryId, name);
 
       configItem.querySelector(".config-name").value = name;
       configItem.querySelector(".config-ids").value = Array.isArray(ids)
@@ -81,10 +86,10 @@ export const configUI = {
   },
 
   // 更新某一行的头像显示（图片加载失败就用首字母兜底）
-  updateConfigAvatar(manager, avatarWrapper, id, name) {
+  updateConfigAvatar(configManager, avatarWrapper, id, name) {
     const avatar = avatarWrapper.querySelector(".config-avatar");
     avatar.dataset.id = id;
-    const avatarId = manager.getAvatarId(id);
+    const avatarId = configManager.getAvatarId(id);
 
     DOMUtils.clearElement(avatar);
 

@@ -2,29 +2,31 @@
 
 export const DataUtils = {
   // 深拷贝：避免改动一个对象时把原对象也改了
-  deepClone(obj) {
-    if (obj === null || typeof obj !== "object") {
-      return obj;
+  deepClone(sourceValue) {
+    if (sourceValue === null || typeof sourceValue !== "object") {
+      return sourceValue;
     }
     if (typeof structuredClone === "function") {
-      return structuredClone(obj);
+      return structuredClone(sourceValue);
     }
-    return JSON.parse(JSON.stringify(obj));
+    return JSON.parse(JSON.stringify(sourceValue));
   },
 
   // 排序：按一个或多个字段/函数来排序（不修改原数组）
-  sortBy(arr, keys, orders = "asc") {
+  sortBy(sourceList, keys, orders = "asc") {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const orderArray = Array.isArray(orders) ? orders : [orders];
 
-    return [...arr].sort((a, b) => {
-      for (const [i, key] of keyArray.entries()) {
-        const order = orderArray[i] || "asc";
-        const aVal = typeof key === "function" ? key(a) : a[key];
-        const bVal = typeof key === "function" ? key(b) : b[key];
+    return [...sourceList].sort((leftItem, rightItem) => {
+      for (const [keyIndex, key] of keyArray.entries()) {
+        const order = orderArray[keyIndex] || "asc";
+        const leftValue =
+          typeof key === "function" ? key(leftItem) : leftItem[key];
+        const rightValue =
+          typeof key === "function" ? key(rightItem) : rightItem[key];
 
-        if (aVal < bVal) return order === "asc" ? -1 : 1;
-        if (aVal > bVal) return order === "asc" ? 1 : -1;
+        if (leftValue < rightValue) return order === "asc" ? -1 : 1;
+        if (leftValue > rightValue) return order === "asc" ? 1 : -1;
       }
       return 0;
     });
@@ -38,15 +40,15 @@ export const DataUtils = {
         id: action.id,
         type: action.type,
         text: action.text,
-        speakers: (action.speakers || []).map((s) => ({
-          id: s.characterId,
-          name: s.name,
+        speakers: (action.speakers || []).map((speaker) => ({
+          id: speaker.characterId,
+          name: speaker.name,
         })),
-        motions: (action.motions || []).map((m) => ({
-          c: m.character,
-          m: m.motion,
-          e: m.expression,
-          d: m.delay,
+        motions: (action.motions || []).map((motionAssignment) => ({
+          c: motionAssignment.character,
+          m: motionAssignment.motion,
+          e: motionAssignment.expression,
+          d: motionAssignment.delay,
         })),
       });
     }
@@ -72,11 +74,11 @@ export const DataUtils = {
   },
 
   // 给对象生成一个“浅层签名”（用于快速判断配置是否变化）
-  shallowSignature(obj) {
-    if (!obj || typeof obj !== "object") return "";
-    const sorted = Object.keys(obj)
+  shallowSignature(sourceObject) {
+    if (!sourceObject || typeof sourceObject !== "object") return "";
+    const sorted = Object.keys(sourceObject)
       .sort()
-      .map((key) => [key, obj[key]]);
+      .map((key) => [key, sourceObject[key]]);
     return JSON.stringify(sorted);
   },
 };

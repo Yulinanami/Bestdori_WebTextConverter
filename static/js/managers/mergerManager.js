@@ -19,52 +19,52 @@ export const mergerManager = {
     const fileUpload = document.getElementById("mergerFileUpload");
 
     if (fileInput && fileUpload) {
-      fileInput.addEventListener("change", (e) =>
-        this.handleFilesUpload(e.target.files),
+      fileInput.addEventListener("change", (changeEvent) =>
+        this.handleFilesUpload(changeEvent.target.files),
       );
 
-      fileUpload.addEventListener("dragover", (e) => {
-        e.preventDefault();
+      fileUpload.addEventListener("dragover", (dragOverEvent) => {
+        dragOverEvent.preventDefault();
         fileUpload.classList.add("drag-over");
       });
       fileUpload.addEventListener("dragleave", () => {
         fileUpload.classList.remove("drag-over");
       });
-      fileUpload.addEventListener("drop", (e) => {
-        e.preventDefault();
+      fileUpload.addEventListener("drop", (dropEvent) => {
+        dropEvent.preventDefault();
         fileUpload.classList.remove("drag-over");
-        if (e.dataTransfer.files.length > 0) {
-          this.handleFilesUpload(e.dataTransfer.files);
+        if (dropEvent.dataTransfer.files.length > 0) {
+          this.handleFilesUpload(dropEvent.dataTransfer.files);
         }
       });
     }
 
-    const mergeBtn = document.getElementById("mergeBtn");
-    if (mergeBtn) {
-      mergeBtn.addEventListener("click", () => this.mergeFiles());
+    const mergeButton = document.getElementById("mergeBtn");
+    if (mergeButton) {
+      mergeButton.addEventListener("click", () => this.mergeFiles());
     }
 
-    const downloadMergeBtn = document.getElementById("downloadMergeBtn");
-    if (downloadMergeBtn) {
-      downloadMergeBtn.addEventListener("click", () =>
+    const downloadMergeButton = document.getElementById("downloadMergeBtn");
+    if (downloadMergeButton) {
+      downloadMergeButton.addEventListener("click", () =>
         this.downloadMergedResult(),
       );
     }
 
-    const copyMergeBtn = document.getElementById("copyMergeBtn");
-    if (copyMergeBtn) {
-      copyMergeBtn.addEventListener("click", () => this.copyMergedResult());
+    const copyMergeButton = document.getElementById("copyMergeBtn");
+    if (copyMergeButton) {
+      copyMergeButton.addEventListener("click", () => this.copyMergedResult());
     }
 
-    const gotoMergeBtn = document.getElementById("gotoBestdoriMergeBtn");
-    if (gotoMergeBtn) {
-      gotoMergeBtn.addEventListener("click", async () => {
+    const gotoMergeButton = document.getElementById("gotoBestdoriMergeBtn");
+    if (gotoMergeButton) {
+      gotoMergeButton.addEventListener("click", async () => {
         if (!this.mergedResult) return;
         const dataStr = JSON.stringify(this.mergedResult, null, 2);
         try {
           await navigator.clipboard.writeText(dataStr);
           ui.showStatus("合并结果已复制，正在跳转到 Bestdori...", "success");
-        } catch (err) {
+        } catch (clipboardError) {
           ui.showStatus("复制失败，请手动选择复制后跳转。", "warning");
         }
         setTimeout(() => {
@@ -81,10 +81,10 @@ export const mergerManager = {
         animation: 150,
         handle: ".merger-file-drag-handle",
         ghostClass: "sortable-ghost",
-        onEnd: (evt) => {
+        onEnd: (sortableEvent) => {
           // 同步内部数组顺序
-          const movedItem = this.files.splice(evt.oldIndex, 1)[0];
-          this.files.splice(evt.newIndex, 0, movedItem);
+          const movedItem = this.files.splice(sortableEvent.oldIndex, 1)[0];
+          this.files.splice(sortableEvent.newIndex, 0, movedItem);
         },
       });
     }
@@ -118,14 +118,14 @@ export const mergerManager = {
           name: file.name,
           data: data,
         });
-      } catch (e) {
-        ui.showStatus(`解析 ${file.name} 失败: ${e.message}`, "error");
+      } catch (parseError) {
+        ui.showStatus(`解析 ${file.name} 失败: ${parseError.message}`, "error");
       }
     }
 
     // 重置 input 以便再次选择相同文件
-    const input = document.getElementById("mergerFileInput");
-    if (input) input.value = "";
+    const mergerFileInput = document.getElementById("mergerFileInput");
+    if (mergerFileInput) mergerFileInput.value = "";
 
     this.updateUI();
   },
@@ -141,26 +141,26 @@ export const mergerManager = {
     if (resultSec) resultSec.classList.add("hidden");
   },
 
-  removeFile(id) {
-    this.files = this.files.filter((f) => f.id !== id);
+  removeFile(fileId) {
+    this.files = this.files.filter((fileEntry) => fileEntry.id !== fileId);
     this.updateUI();
   },
 
   updateUI() {
-    const container = document.getElementById("mergerFileListContainer");
-    const list = document.getElementById("mergerFileList");
-    const mergeBtn = document.getElementById("mergeBtn");
+    const fileListContainer = document.getElementById("mergerFileListContainer");
+    const fileListElement = document.getElementById("mergerFileList");
+    const mergeButton = document.getElementById("mergeBtn");
 
     if (this.files.length > 0) {
-      container.classList.remove("hidden");
-      mergeBtn.disabled = false;
+      fileListContainer.classList.remove("hidden");
+      mergeButton.disabled = false;
 
-      list.innerHTML = "";
+      fileListElement.innerHTML = "";
       this.files.forEach((file) => {
-        const li = document.createElement("li");
-        li.className = "merger-file-item";
-        li.dataset.id = file.id;
-        li.innerHTML = `
+        const fileListItem = document.createElement("li");
+        fileListItem.className = "merger-file-item";
+        fileListItem.dataset.id = file.id;
+        fileListItem.innerHTML = `
                 <div class="merger-file-drag-handle">
                     <span class="material-symbols-outlined">drag_indicator</span>
                 </div>
@@ -172,19 +172,19 @@ export const mergerManager = {
                     </button>
                 </div>
             `;
-        list.appendChild(li);
+        fileListElement.appendChild(fileListItem);
       });
 
       // 只绑定一次全局删除事件
       if (!this._deleteEventBound) {
-        document.addEventListener("remove-merger-file", (e) => {
-          this.removeFile(e.detail);
+        document.addEventListener("remove-merger-file", (removeFileEvent) => {
+          this.removeFile(removeFileEvent.detail);
         });
         this._deleteEventBound = true;
       }
     } else {
-      container.classList.add("hidden");
-      mergeBtn.disabled = true;
+      fileListContainer.classList.add("hidden");
+      mergeButton.disabled = true;
     }
   },
 
@@ -217,9 +217,9 @@ export const mergerManager = {
 
     // 调用后端 API 执行合并
     try {
-      const filesPayload = this.files.map((f) => ({
-        name: f.name,
-        data: f.data,
+      const filesPayload = this.files.map((fileEntry) => ({
+        name: fileEntry.name,
+        data: fileEntry.data,
       }));
 
       const response = await apiService.mergeFiles(this.mode, filesPayload);
@@ -237,14 +237,14 @@ export const mergerManager = {
     const jsonStr = JSON.stringify(mergedData, null, 2);
 
     // 根据模式切换操作按钮
-    const copyBtn = document.getElementById("copyMergeBtn");
-    const gotoBtn = document.getElementById("gotoBestdoriMergeBtn");
+    const copyButton = document.getElementById("copyMergeBtn");
+    const gotoButton = document.getElementById("gotoBestdoriMergeBtn");
     if (this.mode === "project") {
-      if (copyBtn) copyBtn.classList.remove("hidden");
-      if (gotoBtn) gotoBtn.classList.add("hidden");
+      if (copyButton) copyButton.classList.remove("hidden");
+      if (gotoButton) gotoButton.classList.add("hidden");
     } else {
-      if (copyBtn) copyBtn.classList.add("hidden");
-      if (gotoBtn) gotoBtn.classList.remove("hidden");
+      if (copyButton) copyButton.classList.add("hidden");
+      if (gotoButton) gotoButton.classList.remove("hidden");
     }
 
     if (resultSec && resultContent) {
@@ -276,7 +276,7 @@ export const mergerManager = {
     try {
       await navigator.clipboard.writeText(dataStr);
       ui.showStatus("合并结果已复制到剪贴板！", "success");
-    } catch (err) {
+    } catch (clipboardError) {
       ui.showStatus("复制失败，请手动选择复制。", "error");
     }
   },

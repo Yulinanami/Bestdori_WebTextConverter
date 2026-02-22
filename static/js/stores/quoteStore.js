@@ -23,7 +23,9 @@ export const quoteStore = {
 
   // 按名字删除一个自定义引号对
   removeCustomQuoteByName(name) {
-    const filtered = this.getCustomQuotes().filter((q) => q.name !== name);
+    const filtered = this.getCustomQuotes().filter(
+      (quote) => quote.name !== name
+    );
     return this.saveCustomQuotes(filtered);
   },
 

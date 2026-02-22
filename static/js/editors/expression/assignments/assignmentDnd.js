@@ -18,14 +18,16 @@ export const assignmentDnd = {
         },
         animation: 150,
 
-        onAdd: (evt) => {
-          const value = evt.item ? evt.item.textContent.trim() : null;
-          const dropZone = evt.to;
+        onAdd: (sortableEvent) => {
+          const droppedValue = sortableEvent.item
+            ? sortableEvent.item.textContent.trim()
+            : null;
+          const dropZone = sortableEvent.to;
           const assignmentItem = dropZone.closest(".motion-assignment-item");
 
-          evt.item.remove();
+          sortableEvent.item.remove();
 
-          if (value && assignmentItem) {
+          if (droppedValue && assignmentItem) {
             const actionId = assignmentItem.dataset.actionId;
             const assignmentIndex = parseInt(
               assignmentItem.dataset.assignmentIndex
@@ -34,16 +36,16 @@ export const assignmentDnd = {
 
             const valueElement = dropZone.querySelector(".drop-zone-value");
             if (valueElement) {
-              valueElement.textContent = value;
+              valueElement.textContent = droppedValue;
             }
 
-            const clearBtn = dropZone.querySelector(".clear-state-btn");
-            if (clearBtn) {
-              DOMUtils.toggleDisplay(clearBtn, true);
+            const clearButton = dropZone.querySelector(".clear-state-btn");
+            if (clearButton) {
+              DOMUtils.toggleDisplay(clearButton, true);
             }
 
             const updates = {};
-            updates[type] = value;
+            updates[type] = droppedValue;
 
             if (isLayoutCard) {
               editor._updateLayoutInitialState(actionId, updates);

@@ -8,9 +8,9 @@ import { createProjectFileFromText } from "@utils/ConverterCore.js";
 export const converter = {
   // 初始化：绑定“转换”按钮
   init() {
-    const convertBtn = document.getElementById("convertBtn");
-    if (convertBtn) {
-      convertBtn.addEventListener("click", this.convertText.bind(this));
+    const convertButton = document.getElementById("convertBtn");
+    if (convertButton) {
+      convertButton.addEventListener("click", this.convertText.bind(this));
     }
   },
 

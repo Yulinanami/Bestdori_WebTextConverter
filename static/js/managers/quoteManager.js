@@ -9,9 +9,9 @@ export const quoteManager = {
 
   // 初始化：绑定“添加自定义引号”按钮
   init() {
-    const addBtn = document.getElementById("addCustomQuoteBtn");
-    if (addBtn) {
-      addBtn.addEventListener("click", this.addCustomQuoteOption.bind(this));
+    const addButton = document.getElementById("addCustomQuoteBtn");
+    if (addButton) {
+      addButton.addEventListener("click", this.addCustomQuoteOption.bind(this));
     }
   },
 
@@ -38,9 +38,9 @@ export const quoteManager = {
 
   // 把“预设 + 自定义”引号渲染成一组复选框
   renderQuoteOptions() {
-    const container = document.getElementById("quoteOptionsContainer");
-    if (!container) return;
-    DOMUtils.clearElement(container);
+    const quoteOptionsContainer = document.getElementById("quoteOptionsContainer");
+    if (!quoteOptionsContainer) return;
+    DOMUtils.clearElement(quoteOptionsContainer);
     this.loadCustomQuotes();
 
     // 加载预设引号的保存状态
@@ -50,37 +50,37 @@ export const quoteManager = {
     const quotesConfig = state.get("configData")?.quotes_config;
     if (quotesConfig && quotesConfig.quote_categories) {
       Object.entries(quotesConfig.quote_categories).forEach(
-        ([categoryName, chars]) => {
+        ([categoryName, quoteCharacters]) => {
           const checkboxId = `quote-check-${categoryName.replace(/\s/g, "-")}`;
           // 使用保存的状态，如果没有保存则默认为选中
-          const stateKey = `${chars[0]}_${chars[1]}`;
+          const stateKey = `${quoteCharacters[0]}_${quoteCharacters[1]}`;
           const isChecked =
             this.presetStates[stateKey] !== undefined
               ? this.presetStates[stateKey]
               : true;
-          const element = this.createQuoteOptionElement(
+          const optionElement = this.createQuoteOptionElement(
             checkboxId,
             categoryName,
-            chars[0],
-            chars[1],
+            quoteCharacters[0],
+            quoteCharacters[1],
             isChecked
           );
-          fragment.appendChild(element);
+          fragment.appendChild(optionElement);
         }
       );
     }
     quoteStore.getCustomQuotes().forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
-      const element = this.createQuoteOptionElement(
+      const optionElement = this.createQuoteOptionElement(
         checkboxId,
         quote.name,
         quote.open,
         quote.close,
         quote.checked
       );
-      fragment.appendChild(element);
+      fragment.appendChild(optionElement);
     });
-    container.appendChild(fragment);
+    quoteOptionsContainer.appendChild(fragment);
     this.attachCheckboxListeners();
   },
 
@@ -138,20 +138,20 @@ export const quoteManager = {
     label.style.flex = "1";
 
     if (checkboxId.includes("custom")) {
-      const deleteBtn = DOMUtils.createElement("button", {
+      const deleteButton = DOMUtils.createElement("button", {
         className: "btn-icon-action btn-icon-danger delete-quote-btn",
         title: "删除此引号对",
       });
-      deleteBtn.onclick = () => this.removeCustomQuote(categoryName);
+      deleteButton.onclick = () => this.removeCustomQuote(categoryName);
       const icon = DOMUtils.createElement(
         "span",
         { className: "material-symbols-outlined" },
         "delete"
       );
-      deleteBtn.appendChild(icon);
+      deleteButton.appendChild(icon);
       wrapper.appendChild(checkbox);
       wrapper.appendChild(label);
-      wrapper.appendChild(deleteBtn);
+      wrapper.appendChild(deleteButton);
     } else {
       wrapper.appendChild(checkbox);
       wrapper.appendChild(label);
@@ -195,7 +195,11 @@ export const quoteManager = {
     }
 
     const categoryName = `${openChar}...${closeChar}`;
-    if (quoteStore.getCustomQuotes().some((q) => q.name === categoryName)) {
+    if (
+      quoteStore
+        .getCustomQuotes()
+        .some((quote) => quote.name === categoryName)
+    ) {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }

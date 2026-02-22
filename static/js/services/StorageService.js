@@ -30,15 +30,15 @@ class StorageService {
   // 读取一个 key：如果没有就返回默认值（并自动尝试 JSON.parse）
   get(key, defaultValue = null) {
     try {
-      const item = localStorage.getItem(key);
-      if (item === null) {
+      const storedValue = localStorage.getItem(key);
+      if (storedValue === null) {
         return defaultValue;
       }
       // 尝试解析 JSON，如果失败则返回原始字符串
       try {
-        return JSON.parse(item);
+        return JSON.parse(storedValue);
       } catch {
-        return item;
+        return storedValue;
       }
     } catch (error) {
       console.error(`[StorageService] 读取失败 (${key}):`, error);
@@ -101,10 +101,10 @@ class StorageService {
   getSizeFormatted() {
     const bytes = this.getSize();
     if (bytes === 0) return "0 Bytes";
-    const k = 1024;
+    const bytesPerUnit = 1024;
     const sizes = ["Bytes", "KB", "MB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
+    const unitIndex = Math.floor(Math.log(bytes) / Math.log(bytesPerUnit));
+    return `${Math.round((bytes / Math.pow(bytesPerUnit, unitIndex)) * 100) / 100} ${sizes[unitIndex]}`;
   }
 }
 

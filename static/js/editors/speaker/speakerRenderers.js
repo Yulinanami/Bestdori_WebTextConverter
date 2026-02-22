@@ -3,7 +3,9 @@ import { editorService } from "@services/EditorService.js";
 
 // 把speakers数组压成一个字符串 key（用于判断卡片是否还能“增量更新”）
 function setSpeakerKey(card, speakers = []) {
-  const key = speakers.map((s) => `${s.characterId}:${s.name}`).join("|");
+  const key = speakers
+    .map((speaker) => `${speaker.characterId}:${speaker.name}`)
+    .join("|");
   card.dataset.speakerKey = key;
 }
 
@@ -39,7 +41,9 @@ export function createSpeakerRenderers(
           firstSpeaker.characterId,
           firstSpeaker.name,
         );
-        const allNames = action.speakers.map((s) => s.name).join(" & ");
+        const allNames = action.speakers
+          .map((speaker) => speaker.name)
+          .join(" & ");
         speakerNameDiv.textContent = allNames;
 
         if (action.speakers.length > 1) {
@@ -47,8 +51,8 @@ export function createSpeakerRenderers(
           multiSpeakerBadge.style.display = "flex";
           multiSpeakerBadge.textContent = `+${action.speakers.length - 1}`;
           avatarContainer.style.cursor = "pointer";
-          avatarContainer.addEventListener("click", (e) => {
-            e.stopPropagation();
+          avatarContainer.addEventListener("click", (clickEvent) => {
+            clickEvent.stopPropagation();
             editor.showMultiSpeakerPopover(action.id, avatarContainer);
           });
         } else {
@@ -65,21 +69,21 @@ export function createSpeakerRenderers(
       dialogueItem.querySelector(".dialogue-text").textContent = action.text;
     } else if (action.type === "layout") {
       cardElement = templates.layout.content.cloneNode(true);
-      const item = cardElement.firstElementChild;
-      item.dataset.id = action.id;
-      item.dataset.layoutType = action.layoutType;
-      item.classList.remove("dialogue-item");
-      item.classList.add("layout-item");
+      const layoutItem = cardElement.firstElementChild;
+      layoutItem.dataset.id = action.id;
+      layoutItem.dataset.layoutType = action.layoutType;
+      layoutItem.classList.remove("dialogue-item");
+      layoutItem.classList.add("layout-item");
 
-      DOMUtils.applyLayoutTypeClass(item, action.layoutType);
+      DOMUtils.applyLayoutTypeClass(layoutItem, action.layoutType);
 
       const characterId = action.characterId;
       const characterName =
         action.characterName || characterNameMap.get(characterId);
 
-      item.querySelector(".speaker-name").textContent =
+      layoutItem.querySelector(".speaker-name").textContent =
         characterName || `未知角色 (ID: ${characterId})`;
-      const avatarDiv = item.querySelector(".dialogue-avatar");
+      const avatarDiv = layoutItem.querySelector(".dialogue-avatar");
       editorService.updateCharacterAvatar(
         { querySelector: () => avatarDiv },
         characterId,
@@ -92,34 +96,37 @@ export function createSpeakerRenderers(
       return null;
     }
 
-    const card =
+    const renderedCard =
       cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
         ? cardElement.firstElementChild
         : cardElement;
-    if (!card) return null;
+    if (!renderedCard) return null;
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = renderedCard.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
 
-    if (card.classList.contains("dialogue-item")) {
-      setSpeakerKey(card, action.speakers || []);
+    if (renderedCard.classList.contains("dialogue-item")) {
+      setSpeakerKey(renderedCard, action.speakers || []);
     }
-    return card;
+    return renderedCard;
   };
 
-  const updateCard = (action, card, globalIndex = -1) => {
-    if (!card) return false;
-    if (action.type === "talk" && card.classList.contains("dialogue-item")) {
-      const avatarContainer = card.querySelector(".speaker-avatar-container");
-      const avatarDiv = card.querySelector(".dialogue-avatar");
-      const speakerNameDiv = card.querySelector(".speaker-name");
-      const multiSpeakerBadge = card.querySelector(".multi-speaker-badge");
-      const dialogueText = card.querySelector(".dialogue-text");
-      const speakerKey = card.dataset.speakerKey || "";
+  const updateCard = (action, cardElement, globalIndex = -1) => {
+    if (!cardElement) return false;
+    if (
+      action.type === "talk" &&
+      cardElement.classList.contains("dialogue-item")
+    ) {
+      const avatarContainer = cardElement.querySelector(".speaker-avatar-container");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
+      const speakerNameDiv = cardElement.querySelector(".speaker-name");
+      const multiSpeakerBadge = cardElement.querySelector(".multi-speaker-badge");
+      const dialogueText = cardElement.querySelector(".dialogue-text");
+      const speakerKey = cardElement.dataset.speakerKey || "";
       const nextSpeakerKey = (action.speakers || [])
-        .map((s) => `${s.characterId}:${s.name}`)
+        .map((speaker) => `${speaker.characterId}:${speaker.name}`)
         .join("|");
 
       if (speakerKey !== nextSpeakerKey) {
@@ -135,10 +142,10 @@ export function createSpeakerRenderers(
         if (speakerNameDiv) {
           speakerNameDiv.classList.remove("hidden");
           speakerNameDiv.textContent = action.speakers
-            .map((s) => s.name)
+            .map((speaker) => speaker.name)
             .join(" & ");
         }
-        card.classList.remove("narrator");
+        cardElement.classList.remove("narrator");
         if (avatarDiv) {
           DOMUtils.clearElement(avatarDiv);
           avatarDiv.classList.remove("fallback");
@@ -168,7 +175,7 @@ export function createSpeakerRenderers(
         if (avatarContainer) avatarContainer.classList.add("hidden");
         if (speakerNameDiv) speakerNameDiv.classList.add("hidden");
         if (multiSpeakerBadge) multiSpeakerBadge.classList.add("hidden");
-        card.classList.add("narrator");
+        cardElement.classList.add("narrator");
         if (avatarDiv) {
           DOMUtils.clearElement(avatarDiv);
           avatarDiv.classList.add("fallback");
@@ -182,20 +189,20 @@ export function createSpeakerRenderers(
       }
     } else if (
       action.type === "layout" &&
-      card.classList.contains("layout-item")
+      cardElement.classList.contains("layout-item")
     ) {
-      card.dataset.id = action.id;
-      card.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+      cardElement.dataset.id = action.id;
+      cardElement.dataset.layoutType = action.layoutType;
+      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
 
       const characterId = action.characterId;
       const characterName =
         action.characterName || characterNameMap.get(action.characterId);
-      const nameEl = card.querySelector(".speaker-name");
+      const nameEl = cardElement.querySelector(".speaker-name");
       if (nameEl) {
         nameEl.textContent = characterName || `未知角色 (ID: ${characterId})`;
       }
-      const avatarDiv = card.querySelector(".dialogue-avatar");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
       if (
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
@@ -208,14 +215,14 @@ export function createSpeakerRenderers(
         avatarDiv.dataset.characterId = String(characterId || "");
       }
 
-      editor.renderLayoutCardControls(card, action, characterName, {
+      editor.renderLayoutCardControls(cardElement, action, characterName, {
         showToggleButton: false,
       });
     } else {
       return false;
     }
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = cardElement.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }

@@ -1,12 +1,12 @@
 // 增量时间线渲染：缓存卡片 DOM，只更新变动的部分，避免整列表重画。
 
 // 把 DocumentFragment/Element 统一转换成卡片元素
-function normalizeCardElement(card) {
-  if (!card) return null;
-  if (card.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-    return card.firstElementChild;
+function normalizeCardElement(cardNode) {
+  if (!cardNode) return null;
+  if (cardNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    return cardNode.firstElementChild;
   }
-  return card;
+  return cardNode;
 }
 
 // 更新卡片上的序号（#1/#2/...）
@@ -128,7 +128,7 @@ export function renderIncrementalTimeline({
     cache.contextSignature = contextSignature;
   }
 
-  const validIds = new Set(actions.map((a) => a.id));
+  const validIds = new Set(actions.map((actionItem) => actionItem.id));
   removeStaleNodes(cache, validIds);
 
   const preserveScrollTop = container.scrollTop;
@@ -136,10 +136,10 @@ export function renderIncrementalTimeline({
 
   if (!shouldGroup) {
     const nodes = actions
-      .map((action, idx) =>
+      .map((action, actionIndex) =>
         ensureCard({
           action,
-          index: idx,
+          index: actionIndex,
           renderCard,
           cache,
           signatureResolver,
@@ -157,30 +157,34 @@ export function renderIncrementalTimeline({
   const total = actions.length;
   const numGroups = Math.ceil(total / groupSize);
 
-  for (let i = 0; i < numGroups; i++) {
-    const startNum = i * groupSize + 1;
-    const endNum = Math.min((i + 1) * groupSize, total);
+  for (let groupIndex = 0; groupIndex < numGroups; groupIndex++) {
+    const startNum = groupIndex * groupSize + 1;
+    const endNum = Math.min((groupIndex + 1) * groupSize, total);
     const header = createGroupHeader({
       start: startNum,
       end: endNum,
-      index: i,
-      isActive: i === activeGroupIndex,
+      index: groupIndex,
+      isActive: groupIndex === activeGroupIndex,
       onClick: onGroupToggle,
     });
     fragment.appendChild(header);
 
-    if (i === activeGroupIndex) {
-      for (let idx = startNum - 1; idx < endNum; idx++) {
-        const card = ensureCard({
-          action: actions[idx],
-          index: idx,
+    if (groupIndex === activeGroupIndex) {
+      for (
+        let actionIndex = startNum - 1;
+        actionIndex < endNum;
+        actionIndex++
+      ) {
+        const cardElement = ensureCard({
+          action: actions[actionIndex],
+          index: actionIndex,
           renderCard,
           cache,
           signatureResolver,
           updateCard,
         });
-        if (card) {
-          fragment.appendChild(card);
+        if (cardElement) {
+          fragment.appendChild(cardElement);
         }
       }
     }

@@ -39,30 +39,35 @@ export function createLive2dRenderers(editor, { templates, characterNameMap }) {
       return null;
     }
 
-    const card =
+    const renderedCard =
       cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
         ? cardElement.firstElementChild
         : cardElement;
-    if (!card) return null;
+    if (!renderedCard) return null;
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = renderedCard.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
-    return card;
+    return renderedCard;
   };
 
-  const updateCard = (action, card, globalIndex = -1) => {
-    if (!card) return false;
-    if (action.type === "talk" && card.classList.contains("talk-item")) {
-      const nameDiv = card.querySelector(".speaker-name");
-      const avatarDiv = card.querySelector(".dialogue-avatar");
-      const preview = card.querySelector(".dialogue-preview-text");
+  const updateCard = (action, cardElement, globalIndex = -1) => {
+    if (!cardElement) return false;
+    if (
+      action.type === "talk" &&
+      cardElement.classList.contains("talk-item")
+    ) {
+      const nameDiv = cardElement.querySelector(".speaker-name");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
+      const preview = cardElement.querySelector(".dialogue-preview-text");
 
       if (action.speakers && action.speakers.length > 0) {
         const firstSpeaker = action.speakers[0];
         if (nameDiv) {
-          nameDiv.textContent = action.speakers.map((s) => s.name).join(" & ");
+          nameDiv.textContent = action.speakers
+            .map((speaker) => speaker.name)
+            .join(" & ");
         }
         if (
           avatarDiv &&
@@ -91,22 +96,22 @@ export function createLive2dRenderers(editor, { templates, characterNameMap }) {
       }
     } else if (
       action.type === "layout" &&
-      card.classList.contains("layout-item")
+      cardElement.classList.contains("layout-item")
     ) {
-      card.dataset.id = action.id;
-      card.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(card, action.layoutType);
+      cardElement.dataset.id = action.id;
+      cardElement.dataset.layoutType = action.layoutType;
+      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
 
       const characterId = action.characterId;
       const characterName =
         action.characterName || characterNameMap.get(action.characterId);
-      const nameDiv = card.querySelector(".speaker-name");
+      const nameDiv = cardElement.querySelector(".speaker-name");
       if (nameDiv) {
         nameDiv.textContent =
           characterName || `未知角色 (ID: ${characterId ?? "?"})`;
       }
 
-      const avatarDiv = card.querySelector(".dialogue-avatar");
+      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
       if (
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
@@ -119,14 +124,14 @@ export function createLive2dRenderers(editor, { templates, characterNameMap }) {
         avatarDiv.dataset.characterId = String(characterId || "");
       }
 
-      editor.renderLayoutCardControls(card, action, characterName, {
+      editor.renderLayoutCardControls(cardElement, action, characterName, {
         showToggleButton: true,
       });
     } else {
       return false;
     }
 
-    const numberDiv = card.querySelector(".card-sequence-number");
+    const numberDiv = cardElement.querySelector(".card-sequence-number");
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }

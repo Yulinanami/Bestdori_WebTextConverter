@@ -29,8 +29,8 @@ export class ThemeManager {
     this.loadTheme();
 
     // 监听主题切换事件
-    this.themeSelector.addEventListener("change", (e) => {
-      this.setTheme(e.target.value);
+    this.themeSelector.addEventListener("change", (changeEvent) => {
+      this.setTheme(changeEvent.target.value);
     });
   }
 

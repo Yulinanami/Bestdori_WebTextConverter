@@ -84,7 +84,7 @@ export const BaseEditorMixin = {
   _deleteLayoutAction(actionId) {
     this._executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
-        (a) => a.id !== actionId
+        (actionItem) => actionItem.id !== actionId
       );
     });
   },

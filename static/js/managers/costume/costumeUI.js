@@ -4,13 +4,13 @@ import { costumeRenderer } from "@managers/costume/costumeRenderer.js";
 // 服装 UI 的对外入口：把渲染和交互两个模块统一转发出去
 export const costumeUI = {
   // 绑定列表交互事件（点击、下拉框 change 等）
-  bindCostumeListEvents(manager) {
-    costumeInteractions.bindCostumeListEvents(manager);
+  bindCostumeListEvents(costumeManager) {
+    costumeInteractions.bindCostumeListEvents(costumeManager);
   },
 
   // 渲染整个服装列表
-  renderCostumeList(manager) {
-    costumeRenderer.renderCostumeList(manager);
+  renderCostumeList(costumeManager) {
+    costumeRenderer.renderCostumeList(costumeManager);
   },
 
   // 打开外部 Live2D 数据库页面
@@ -33,18 +33,18 @@ export const costumeUI = {
   },
 
   // 弹窗输入并添加服装 ID
-  addNewCostume(manager, characterName, safeDomId) {
+  addNewCostume(costumeManager, characterName, safeDomId) {
     return costumeInteractions.addNewCostume(
-      manager,
+      costumeManager,
       characterName,
       safeDomId
     );
   },
 
   // 弹窗输入并编辑服装 ID
-  editCostume(manager, characterName, index, oldCostumeId, safeDomId) {
+  editCostume(costumeManager, characterName, index, oldCostumeId, safeDomId) {
     return costumeInteractions.editCostume(
-      manager,
+      costumeManager,
       characterName,
       index,
       oldCostumeId,
@@ -53,9 +53,9 @@ export const costumeUI = {
   },
 
   // 删除某个服装 ID
-  deleteCostume(manager, characterName, index, safeDomId) {
+  deleteCostume(costumeManager, characterName, index, safeDomId) {
     return costumeInteractions.deleteCostume(
-      manager,
+      costumeManager,
       characterName,
       index,
       safeDomId
@@ -63,7 +63,11 @@ export const costumeUI = {
   },
 
   // 更新某个角色的局部 UI（列表 + select）
-  updateCostumeListUI(manager, characterName, safeDomId) {
-    costumeRenderer.updateCostumeListUI(manager, characterName, safeDomId);
+  updateCostumeListUI(costumeManager, characterName, safeDomId) {
+    costumeRenderer.updateCostumeListUI(
+      costumeManager,
+      characterName,
+      safeDomId
+    );
   },
 };

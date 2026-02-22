@@ -23,19 +23,19 @@ export function attachLive2dState(editor, _baseEditor) {
         return;
       }
 
-      const resetBtn = document.getElementById("resetLayoutsBtn");
-      const originalText = resetBtn?.textContent;
-      if (resetBtn) resetBtn.textContent = "清空中...";
+      const resetButton = document.getElementById("resetLayoutsBtn");
+      const originalText = resetButton?.textContent;
+      if (resetButton) resetButton.textContent = "清空中...";
 
       try {
         editor._executeCommand((currentState) => {
           currentState.actions = currentState.actions.filter(
-            (a) => a.type !== "layout"
+            (actionItem) => actionItem.type !== "layout"
           );
         });
         ui.showStatus("已清空所有布局。", "success");
       } finally {
-        if (resetBtn && originalText) resetBtn.textContent = originalText;
+        if (resetButton && originalText) resetButton.textContent = originalText;
       }
     },
 
@@ -51,7 +51,7 @@ export function attachLive2dState(editor, _baseEditor) {
       editor._executeCommand((currentState) => {
         // 清空现有布局
         currentState.actions = currentState.actions.filter(
-          (a) => a.type !== "layout"
+          (actionItem) => actionItem.type !== "layout"
         );
         const appearedCharacterNames = new Set();
         const newActions = [];
@@ -145,11 +145,15 @@ export function attachLive2dState(editor, _baseEditor) {
 
     // 获取某角色的默认位置（优先手动位置，否则返回 center/0）
     _getDefaultPosition(characterName) {
-      const pm = editorService.positionManager;
-      if (!pm.autoPositionMode && pm.manualPositions[characterName]) {
+      const positionManager = editorService.positionManager;
+      if (
+        !positionManager.autoPositionMode &&
+        positionManager.manualPositions[characterName]
+      ) {
         return {
-          position: pm.manualPositions[characterName].position || "center",
-          offset: pm.manualPositions[characterName].offset || 0,
+          position:
+            positionManager.manualPositions[characterName].position || "center",
+          offset: positionManager.manualPositions[characterName].offset || 0,
         };
       }
       return { position: "center", offset: 0 };
@@ -162,8 +166,8 @@ export function attachLive2dState(editor, _baseEditor) {
       let lastCostume = null;
 
       // 从头遍历到指定索引,追踪角色状态变化
-      for (let i = 0; i < startIndex; i++) {
-        const action = actions[i];
+      for (let actionIndex = 0; actionIndex < startIndex; actionIndex++) {
+        const action = actions[actionIndex];
         if (
           action &&
           action.type === "layout" &&

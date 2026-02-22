@@ -62,46 +62,46 @@ export const CharacterListMixin = {
       validNames.add(name);
 
       const cachedSignature = cache.signatures.get(name);
-      let card = cache.nodesByName.get(name);
-      const needsUpdate = !card || cachedSignature !== signature;
+      let characterCard = cache.nodesByName.get(name);
+      const needsUpdate = !characterCard || cachedSignature !== signature;
 
-      if (!card) {
+      if (!characterCard) {
         const instance = template.content.cloneNode(true);
-        card =
+        characterCard =
           instance.querySelector(".character-item") ||
           instance.firstElementChild;
       }
 
-      if (card) {
+      if (characterCard) {
         // 清理拖拽留下的临时样式，避免显示异常
-        card.style.display = "";
-        card.classList.remove(
+        characterCard.style.display = "";
+        characterCard.classList.remove(
           "sortable-ghost",
           "sortable-chosen",
           "sortable-drag"
         );
       }
 
-      if (needsUpdate && card) {
-        card.dataset.characterId = characterId;
-        card.dataset.characterName = name;
-        card.classList.toggle("is-used", !!isUsed);
+      if (needsUpdate && characterCard) {
+        characterCard.dataset.characterId = characterId;
+        characterCard.dataset.characterName = name;
+        characterCard.classList.toggle("is-used", !!isUsed);
 
-        const pinBtn = card.querySelector(".pin-btn");
-        if (pinBtn) {
-          pinBtn.classList.toggle("is-pinned", isPinned);
+        const pinButton = characterCard.querySelector(".pin-btn");
+        if (pinButton) {
+          pinButton.classList.toggle("is-pinned", isPinned);
         }
 
-        editorService.updateCharacterAvatar(card, characterId, name);
-        const nameEl = card.querySelector(".character-name");
+        editorService.updateCharacterAvatar(characterCard, characterId, name);
+        const nameEl = characterCard.querySelector(".character-name");
         if (nameEl) nameEl.textContent = name;
 
         cache.signatures.set(name, signature);
-        cache.nodesByName.set(name, card);
+        cache.nodesByName.set(name, characterCard);
       }
 
-      if (card) {
-        fragment.appendChild(card);
+      if (characterCard) {
+        fragment.appendChild(characterCard);
       }
     });
 
@@ -121,12 +121,12 @@ export const CharacterListMixin = {
     const characterList = document.getElementById(this.characterListId);
     if (!characterList) return;
 
-    characterList.addEventListener("click", (e) => {
-      const pinBtn = e.target.closest(".pin-btn");
-      if (pinBtn) {
-        e.stopPropagation();
-        e.preventDefault();
-        const characterItem = pinBtn.closest(".character-item");
+    characterList.addEventListener("click", (clickEvent) => {
+      const pinButton = clickEvent.target.closest(".pin-btn");
+      if (pinButton) {
+        clickEvent.stopPropagation();
+        clickEvent.preventDefault();
+        const characterItem = pinButton.closest(".character-item");
         if (characterItem && characterItem.dataset.characterName) {
           const characterName = characterItem.dataset.characterName;
           editorService.togglePinCharacter(characterName);

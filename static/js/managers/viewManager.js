@@ -5,9 +5,9 @@ import { ui } from "@utils/uiUtils.js";
 export const viewManager = {
   // 初始化：绑定“格式化文本”按钮
   init() {
-    const formatBtn = document.getElementById("formatTextBtn");
-    if (formatBtn) {
-      formatBtn.addEventListener("click", this.formatText.bind(this));
+    const formatButton = document.getElementById("formatTextBtn");
+    if (formatButton) {
+      formatButton.addEventListener("click", this.formatText.bind(this));
     }
   },
 

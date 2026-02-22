@@ -2,14 +2,14 @@
 
 export const ScrollAnimationMixin = {
   // 处理 dragover：根据鼠标位置决定是否开始自动滚动
-  handleDragScrolling(e, scrollContainers) {
+  handleDragScrolling(dragEvent, scrollContainers) {
     if (!scrollContainers || scrollContainers.length === 0) return;
 
     // 确定滚动目标
     let scrollTarget = null;
-    for (const container of scrollContainers) {
-      if (container && container.contains(e.target)) {
-        scrollTarget = container;
+    for (const scrollContainer of scrollContainers) {
+      if (scrollContainer && scrollContainer.contains(dragEvent.target)) {
+        scrollTarget = scrollContainer;
         break;
       }
     }
@@ -21,7 +21,7 @@ export const ScrollAnimationMixin = {
 
     // 根据鼠标离顶部/底部的距离决定滚动方向和速度
     const rect = scrollTarget.getBoundingClientRect();
-    const mouseY = e.clientY;
+    const mouseY = dragEvent.clientY;
     const hotZone = 75; // 热区高度（像素）
     let newScrollSpeed = 0;
 

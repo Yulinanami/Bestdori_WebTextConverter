@@ -6,7 +6,7 @@ import { modalService } from "@services/ModalService.js";
 let statusTimer = null;
 const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
 
-export const ui = {
+const uiUtils = {
   // 显示顶部进度条，并设置进度百分比
   showProgress(percent) {
     document.getElementById("progressContainer").style.display = "block";
@@ -98,8 +98,8 @@ export const ui = {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch (err) {
-      console.error("复制失败:", err);
+    } catch (clipboardError) {
+      console.error("复制失败:", clipboardError);
       return false;
     }
   },
@@ -131,12 +131,14 @@ export function initPerformanceSettingsPersistence() {
   checkbox.checked = savedState === true || savedState === "true";
 
   // 监听变化
-  checkbox.addEventListener("change", (e) => {
-    if (!storageService.set(GROUPING_STORAGE_KEY, e.target.checked)) {
+  checkbox.addEventListener("change", (changeEvent) => {
+    if (!storageService.set(GROUPING_STORAGE_KEY, changeEvent.target.checked)) {
       console.error("保存卡片分组设置失败");
-      if (ui && ui.showStatus) {
-        ui.showStatus("无法保存设置，可能是浏览器存储空间已满。", "error");
+      if (uiUtils && uiUtils.showStatus) {
+        uiUtils.showStatus("无法保存设置，可能是浏览器存储空间已满。", "error");
       }
     }
   });
 }
+
+export { uiUtils, uiUtils as ui };

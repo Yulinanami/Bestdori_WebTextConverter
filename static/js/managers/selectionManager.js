@@ -25,26 +25,28 @@ export const selectionManager = {
   },
 
   // 统一处理点击：决定是单选、Ctrl 切换，还是 Shift 选范围
-  _handleClick(container, itemSelector, e) {
-    const item = e.target.closest(itemSelector);
-    if (!item || !item.dataset.id) return;
-    const id = item.dataset.id;
+  _handleClick(container, itemSelector, clickEvent) {
+    const clickedItem = clickEvent.target.closest(itemSelector);
+    if (!clickedItem || !clickedItem.dataset.id) return;
+    const selectedItemId = clickedItem.dataset.id;
 
-    if (e.ctrlKey || e.metaKey) {
-      this.toggle(id);
-    } else if (e.shiftKey) {
-      this.selectRange(id, container, itemSelector);
+    if (clickEvent.ctrlKey || clickEvent.metaKey) {
+      this.toggle(selectedItemId);
+    } else if (clickEvent.shiftKey) {
+      this.selectRange(selectedItemId, container, itemSelector);
     } else {
       const isAlreadyOnlySelected =
-        this.selectedIds.has(id) && this.selectedIds.size === 1;
+        this.selectedIds.has(selectedItemId) && this.selectedIds.size === 1;
       if (isAlreadyOnlySelected) {
         this.clear();
       } else {
-        this.selectSingle(id);
+        this.selectSingle(selectedItemId);
       }
     }
 
-    this.lastSelectedId = this.selectedIds.has(id) ? id : null;
+    this.lastSelectedId = this.selectedIds.has(selectedItemId)
+      ? selectedItemId
+      : null;
     container.dispatchEvent(
       new CustomEvent("selectionchange", {
         detail: { selectedIds: this.getSelectedIds() },
@@ -53,18 +55,18 @@ export const selectionManager = {
   },
 
   // Ctrl/Command 点击：把某一项加入/移出“已选中集合”
-  toggle(id) {
-    if (this.selectedIds.has(id)) {
-      this.selectedIds.delete(id);
+  toggle(itemId) {
+    if (this.selectedIds.has(itemId)) {
+      this.selectedIds.delete(itemId);
     } else {
-      this.selectedIds.add(id);
+      this.selectedIds.add(itemId);
     }
   },
 
   // 普通点击：只保留一个选中项
-  selectSingle(id) {
+  selectSingle(itemId) {
     this.clear();
-    this.selectedIds.add(id);
+    this.selectedIds.add(itemId);
   },
 
   // Shift 点击：把“上一次选中的项”到“当前项”之间的全部选中
@@ -74,15 +76,17 @@ export const selectionManager = {
       return;
     }
 
-    const items = Array.from(container.querySelectorAll(itemSelector));
-    const ids = items.map((item) => item.dataset.id);
-    const startIndex = ids.indexOf(this.lastSelectedId);
-    const endIndex = ids.indexOf(endId);
+    const listItems = Array.from(container.querySelectorAll(itemSelector));
+    const itemIds = listItems.map((listItem) => listItem.dataset.id);
+    const startIndex = itemIds.indexOf(this.lastSelectedId);
+    const endIndex = itemIds.indexOf(endId);
 
     if (startIndex === -1 || endIndex === -1) return;
-    const [start, end] = [startIndex, endIndex].sort((a, b) => a - b);
-    const rangeIds = ids.slice(start, end + 1);
-    rangeIds.forEach((id) => this.selectedIds.add(id));
+    const [start, end] = [startIndex, endIndex].sort(
+      (leftIndex, rightIndex) => leftIndex - rightIndex
+    );
+    const rangeIds = itemIds.slice(start, end + 1);
+    rangeIds.forEach((itemId) => this.selectedIds.add(itemId));
   },
 
   // 清空所有选中项

@@ -132,9 +132,13 @@ export const configManager = {
       async () => {
         const configItems = document.querySelectorAll(".config-item");
         const newConfig = {};
-        configItems.forEach((item) => {
-          const characterName = item.querySelector(".config-name").value.trim();
-          const characterIdsText = item.querySelector(".config-ids").value.trim();
+        configItems.forEach((configItemElement) => {
+          const characterName = configItemElement
+            .querySelector(".config-name")
+            .value.trim();
+          const characterIdsText = configItemElement
+            .querySelector(".config-ids")
+            .value.trim();
           if (characterName && characterIdsText) {
             const characterIds = characterIdsText
               .split(",")

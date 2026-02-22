@@ -13,7 +13,7 @@ export const positionUI = {
     currentPosition,
     currentOffset,
   ) {
-    const item = DOMUtils.createElement("div", {
+    const positionItem = DOMUtils.createElement("div", {
       class: "position-config-item",
     });
 
@@ -29,9 +29,9 @@ export const positionUI = {
       currentOffset,
     );
 
-    DOMUtils.appendChildren(item, [infoDiv, controlsDiv]);
+    DOMUtils.appendChildren(positionItem, [infoDiv, controlsDiv]);
 
-    return item;
+    return positionItem;
   },
 
   // 创建左侧角色信息区域（头像 + 名字）
@@ -122,7 +122,7 @@ export const positionUI = {
     });
     label.textContent = "偏移:";
 
-    const input = DOMUtils.createElement("input", {
+    const offsetInput = DOMUtils.createElement("input", {
       type: "number",
       id: `offset-${name}`,
       class: "form-input position-offset-input",
@@ -138,13 +138,13 @@ export const positionUI = {
     });
     hint.textContent = "px";
 
-    DOMUtils.appendChildren(offsetGroup, [label, input, hint]);
+    DOMUtils.appendChildren(offsetGroup, [label, offsetInput, hint]);
 
     return offsetGroup;
   },
 
   // 把所有角色渲染到位置列表里
-  renderPositionList(manager) {
+  renderPositionList(positionManager) {
     const positionList = document.getElementById("positionList");
     if (!positionList) return;
     const fragment = document.createDocumentFragment();
@@ -161,14 +161,15 @@ export const positionUI = {
       const avatarId = configManager.getAvatarId(primaryId);
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
-      const currentConfig = manager.tempManualPositions[name] || {
+      const characterPositionConfig =
+        positionManager.tempManualPositions[name] || {
         position: "center",
         offset: 0,
       };
-      const currentPosition = currentConfig.position || "center";
-      const currentOffset = currentConfig.offset || 0;
+      const currentPosition = characterPositionConfig.position || "center";
+      const currentOffset = characterPositionConfig.offset || 0;
 
-      const item = this.createPositionItem(
+      const positionItem = this.createPositionItem(
         name,
         primaryId,
         avatarId,
@@ -176,7 +177,7 @@ export const positionUI = {
         currentPosition,
         currentOffset,
       );
-      fragment.appendChild(item);
+      fragment.appendChild(positionItem);
     });
     DOMUtils.clearElement(positionList);
     positionList.appendChild(fragment);

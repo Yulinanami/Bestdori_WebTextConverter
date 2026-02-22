@@ -66,17 +66,17 @@ export const expressionEditor = {
 
     // 给搜索框加一个“清空按钮”（输入时显示，点一下清空）
     const setupSearchClear = (inputId, clearBtnId) => {
-      const input = document.getElementById(inputId);
-      const clearBtn = document.getElementById(clearBtnId);
-      if (!input || !clearBtn) return;
-      input.addEventListener("input", () => {
-        clearBtn.style.display = input.value ? "block" : "none";
+      const searchInput = document.getElementById(inputId);
+      const clearButton = document.getElementById(clearBtnId);
+      if (!searchInput || !clearButton) return;
+      searchInput.addEventListener("input", () => {
+        clearButton.style.display = searchInput.value ? "block" : "none";
       });
 
-      clearBtn.addEventListener("click", () => {
-        input.value = "";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.focus();
+      clearButton.addEventListener("click", () => {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchInput.focus();
       });
     };
 
@@ -84,39 +84,41 @@ export const expressionEditor = {
     setupSearchClear("expressionSearchInput", "clearExpressionSearchBtn");
     document
       .getElementById("motionSearchInput")
-      ?.addEventListener("input", (e) => this._filterLibraryList("motion", e));
+      ?.addEventListener("input", (inputEvent) =>
+        this._filterLibraryList("motion", inputEvent)
+      );
     document
       .getElementById("expressionSearchInput")
-      ?.addEventListener("input", (e) =>
-        this._filterLibraryList("expression", e)
+      ?.addEventListener("input", (inputEvent) =>
+        this._filterLibraryList("expression", inputEvent)
       );
 
     const libraryContainer = document.getElementById("expressionEditorLibrary");
     if (libraryContainer) {
-      libraryContainer.addEventListener("click", (e) => {
-        const quickFillBtn = e.target.closest(".quick-fill-btn");
-        const quickFillItem = e.target.closest(".quick-fill-item");
-        const deleteBtn = e.target.closest(".quick-fill-delete-btn");
+      libraryContainer.addEventListener("click", (clickEvent) => {
+        const quickFillButton = clickEvent.target.closest(".quick-fill-btn");
+        const quickFillItem = clickEvent.target.closest(".quick-fill-item");
+        const deleteButton = clickEvent.target.closest(".quick-fill-delete-btn");
 
-        if (deleteBtn) {
+        if (deleteButton) {
           // 优先处理删除按钮
-          e.stopPropagation(); // 阻止事件冒泡到 quickFillItem
-          this._deleteCustomQuickFillOption(deleteBtn.dataset.value);
+          clickEvent.stopPropagation(); // 阻止事件冒泡到 quickFillItem
+          this._deleteCustomQuickFillOption(deleteButton.dataset.value);
           return;
         }
 
-        if (quickFillBtn) {
-          this._toggleQuickFillDropdown(quickFillBtn.dataset.type);
+        if (quickFillButton) {
+          this._toggleQuickFillDropdown(quickFillButton.dataset.type);
         }
 
         if (quickFillItem) {
-          e.preventDefault();
+          clickEvent.preventDefault();
           const type = quickFillItem.dataset.type;
-          const value = quickFillItem.dataset.value;
+          const selectedValue = quickFillItem.dataset.value;
           if (type === "add-custom") {
             this._addCustomQuickFillOption();
           } else {
-            this._handleQuickFillSelect(type, value);
+            this._handleQuickFillSelect(type, selectedValue);
           }
         }
       });
@@ -137,9 +139,9 @@ export const expressionEditor = {
       return;
     }
 
-    const resetBtn = document.getElementById("resetExpressionsBtn");
-    const originalText = resetBtn?.textContent;
-    if (resetBtn) resetBtn.textContent = "恢复中...";
+    const resetButton = document.getElementById("resetExpressionsBtn");
+    const originalText = resetButton?.textContent;
+    if (resetButton) resetButton.textContent = "恢复中...";
 
     try {
       this._executeCommand((currentState) => {
@@ -154,7 +156,7 @@ export const expressionEditor = {
       ui.showStatus("已恢复默认表情动作。", "success");
       this.renderTimeline();
     } finally {
-      if (resetBtn && originalText) resetBtn.textContent = originalText;
+      if (resetButton && originalText) resetButton.textContent = originalText;
     }
   },
 

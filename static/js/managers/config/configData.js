@@ -31,25 +31,25 @@ export const configData = {
 
     const normalizedValue = Math.max(0, value);
     storageService.set(storageKey, normalizedValue);
-    const input = document.getElementById(inputId);
-    if (input) {
-      input.value = normalizedValue;
+    const numericInput = document.getElementById(inputId);
+    if (numericInput) {
+      numericInput.value = normalizedValue;
     }
   },
 
   // 从后端加载默认配置，并优先使用本地覆盖（如果有）
-  async loadConfig(manager) {
+  async loadConfig(configManager) {
     try {
       const data = await apiService.getConfig();
       state.set("configData", data);
-      manager.defaultConfig = data.character_mapping;
+      configManager.defaultConfig = data.character_mapping;
       state.set("avatarMapping", data.avatar_mapping || {});
 
       const savedConfig = this.loadLocalConfig();
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
       } else {
-        state.set("currentConfig", { ...manager.defaultConfig });
+        state.set("currentConfig", { ...configManager.defaultConfig });
       }
 
       quoteManager.renderQuoteOptions();
@@ -72,7 +72,7 @@ export const configData = {
   },
 
   // 导出所有配置为一个 JSON 文件（角色/引号/服装/位置/动作表情等）
-  async exportConfig(manager) {
+  async exportConfig(configManager) {
     await ui.withButtonLoading(
       "exportConfigBtn",
       async () => {
@@ -133,11 +133,11 @@ export const configData = {
   },
 
   // 导入配置文件（读取 JSON，并分发给各个子系统）
-  async importConfig(manager, file) {
+  async importConfig(configManager, file) {
     try {
       const text = await FileUtils.readFileAsText(file);
       const config = JSON.parse(text);
-      this._applyImportedConfig(config, manager);
+      this._applyImportedConfig(config, configManager);
       ui.showStatus("配置导入成功", "success");
     } catch (error) {
       console.error("配置导入失败:", error);
@@ -146,7 +146,7 @@ export const configData = {
   },
 
   // 校验并将导入的配置分发给各个子系统
-  _applyImportedConfig(config, manager) {
+  _applyImportedConfig(config, configManager) {
     if (!this.validateConfig(config)) {
       throw new Error("配置文件包含不安全的数据，导入已被阻止");
     }
@@ -195,7 +195,7 @@ export const configData = {
     }
 
     // 刷新 UI
-    manager.renderConfigList();
+    configManager.renderConfigList();
     quoteManager.renderQuoteOptions();
 
     // 数字设置

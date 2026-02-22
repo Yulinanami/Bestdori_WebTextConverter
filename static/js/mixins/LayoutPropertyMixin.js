@@ -75,14 +75,16 @@ export const LayoutPropertyMixin = {
 
   // 根据触发的控件类型，把布局卡片的改动写回 action（按 actionId 找到那条 action）
   _updateLayoutActionProperty(actionId, targetElement) {
-    const value =
+    const targetValue =
       targetElement.type === "number"
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const controlClassName = targetElement.className;
 
     this._executeCommand((currentState) => {
-      const action = currentState.actions.find((a) => a.id === actionId);
+      const action = currentState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
       if (!action) return;
 
       // 找到匹配的处理器并执行
@@ -91,7 +93,7 @@ export const LayoutPropertyMixin = {
       );
 
       if (handlerKey) {
-        this._layoutPropertyHandlers[handlerKey](action, value);
+        this._layoutPropertyHandlers[handlerKey](action, targetValue);
       }
     });
   },
@@ -176,7 +178,7 @@ export const LayoutPropertyMixin = {
     // 处理终点位置容器
     const toPositionContainer = card.querySelector(".to-position-container");
     const toPositionSelect = card.querySelector(".layout-position-select-to");
-    const toggleBtn = card.querySelector(".toggle-position-btn");
+    const toggleButton = card.querySelector(".toggle-position-btn");
     const mainPositionLabel = card.querySelector(".main-position-label");
     const mainOffsetLabel = card.querySelector(".main-offset-label");
 
@@ -212,8 +214,8 @@ export const LayoutPropertyMixin = {
       }
 
       // 如果有切换按钮，添加展开状态
-      if (toggleBtn && showToggleButton) {
-        toggleBtn.classList.add("expanded");
+      if (toggleButton && showToggleButton) {
+        toggleButton.classList.add("expanded");
       }
     } else {
       // 收起模式：标签显示"位置"，隐藏终点配置
@@ -224,17 +226,17 @@ export const LayoutPropertyMixin = {
       if (mainOffsetLabel) mainOffsetLabel.textContent = "偏移:";
 
       // 如果有切换按钮，移除展开状态
-      if (toggleBtn && showToggleButton) {
-        toggleBtn.classList.remove("expanded");
+      if (toggleButton && showToggleButton) {
+        toggleButton.classList.remove("expanded");
       }
     }
 
     // 控制切换按钮的显示/隐藏
-    if (toggleBtn) {
+    if (toggleButton) {
       if (showToggleButton) {
-        toggleBtn.classList.remove("hidden");
+        toggleButton.classList.remove("hidden");
       } else {
-        toggleBtn.classList.add("hidden");
+        toggleButton.classList.add("hidden");
       }
     }
   },

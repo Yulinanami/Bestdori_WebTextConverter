@@ -8,11 +8,13 @@ export const libraryPanel = {
   // 初始化拖拽：动作/表情库里的 item 可以拖拽（clone）
   initDragAndDropForLibraries(editor) {
     const sortables = (editor.sortableInstances || []).filter(
-      (s) => s && s.el
+      (sortableInstance) => sortableInstance && sortableInstance.el
     );
-    const timelineSortable = sortables.find((s) => s.el?.id);
+    const timelineSortable = sortables.find(
+      (sortableInstance) => sortableInstance.el?.id
+    );
     sortables
-      .filter((s) => s !== timelineSortable)
+      .filter((sortableInstance) => sortableInstance !== timelineSortable)
       .forEach((instance) => instance?.el && instance.destroy());
     editor.sortableInstances = timelineSortable ? [timelineSortable] : [];
 
@@ -46,25 +48,27 @@ export const libraryPanel = {
   // 刷新右侧资源库（优先展示“在场角色”相关的动作/表情）
   renderLibraries(editor) {
     const stagedCharacters = editor._getStagedCharacters();
-    const stagedCharacterIds = new Set(stagedCharacters.map((c) => c.id));
+    const stagedCharacterIds = new Set(
+      stagedCharacters.map((character) => character.id)
+    );
     const motionItems = new Set(editor.tempLibraryItems.motion);
     const expressionItems = new Set(editor.tempLibraryItems.expression);
-    stagedCharacterIds.forEach((id) => {
+    stagedCharacterIds.forEach((characterId) => {
       editorService.motionManager
-        .getAvailableItemsForCharacter(id)
-        .forEach((item) => motionItems.add(item));
+        .getAvailableItemsForCharacter(characterId)
+        .forEach((itemId) => motionItems.add(itemId));
       editorService.expressionManager
-        .getAvailableItemsForCharacter(id)
-        .forEach((item) => expressionItems.add(item));
+        .getAvailableItemsForCharacter(characterId)
+        .forEach((itemId) => expressionItems.add(itemId));
     });
 
     if (stagedCharacterIds.size === 0) {
       editorService.motionManager
         .getAllKnownItems()
-        .forEach((item) => motionItems.add(item));
+        .forEach((itemId) => motionItems.add(itemId));
       editorService.expressionManager
         .getAllKnownItems()
-        .forEach((item) => expressionItems.add(item));
+        .forEach((itemId) => expressionItems.add(itemId));
     }
     editor._renderLibrary("motion", Array.from(motionItems).sort());
     editor._renderLibrary("expression", Array.from(expressionItems).sort());
@@ -74,21 +78,21 @@ export const libraryPanel = {
 
   // 把一组 items 渲染成可拖拽列表
   renderLibrary(type, items) {
-    const container = document.getElementById(`${type}LibraryList`);
-    DOMUtils.clearElement(container);
+    const libraryListContainer = document.getElementById(`${type}LibraryList`);
+    DOMUtils.clearElement(libraryListContainer);
 
-    const itemElements = items.map((item) =>
+    const itemElements = items.map((itemId) =>
       DOMUtils.createElement(
         "div",
         {
           className: "config-list-item draggable-item",
           draggable: true,
         },
-        [DOMUtils.createElement("span", { className: "item-name" }, item)]
+        [DOMUtils.createElement("span", { className: "item-name" }, itemId)]
       )
     );
 
-    DOMUtils.appendChildren(container, itemElements);
+    DOMUtils.appendChildren(libraryListContainer, itemElements);
   },
 
   // 搜索过滤：只显示前缀匹配的项
@@ -98,43 +102,49 @@ export const libraryPanel = {
       type === "motion" ? "motionLibraryList" : "expressionLibraryList";
     const listContainer = document.getElementById(listContainerId);
     if (!listContainer) return;
-    const items = listContainer.querySelectorAll(
+    const libraryItems = listContainer.querySelectorAll(
       ".config-list-item.draggable-item"
     );
 
-    items.forEach((item) => {
-      const itemName = item.textContent.toLowerCase();
-      item.style.display = itemName.startsWith(searchTerm) ? "" : "none";
+    libraryItems.forEach((libraryItem) => {
+      const itemName = libraryItem.textContent.toLowerCase();
+      libraryItem.style.display = itemName.startsWith(searchTerm) ? "" : "none";
     });
   },
 
   // 添加一个“临时动作/表情项”（只对当前编辑器窗口有效）
   addTempItem(editor, type) {
     const isMotion = type === "motion";
-    const input = document.getElementById(
+    const idInput = document.getElementById(
       isMotion ? "tempMotionInput" : "tempExpressionInput"
     );
-    const manager = isMotion
+    const targetConfigManager = isMotion
       ? editorService.motionManager
       : editorService.expressionManager;
     const tempList = editor.tempLibraryItems[type];
-    const trimmedId = input.value.trim();
+    const trimmedId = idInput.value.trim();
 
     if (!trimmedId) {
-      ui.showStatus(`${manager.name}ID不能为空！`, "error");
+      ui.showStatus(`${targetConfigManager.name}ID不能为空！`, "error");
       return;
     }
 
-    const allItems = new Set([...manager.getAllKnownItems(), ...tempList]);
+    const allItems = new Set([
+      ...targetConfigManager.getAllKnownItems(),
+      ...tempList,
+    ]);
     if (allItems.has(trimmedId)) {
-      ui.showStatus(`该${manager.name}ID已存在！`, "error");
+      ui.showStatus(`该${targetConfigManager.name}ID已存在！`, "error");
       return;
     }
 
     tempList.push(trimmedId);
-    input.value = "";
+    idInput.value = "";
     editor.renderLibraries();
-    ui.showStatus(`已添加临时${manager.name}：${trimmedId}`, "success");
+    ui.showStatus(
+      `已添加临时${targetConfigManager.name}：${trimmedId}`,
+      "success"
+    );
   },
 
   // 打开 Live2D 浏览器（如果时间线里有服装，会按服装逐个打开）
