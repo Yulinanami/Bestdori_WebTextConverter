@@ -2,23 +2,10 @@ import { ui } from "@utils/uiUtils.js";
 import { editorService } from "@services/EditorService.js";
 
 // 自动布局、插入布局动作、清空布局等
-export function attachLive2dState(editor, _baseEditor) {
+export function attachLive2DState(editor, _baseEditor) {
   Object.assign(editor, {
-    // 统计：哪些角色已经出现在布局里（用于右侧列表高亮）
-    _getUsedCharacterIds() {
-      const usedNames = new Set();
-      if (editor.projectFileState && editor.projectFileState.actions) {
-        editor.projectFileState.actions.forEach((action) => {
-          if (action.type === "layout" && action.characterName) {
-            usedNames.add(action.characterName);
-          }
-        });
-      }
-      return usedNames;
-    },
-
     // 清空所有布局动作（只保留对话动作）
-    async _clearAllLayouts() {
+    async clearAllLayouts() {
       if (!confirm("确定要清空所有布局吗？此操作可以撤销。")) {
         return;
       }
@@ -28,7 +15,7 @@ export function attachLive2dState(editor, _baseEditor) {
       if (resetButton) resetButton.textContent = "清空中...";
 
       try {
-        editor._executeCommand((currentState) => {
+        editor.executeCommand((currentState) => {
           currentState.actions = currentState.actions.filter(
             (actionItem) => actionItem.type !== "layout"
           );
@@ -40,7 +27,7 @@ export function attachLive2dState(editor, _baseEditor) {
     },
 
     // 一键自动布局：根据每个角色的首次发言，自动插入登场布局
-    _applyAutoLayout() {
+    applyAutoLayout() {
       if (
         !confirm(
           "这将清空所有现有的Live2D布局，并根据角色的首次发言自动生成新的登场布局。确定要继续吗？"
@@ -48,7 +35,7 @@ export function attachLive2dState(editor, _baseEditor) {
       ) {
         return;
       }
-      editor._executeCommand((currentState) => {
+      editor.executeCommand((currentState) => {
         // 清空现有布局
         currentState.actions = currentState.actions.filter(
           (actionItem) => actionItem.type !== "layout"
@@ -63,7 +50,7 @@ export function attachLive2dState(editor, _baseEditor) {
             action.speakers.forEach((speaker) => {
               if (!appearedCharacterNames.has(speaker.name)) {
                 appearedCharacterNames.add(speaker.name);
-                const defaultCostume = editor._getDefaultCostume(speaker.name);
+                const defaultCostume = editor.getDefaultCostume(speaker.name);
                 const positionConfig =
                   editorService.positionManager.getCharacterPositionConfig(
                     speaker.name,
@@ -105,8 +92,8 @@ export function attachLive2dState(editor, _baseEditor) {
 
     // 插入一条布局动作（拖拽角色到时间轴时用，会自动决定 appear/move/hide）
     insertLayoutAction(characterId, characterName, index) {
-      editor._executeCommand((currentState) => {
-        const previousState = editor._getCharacterStateAtIndex(
+      editor.executeCommand((currentState) => {
+        const previousState = editor.getCharacterStateAtIndex(
           currentState.actions,
           characterName,
           index
@@ -115,8 +102,8 @@ export function attachLive2dState(editor, _baseEditor) {
           ? editor.subsequentLayoutMode
           : "appear";
         const costumeToUse =
-          previousState.lastCostume || editor._getDefaultCostume(characterName);
-        const defaultPosition = editor._getDefaultPosition(characterName);
+          previousState.lastCostume || editor.getDefaultCostume(characterName);
+        const defaultPosition = editor.getDefaultPosition(characterName);
         const fromPosition = previousState.lastPosition
           ? { ...previousState.lastPosition }
           : { side: defaultPosition.position, offsetX: defaultPosition.offset };
@@ -138,13 +125,26 @@ export function attachLive2dState(editor, _baseEditor) {
       });
     },
 
+    // 统计当前项目里出现过哪些角色（用于右侧列表高亮）
+    getUsedCharacterIds() {
+      const usedNames = new Set();
+      if (editor.projectFileState && editor.projectFileState.actions) {
+        editor.projectFileState.actions.forEach((action) => {
+          if (action.type === "layout" && action.characterName) {
+            usedNames.add(action.characterName);
+          }
+        });
+      }
+      return usedNames;
+    },
+
     // 获取某角色的默认服装（来自当前服装配置）
-    _getDefaultCostume(characterName) {
+    getDefaultCostume(characterName) {
       return editorService.state.get("currentCostumes")[characterName] || "";
     },
 
     // 获取某角色的默认位置（优先手动位置，否则返回 center/0）
-    _getDefaultPosition(characterName) {
+    getDefaultPosition(characterName) {
       const positionManager = editorService.positionManager;
       if (
         !positionManager.autoPositionMode &&
@@ -160,7 +160,7 @@ export function attachLive2dState(editor, _baseEditor) {
     },
 
     // 回溯到 startIndex 之前：推断角色是否在场、最后位置、最后服装
-    _getCharacterStateAtIndex(actions, characterName, startIndex) {
+    getCharacterStateAtIndex(actions, characterName, startIndex) {
       let onStage = false;
       let lastPosition = null;
       let lastCostume = null;

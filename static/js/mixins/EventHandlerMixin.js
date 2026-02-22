@@ -38,7 +38,7 @@ export const EventHandlerMixin = {
           return;
         }
       }
-      this._closeEditor();
+      this.closeEditor();
     };
     this.domCache.modal
       ?.querySelector(".modal-close")

@@ -9,16 +9,16 @@ import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
-import { attachLive2dState } from "@editors/live2d/live2dState.js";
-import { attachLive2dControls } from "@editors/live2d/live2dControls.js";
-import { attachLive2dTimeline } from "@editors/live2d/live2dTimeline.js";
-import { attachLive2dDrag } from "@editors/live2d/live2dDrag.js";
+import { attachLive2DState } from "@editors/live2d/live2dState.js";
+import { attachLive2DControls } from "@editors/live2d/live2dControls.js";
+import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
+import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
     live2dEditor.renderTimeline();
-    const usedNames = live2dEditor._getUsedCharacterIds();
+    const usedNames = live2dEditor.getUsedCharacterIds();
     live2dEditor.renderCharacterList(usedNames);
   },
   groupSize: 50,
@@ -63,12 +63,12 @@ export const live2dEditor = {
       ?.addEventListener("click", () => this.open());
     document
       .getElementById("autoLayoutBtn")
-      ?.addEventListener("click", () => this._applyAutoLayout());
+      ?.addEventListener("click", () => this.applyAutoLayout());
     document
       .getElementById("resetLayoutsBtn")
-      ?.addEventListener("click", () => this._clearAllLayouts());
+      ?.addEventListener("click", () => this.clearAllLayouts());
     this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () =>
-      this._toggleSubsequentLayoutMode()
+      this.toggleSubsequentLayoutMode()
     );
 
     // 初始化通用事件（撤销/重做/保存/导入导出/关闭确认/快捷键）
@@ -87,7 +87,7 @@ export const live2dEditor = {
       loadingText: "加载中...",
       beforeOpen: async () => {
         try {
-          await this._prepareProjectState({
+          await this.prepareProjectState({
             onExistingProjectLoaded: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
             onNewProjectCreated: (_, { rawText }) => {
@@ -106,10 +106,10 @@ export const live2dEditor = {
       },
       afterOpen: async () => {
         this.renderTimeline();
-        const usedCharacterNames = this._getUsedCharacterIds();
+        const usedCharacterNames = this.getUsedCharacterIds();
         this.renderCharacterList(usedCharacterNames);
         this.initDragAndDrop();
-        this._updateSubsequentModeButton();
+        this.updateSubsequentModeButton();
         this.bindTimelineEvents();
 
         if (this.domCache.modal) this.domCache.modal.focus();
@@ -120,13 +120,13 @@ export const live2dEditor = {
   // 导入项目后：刷新时间线与角色列表
   afterImport() {
     this.renderTimeline();
-    const usedCharacterNames = this._getUsedCharacterIds();
+    const usedCharacterNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 
   // 置顶状态变化后：刷新角色列表
   afterPinToggle() {
-    const usedCharacterNames = this._getUsedCharacterIds();
+    const usedCharacterNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 };
@@ -145,7 +145,7 @@ Object.assign(
 );
 
 // 注入拆分出的功能模块（把 live2dEditor 作为宿主对象扩展方法）
-attachLive2dState(live2dEditor, baseEditor);
-attachLive2dControls(live2dEditor);
-attachLive2dTimeline(live2dEditor);
-attachLive2dDrag(live2dEditor, baseEditor);
+attachLive2DState(live2dEditor, baseEditor);
+attachLive2DControls(live2dEditor);
+attachLive2DTimeline(live2dEditor);
+attachLive2DDrag(live2dEditor, baseEditor);

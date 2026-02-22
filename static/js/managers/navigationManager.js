@@ -55,7 +55,7 @@ class NavigationManager {
   }
 
   // 每个步骤需要“进场初始化”时，就在这里写对应的加载逻辑
-  _stepInitializers = {
+  _stepInitializerMap = {
     // 第 5 步：配置管理（角色列表）
     5: async () => {
       const { configManager } = await import("@managers/configManager.js");
@@ -128,7 +128,7 @@ class NavigationManager {
   // 进入某个步骤时，按需执行该步骤对应的初始化函数
   async initializeStepContent(stepNum) {
     // 使用策略模式查找并执行对应的初始化器
-    const initializer = this._stepInitializers[stepNum];
+    const initializer = this._stepInitializerMap[stepNum];
     if (initializer) {
       await initializer();
     }

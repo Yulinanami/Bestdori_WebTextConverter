@@ -134,18 +134,6 @@ export const mergerManager = {
     return FileUtils.readFileAsText(file);
   },
 
-  clearFiles() {
-    this.files = [];
-    this.updateUI();
-    const resultSec = document.getElementById("mergeResultSection");
-    if (resultSec) resultSec.classList.add("hidden");
-  },
-
-  removeFile(fileId) {
-    this.files = this.files.filter((fileEntry) => fileEntry.id !== fileId);
-    this.updateUI();
-  },
-
   updateUI() {
     const fileListContainer = document.getElementById("mergerFileListContainer");
     const fileListElement = document.getElementById("mergerFileList");
@@ -176,16 +164,28 @@ export const mergerManager = {
       });
 
       // 只绑定一次全局删除事件
-      if (!this._deleteEventBound) {
+      if (!this._isDeleteEventBound) {
         document.addEventListener("remove-merger-file", (removeFileEvent) => {
           this.removeFile(removeFileEvent.detail);
         });
-        this._deleteEventBound = true;
+        this._isDeleteEventBound = true;
       }
     } else {
       fileListContainer.classList.add("hidden");
       mergeButton.disabled = true;
     }
+  },
+
+  clearFiles() {
+    this.files = [];
+    this.updateUI();
+    const resultSec = document.getElementById("mergeResultSection");
+    if (resultSec) resultSec.classList.add("hidden");
+  },
+
+  removeFile(fileId) {
+    this.files = this.files.filter((fileEntry) => fileEntry.id !== fileId);
+    this.updateUI();
   },
 
   // 合并文件：前端负责类型验证，后端负责实际合并
@@ -230,7 +230,30 @@ export const mergerManager = {
     }
   },
 
-  // 展示合并结果
+  downloadMergedResult() {
+    if (!this.mergedResult) return;
+
+    const dataStr = JSON.stringify(this.mergedResult, null, 2);
+    const filename =
+      this.mode === "bestdori"
+        ? `merged_bestdori_${Date.now()}.json`
+        : `merged_project_${Date.now()}.json`;
+
+    FileUtils.downloadAsFile(dataStr, filename);
+  },
+
+  async copyMergedResult() {
+    if (!this.mergedResult) return;
+    const dataStr = JSON.stringify(this.mergedResult, null, 2);
+    try {
+      await navigator.clipboard.writeText(dataStr);
+      ui.showStatus("合并结果已复制到剪贴板！", "success");
+    } catch (clipboardError) {
+      ui.showStatus("复制失败，请手动选择复制。", "error");
+    }
+  },
+
+  // 内部方法：展示合并结果
   _displayMergeResult(mergedData) {
     const resultSec = document.getElementById("mergeResultSection");
     const resultContent = document.getElementById("mergeResultContent");
@@ -255,29 +278,6 @@ export const mergerManager = {
       resultSec.classList.remove("hidden");
       resultSec.scrollIntoView({ behavior: "smooth", block: "start" });
       ui.showStatus("文件合成成功！", "success");
-    }
-  },
-
-  downloadMergedResult() {
-    if (!this.mergedResult) return;
-
-    const dataStr = JSON.stringify(this.mergedResult, null, 2);
-    const filename =
-      this.mode === "bestdori"
-        ? `merged_bestdori_${Date.now()}.json`
-        : `merged_project_${Date.now()}.json`;
-
-    FileUtils.downloadAsFile(dataStr, filename);
-  },
-
-  async copyMergedResult() {
-    if (!this.mergedResult) return;
-    const dataStr = JSON.stringify(this.mergedResult, null, 2);
-    try {
-      await navigator.clipboard.writeText(dataStr);
-      ui.showStatus("合并结果已复制到剪贴板！", "success");
-    } catch (clipboardError) {
-      ui.showStatus("复制失败，请手动选择复制。", "error");
     }
   },
 };

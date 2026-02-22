@@ -6,7 +6,7 @@ import {
 } from "@utils/TimelineCardFactory.js";
 import { editorService } from "@services/EditorService.js";
 
-export function createLive2dRenderers(editor, { templates, characterNameMap }) {
+export function createLive2DRenderers(editor, { templates, characterNameMap }) {
   // renderSingleCard负责画一个卡片，updateCard 负责就地更新卡片
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;

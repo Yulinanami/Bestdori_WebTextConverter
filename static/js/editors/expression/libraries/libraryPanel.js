@@ -47,7 +47,7 @@ export const libraryPanel = {
 
   // 刷新右侧资源库（优先展示“在场角色”相关的动作/表情）
   renderLibraries(editor) {
-    const stagedCharacters = editor._getStagedCharacters();
+    const stagedCharacters = editor.getStagedCharacters();
     const stagedCharacterIds = new Set(
       stagedCharacters.map((character) => character.id)
     );
@@ -70,8 +70,8 @@ export const libraryPanel = {
         .getAllKnownItems()
         .forEach((itemId) => expressionItems.add(itemId));
     }
-    editor._renderLibrary("motion", Array.from(motionItems).sort());
-    editor._renderLibrary("expression", Array.from(expressionItems).sort());
+    editor.renderLibrary("motion", Array.from(motionItems).sort());
+    editor.renderLibrary("expression", Array.from(expressionItems).sort());
 
     editor.initDragAndDropForLibraries();
   },
@@ -148,7 +148,7 @@ export const libraryPanel = {
   },
 
   // 打开 Live2D 浏览器（如果时间线里有服装，会按服装逐个打开）
-  openLive2dViewers(editor) {
+  openLive2DViewers(editor) {
     if (!editor.projectFileState || !editor.projectFileState.actions) {
       ui.showStatus("没有可分析的剧情内容。", "error");
       window.open("https://bestdori.com/tool/live2d", "_blank");
@@ -197,6 +197,6 @@ export const libraryPanel = {
   loadQuickFillOptions(editor) {
     const configData = state.get("configData");
     editor.quickFillOptions.default = configData?.quick_fill_options || [];
-    editor.quickFillOptions.custom = editor._getCustomQuickFillOptions() || [];
+    editor.quickFillOptions.custom = editor.getCustomQuickFillOptions() || [];
   },
 };

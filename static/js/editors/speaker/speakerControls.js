@@ -19,8 +19,8 @@ export function attachSpeakerControls(editor) {
 
     // 把当前模式状态同步到按钮文字和画布样式上
     applyModeUIState() {
-      this._updateMultiSelectButtonUI();
-      this._updateTextEditButtonUI();
+      this.updateMultiSelectButtonUI();
+      this.updateTextEditButtonUI();
       this.domCache.canvas?.classList.toggle(
         "text-edit-mode-active",
         this.isTextEditMode,
@@ -28,7 +28,7 @@ export function attachSpeakerControls(editor) {
     },
 
     // 更新“多选按钮”的显示文字
-    _updateMultiSelectButtonUI() {
+    updateMultiSelectButtonUI() {
       const toggleButton = this.domCache.toggleMultiSelectBtn;
       if (toggleButton) {
         toggleButton.textContent = this.isMultiSelectMode
@@ -38,7 +38,7 @@ export function attachSpeakerControls(editor) {
     },
 
     // 更新“编辑按钮”的显示文字
-    _updateTextEditButtonUI() {
+    updateTextEditButtonUI() {
       const toggleButton = this.domCache.toggleTextEditBtn;
       if (toggleButton) {
         toggleButton.textContent = this.isTextEditMode
@@ -48,13 +48,13 @@ export function attachSpeakerControls(editor) {
     },
 
     // 切换多选模式（并清空当前选择）
-    _toggleMultiSelectMode() {
+    toggleMultiSelectMode() {
       this.isMultiSelectMode = !this.isMultiSelectMode;
       storageService.set(
         STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
         this.isMultiSelectMode,
       );
-      this._updateMultiSelectButtonUI();
+      this.updateMultiSelectButtonUI();
       editorService.clearSelection();
       this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } }),
@@ -62,7 +62,7 @@ export function attachSpeakerControls(editor) {
     },
 
     // 切换文本编辑模式（允许直接编辑卡片文本）
-    _toggleTextEditMode() {
+    toggleTextEditMode() {
       this.isTextEditMode = !this.isTextEditMode;
       storageService.set(
         STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
@@ -72,7 +72,7 @@ export function attachSpeakerControls(editor) {
     },
 
     // 点击“编辑”按钮：弹窗修改这条对话的文本
-    _handleTextEdit(actionId) {
+    handleTextEdit(actionId) {
       const action = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
@@ -81,7 +81,7 @@ export function attachSpeakerControls(editor) {
 
       if (newText !== null && newText.trim() !== action.text.trim()) {
         const trimmedText = newText.trim();
-        this._executeCommand((currentState) => {
+        this.executeCommand((currentState) => {
           const actionToUpdate = currentState.actions.find(
             (actionItem) => actionItem.id === actionId,
           );
@@ -94,13 +94,13 @@ export function attachSpeakerControls(editor) {
     },
 
     // 点击卡片时：根据多选/快捷键决定如何选择、或触发编辑/新增/删除
-    _handleCardClick(clickEvent) {
+    handleCardClick(clickEvent) {
       const editButton = clickEvent.target.closest(".edit-text-btn");
       if (editButton) {
         clickEvent.stopPropagation();
         const dialogueCard = editButton.closest(".dialogue-item");
         if (dialogueCard && dialogueCard.dataset.id) {
-          this._handleTextEdit(dialogueCard.dataset.id);
+          this.handleTextEdit(dialogueCard.dataset.id);
         }
         return;
       }
@@ -110,7 +110,7 @@ export function attachSpeakerControls(editor) {
         clickEvent.stopPropagation();
         const dialogueCard = addButton.closest(".dialogue-item");
         if (dialogueCard && dialogueCard.dataset.id) {
-          this._handleCardAdd(dialogueCard.dataset.id);
+          this.handleCardAdd(dialogueCard.dataset.id);
         }
         return;
       }
@@ -120,7 +120,7 @@ export function attachSpeakerControls(editor) {
         clickEvent.stopPropagation();
         const dialogueCard = deleteButton.closest(".dialogue-item");
         if (dialogueCard && dialogueCard.dataset.id) {
-          this._handleCardDelete(dialogueCard.dataset.id);
+          this.handleCardDelete(dialogueCard.dataset.id);
         }
         return;
       }
@@ -129,7 +129,7 @@ export function attachSpeakerControls(editor) {
       if (layoutDeleteButton) {
         const layoutCard = layoutDeleteButton.closest(".layout-item");
         if (layoutCard && layoutCard.dataset.id) {
-          this._deleteLayoutAction(layoutCard.dataset.id);
+          this.deleteLayoutAction(layoutCard.dataset.id);
           return;
         }
       }
@@ -174,7 +174,7 @@ export function attachSpeakerControls(editor) {
     },
 
     // 删除一条对话卡片（会二次确认）
-    async _handleCardDelete(actionId) {
+    async handleCardDelete(actionId) {
       const action = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
@@ -184,7 +184,7 @@ export function attachSpeakerControls(editor) {
         `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`,
       );
       if (confirmed) {
-        this._executeCommand((currentState) => {
+        this.executeCommand((currentState) => {
           const index = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
           );
@@ -196,11 +196,11 @@ export function attachSpeakerControls(editor) {
     },
 
     // 在当前卡片下方新增一条对话（弹窗输入文本）
-    async _handleCardAdd(actionId) {
+    async handleCardAdd(actionId) {
       const newText = await modalService.prompt("请输入新对话的内容：");
       if (newText && newText.trim()) {
         const trimmedText = newText.trim();
-        this._executeCommand((currentState) => {
+        this.executeCommand((currentState) => {
           const currentIndex = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
           );
@@ -218,17 +218,17 @@ export function attachSpeakerControls(editor) {
     },
 
     // 重新绑定画布点击事件（避免重复绑定/旧 handler 残留）
-    _reattachSelection() {
+    reattachSelection() {
       const canvas = this.domCache.canvas;
       if (canvas) {
-        if (this._boundCardClickHandler) {
-          canvas.removeEventListener("click", this._boundCardClickHandler);
+        if (this._onCardClick) {
+          canvas.removeEventListener("click", this._onCardClick);
         }
         editorService.clearSelection();
-        if (!this._boundCardClickHandler) {
-          this._boundCardClickHandler = this._handleCardClick.bind(this);
+        if (!this._onCardClick) {
+          this._onCardClick = this.handleCardClick.bind(this);
         }
-        canvas.addEventListener("click", this._boundCardClickHandler);
+        canvas.addEventListener("click", this._onCardClick);
       }
     },
 
@@ -237,15 +237,15 @@ export function attachSpeakerControls(editor) {
       const canvas = this.domCache.canvas;
       if (!canvas) return;
 
-      this._reattachSelection();
+      this.reattachSelection();
 
-      if (this._selectionChangeHandler) {
+      if (this._onSelectionChange) {
         canvas.removeEventListener(
           "selectionchange",
-          this._selectionChangeHandler,
+          this._onSelectionChange,
         );
       }
-      this._selectionChangeHandler = (selectionChangeEvent) => {
+      this._onSelectionChange = (selectionChangeEvent) => {
         if (!selectionChangeEvent.detail) return;
 
         const selectedIds = new Set(selectionChangeEvent.detail.selectedIds);
@@ -260,21 +260,21 @@ export function attachSpeakerControls(editor) {
           }
         });
       };
-      canvas.addEventListener("selectionchange", this._selectionChangeHandler);
+      canvas.addEventListener("selectionchange", this._onSelectionChange);
 
-      if (this._layoutChangeHandler) {
-        canvas.removeEventListener("change", this._layoutChangeHandler);
+      if (this._onLayoutChange) {
+        canvas.removeEventListener("change", this._onLayoutChange);
       }
-      this._layoutChangeHandler = (layoutChangeEvent) => {
+      this._onLayoutChange = (layoutChangeEvent) => {
         const layoutCard = layoutChangeEvent.target.closest(".layout-item");
         if (layoutCard && layoutChangeEvent.target.matches("select, input")) {
-          this._updateLayoutActionProperty(
+          this.updateLayoutActionProperty(
             layoutCard.dataset.id,
             layoutChangeEvent.target
           );
         }
       };
-      canvas.addEventListener("change", this._layoutChangeHandler);
+      canvas.addEventListener("change", this._onLayoutChange);
     },
   });
 }

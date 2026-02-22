@@ -16,7 +16,7 @@ export function attachSpeakerCanvas(editor) {
       const canvas = editor.domCache.canvas;
       if (!canvas) return new Set();
 
-      const usedIds = editor._getUsedCharacterIds();
+      const usedIds = editor.getUsedCharacterIds();
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions || [];
       const groupSize = 50;

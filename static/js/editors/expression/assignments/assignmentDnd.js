@@ -48,9 +48,9 @@ export const assignmentDnd = {
             updates[type] = droppedValue;
 
             if (isLayoutCard) {
-              editor._updateLayoutInitialState(actionId, updates);
+              editor.updateLayoutInitialState(actionId, updates);
             } else {
-              editor._updateMotionAssignment(
+              editor.updateMotionAssignment(
                 actionId,
                 assignmentIndex,
                 updates

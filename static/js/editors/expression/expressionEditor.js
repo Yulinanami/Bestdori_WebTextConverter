@@ -56,13 +56,13 @@ export const expressionEditor = {
       ?.addEventListener("click", () => this.reset());
     document
       .getElementById("addTempMotionBtn")
-      ?.addEventListener("click", () => this._addTempItem("motion"));
+      ?.addEventListener("click", () => this.addTempItem("motion"));
     document
       .getElementById("addTempExpressionBtn")
-      ?.addEventListener("click", () => this._addTempItem("expression"));
+      ?.addEventListener("click", () => this.addTempItem("expression"));
     document
       .getElementById("live2dViewerBtn")
-      ?.addEventListener("click", () => this._openLive2dViewers());
+      ?.addEventListener("click", () => this.openLive2DViewers());
 
     // 给搜索框加一个“清空按钮”（输入时显示，点一下清空）
     const setupSearchClear = (inputId, clearBtnId) => {
@@ -85,12 +85,12 @@ export const expressionEditor = {
     document
       .getElementById("motionSearchInput")
       ?.addEventListener("input", (inputEvent) =>
-        this._filterLibraryList("motion", inputEvent)
+        this.filterLibraryList("motion", inputEvent)
       );
     document
       .getElementById("expressionSearchInput")
       ?.addEventListener("input", (inputEvent) =>
-        this._filterLibraryList("expression", inputEvent)
+        this.filterLibraryList("expression", inputEvent)
       );
 
     const libraryContainer = document.getElementById("expressionEditorLibrary");
@@ -103,12 +103,12 @@ export const expressionEditor = {
         if (deleteButton) {
           // 优先处理删除按钮
           clickEvent.stopPropagation(); // 阻止事件冒泡到 quickFillItem
-          this._deleteCustomQuickFillOption(deleteButton.dataset.value);
+          this.deleteCustomQuickFillOption(deleteButton.dataset.value);
           return;
         }
 
         if (quickFillButton) {
-          this._toggleQuickFillDropdown(quickFillButton.dataset.type);
+          this.toggleQuickFillDropdown(quickFillButton.dataset.type);
         }
 
         if (quickFillItem) {
@@ -116,9 +116,9 @@ export const expressionEditor = {
           const type = quickFillItem.dataset.type;
           const selectedValue = quickFillItem.dataset.value;
           if (type === "add-custom") {
-            this._addCustomQuickFillOption();
+            this.addCustomQuickFillOption();
           } else {
-            this._handleQuickFillSelect(type, selectedValue);
+            this.handleQuickFillSelect(type, selectedValue);
           }
         }
       });
@@ -144,7 +144,7 @@ export const expressionEditor = {
     if (resetButton) resetButton.textContent = "恢复中...";
 
     try {
-      this._executeCommand((currentState) => {
+      this.executeCommand((currentState) => {
         currentState.actions.forEach((action) => {
           if (action.type === "talk") action.motions = [];
           else if (action.type === "layout") {
@@ -170,7 +170,7 @@ export const expressionEditor = {
       beforeOpen: async () => {
         try {
           this.tempLibraryItems = { motion: [], expression: [] };
-          await this._prepareProjectState({
+          await this.prepareProjectState({
             onExistingProjectLoaded: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
             onNewProjectCreated: (_, { rawText }) => {
@@ -188,8 +188,8 @@ export const expressionEditor = {
         }
       },
       afterOpen: async () => {
-        this._loadQuickFillOptions();
-        this._renderQuickFillDropdowns();
+        this.loadQuickFillOptions();
+        this.renderQuickFillDropdowns();
         const motionSearch = document.getElementById("motionSearchInput");
         const expressionSearch = document.getElementById(
           "expressionSearchInput"
@@ -208,7 +208,7 @@ export const expressionEditor = {
   },
 
   // 对外提供一个小包装：执行一次可撤销的状态修改
-  _executeCommand(changeFn) {
+  executeCommand(changeFn) {
     baseEditor.executeCommand(changeFn);
   },
 };

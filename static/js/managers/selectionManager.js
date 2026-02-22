@@ -1,57 +1,27 @@
 export const selectionManager = {
   selectedIds: new Set(),
   lastSelectedId: null,
-  _boundClickHandler: null,
+  _onContainerClick: null,
 
   // 让一个列表容器支持“点击/Shift/Ctrl 多选”（itemSelector 用来找到每一项）
   attach(container, itemSelector) {
-    if (this._boundClickHandler) {
+    if (this._onContainerClick) {
       this.detach(container);
     }
-    this._boundClickHandler = this._handleClick.bind(
+    this._onContainerClick = this._handleClick.bind(
       this,
       container,
       itemSelector
     );
-    container.addEventListener("click", this._boundClickHandler);
+    container.addEventListener("click", this._onContainerClick);
   },
 
   // 取消绑定（销毁页面/切换视图时用，避免重复绑定）
   detach(container) {
-    if (this._boundClickHandler) {
-      container.removeEventListener("click", this._boundClickHandler);
-      this._boundClickHandler = null;
+    if (this._onContainerClick) {
+      container.removeEventListener("click", this._onContainerClick);
+      this._onContainerClick = null;
     }
-  },
-
-  // 统一处理点击：决定是单选、Ctrl 切换，还是 Shift 选范围
-  _handleClick(container, itemSelector, clickEvent) {
-    const clickedItem = clickEvent.target.closest(itemSelector);
-    if (!clickedItem || !clickedItem.dataset.id) return;
-    const selectedItemId = clickedItem.dataset.id;
-
-    if (clickEvent.ctrlKey || clickEvent.metaKey) {
-      this.toggle(selectedItemId);
-    } else if (clickEvent.shiftKey) {
-      this.selectRange(selectedItemId, container, itemSelector);
-    } else {
-      const isAlreadyOnlySelected =
-        this.selectedIds.has(selectedItemId) && this.selectedIds.size === 1;
-      if (isAlreadyOnlySelected) {
-        this.clear();
-      } else {
-        this.selectSingle(selectedItemId);
-      }
-    }
-
-    this.lastSelectedId = this.selectedIds.has(selectedItemId)
-      ? selectedItemId
-      : null;
-    container.dispatchEvent(
-      new CustomEvent("selectionchange", {
-        detail: { selectedIds: this.getSelectedIds() },
-      })
-    );
   },
 
   // Ctrl/Command 点击：把某一项加入/移出“已选中集合”
@@ -97,5 +67,35 @@ export const selectionManager = {
   // 获取当前选中的 id 列表（数组形式）
   getSelectedIds() {
     return Array.from(this.selectedIds);
+  },
+
+  // 内部方法：统一处理点击，决定是单选、Ctrl 切换，还是 Shift 选范围
+  _handleClick(container, itemSelector, clickEvent) {
+    const clickedItem = clickEvent.target.closest(itemSelector);
+    if (!clickedItem || !clickedItem.dataset.id) return;
+    const selectedItemId = clickedItem.dataset.id;
+
+    if (clickEvent.ctrlKey || clickEvent.metaKey) {
+      this.toggle(selectedItemId);
+    } else if (clickEvent.shiftKey) {
+      this.selectRange(selectedItemId, container, itemSelector);
+    } else {
+      const isAlreadyOnlySelected =
+        this.selectedIds.has(selectedItemId) && this.selectedIds.size === 1;
+      if (isAlreadyOnlySelected) {
+        this.clear();
+      } else {
+        this.selectSingle(selectedItemId);
+      }
+    }
+
+    this.lastSelectedId = this.selectedIds.has(selectedItemId)
+      ? selectedItemId
+      : null;
+    container.dispatchEvent(
+      new CustomEvent("selectionchange", {
+        detail: { selectedIds: this.getSelectedIds() },
+      }),
+    );
   },
 };

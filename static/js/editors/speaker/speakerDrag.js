@@ -17,35 +17,6 @@ export function attachSpeakerDrag(editor, baseEditor) {
       );
     },
 
-    // 根据鼠标 Y 坐标，找出最接近的对话卡片（用于决定把角色丢给哪条对话）
-    _findClosestCard(y) {
-      const canvas = editor.domCache.canvas;
-      if (!canvas) return null;
-      const cards = Array.from(canvas.querySelectorAll(".dialogue-item"));
-
-      let closestCard = null;
-      let minDistance = Infinity;
-
-      for (const dialogueCard of cards) {
-        const rect = dialogueCard.getBoundingClientRect();
-        const cardCenterY = rect.top + rect.height / 2;
-        const distance = Math.abs(y - cardCenterY);
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestCard = dialogueCard;
-        }
-      }
-      // 添加一个阈值，如果拖拽位置离任何卡片都太远，则不视为有效目标
-      const closestRect = closestCard
-        ? closestCard.getBoundingClientRect()
-        : null;
-      if (closestCard && minDistance > closestRect.height) {
-        return null;
-      }
-      return closestCard;
-    },
-
     // 初始化拖拽：角色列表可拖出，画布可接收并可排序
     initDragAndDrop() {
       const characterList = editor.domCache.characterList;
@@ -93,7 +64,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
               if (cardItem.classList.contains("dialogue-item")) {
                 editor.removeAllSpeakersFromAction(actionId);
               } else if (cardItem.classList.contains("layout-item")) {
-                editor._deleteLayoutAction(actionId);
+                editor.deleteLayoutAction(actionId);
               }
             }
 
@@ -188,6 +159,35 @@ export function attachSpeakerDrag(editor, baseEditor) {
           )
         );
       }
+    },
+
+    // 内部方法：根据鼠标 Y 坐标找出最接近的对话卡片（用于决定把角色丢给哪条对话）
+    _findClosestCard(y) {
+      const canvas = editor.domCache.canvas;
+      if (!canvas) return null;
+      const cards = Array.from(canvas.querySelectorAll(".dialogue-item"));
+
+      let closestCard = null;
+      let minDistance = Infinity;
+
+      for (const dialogueCard of cards) {
+        const rect = dialogueCard.getBoundingClientRect();
+        const cardCenterY = rect.top + rect.height / 2;
+        const distance = Math.abs(y - cardCenterY);
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCard = dialogueCard;
+        }
+      }
+      // 添加一个阈值，如果拖拽位置离任何卡片都太远，则不视为有效目标
+      const closestRect = closestCard
+        ? closestCard.getBoundingClientRect()
+        : null;
+      if (closestCard && minDistance > closestRect.height) {
+        return null;
+      }
+      return closestCard;
     },
   });
 }

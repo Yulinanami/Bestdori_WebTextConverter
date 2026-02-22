@@ -31,8 +31,6 @@ class EditorService {
     this.selectionManager = dependencies.selectionManager || selectionManager;
   }
 
-  // ==================== 状态管理 ====================
-
   // 读取当前项目（编辑进度）数据
   getProjectState() {
     return this.state.get("projectFile");
@@ -47,8 +45,6 @@ class EditorService {
   getCurrentConfig() {
     return this.state.get("currentConfig");
   }
-
-  // ==================== 角色配置 ====================
 
   // 在页面上更新某个角色的头像显示
   updateCharacterAvatar(container, characterId, characterName) {
@@ -70,8 +66,6 @@ class EditorService {
     return Object.entries(config);
   }
 
-  // ==================== 固定角色管理 ====================
-
   // 获取已置顶的角色列表（方便拖拽/快速选择）
   getPinnedCharacters() {
     return this.pinnedCharacterManager.getPinned();
@@ -81,8 +75,6 @@ class EditorService {
   togglePinCharacter(characterName) {
     return this.pinnedCharacterManager.toggle(characterName);
   }
-
-  // ==================== 选择管理 ====================
 
   // 清空当前多选/选择状态
   clearSelection() {
@@ -94,7 +86,6 @@ class EditorService {
     return this.selectionManager?.detach?.(element);
   }
 
-  // ==================== 历史记录（已通过 BaseEditor 处理）====================
   // historyManager 已经通过 BaseEditor 集成，编辑器不需要直接访问
 }
 

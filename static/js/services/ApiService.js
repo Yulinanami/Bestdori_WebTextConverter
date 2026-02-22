@@ -9,39 +9,6 @@ class ApiService {
     };
   }
 
-  // 把 axios 的报错“翻译”成用户能看懂的提示文字
-  _handleError(error) {
-    if (error.response) {
-      // 服务器返回错误状态码
-      const status = error.response.status;
-      const message =
-        error.response.data?.error || error.response.data?.message;
-
-      switch (status) {
-        case 400:
-          return `请求错误: ${message || "参数有误"}`;
-        case 401:
-          return "未授权，请重新登录";
-        case 403:
-          return "拒绝访问";
-        case 404:
-          return "请求的资源不存在";
-        case 500:
-          return `服务器错误: ${message || "请稍后重试"}`;
-        case 503:
-          return "服务暂时不可用";
-        default:
-          return message || `请求失败 (${status})`;
-      }
-    } else if (error.request) {
-      // 请求已发送但未收到响应
-      return "网络连接失败，请检查网络";
-    } else {
-      // 请求配置错误
-      return error.message || "请求配置错误";
-    }
-  }
-
   // 发起 GET 请求，并直接返回后端 JSON 数据
   async get(url, config = {}) {
     try {
@@ -76,8 +43,6 @@ class ApiService {
       throw new Error(errorMsg);
     }
   }
-
-  // ==================== 业务 API ====================
 
   // 获取后端提供的默认配置（角色映射、引号、动作表情等）
   async getConfig() {
@@ -144,6 +109,39 @@ class ApiService {
       await this.post("/api/shutdown", {}, { timeout: 1000 });
     } catch (error) {
       console.warn("Shutdown request sent. Server is closing.");
+    }
+  }
+
+  // 内部方法：把 axios 的报错“翻译”成用户能看懂的提示文字
+  _handleError(error) {
+    if (error.response) {
+      // 服务器返回错误状态码
+      const status = error.response.status;
+      const message =
+        error.response.data?.error || error.response.data?.message;
+
+      switch (status) {
+        case 400:
+          return `请求错误: ${message || "参数有误"}`;
+        case 401:
+          return "未授权，请重新登录";
+        case 403:
+          return "拒绝访问";
+        case 404:
+          return "请求的资源不存在";
+        case 500:
+          return `服务器错误: ${message || "请稍后重试"}`;
+        case 503:
+          return "服务暂时不可用";
+        default:
+          return message || `请求失败 (${status})`;
+      }
+    } else if (error.request) {
+      // 请求已发送但未收到响应
+      return "网络连接失败，请检查网络";
+    } else {
+      // 请求配置错误
+      return error.message || "请求配置错误";
     }
   }
 }

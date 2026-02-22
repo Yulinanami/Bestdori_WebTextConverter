@@ -41,7 +41,7 @@ export function renderTimeline(editor) {
     if (!footer) return;
     DOMUtils.clearElement(footer);
 
-    if (editor._actionHasExpressionData(action)) {
+    if (editor.actionHasExpressionData(action)) {
       // 复用统一的分配渲染逻辑，避免两套实现
       editor.showExpressionSetupUI(card);
       return;

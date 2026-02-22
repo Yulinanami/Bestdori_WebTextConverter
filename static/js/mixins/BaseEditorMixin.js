@@ -12,7 +12,7 @@ export const BaseEditorMixin = {
   scrollSpeed: 0,
 
   // 通过 BaseEditor 执行一次“可撤销的修改”（changeFn 会拿到 currentState）
-  _executeCommand(changeFn) {
+  executeCommand(changeFn) {
     this.baseEditor.executeCommand(changeFn);
   },
 
@@ -55,7 +55,7 @@ export const BaseEditorMixin = {
   },
 
   // 关闭编辑器：做清理（拖拽实例、滚动动画、子模块钩子）
-  _closeEditor() {
+  closeEditor() {
     EditorHelper.closeEditor({
       modalId: this.modalId,
       beforeClose: () => {
@@ -81,8 +81,8 @@ export const BaseEditorMixin = {
   },
 
   // 删除一条 layout action（按 actionId）
-  _deleteLayoutAction(actionId) {
-    this._executeCommand((currentState) => {
+  deleteLayoutAction(actionId) {
+    this.executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
         (actionItem) => actionItem.id !== actionId
       );
@@ -90,22 +90,22 @@ export const BaseEditorMixin = {
   },
 
   // 把“分段后的文本”组装成项目文件（actions 数组）
-  _createProjectFileFromSegments(segments) {
+  createProjectFileFromSegments(segments) {
     const text = segments.join("\n\n");
     const baseProject = createProjectFileFromText(
       text,
       editorService.getCurrentConfig()
     );
     const actions = baseProject.actions.map((action, index) =>
-      this._createActionFromSegment
-        ? this._createActionFromSegment(index, action.text, action.speakers)
+      this.createActionFromSegment
+        ? this.createActionFromSegment(index, action.text, action.speakers)
         : action
     );
     return { ...baseProject, actions };
   },
 
   // 打开编辑器前准备 projectFileState：优先用已保存进度，否则用输入文本创建
-  async _prepareProjectState(options = {}) {
+  async prepareProjectState(options = {}) {
     const { onExistingProjectLoaded, onNewProjectCreated } = options;
     const inputElement = document.getElementById("inputText");
     const rawText = inputElement ? inputElement.value : "";
@@ -121,10 +121,10 @@ export const BaseEditorMixin = {
         text: rawText,
       });
       const segments = response.data?.segments || [];
-      initialState = this._createProjectFileFromSegments(segments);
+      initialState = this.createProjectFileFromSegments(segments);
       onNewProjectCreated?.(initialState, { rawText, segments });
     } else {
-      initialState = this._createProjectFileFromSegments([]);
+      initialState = this.createProjectFileFromSegments([]);
       onNewProjectCreated?.(initialState, { rawText, segments: [] });
     }
 
@@ -134,7 +134,7 @@ export const BaseEditorMixin = {
   },
 
   // 把一段文本变成一个 action（子类可覆盖，默认创建 talk）
-  _createActionFromSegment(index, text, speakers) {
+  createActionFromSegment(index, text, speakers) {
     // 默认实现：创建基本的 talk action
     return {
       id: `action-id-${Date.now()}-${index}`,

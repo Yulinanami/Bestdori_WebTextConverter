@@ -145,7 +145,57 @@ export const configData = {
     }
   },
 
-  // 校验并将导入的配置分发给各个子系统
+  // 清空本地保存的所有数据（相当于恢复出厂设置）
+  async clearLocalStorage() {
+    const confirmed = await modalService.confirm(
+      "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
+        "  - 自定义角色映射\n" +
+        "  - 所有角色的服装配置\n" +
+        "  - 引号选项状态（预设和自定义）\n" +
+        "  - 自定义动作和表情\n" +
+        "  - 自动添加空格的配置\n" +
+        "  - Live2D 布局和位置设置\n" +
+        "  - 编辑器偏好设置\n\n" +
+        "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await ui.withButtonLoading(
+      "clearCacheBtn",
+      async () => {
+        const keysToRemove = [
+          STORAGE_KEYS.CHARACTER_MAPPING,
+          STORAGE_KEYS.CUSTOM_QUOTES,
+          STORAGE_KEYS.PRESET_QUOTES_STATE,
+          STORAGE_KEYS.COSTUME_MAPPING_V2,
+          STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
+          STORAGE_KEYS.POSITION_CONFIG,
+          STORAGE_KEYS.CARD_GROUPING,
+          STORAGE_KEYS.PINNED_CHARACTERS,
+          STORAGE_KEYS.CUSTOM_MOTIONS,
+          STORAGE_KEYS.CUSTOM_EXPRESSIONS,
+          STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
+          STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
+          STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
+          STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+          STORAGE_KEYS.AUTO_APPEND_SPACES,
+          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
+        ];
+
+        storageService.removeMultiple(keysToRemove);
+
+        await FileUtils.delay(500);
+        await modalService.alert("缓存已成功清除！网页即将重新加载。");
+        location.reload();
+      },
+      "清除中...",
+    );
+  },
+
+  // 内部方法：校验并将导入的配置分发给各个子系统
   _applyImportedConfig(config, configManager) {
     if (!this.validateConfig(config)) {
       throw new Error("配置文件包含不安全的数据，导入已被阻止");
@@ -208,56 +258,6 @@ export const configData = {
       STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
       "appendSpacesBeforeNewline",
       config.auto_append_spaces_before_newline,
-    );
-  },
-
-  // 清空本地保存的所有数据（相当于恢复出厂设置）
-  async clearLocalStorage() {
-    const confirmed = await modalService.confirm(
-      "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
-        "  - 自定义角色映射\n" +
-        "  - 所有角色的服装配置\n" +
-        "  - 引号选项状态（预设和自定义）\n" +
-        "  - 自定义动作和表情\n" +
-        "  - 自动添加空格的配置\n" +
-        "  - Live2D 布局和位置设置\n" +
-        "  - 编辑器偏好设置\n\n" +
-        "网页将恢复到初始默认状态。此操作无法撤销，确定要继续吗？",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    await ui.withButtonLoading(
-      "clearCacheBtn",
-      async () => {
-        const keysToRemove = [
-          STORAGE_KEYS.CHARACTER_MAPPING,
-          STORAGE_KEYS.CUSTOM_QUOTES,
-          STORAGE_KEYS.PRESET_QUOTES_STATE,
-          STORAGE_KEYS.COSTUME_MAPPING_V2,
-          STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
-          STORAGE_KEYS.POSITION_CONFIG,
-          STORAGE_KEYS.CARD_GROUPING,
-          STORAGE_KEYS.PINNED_CHARACTERS,
-          STORAGE_KEYS.CUSTOM_MOTIONS,
-          STORAGE_KEYS.CUSTOM_EXPRESSIONS,
-          STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
-          STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
-          STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
-          STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-          STORAGE_KEYS.AUTO_APPEND_SPACES,
-          STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-        ];
-
-        storageService.removeMultiple(keysToRemove);
-
-        await FileUtils.delay(500);
-        await modalService.alert("缓存已成功清除！网页即将重新加载。");
-        location.reload();
-      },
-      "清除中...",
     );
   },
 };

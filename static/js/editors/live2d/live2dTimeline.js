@@ -4,10 +4,10 @@ import {
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
-import { createLive2dRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
+import { createLive2DRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
 
 // 渲染卡片、响应删除/控件修改等
-export function attachLive2dTimeline(editor) {
+export function attachLive2DTimeline(editor) {
   const timelineCache = createTimelineRenderCache();
 
   Object.assign(editor, {
@@ -22,7 +22,7 @@ export function attachLive2dTimeline(editor) {
 
         // 删除卡片
         if (clickEvent.target.matches(".layout-remove-btn")) {
-          editor._deleteLayoutAction(layoutCard.dataset.id);
+          editor.deleteLayoutAction(layoutCard.dataset.id);
           return;
         }
 
@@ -45,7 +45,7 @@ export function attachLive2dTimeline(editor) {
             toPositionContainer.style.display = "none";
 
             // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
-            editor._executeCommand((currentState) => {
+            editor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -86,7 +86,7 @@ export function attachLive2dTimeline(editor) {
             toPositionContainer.style.display = "grid";
 
             // 设置独立配置标记，阻止自动同步
-            editor._executeCommand((currentState) => {
+            editor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -129,7 +129,7 @@ export function attachLive2dTimeline(editor) {
       timeline.onchange = (changeEvent) => {
         const layoutCard = changeEvent.target.closest(".layout-item");
         if (!layoutCard || !changeEvent.target.matches("select, input")) return;
-        editor._updateLayoutActionProperty(
+        editor.updateLayoutActionProperty(
           layoutCard.dataset.id,
           changeEvent.target
         );
@@ -157,7 +157,7 @@ export function attachLive2dTimeline(editor) {
         ),
       );
       const { renderSingleCard, updateCard, contextSignature } =
-        createLive2dRenderers(editor, { templates, characterNameMap });
+        createLive2DRenderers(editor, { templates, characterNameMap });
       const configSignature = contextSignature(configEntries);
 
       renderIncrementalTimeline({

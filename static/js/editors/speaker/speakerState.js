@@ -4,28 +4,11 @@ import { editorService } from "@services/EditorService.js";
 // 读写说话人、重置为默认等。
 export function attachSpeakerState(editor) {
   Object.assign(editor, {
-    // 统计当前项目里出现过哪些角色（用于右侧列表高亮）
-    _getUsedCharacterIds() {
-      const usedNames = new Set();
-      if (this.projectFileState && this.projectFileState.actions) {
-        this.projectFileState.actions.forEach((action) => {
-          if (action && action.type === "talk" && action.speakers) {
-            action.speakers.forEach((speaker) => {
-              if (speaker.name) {
-                usedNames.add(speaker.name);
-              }
-            });
-          }
-        });
-      }
-      return usedNames;
-    },
-
     // 给某条对话（或当前多选的多条对话）添加一个说话人
     updateSpeakerAssignment(actionId, newSpeaker) {
       const selectedIds = editorService.selectionManager.getSelectedIds();
       const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
-      this._executeCommand((currentState) => {
+      this.executeCommand((currentState) => {
         targetIds.forEach((targetActionId) => {
           const actionToUpdate = currentState.actions.find(
             (actionItem) => actionItem.id === targetActionId
@@ -49,7 +32,7 @@ export function attachSpeakerState(editor) {
 
     // 从一条对话里移除某个说话人
     removeSpeakerFromAction(actionId, characterIdToRemove) {
-      this._executeCommand((currentState) => {
+      this.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
@@ -63,7 +46,7 @@ export function attachSpeakerState(editor) {
 
     // 清空一条对话的所有说话人（变成旁白）
     removeAllSpeakersFromAction(actionId) {
-      this._executeCommand((currentState) => {
+      this.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
@@ -88,10 +71,10 @@ export function attachSpeakerState(editor) {
         const response = await axios.post("/api/segment-text", {
           text: rawText,
         });
-        const defaultState = this._createProjectFileFromSegments(
+        const defaultState = this.createProjectFileFromSegments(
           response.data.segments
         );
-        this._executeCommand((currentState) => {
+        this.executeCommand((currentState) => {
           Object.assign(currentState, defaultState);
         });
 
@@ -101,6 +84,23 @@ export function attachSpeakerState(editor) {
       } finally {
         if (resetButton && originalText) resetButton.textContent = originalText;
       }
+    },
+
+    // 统计当前项目里出现过哪些角色（用于右侧列表高亮）
+    getUsedCharacterIds() {
+      const usedNames = new Set();
+      if (this.projectFileState && this.projectFileState.actions) {
+        this.projectFileState.actions.forEach((action) => {
+          if (action && action.type === "talk" && action.speakers) {
+            action.speakers.forEach((speaker) => {
+              if (speaker.name) {
+                usedNames.add(speaker.name);
+              }
+            });
+          }
+        });
+      }
+      return usedNames;
     },
   });
 }

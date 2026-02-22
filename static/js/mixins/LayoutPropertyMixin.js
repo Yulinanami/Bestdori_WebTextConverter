@@ -5,7 +5,7 @@ import { editorService } from "@services/EditorService.js";
 
 export const LayoutPropertyMixin = {
   // 不同控件对应不同字段：这里集中放“控件 class -> 如何更新 action”
-  _layoutPropertyHandlers: {
+  _layoutPropertyHandlerMap: {
     "layout-type-select": (action, value) => {
       action.layoutType = value;
     },
@@ -74,26 +74,26 @@ export const LayoutPropertyMixin = {
   },
 
   // 根据触发的控件类型，把布局卡片的改动写回 action（按 actionId 找到那条 action）
-  _updateLayoutActionProperty(actionId, targetElement) {
+  updateLayoutActionProperty(actionId, targetElement) {
     const targetValue =
       targetElement.type === "number"
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const controlClassName = targetElement.className;
 
-    this._executeCommand((currentState) => {
+    this.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
       if (!action) return;
 
       // 找到匹配的处理器并执行
-      const handlerKey = Object.keys(this._layoutPropertyHandlers).find((key) =>
+      const handlerKey = Object.keys(this._layoutPropertyHandlerMap).find((key) =>
         controlClassName.includes(key),
       );
 
       if (handlerKey) {
-        this._layoutPropertyHandlers[handlerKey](action, targetValue);
+        this._layoutPropertyHandlerMap[handlerKey](action, targetValue);
       }
     });
   },

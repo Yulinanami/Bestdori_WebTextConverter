@@ -44,7 +44,7 @@ export const speakerEditor = {
       this.renderFrameId = null;
       const usedIds = this.renderCanvas();
       this.renderCharacterList(usedIds);
-      this._reattachSelection();
+      this.reattachSelection();
     });
   },
 
@@ -71,10 +71,10 @@ export const speakerEditor = {
       .getElementById("resetSpeakersBtn")
       ?.addEventListener("click", () => this.reset());
     this.domCache.toggleMultiSelectBtn?.addEventListener("click", () =>
-      this._toggleMultiSelectMode()
+      this.toggleMultiSelectMode()
     );
     this.domCache.toggleTextEditBtn?.addEventListener("click", () =>
-      this._toggleTextEditMode()
+      this.toggleTextEditMode()
     );
 
     // 初始化通用事件（撤销/重做/保存/导入导出/关闭确认/快捷键）
@@ -98,7 +98,7 @@ export const speakerEditor = {
       loadingText: "加载中...",
       beforeOpen: async () => {
         try {
-          await this._prepareProjectState({
+          await this.prepareProjectState({
             onExistingProjectLoaded: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
             onNewProjectCreated: (_, { rawText }) => {
@@ -132,13 +132,13 @@ export const speakerEditor = {
   // 导入项目后：刷新画布与角色列表
   afterImport() {
     this.renderCanvas();
-    const usedCharacterNames = this._getUsedCharacterIds();
+    const usedCharacterNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 
   // 置顶状态变化后：刷新角色列表
   afterPinToggle() {
-    const usedCharacterNames = this._getUsedCharacterIds();
+    const usedCharacterNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
 

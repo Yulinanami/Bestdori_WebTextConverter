@@ -38,7 +38,7 @@ export const assignmentRenderer = {
           delay: action.delay || 0,
         };
 
-        const assignmentItem = editor._createAssignmentItem(
+        const assignmentItem = editor.createAssignmentItem(
           action,
           motionData,
           0,
@@ -58,7 +58,7 @@ export const assignmentRenderer = {
 
     if (action.motions && action.motions.length > 0) {
       action.motions.forEach((motionData, index) => {
-        const assignmentItem = editor._createAssignmentItem(
+        const assignmentItem = editor.createAssignmentItem(
           action,
           motionData,
           index
@@ -67,7 +67,7 @@ export const assignmentRenderer = {
       });
     }
 
-    const characterSelector = editor._createCharacterSelector(action);
+    const characterSelector = editor.createCharacterSelector(action);
 
     const setupButton = DOMUtils.createButton(
       "设置动作/表情",
@@ -95,7 +95,7 @@ export const assignmentRenderer = {
 
     let availableCharacters = [];
     if (action.type === "talk") {
-      availableCharacters = editor._getStagedCharacters();
+      availableCharacters = editor.getStagedCharacters();
     } else if (action.type === "layout") {
       const characterInfo = {
         id: action.characterId,
@@ -189,7 +189,7 @@ export const assignmentRenderer = {
     const delayInput = itemElement.querySelector(".assignment-delay-input");
     delayInput.value = motionData.delay || 0;
 
-    editor._initSortableForAssignmentZones(itemElement, isLayoutCard);
+    editor.initSortableForAssignmentZones(itemElement, isLayoutCard);
 
     return itemElement;
   },

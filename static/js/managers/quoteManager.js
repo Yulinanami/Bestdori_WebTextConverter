@@ -84,31 +84,6 @@ export const quoteManager = {
     this.attachCheckboxListeners();
   },
 
-  // 给所有复选框绑定 change 事件（勾选变化就保存）
-  attachCheckboxListeners() {
-    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
-        this.handleCheckboxChange(checkbox);
-      });
-    });
-  },
-
-  // 当某个复选框勾选变化时：更新本地存储
-  handleCheckboxChange(checkbox) {
-    const openChar = checkbox.dataset.open;
-    const closeChar = checkbox.dataset.close;
-    if (!openChar || !closeChar) return;
-
-    if (checkbox.id.includes("custom-saved")) {
-      const quoteName = `${openChar}...${closeChar}`;
-      quoteStore.updateCustomQuoteChecked(quoteName, checkbox.checked);
-    } else {
-      const stateKey = `${openChar}_${closeChar}`;
-      this.presetStates[stateKey] = checkbox.checked;
-      this.savePresetQuotesState(this.presetStates);
-    }
-  },
-
   // 生成“一行引号选项”的 DOM（复选框 + 文案 + 可选删除按钮）
   createQuoteOptionElement(
     checkboxId,
@@ -160,6 +135,31 @@ export const quoteManager = {
     return wrapper;
   },
 
+  // 给所有复选框绑定 change 事件（勾选变化就保存）
+  attachCheckboxListeners() {
+    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        this.handleCheckboxChange(checkbox);
+      });
+    });
+  },
+
+  // 当某个复选框勾选变化时：更新本地存储
+  handleCheckboxChange(checkbox) {
+    const openChar = checkbox.dataset.open;
+    const closeChar = checkbox.dataset.close;
+    if (!openChar || !closeChar) return;
+
+    if (checkbox.id.includes("custom-saved")) {
+      const quoteName = `${openChar}...${closeChar}`;
+      quoteStore.updateCustomQuoteChecked(quoteName, checkbox.checked);
+    } else {
+      const stateKey = `${openChar}_${closeChar}`;
+      this.presetStates[stateKey] = checkbox.checked;
+      this.savePresetQuotesState(this.presetStates);
+    }
+  },
+
   // 删除某个自定义引号对，并重新渲染列表
   removeCustomQuote(quoteName) {
     quoteStore.removeCustomQuoteByName(quoteName);
@@ -183,7 +183,15 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 新增一个自定义引号对（并刷新 UI）
+  // 从输入框读取并添加一个自定义引号对
+  addCustomQuoteOption() {
+    this._addCustomQuote({
+      openInputId: "customQuoteOpen",
+      closeInputId: "customQuoteClose",
+    });
+  },
+
+  // 内部方法：新增一个自定义引号对（并刷新 UI）
   _addCustomQuote(options) {
     const { openInputId, closeInputId, onComplete } = options;
     const openChar = document.getElementById(openInputId).value;
@@ -223,13 +231,5 @@ export const quoteManager = {
     if (onComplete) {
       onComplete();
     }
-  },
-
-  // 从输入框读取并添加一个自定义引号对
-  addCustomQuoteOption() {
-    this._addCustomQuote({
-      openInputId: "customQuoteOpen",
-      closeInputId: "customQuoteClose",
-    });
   },
 };

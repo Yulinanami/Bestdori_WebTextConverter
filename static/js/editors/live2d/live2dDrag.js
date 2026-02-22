@@ -2,7 +2,7 @@ import { DragHelper } from "@utils/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 拖角色到时间线生成布局、拖卡片排序、拖拽时自动滚动
-export function attachLive2dDrag(editor, baseEditor) {
+export function attachLive2DDrag(editor, baseEditor) {
   Object.assign(editor, {
     // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
     handleDragScrolling: (dragEvent) => {
@@ -60,7 +60,7 @@ export function attachLive2dDrag(editor, baseEditor) {
           editor.domCache.groupCheckbox?.checked || false,
         groupSize: 50,
         executeFn: (globalOldIndex, globalNewIndex) => {
-          editor._executeCommand((currentState) => {
+          editor.executeCommand((currentState) => {
             // 验证索引有效性
             if (
               globalOldIndex < 0 ||

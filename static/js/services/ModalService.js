@@ -16,21 +16,6 @@ class ModalService {
     this.initialized = true;
   }
 
-  // 给所有关闭按钮绑定点击事件（点了就关闭所在弹窗）
-  _bindCloseButtons() {
-    document
-      .querySelectorAll(".modal-close, .btn-modal-close")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          const modalId =
-            button.dataset.modalId || button.closest(".modal")?.id;
-          if (modalId) {
-            this.close(modalId);
-          }
-        });
-      });
-  }
-
   // 打开指定弹窗（modalId 是弹窗 DOM 的 id）
   open(modalId, options = {}) {
     const modal = document.getElementById(modalId);
@@ -104,6 +89,21 @@ class ModalService {
       const result = window.prompt(message, defaultValue);
       resolve(result);
     });
+  }
+
+  // 内部方法：给所有关闭按钮绑定点击事件（点了就关闭所在弹窗）
+  _bindCloseButtons() {
+    document
+      .querySelectorAll(".modal-close, .btn-modal-close")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const modalId =
+            button.dataset.modalId || button.closest(".modal")?.id;
+          if (modalId) {
+            this.close(modalId);
+          }
+        });
+      });
   }
 }
 

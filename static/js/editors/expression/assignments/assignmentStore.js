@@ -1,10 +1,10 @@
 import { editorService } from "@services/EditorService.js";
 
-// 分配数据层：负责修改 editor 的 projectFileState（通过 _executeCommand 支持撤销）
+// 分配数据层：负责修改 editor 的 projectFileState（通过 executeCommand 支持撤销）
 export const assignmentStore = {
   // 在 talk action 上新增一条 motions 记录
   addMotionAssignment(editor, action, character) {
-    editor._executeCommand((currentState) => {
+    editor.executeCommand((currentState) => {
       const currentAction = currentState.actions.find(
         (actionItem) => actionItem.id === action.id
       );
@@ -25,7 +25,7 @@ export const assignmentStore = {
 
   // 更新 layout action 的 initialState（motion/expression）
   updateLayoutInitialState(editor, actionId, updates) {
-    editor._executeCommand((currentState) => {
+    editor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -41,7 +41,7 @@ export const assignmentStore = {
 
   // 更新 talk action 的 motions[index]
   updateMotionAssignment(editor, actionId, assignmentIndex, updates) {
-    editor._executeCommand((currentState) => {
+    editor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -54,7 +54,7 @@ export const assignmentStore = {
 
   // 删除 talk action 的 motions[index]
   removeMotionAssignment(editor, actionId, assignmentIndex) {
-    editor._executeCommand((currentState) => {
+    editor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -87,7 +87,7 @@ export const assignmentStore = {
     if (!action || action.type !== "layout") return false;
     if (this.actionHasExpressionData(action)) return false;
 
-    editor._executeCommand((currentState) => {
+    editor.executeCommand((currentState) => {
       const layoutAction = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );

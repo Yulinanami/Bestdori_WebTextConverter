@@ -18,7 +18,7 @@ export function bindTimelineEvents(editor) {
       const footer = timelineCard.querySelector(".timeline-item-footer");
 
       if (action && action.type === "layout") {
-        const created = editor._ensureLayoutAssignment(actionId);
+        const created = editor.ensureLayoutAssignment(actionId);
         const freshCard =
           (created &&
             editor.domCache.timeline?.querySelector(
@@ -58,7 +58,7 @@ export function bindTimelineEvents(editor) {
           (actionItem) => actionItem.id === actionId
         );
         if (action) {
-          editor._addMotionAssignment(action, {
+          editor.addMotionAssignment(action, {
             id: characterId,
             name: characterName,
           });
@@ -85,7 +85,7 @@ export function bindTimelineEvents(editor) {
           (actionItem) => actionItem.id === actionId
         );
         if (action && action.type === "layout") {
-          editor._executeCommand((currentState) => {
+          editor.executeCommand((currentState) => {
             const layoutAction = currentState.actions.find(
               (actionItem) => actionItem.id === actionId
             );
@@ -95,7 +95,7 @@ export function bindTimelineEvents(editor) {
             }
           });
         } else {
-          editor._removeMotionAssignment(actionId, assignmentIndex);
+          editor.removeMotionAssignment(actionId, assignmentIndex);
         }
       }
       return;
@@ -124,9 +124,9 @@ export function bindTimelineEvents(editor) {
         updates[type] = "";
 
         if (action && action.type === "layout") {
-          editor._updateLayoutInitialState(actionId, updates);
+          editor.updateLayoutInitialState(actionId, updates);
         } else {
-          editor._updateMotionAssignment(actionId, assignmentIndex, updates);
+          editor.updateMotionAssignment(actionId, assignmentIndex, updates);
         }
         return;
       }
@@ -134,7 +134,7 @@ export function bindTimelineEvents(editor) {
     }
 
     if (clickEvent.target.matches(".layout-remove-btn")) {
-      editor._deleteLayoutAction(timelineCard.dataset.id);
+      editor.deleteLayoutAction(timelineCard.dataset.id);
       return;
     }
   };
@@ -151,7 +151,7 @@ export function bindTimelineEvents(editor) {
       );
 
       if (action && action.type === "layout") {
-        editor._executeCommand((currentState) => {
+        editor.executeCommand((currentState) => {
           const layoutAction = currentState.actions.find(
             (actionItem) => actionItem.id === actionId
           );
@@ -160,7 +160,7 @@ export function bindTimelineEvents(editor) {
           }
         });
       } else {
-        editor._updateMotionAssignment(actionId, assignmentIndex, {
+        editor.updateMotionAssignment(actionId, assignmentIndex, {
           delay: delayValue,
         });
       }
@@ -171,7 +171,7 @@ export function bindTimelineEvents(editor) {
       const actionId = changeEvent.target.dataset.actionId;
       const delayValue = parseFloat(changeEvent.target.value) || 0;
 
-      editor._executeCommand((currentState) => {
+      editor.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
@@ -184,7 +184,7 @@ export function bindTimelineEvents(editor) {
 
     const layoutCard = changeEvent.target.closest(".layout-item");
     if (layoutCard && changeEvent.target.matches("select, input")) {
-      editor._updateLayoutActionProperty(layoutCard.dataset.id, changeEvent.target);
+      editor.updateLayoutActionProperty(layoutCard.dataset.id, changeEvent.target);
     }
   };
 }

@@ -35,7 +35,7 @@ export function attachExpressionDrag(editor, baseEditor) {
           editor.domCache.groupCheckbox?.checked || false,
         groupSize: 50,
         executeFn: (globalOldIndex, globalNewIndex) => {
-          editor._executeCommand((currentState) => {
+          editor.executeCommand((currentState) => {
             const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
             currentState.actions.splice(globalNewIndex, 0, movedItem);
           });
