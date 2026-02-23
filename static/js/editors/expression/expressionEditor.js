@@ -8,10 +8,10 @@ import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
-import { bindTimelineEvents } from "@editors/expression/timeline/timelineEvents.js";
-import { renderTimeline } from "@editors/expression/timeline/timelineRenderer.js";
-import { libraryPanel } from "@editors/expression/libraries/libraryPanel.js";
-import { quickFill } from "@editors/expression/libraries/quickFill.js";
+import { bindTimelineEvents } from "@editors/expression/expressionTimelineEvents.js";
+import { renderTimeline } from "@editors/expression/expressionTimelineRenderer.js";
+import { libraryPanel } from "@editors/expression/expressionLibraryPanel.js";
+import { quickFill } from "@editors/expression/expressionQuickFill.js";
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({

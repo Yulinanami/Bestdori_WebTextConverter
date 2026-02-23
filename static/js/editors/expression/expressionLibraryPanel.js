@@ -2,7 +2,7 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
-import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 // 右侧资源库：渲染动作/表情列表、搜索过滤、临时项、打开 Live2D 浏览器等

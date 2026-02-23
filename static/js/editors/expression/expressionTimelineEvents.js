@@ -1,6 +1,6 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { assignmentRenderer } from "@editors/expression/assignments/assignmentRenderer.js";
-import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
 
 // 时间线事件：处理点击“设置/删除/清空动作表情”等按钮，以及延迟输入变化
 export function bindTimelineEvents(editor) {

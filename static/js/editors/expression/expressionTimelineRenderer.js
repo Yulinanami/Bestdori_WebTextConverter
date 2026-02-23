@@ -10,8 +10,8 @@ import {
 } from "@utils/TimelineCardFactory.js";
 import { editorService } from "@services/EditorService.js";
 import { configUI } from "@managers/config/configUI.js";
-import { assignmentRenderer } from "@editors/expression/assignments/assignmentRenderer.js";
-import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
 
 // 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
 const timelineCache = createTimelineRenderCache();

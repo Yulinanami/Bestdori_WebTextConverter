@@ -2,7 +2,7 @@
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { quoteStore } from "@stores/quoteStore.js";
+import { quoteStore } from "@managers/quote/quoteStore.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 export const quoteManager = {

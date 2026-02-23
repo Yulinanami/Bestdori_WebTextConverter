@@ -1,8 +1,8 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { configUI } from "@managers/config/configUI.js";
-import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
-import { assignmentDnd } from "@editors/expression/assignments/assignmentDnd.js";
+import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
+import { assignmentDnd } from "@editors/expression/expressionAssignmentDnd.js";
 
 // 分配 UI 渲染：负责把动作/表情分配区画到卡片底部
 export const assignmentRenderer = {

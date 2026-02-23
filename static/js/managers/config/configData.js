@@ -3,7 +3,7 @@ import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
 import { costumeData } from "@managers/costume/costumeData.js";
-import { quoteStore } from "@stores/quoteStore.js";
+import { quoteStore } from "@managers/quote/quoteStore.js";
 import { FileUtils } from "@utils/FileUtils.js";
 import { positionManager } from "@managers/positionManager.js";
 import { positionStore } from "@managers/position/positionStore.js";

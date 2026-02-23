@@ -1,5 +1,5 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
 
 // 分配区拖拽：把“动作/表情库”的 item 拖进 drop-zone 后写回数据
 export const assignmentDnd = {
