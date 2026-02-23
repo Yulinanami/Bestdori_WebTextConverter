@@ -100,7 +100,9 @@ export const costumeData = {
         Object.keys(baseConfigData.character_mapping)
       );
 
-      const savedSelectedCostumes = this.loadLocalCostumes();
+      const savedSelectedCostumes = storageService.get(
+        STORAGE_KEYS.COSTUME_MAPPING_V2,
+      );
       if (savedSelectedCostumes) {
         state.set("currentCostumes", savedSelectedCostumes);
       } else {
@@ -110,7 +112,9 @@ export const costumeData = {
         );
       }
 
-      const savedAvailableCostumeMap = this.loadLocalAvailableCostumes();
+      const savedAvailableCostumeMap = storageService.get(
+        STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
+      );
       if (savedAvailableCostumeMap) {
         costumeManager.availableCostumes = savedAvailableCostumeMap;
       } else {
@@ -121,21 +125,6 @@ export const costumeData = {
       console.error("加载服装配置失败:", error);
       ui.showStatus(error.message || "无法加载服装配置", "error");
     }
-  },
-
-  // 从本地读取“当前服装选择”
-  loadLocalCostumes() {
-    return storageService.get(STORAGE_KEYS.COSTUME_MAPPING_V2);
-  },
-
-  // 保存“当前服装选择”到本地
-  saveLocalCostumes(costumes) {
-    return storageService.set(STORAGE_KEYS.COSTUME_MAPPING_V2, costumes);
-  },
-
-  // 从本地读取“可用服装列表”
-  loadLocalAvailableCostumes() {
-    return storageService.get(STORAGE_KEYS.AVAILABLE_COSTUMES_V2);
   },
 
   // 保存“可用服装列表”（会做一个简单校验，避免写入空数据）
@@ -161,7 +150,7 @@ export const costumeData = {
   importCostumes(costumeManager, config) {
     if (config.costume_mapping) {
       state.set("currentCostumes", config.costume_mapping);
-      this.saveLocalCostumes(config.costume_mapping);
+      storageService.set(STORAGE_KEYS.COSTUME_MAPPING_V2, config.costume_mapping);
     }
 
     if (config.built_in_characters) {

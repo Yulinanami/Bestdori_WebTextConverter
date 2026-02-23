@@ -60,9 +60,9 @@ export const mergerManager = {
     if (gotoMergeButton) {
       gotoMergeButton.addEventListener("click", async () => {
         if (!this.mergedResult) return;
-        const dataStr = JSON.stringify(this.mergedResult, null, 2);
+        const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
         try {
-          await navigator.clipboard.writeText(dataStr);
+          await navigator.clipboard.writeText(mergedJsonText);
           ui.showStatus("合并结果已复制，正在跳转到 Bestdori...", "success");
         } catch (clipboardError) {
           ui.showStatus("复制失败，请手动选择复制后跳转。", "warning");
@@ -101,7 +101,7 @@ export const mergerManager = {
       }
 
       try {
-        const content = await this.readFileAsText(file);
+        const content = await FileUtils.readFileAsText(file);
         const data = JSON.parse(content);
 
         // 基本校验
@@ -125,13 +125,9 @@ export const mergerManager = {
 
     // 重置 input 以便再次选择相同文件
     const mergerFileInput = document.getElementById("mergerFileInput");
-    if (mergerFileInput) mergerFileInput.value = "";
+      if (mergerFileInput) mergerFileInput.value = "";
 
     this.updateUI();
-  },
-
-  readFileAsText(file) {
-    return FileUtils.readFileAsText(file);
   },
 
   updateUI() {
@@ -144,18 +140,18 @@ export const mergerManager = {
       mergeButton.disabled = false;
 
       fileListElement.innerHTML = "";
-      this.files.forEach((file) => {
+      this.files.forEach((fileEntry) => {
         const fileListItem = document.createElement("li");
         fileListItem.className = "merger-file-item";
-        fileListItem.dataset.id = file.id;
+        fileListItem.dataset.id = fileEntry.id;
         fileListItem.innerHTML = `
                 <div class="merger-file-drag-handle">
                     <span class="material-symbols-outlined">drag_indicator</span>
                 </div>
-                <div class="merger-file-name" title="${file.name}">${file.name}</div>
+                <div class="merger-file-name" title="${fileEntry.name}">${fileEntry.name}</div>
                 <div class="merger-file-actions">
-                    <span class="merger-file-count">${file.data.actions.length} 个动作</span>
-                    <button class="btn btn-icon btn-sm" aria-label="删除" onclick="document.dispatchEvent(new CustomEvent('remove-merger-file', {detail: '${file.id}'}))">
+                    <span class="merger-file-count">${fileEntry.data.actions.length} 个动作</span>
+                    <button class="btn btn-icon btn-sm" aria-label="删除" onclick="document.dispatchEvent(new CustomEvent('remove-merger-file', {detail: '${fileEntry.id}'}))">
                         <span class="material-symbols-outlined" style="color: var(--color-error)">delete</span>
                     </button>
                 </div>
@@ -233,20 +229,20 @@ export const mergerManager = {
   downloadMergedResult() {
     if (!this.mergedResult) return;
 
-    const dataStr = JSON.stringify(this.mergedResult, null, 2);
+    const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
     const filename =
       this.mode === "bestdori"
         ? `merged_bestdori_${Date.now()}.json`
         : `merged_project_${Date.now()}.json`;
 
-    FileUtils.downloadAsFile(dataStr, filename);
+    FileUtils.downloadAsFile(mergedJsonText, filename);
   },
 
   async copyMergedResult() {
     if (!this.mergedResult) return;
-    const dataStr = JSON.stringify(this.mergedResult, null, 2);
+    const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
     try {
-      await navigator.clipboard.writeText(dataStr);
+      await navigator.clipboard.writeText(mergedJsonText);
       ui.showStatus("合并结果已复制到剪贴板！", "success");
     } catch (clipboardError) {
       ui.showStatus("复制失败，请手动选择复制。", "error");

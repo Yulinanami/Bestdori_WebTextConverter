@@ -4,9 +4,12 @@ import { ui, initPerformanceSettingsPersistence } from "@utils/uiUtils.js";
 import { viewManager } from "@managers/viewManager.js";
 import { fileHandler } from "@managers/fileHandler.js";
 import { configManager } from "@managers/configManager.js";
+import { configData } from "@managers/config/configData.js";
 import { converter } from "@managers/converter.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
+import { costumeData } from "@managers/costume/costumeData.js";
+import { costumeInteractions } from "@managers/costume/costumeInteractions.js";
 import { positionManager } from "@managers/positionManager.js";
 import { speakerEditor } from "@editors/speaker/speakerEditor.js";
 import { live2dEditor } from "@editors/live2d/live2dEditor.js";
@@ -21,15 +24,15 @@ import "@managers/navigationManager.js"; // 初始化导航
 import "@managers/themeManager.js"; // 初始化主题
 
 // 让一个数字输入框“自动保存到本地”，下次打开还能记住
-const initializeNumericInput = ({ elementId, storageKey }) => {
-  const numericInput = document.getElementById(elementId);
+const initializeNumericInput = ({ inputElementId, storageKey }) => {
+  const numericInput = document.getElementById(inputElementId);
   if (!numericInput) return;
 
   const savedValue = storageService.get(storageKey, 0);
   numericInput.value = savedValue;
 
   numericInput.addEventListener("input", (inputEvent) => {
-    const numericValue = parseInt(inputEvent.target.value, 10) || 0;
+    const numericValue = parseInt(inputEvent.target.value) || 0;
     storageService.set(storageKey, numericValue);
   });
 };
@@ -54,11 +57,11 @@ const initializeApp = () => {
   // 初始化性能设置的持久化功能
   initPerformanceSettingsPersistence();
   initializeNumericInput({
-    elementId: "appendSpaces",
+    inputElementId: "appendSpaces",
     storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES,
   });
   initializeNumericInput({
-    elementId: "appendSpacesBeforeNewline",
+    inputElementId: "appendSpacesBeforeNewline",
     storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
   });
 
@@ -81,7 +84,7 @@ const initializeApp = () => {
   positionManager.init();
 
   // 初始化服装事件委托
-  costumeManager.init();
+  costumeInteractions.bindCostumeListEvents(costumeManager);
 
   // 初始化文件处理
   fileHandler.init();
@@ -100,10 +103,10 @@ const initializeApp = () => {
 
   // 加载配置
   configManager.init();
-  configManager.loadConfig();
+  configData.loadConfig(configManager);
 
   // 加载服装配置
-  costumeManager.loadCostumeConfig();
+  costumeData.loadCostumeConfig(costumeManager);
 };
 // 绑定“全局按钮/输入框”的事件（不属于某个具体模块的那种）
 const bindGlobalEvents = () => {
@@ -112,7 +115,7 @@ const bindGlobalEvents = () => {
     ?.addEventListener("click", () => ui.goToBestdori());
   document
     .getElementById("helpBtn")
-    ?.addEventListener("click", () => ui.openModal("helpModal"));
+    ?.addEventListener("click", () => modalService.open("helpModal"));
 
   document.getElementById("shutdownBtn")?.addEventListener("click", () => {
     if (confirm("确定要关闭应用程序吗？")) {

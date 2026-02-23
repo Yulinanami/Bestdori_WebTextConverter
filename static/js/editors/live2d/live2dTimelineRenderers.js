@@ -5,6 +5,7 @@ import {
   createLayoutCard,
 } from "@utils/TimelineCardFactory.js";
 import { editorService } from "@services/EditorService.js";
+import { configUI } from "@managers/config/configUI.js";
 
 export function createLive2DRenderers(editor, { templates, characterNameMap }) {
   // renderSingleCard负责画一个卡片，updateCard 负责就地更新卡片
@@ -74,7 +75,8 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
           avatarDiv.dataset.characterId !==
             String(firstSpeaker.characterId || "")
         ) {
-          editorService.updateCharacterAvatar(
+          configUI.updateConfigAvatar(
+            editorService.configManager,
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
             firstSpeaker.name
@@ -116,7 +118,8 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
       ) {
-        editorService.updateCharacterAvatar(
+        configUI.updateConfigAvatar(
+          editorService.configManager,
           { querySelector: () => avatarDiv },
           characterId,
           characterName

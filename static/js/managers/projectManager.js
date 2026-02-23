@@ -59,19 +59,19 @@ export const projectManager = {
         });
       };
 
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".json";
-      input.onchange = (changeEvent) => {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".json";
+      fileInput.onchange = (changeEvent) => {
         const file = changeEvent.target.files[0];
         if (!file) {
           resolve(null);
           return;
         }
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = (loadEvent) => {
           try {
-            const importedProject = JSON.parse(event.target.result);
+            const importedProject = JSON.parse(loadEvent.target.result);
             if (!isValidProjectFile(importedProject)) {
               throw new Error(
                 "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。",
@@ -86,7 +86,7 @@ export const projectManager = {
         };
         reader.readAsText(file);
       };
-      input.click();
+      fileInput.click();
     });
   },
 };

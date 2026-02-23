@@ -148,7 +148,7 @@ export const speakerEditor = {
       cancelAnimationFrame(this.renderFrameId);
       this.renderFrameId = null;
     }
-    editorService.detachSelection(this.domCache.canvas);
+    editorService.selectionManager?.detach?.(this.domCache.canvas);
   },
 };
 

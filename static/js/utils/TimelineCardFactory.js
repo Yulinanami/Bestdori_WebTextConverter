@@ -1,6 +1,7 @@
 // TimelineCardFactory - 统一创建编辑器时间轴所需的卡片
 import { editorService } from "@services/EditorService.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { configUI } from "@managers/config/configUI.js";
 
 // 创建一张“对话卡片”（talk）
 export function createTalkCard(
@@ -31,7 +32,8 @@ export function createTalkCard(
         .join(" & ");
     }
     if (avatarDiv) {
-      editorService.updateCharacterAvatar(
+      configUI.updateConfigAvatar(
+        editorService.configManager,
         { querySelector: () => avatarDiv },
         firstSpeaker.characterId,
         firstSpeaker.name
@@ -80,7 +82,8 @@ export function createLayoutCard(
 
   const characterId = action.characterId;
   const characterName =
-    action.characterName || editorService.getCharacterNameById(characterId);
+    action.characterName ||
+    editorService.configManager.getCharacterNameById(characterId);
 
   const nameDiv = cardFragment.querySelector(".speaker-name");
   if (nameDiv) {
@@ -90,7 +93,8 @@ export function createLayoutCard(
 
   const avatarDiv = cardFragment.querySelector(".dialogue-avatar");
   if (avatarDiv) {
-    editorService.updateCharacterAvatar(
+    configUI.updateConfigAvatar(
+      editorService.configManager,
       { querySelector: () => avatarDiv },
       characterId,
       characterName

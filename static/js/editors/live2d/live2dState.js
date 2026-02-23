@@ -1,5 +1,6 @@
 import { ui } from "@utils/uiUtils.js";
 import { editorService } from "@services/EditorService.js";
+import { positionStore } from "@managers/position/positionStore.js";
 
 // 自动布局、插入布局动作、清空布局等
 export function attachLive2DState(editor, _baseEditor) {
@@ -15,7 +16,7 @@ export function attachLive2DState(editor, _baseEditor) {
       if (resetButton) resetButton.textContent = "清空中...";
 
       try {
-        editor.executeCommand((currentState) => {
+        editor.baseEditor.executeCommand((currentState) => {
           currentState.actions = currentState.actions.filter(
             (actionItem) => actionItem.type !== "layout"
           );
@@ -35,7 +36,7 @@ export function attachLive2DState(editor, _baseEditor) {
       ) {
         return;
       }
-      editor.executeCommand((currentState) => {
+      editor.baseEditor.executeCommand((currentState) => {
         // 清空现有布局
         currentState.actions = currentState.actions.filter(
           (actionItem) => actionItem.type !== "layout"
@@ -52,7 +53,8 @@ export function attachLive2DState(editor, _baseEditor) {
                 appearedCharacterNames.add(speaker.name);
                 const defaultCostume = editor.getDefaultCostume(speaker.name);
                 const positionConfig =
-                  editorService.positionManager.getCharacterPositionConfig(
+                  positionStore.getCharacterPositionConfig(
+                    editorService.positionManager,
                     speaker.name,
                     appearedCharacterNames.size - 1
                   );
@@ -92,7 +94,7 @@ export function attachLive2DState(editor, _baseEditor) {
 
     // 插入一条布局动作（拖拽角色到时间轴时用，会自动决定 appear/move/hide）
     insertLayoutAction(characterId, characterName, index) {
-      editor.executeCommand((currentState) => {
+      editor.baseEditor.executeCommand((currentState) => {
         const previousState = editor.getCharacterStateAtIndex(
           currentState.actions,
           characterName,

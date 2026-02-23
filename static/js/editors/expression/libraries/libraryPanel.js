@@ -2,6 +2,8 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 // 右侧资源库：渲染动作/表情列表、搜索过滤、临时项、打开 Live2D 浏览器等
 export const libraryPanel = {
@@ -47,7 +49,7 @@ export const libraryPanel = {
 
   // 刷新右侧资源库（优先展示“在场角色”相关的动作/表情）
   renderLibraries(editor) {
-    const stagedCharacters = editor.getStagedCharacters();
+    const stagedCharacters = assignmentStore.getStagedCharacters(editor);
     const stagedCharacterIds = new Set(
       stagedCharacters.map((character) => character.id)
     );
@@ -70,10 +72,10 @@ export const libraryPanel = {
         .getAllKnownItems()
         .forEach((itemId) => expressionItems.add(itemId));
     }
-    editor.renderLibrary("motion", Array.from(motionItems).sort());
-    editor.renderLibrary("expression", Array.from(expressionItems).sort());
+    libraryPanel.renderLibrary("motion", Array.from(motionItems).sort());
+    libraryPanel.renderLibrary("expression", Array.from(expressionItems).sort());
 
-    editor.initDragAndDropForLibraries();
+    libraryPanel.initDragAndDropForLibraries(editor);
   },
 
   // 把一组 items 渲染成可拖拽列表
@@ -96,8 +98,8 @@ export const libraryPanel = {
   },
 
   // 搜索过滤：只显示前缀匹配的项
-  filterLibraryList(type, event) {
-    const searchTerm = event.target.value.toLowerCase().trim();
+  filterLibraryList(type, inputEvent) {
+    const searchTerm = inputEvent.target.value.toLowerCase().trim();
     const listContainerId =
       type === "motion" ? "motionLibraryList" : "expressionLibraryList";
     const listContainer = document.getElementById(listContainerId);
@@ -140,7 +142,7 @@ export const libraryPanel = {
 
     tempList.push(trimmedId);
     idInput.value = "";
-    editor.renderLibraries();
+    libraryPanel.renderLibraries(editor);
     ui.showStatus(
       `已添加临时${targetConfigManager.name}：${trimmedId}`,
       "success"
@@ -197,6 +199,7 @@ export const libraryPanel = {
   loadQuickFillOptions(editor) {
     const configData = state.get("configData");
     editor.quickFillOptions.default = configData?.quick_fill_options || [];
-    editor.quickFillOptions.custom = editor.getCustomQuickFillOptions() || [];
+    editor.quickFillOptions.custom =
+      storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
   },
 };

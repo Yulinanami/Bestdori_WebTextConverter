@@ -1,12 +1,13 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
+import { configUI } from "@managers/config/configUI.js";
 
 // 把speakers数组压成一个字符串 key（用于判断卡片是否还能“增量更新”）
 function setSpeakerKey(card, speakers = []) {
-  const key = speakers
+  const speakerKey = speakers
     .map((speaker) => `${speaker.characterId}:${speaker.name}`)
     .join("|");
-  card.dataset.speakerKey = key;
+  card.dataset.speakerKey = speakerKey;
 }
 
 export function createSpeakerRenderers(
@@ -36,15 +37,16 @@ export function createSpeakerRenderers(
         avatarContainer.style.display = "flex";
         speakerNameDiv.classList.remove("hidden");
         dialogueItem.classList.remove("narrator");
-        editorService.updateCharacterAvatar(
+        configUI.updateConfigAvatar(
+          editorService.configManager,
           { querySelector: () => avatarDiv },
           firstSpeaker.characterId,
           firstSpeaker.name,
         );
-        const allNames = action.speakers
+        const allSpeakerNames = action.speakers
           .map((speaker) => speaker.name)
           .join(" & ");
-        speakerNameDiv.textContent = allNames;
+        speakerNameDiv.textContent = allSpeakerNames;
 
         if (action.speakers.length > 1) {
           multiSpeakerBadge.classList.remove("hidden");
@@ -84,7 +86,8 @@ export function createSpeakerRenderers(
       layoutItem.querySelector(".speaker-name").textContent =
         characterName || `未知角色 (ID: ${characterId})`;
       const avatarDiv = layoutItem.querySelector(".dialogue-avatar");
-      editorService.updateCharacterAvatar(
+      configUI.updateConfigAvatar(
+        editorService.configManager,
         { querySelector: () => avatarDiv },
         characterId,
         characterName,
@@ -150,7 +153,8 @@ export function createSpeakerRenderers(
           DOMUtils.clearElement(avatarDiv);
           avatarDiv.classList.remove("fallback");
           avatarDiv.textContent = "";
-          editorService.updateCharacterAvatar(
+          configUI.updateConfigAvatar(
+            editorService.configManager,
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
             firstSpeaker.name,
@@ -207,7 +211,8 @@ export function createSpeakerRenderers(
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
       ) {
-        editorService.updateCharacterAvatar(
+        configUI.updateConfigAvatar(
+          editorService.configManager,
           { querySelector: () => avatarDiv },
           characterId,
           characterName,

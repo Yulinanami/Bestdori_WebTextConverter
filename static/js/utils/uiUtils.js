@@ -1,7 +1,6 @@
 // 页面 UI 小工具：进度条、提示条、按钮 loading、复制、跳转等。
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
-import { modalService } from "@services/ModalService.js";
 
 let statusTimer = null;
 const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
@@ -33,16 +32,6 @@ const uiUtils = {
     }, 4000);
   },
 
-  // 打开一个弹窗（modalId 是弹窗的 DOM id）
-  openModal(modalId) {
-    modalService.open(modalId);
-  },
-
-  // 关闭一个弹窗
-  closeModal(modalId) {
-    modalService.close(modalId);
-  },
-
   // 把按钮切换到“加载中/正常”状态（并可替换按钮文字）
   setButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
     const button = document.getElementById(buttonId);
@@ -56,11 +45,11 @@ const uiUtils = {
       button.disabled = true;
       button.classList.add("btn-loading");
       if (buttonId === "convertBtn") {
-        const icon = document.getElementById("convertIcon");
-        const text = document.getElementById("convertText");
-        if (icon && text) {
-          icon.innerHTML = '<div class="loading"></div>';
-          text.textContent = loadingText;
+        const convertIcon = document.getElementById("convertIcon");
+        const convertText = document.getElementById("convertText");
+        if (convertIcon && convertText) {
+          convertIcon.innerHTML = '<div class="loading"></div>';
+          convertText.textContent = loadingText;
         }
       } else {
         const loadingIcon = '<span class="loading"></span>';
@@ -70,11 +59,11 @@ const uiUtils = {
       button.disabled = false;
       button.classList.remove("btn-loading");
       if (buttonId === "convertBtn") {
-        const icon = document.getElementById("convertIcon");
-        const text = document.getElementById("convertText");
-        if (icon && text) {
-          icon.textContent = "";
-          text.textContent = "开始转换";
+        const convertIcon = document.getElementById("convertIcon");
+        const convertText = document.getElementById("convertText");
+        if (convertIcon && convertText) {
+          convertIcon.textContent = "";
+          convertText.textContent = "开始转换";
         }
       } else if (button.dataset.originalContent) {
         button.innerHTML = button.dataset.originalContent;

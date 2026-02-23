@@ -1,4 +1,6 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { assignmentRenderer } from "@editors/expression/assignments/assignmentRenderer.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
 
 // 时间线事件：处理点击“设置/删除/清空动作表情”等按钮，以及延迟输入变化
 export function bindTimelineEvents(editor) {
@@ -18,14 +20,14 @@ export function bindTimelineEvents(editor) {
       const footer = timelineCard.querySelector(".timeline-item-footer");
 
       if (action && action.type === "layout") {
-        const created = editor.ensureLayoutAssignment(actionId);
+        const created = assignmentStore.ensureLayoutAssignment(editor, actionId);
         const freshCard =
           (created &&
             editor.domCache.timeline?.querySelector(
               `.layout-item[data-id="${actionId}"]`
             )) ||
           timelineCard;
-        editor.showExpressionSetupUI(freshCard);
+        assignmentRenderer.showExpressionSetupUI(editor, freshCard);
         return;
       }
 
@@ -36,7 +38,7 @@ export function bindTimelineEvents(editor) {
         const isHidden = characterSelector.style.display === "none";
         characterSelector.style.display = isHidden ? "block" : "none";
       } else {
-        editor.showExpressionSetupUI(timelineCard);
+        assignmentRenderer.showExpressionSetupUI(editor, timelineCard);
         const newSelector = footer?.querySelector(".motion-character-selector");
         if (newSelector) {
           newSelector.style.display = "block";
@@ -58,7 +60,7 @@ export function bindTimelineEvents(editor) {
           (actionItem) => actionItem.id === actionId
         );
         if (action) {
-          editor.addMotionAssignment(action, {
+          assignmentStore.addMotionAssignment(editor, action, {
             id: characterId,
             name: characterName,
           });
@@ -85,7 +87,7 @@ export function bindTimelineEvents(editor) {
           (actionItem) => actionItem.id === actionId
         );
         if (action && action.type === "layout") {
-          editor.executeCommand((currentState) => {
+          editor.baseEditor.executeCommand((currentState) => {
             const layoutAction = currentState.actions.find(
               (actionItem) => actionItem.id === actionId
             );
@@ -95,7 +97,7 @@ export function bindTimelineEvents(editor) {
             }
           });
         } else {
-          editor.removeMotionAssignment(actionId, assignmentIndex);
+          assignmentStore.removeMotionAssignment(editor, actionId, assignmentIndex);
         }
       }
       return;
@@ -124,9 +126,14 @@ export function bindTimelineEvents(editor) {
         updates[type] = "";
 
         if (action && action.type === "layout") {
-          editor.updateLayoutInitialState(actionId, updates);
+          assignmentStore.updateLayoutInitialState(editor, actionId, updates);
         } else {
-          editor.updateMotionAssignment(actionId, assignmentIndex, updates);
+          assignmentStore.updateMotionAssignment(
+            editor,
+            actionId,
+            assignmentIndex,
+            updates
+          );
         }
         return;
       }
@@ -143,7 +150,9 @@ export function bindTimelineEvents(editor) {
     const assignmentItem = changeEvent.target.closest(".motion-assignment-item");
     if (assignmentItem && changeEvent.target.matches(".assignment-delay-input")) {
       const actionId = assignmentItem.dataset.actionId;
-      const assignmentIndex = parseInt(assignmentItem.dataset.assignmentIndex);
+      const assignmentIndex = parseInt(
+        assignmentItem.dataset.assignmentIndex
+      );
       const delayValue = parseFloat(changeEvent.target.value) || 0;
 
       const action = editor.projectFileState.actions.find(
@@ -151,7 +160,7 @@ export function bindTimelineEvents(editor) {
       );
 
       if (action && action.type === "layout") {
-        editor.executeCommand((currentState) => {
+        editor.baseEditor.executeCommand((currentState) => {
           const layoutAction = currentState.actions.find(
             (actionItem) => actionItem.id === actionId
           );
@@ -160,7 +169,7 @@ export function bindTimelineEvents(editor) {
           }
         });
       } else {
-        editor.updateMotionAssignment(actionId, assignmentIndex, {
+        assignmentStore.updateMotionAssignment(editor, actionId, assignmentIndex, {
           delay: delayValue,
         });
       }
@@ -171,7 +180,7 @@ export function bindTimelineEvents(editor) {
       const actionId = changeEvent.target.dataset.actionId;
       const delayValue = parseFloat(changeEvent.target.value) || 0;
 
-      editor.executeCommand((currentState) => {
+      editor.baseEditor.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );

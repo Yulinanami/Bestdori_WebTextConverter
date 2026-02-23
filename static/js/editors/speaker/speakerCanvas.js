@@ -19,7 +19,6 @@ export function attachSpeakerCanvas(editor) {
       const usedIds = editor.getUsedCharacterIds();
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions || [];
-      const groupSize = 50;
 
       const templates =
         editor.domCache.templates ||
@@ -27,7 +26,7 @@ export function attachSpeakerCanvas(editor) {
           talk: document.getElementById("text-snippet-card-template"),
           layout: document.getElementById("timeline-layout-card-template"),
         });
-      const configEntries = editorService.getCurrentConfig() || {};
+      const configEntries = editorService.state.get("currentConfig") || {};
       const configSignature = DataUtils.shallowSignature(configEntries);
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
@@ -48,7 +47,7 @@ export function attachSpeakerCanvas(editor) {
         updateCard,
         signatureResolver: DataUtils.actionSignature,
         groupingEnabled: isGroupingEnabled,
-        groupSize,
+        groupSize: 50,
         activeGroupIndex: editor.activeGroupIndex,
         contextSignature: configSignature,
         onGroupToggle: (index) => {

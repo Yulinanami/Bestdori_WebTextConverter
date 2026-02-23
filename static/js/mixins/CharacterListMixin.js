@@ -2,6 +2,7 @@
 
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
+import { configUI } from "@managers/config/configUI.js";
 
 function createCharacterListCache() {
   // 用一个小缓存减少重复创建 DOM（提升渲染性能）
@@ -25,8 +26,8 @@ export const CharacterListMixin = {
       this._characterListCache ||
       (this._characterListCache = createCharacterListCache());
     const fragment = document.createDocumentFragment();
-    const characters = editorService.getAllCharacters();
-    const pinned = editorService.getPinnedCharacters();
+    const characters = Object.entries(editorService.state.get("currentConfig") || {});
+    const pinned = editorService.pinnedCharacterManager.getPinned();
 
     // 如果角色配置或置顶列表变了，就清空签名缓存，避免显示不一致
     const configSignature = DataUtils.shallowSignature(
@@ -92,7 +93,12 @@ export const CharacterListMixin = {
           pinButton.classList.toggle("is-pinned", isPinned);
         }
 
-        editorService.updateCharacterAvatar(characterCard, characterId, name);
+        configUI.updateConfigAvatar(
+          editorService.configManager,
+          characterCard,
+          characterId,
+          name
+        );
         const nameEl = characterCard.querySelector(".character-name");
         if (nameEl) nameEl.textContent = name;
 
@@ -129,7 +135,7 @@ export const CharacterListMixin = {
         const characterItem = pinButton.closest(".character-item");
         if (characterItem && characterItem.dataset.characterName) {
           const characterName = characterItem.dataset.characterName;
-          editorService.togglePinCharacter(characterName);
+          editorService.pinnedCharacterManager.toggle(characterName);
 
           // 调用子类的后处理钩子
           if (this.afterPinToggle) {

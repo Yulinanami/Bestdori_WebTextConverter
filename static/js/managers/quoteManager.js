@@ -3,6 +3,7 @@ import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { quoteStore } from "@stores/quoteStore.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 export const quoteManager = {
   presetStates: {},
@@ -11,29 +12,19 @@ export const quoteManager = {
   init() {
     const addButton = document.getElementById("addCustomQuoteBtn");
     if (addButton) {
-      addButton.addEventListener("click", this.addCustomQuoteOption.bind(this));
+      addButton.addEventListener("click", () =>
+        this._addCustomQuote({
+          openInputId: "customQuoteOpen",
+          closeInputId: "customQuoteClose",
+        }),
+      );
     }
   },
 
   // 从本地读取自定义引号列表（并写入全局状态）
   loadCustomQuotes() {
-    const saved = quoteStore.loadCustomQuotes();
-    return saved.length > 0;
-  },
-
-  // 把当前自定义引号列表保存到本地
-  saveCustomQuotes() {
-    return quoteStore.saveCustomQuotes();
-  },
-
-  // 读取“预设引号”的勾选状态（是否参与去引号）
-  loadPresetQuotesState() {
-    return quoteStore.getPresetStates();
-  },
-
-  // 保存“预设引号”的勾选状态
-  savePresetQuotesState(stateMap) {
-    return quoteStore.savePresetStates(stateMap);
+    const savedQuotes = quoteStore.loadCustomQuotes();
+    return savedQuotes.length > 0;
   },
 
   // 把“预设 + 自定义”引号渲染成一组复选框
@@ -44,7 +35,7 @@ export const quoteManager = {
     this.loadCustomQuotes();
 
     // 加载预设引号的保存状态
-    this.presetStates = this.loadPresetQuotesState();
+    this.presetStates = storageService.get(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
 
     const fragment = document.createDocumentFragment();
     const quotesConfig = state.get("configData")?.quotes_config;
@@ -117,7 +108,9 @@ export const quoteManager = {
         className: "btn-icon-action btn-icon-danger delete-quote-btn",
         title: "删除此引号对",
       });
-      deleteButton.onclick = () => this.removeCustomQuote(categoryName);
+      deleteButton.addEventListener("click", () =>
+        this.removeCustomQuote(categoryName),
+      );
       const icon = DOMUtils.createElement(
         "span",
         { className: "material-symbols-outlined" },
@@ -156,7 +149,7 @@ export const quoteManager = {
     } else {
       const stateKey = `${openChar}_${closeChar}`;
       this.presetStates[stateKey] = checkbox.checked;
-      this.savePresetQuotesState(this.presetStates);
+      storageService.set(STORAGE_KEYS.PRESET_QUOTES_STATE, this.presetStates);
     }
   },
 
@@ -183,14 +176,6 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 从输入框读取并添加一个自定义引号对
-  addCustomQuoteOption() {
-    this._addCustomQuote({
-      openInputId: "customQuoteOpen",
-      closeInputId: "customQuoteClose",
-    });
-  },
-
   // 内部方法：新增一个自定义引号对（并刷新 UI）
   _addCustomQuote(options) {
     const { openInputId, closeInputId, onComplete } = options;
@@ -204,9 +189,7 @@ export const quoteManager = {
 
     const categoryName = `${openChar}...${closeChar}`;
     if (
-      quoteStore
-        .getCustomQuotes()
-        .some((quote) => quote.name === categoryName)
+      quoteStore.getCustomQuotes().some((quote) => quote.name === categoryName)
     ) {
       ui.showStatus("该引号对已存在！", "error");
       return;

@@ -11,11 +11,6 @@ export const BaseEditorMixin = {
   scrollAnimationFrame: null,
   scrollSpeed: 0,
 
-  // 通过 BaseEditor 执行一次“可撤销的修改”（changeFn 会拿到 currentState）
-  executeCommand(changeFn) {
-    this.baseEditor.executeCommand(changeFn);
-  },
-
   // 保存：把编辑器里的临时状态写回全局项目进度
   async save() {
     await EditorHelper.saveEditor({
@@ -33,23 +28,20 @@ export const BaseEditorMixin = {
     });
   },
 
-  // 导出：把当前项目进度下载成 JSON 文件
-  exportProject() {
-    editorService.projectManager.export(this.projectFileState);
-  },
-
   // 导入：选择一个项目进度 JSON，并替换当前编辑器状态
   async importProject() {
     const importedProject = await editorService.projectManager.import();
     if (importedProject) {
       this.projectFileState = importedProject;
       this.originalStateOnOpen = JSON.stringify(importedProject);
-      editorService.setProjectState(DataUtils.deepClone(importedProject));
+      editorService.state.set("projectFile", DataUtils.deepClone(importedProject));
       historyManager.clear();
 
       // 调用子类的后处理钩子
-      if (this.afterImport) {
+      if (typeof this.afterImport === "function") {
         this.afterImport();
+      } else if (typeof this.renderTimeline === "function") {
+        this.renderTimeline();
       }
     }
   },
@@ -82,7 +74,7 @@ export const BaseEditorMixin = {
 
   // 删除一条 layout action（按 actionId）
   deleteLayoutAction(actionId) {
-    this.executeCommand((currentState) => {
+    this.baseEditor.executeCommand((currentState) => {
       currentState.actions = currentState.actions.filter(
         (actionItem) => actionItem.id !== actionId
       );
@@ -94,7 +86,7 @@ export const BaseEditorMixin = {
     const text = segments.join("\n\n");
     const baseProject = createProjectFileFromText(
       text,
-      editorService.getCurrentConfig()
+      editorService.state.get("currentConfig")
     );
     const actions = baseProject.actions.map((action, index) =>
       this.createActionFromSegment
@@ -110,7 +102,7 @@ export const BaseEditorMixin = {
     const inputElement = document.getElementById("inputText");
     const rawText = inputElement ? inputElement.value : "";
     const trimmedText = rawText?.trim() || "";
-    const projectState = editorService.getProjectState();
+    const projectState = editorService.state.get("projectFile");
     let initialState;
 
     if (projectState) {

@@ -9,6 +9,9 @@ import {
   createLayoutCard,
 } from "@utils/TimelineCardFactory.js";
 import { editorService } from "@services/EditorService.js";
+import { configUI } from "@managers/config/configUI.js";
+import { assignmentRenderer } from "@editors/expression/assignments/assignmentRenderer.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
 
 // 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
 const timelineCache = createTimelineRenderCache();
@@ -20,14 +23,13 @@ export function renderTimeline(editor) {
 
   const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
   const actions = editor.projectFileState.actions || [];
-  const groupSize = 50;
   const templates =
     editor.domCache.templates ||
     (editor.domCache.templates = {
       talk: document.getElementById("timeline-talk-card-template"),
       layout: document.getElementById("timeline-layout-card-template"),
     });
-  const configEntries = editorService.getCurrentConfig() || {};
+  const configEntries = editorService.state.get("currentConfig") || {};
   const configSignature = DataUtils.shallowSignature(configEntries);
   const characterNameMap = new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
@@ -41,9 +43,9 @@ export function renderTimeline(editor) {
     if (!footer) return;
     DOMUtils.clearElement(footer);
 
-    if (editor.actionHasExpressionData(action)) {
+    if (assignmentStore.actionHasExpressionData(action)) {
       // 复用统一的分配渲染逻辑，避免两套实现
-      editor.showExpressionSetupUI(card);
+      assignmentRenderer.showExpressionSetupUI(editor, card);
       return;
     }
 
@@ -125,7 +127,8 @@ export function renderTimeline(editor) {
           avatarDiv.dataset.characterId !==
             String(firstSpeaker.characterId || "")
         ) {
-          editorService.updateCharacterAvatar(
+          configUI.updateConfigAvatar(
+            editorService.configManager,
             { querySelector: () => avatarDiv },
             firstSpeaker.characterId,
             firstSpeaker.name,
@@ -167,7 +170,8 @@ export function renderTimeline(editor) {
         avatarDiv &&
         avatarDiv.dataset.characterId !== String(characterId || "")
       ) {
-        editorService.updateCharacterAvatar(
+        configUI.updateConfigAvatar(
+          editorService.configManager,
           { querySelector: () => avatarDiv },
           characterId,
           characterName,
@@ -200,13 +204,13 @@ export function renderTimeline(editor) {
     updateCard,
     signatureResolver: DataUtils.actionSignature,
     groupingEnabled: isGroupingEnabled,
-    groupSize,
+    groupSize: 50,
     activeGroupIndex: editor.activeGroupIndex,
     contextSignature: configSignature,
     onGroupToggle: (index) => {
       const isOpening = editor.activeGroupIndex !== index;
       editor.activeGroupIndex = isOpening ? index : null;
-      editor.renderTimeline();
+      renderTimeline(editor);
 
       if (isOpening) {
         setTimeout(() => {

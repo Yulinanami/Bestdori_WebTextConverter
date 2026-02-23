@@ -7,8 +7,8 @@ import { modalService } from "@services/ModalService.js";
 export const quickFill = {
   // 刷新两个下拉菜单（动作/表情）
   renderQuickFillDropdowns(editor) {
-    editor.renderQuickFillDropdown("motion");
-    editor.renderQuickFillDropdown("expression");
+    quickFill.renderQuickFillDropdown(editor, "motion");
+    quickFill.renderQuickFillDropdown(editor, "expression");
   },
 
   // 渲染一个下拉菜单（包含默认项 + 自定义项 + “自定义添加”按钮）
@@ -128,7 +128,7 @@ export const quickFill = {
           STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
           editor.quickFillOptions.custom
         );
-        editor.renderQuickFillDropdowns();
+        quickFill.renderQuickFillDropdowns(editor);
         ui.showStatus(`已添加自定义填充项: ${trimmedValue}`, "success");
       } else {
         ui.showStatus("该填充项已存在！", "error");
@@ -149,13 +149,8 @@ export const quickFill = {
         STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
         editor.quickFillOptions.custom
       );
-      editor.renderQuickFillDropdowns();
+      quickFill.renderQuickFillDropdowns(editor);
       ui.showStatus(`已删除填充项: ${valueToDelete}`, "success");
     }
-  },
-
-  // 从 localStorage 读取自定义填充项列表
-  getCustomQuickFillOptions() {
-    return storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
   },
 };

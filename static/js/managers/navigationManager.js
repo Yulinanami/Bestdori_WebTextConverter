@@ -58,16 +58,20 @@ class NavigationManager {
   _stepInitializerMap = {
     // 第 5 步：配置管理（角色列表）
     5: async () => {
-      const { configManager } = await import("@managers/configManager.js");
-      configManager.renderConfigList();
+      const [{ configManager }, { configUI }] = await Promise.all([
+        import("@managers/configManager.js"),
+        import("@managers/config/configUI.js"),
+      ]);
+      configUI.renderConfigList(configManager);
     },
 
     // 第 6 步：服装配置（初始化临时修改区，避免直接改动正式数据）
     6: async () => {
-      const [{ costumeManager }, { state }, { DataUtils }] = await Promise.all([
+      const [{ costumeManager }, { state }, { DataUtils }, { costumeRenderer }] = await Promise.all([
         import("@managers/costumeManager.js"),
         import("@managers/stateManager.js"),
         import("@utils/DataUtils.js"),
+        import("@managers/costume/costumeRenderer.js"),
       ]);
 
       // 初始化临时状态
@@ -77,15 +81,17 @@ class NavigationManager {
       costumeManager.tempAvailableCostumes = DataUtils.deepClone(
         costumeManager.availableCostumes
       );
-      costumeManager.renderCostumeList();
+      costumeRenderer.renderCostumeList(costumeManager);
     },
 
     // 第 7 步：位置配置（初始化临时配置，并渲染列表）
     7: async () => {
-      const [{ positionManager }, { DataUtils }] = await Promise.all([
-        import("@managers/positionManager.js"),
-        import("@utils/DataUtils.js"),
-      ]);
+      const [{ positionManager }, { DataUtils }, { positionUI }] =
+        await Promise.all([
+          import("@managers/positionManager.js"),
+          import("@utils/DataUtils.js"),
+          import("@managers/position/positionUI.js"),
+        ]);
 
       // 初始化临时状态
       positionManager.tempAutoPositionMode = positionManager.autoPositionMode;
@@ -98,7 +104,7 @@ class NavigationManager {
         autoCheckbox.checked = positionManager.tempAutoPositionMode;
       }
 
-      positionManager.renderPositionList();
+      positionUI.renderPositionList(positionManager);
       positionManager.toggleManualConfig();
     },
 

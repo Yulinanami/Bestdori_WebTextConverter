@@ -5,7 +5,7 @@ export function attachSpeakerPopover(editor) {
   Object.assign(editor, {
     // 显示多说话人弹窗（定位在 targetElement 附近）
     showMultiSpeakerPopover(actionId, targetElement) {
-      DOMUtils.getElements("#speaker-popover").forEach((popoverElement) =>
+      document.querySelectorAll("#speaker-popover").forEach((popoverElement) =>
         popoverElement.remove()
       );
 

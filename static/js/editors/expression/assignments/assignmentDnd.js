@@ -1,4 +1,5 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
 
 // 分配区拖拽：把“动作/表情库”的 item 拖进 drop-zone 后写回数据
 export const assignmentDnd = {
@@ -48,9 +49,10 @@ export const assignmentDnd = {
             updates[type] = droppedValue;
 
             if (isLayoutCard) {
-              editor.updateLayoutInitialState(actionId, updates);
+              assignmentStore.updateLayoutInitialState(editor, actionId, updates);
             } else {
-              editor.updateMotionAssignment(
+              assignmentStore.updateMotionAssignment(
+                editor,
                 actionId,
                 assignmentIndex,
                 updates

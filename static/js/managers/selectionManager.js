@@ -35,7 +35,7 @@ export const selectionManager = {
 
   // 普通点击：只保留一个选中项
   selectSingle(itemId) {
-    this.clear();
+    this.selectedIds.clear();
     this.selectedIds.add(itemId);
   },
 
@@ -59,16 +59,6 @@ export const selectionManager = {
     rangeIds.forEach((itemId) => this.selectedIds.add(itemId));
   },
 
-  // 清空所有选中项
-  clear() {
-    this.selectedIds.clear();
-  },
-
-  // 获取当前选中的 id 列表（数组形式）
-  getSelectedIds() {
-    return Array.from(this.selectedIds);
-  },
-
   // 内部方法：统一处理点击，决定是单选、Ctrl 切换，还是 Shift 选范围
   _handleClick(container, itemSelector, clickEvent) {
     const clickedItem = clickEvent.target.closest(itemSelector);
@@ -83,7 +73,7 @@ export const selectionManager = {
       const isAlreadyOnlySelected =
         this.selectedIds.has(selectedItemId) && this.selectedIds.size === 1;
       if (isAlreadyOnlySelected) {
-        this.clear();
+        this.selectedIds.clear();
       } else {
         this.selectSingle(selectedItemId);
       }
@@ -94,7 +84,7 @@ export const selectionManager = {
       : null;
     container.dispatchEvent(
       new CustomEvent("selectionchange", {
-        detail: { selectedIds: this.getSelectedIds() },
+        detail: { selectedIds: Array.from(this.selectedIds) },
       }),
     );
   },

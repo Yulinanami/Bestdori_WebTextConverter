@@ -4,7 +4,7 @@ import { editorService } from "@services/EditorService.js";
 export const assignmentStore = {
   // 在 talk action 上新增一条 motions 记录
   addMotionAssignment(editor, action, character) {
-    editor.executeCommand((currentState) => {
+    editor.baseEditor.executeCommand((currentState) => {
       const currentAction = currentState.actions.find(
         (actionItem) => actionItem.id === action.id
       );
@@ -25,7 +25,7 @@ export const assignmentStore = {
 
   // 更新 layout action 的 initialState（motion/expression）
   updateLayoutInitialState(editor, actionId, updates) {
-    editor.executeCommand((currentState) => {
+    editor.baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -41,7 +41,7 @@ export const assignmentStore = {
 
   // 更新 talk action 的 motions[index]
   updateMotionAssignment(editor, actionId, assignmentIndex, updates) {
-    editor.executeCommand((currentState) => {
+    editor.baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -54,7 +54,7 @@ export const assignmentStore = {
 
   // 删除 talk action 的 motions[index]
   removeMotionAssignment(editor, actionId, assignmentIndex) {
-    editor.executeCommand((currentState) => {
+    editor.baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -85,9 +85,9 @@ export const assignmentStore = {
       (actionItem) => actionItem.id === actionId
     );
     if (!action || action.type !== "layout") return false;
-    if (this.actionHasExpressionData(action)) return false;
+    if (assignmentStore.actionHasExpressionData(action)) return false;
 
-    editor.executeCommand((currentState) => {
+    editor.baseEditor.executeCommand((currentState) => {
       const layoutAction = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -112,7 +112,7 @@ export const assignmentStore = {
         if (action.type === "layout" && action.layoutType === "appear") {
           const characterName =
             action.characterName ||
-            editorService.getCharacterNameById(action.characterId);
+            editorService.configManager.getCharacterNameById(action.characterId);
           if (
             characterName &&
             !appearedCharacterNames.has(characterName)

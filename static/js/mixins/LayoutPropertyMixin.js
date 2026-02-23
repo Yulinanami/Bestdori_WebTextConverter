@@ -79,9 +79,9 @@ export const LayoutPropertyMixin = {
       targetElement.type === "number"
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
-    const controlClassName = targetElement.className;
+    const targetClassName = targetElement.className;
 
-    this.executeCommand((currentState) => {
+    this.baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find(
         (actionItem) => actionItem.id === actionId
       );
@@ -89,7 +89,7 @@ export const LayoutPropertyMixin = {
 
       // 找到匹配的处理器并执行
       const handlerKey = Object.keys(this._layoutPropertyHandlerMap).find((key) =>
-        controlClassName.includes(key),
+        targetClassName.includes(key),
       );
 
       if (handlerKey) {

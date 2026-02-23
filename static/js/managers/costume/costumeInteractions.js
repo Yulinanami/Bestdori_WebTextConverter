@@ -8,8 +8,8 @@ export const costumeInteractions = {
   bindCostumeListEvents(costumeManager) {
     const costumeList = document.getElementById("costumeList");
     if (costumeList) {
-      costumeList.addEventListener("click", (event) => {
-        const clickedElement = event.target;
+      costumeList.addEventListener("click", (clickEvent) => {
+        const clickedElement = clickEvent.target;
         const toggleButton = clickedElement.closest(
           ".toggle-costume-details-btn"
         );
@@ -40,7 +40,7 @@ export const costumeInteractions = {
             costume: oldCostumeId,
             safeDomId,
           } = editButton.dataset;
-          const costumeIndex = parseInt(index, 10);
+          const costumeIndex = parseInt(index);
           this.editCostume(
             costumeManager,
             characterName,
@@ -54,7 +54,7 @@ export const costumeInteractions = {
         const deleteButton = clickedElement.closest(".delete-costume-btn");
         if (deleteButton) {
           const { characterName, index, safeDomId } = deleteButton.dataset;
-          const costumeIndex = parseInt(index, 10);
+          const costumeIndex = parseInt(index);
           this.deleteCostume(
             costumeManager,
             characterName,
@@ -64,8 +64,8 @@ export const costumeInteractions = {
           return;
         }
       });
-      costumeList.addEventListener("change", (event) => {
-        const select = event.target.closest(".costume-select");
+      costumeList.addEventListener("change", (changeEvent) => {
+        const select = changeEvent.target.closest(".costume-select");
         if (select) {
           const characterName = select.dataset.characterName;
           const selectedCostumeId = select.value;

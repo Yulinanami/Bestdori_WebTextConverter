@@ -52,16 +52,16 @@ export const fileHandler = {
   },
 
   // 拦截浏览器默认拖拽行为（避免打开文件/跳转页面）
-  preventDefaults(event) {
-    event.preventDefault();
-    event.stopPropagation();
+  preventDefaults(dragEvent) {
+    dragEvent.preventDefault();
+    dragEvent.stopPropagation();
   },
 
   // 拖拽松手时：把文件交给统一的上传处理
-  handleDrop(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    const dataTransfer = event.dataTransfer;
+  handleDrop(dropEvent) {
+    dropEvent.preventDefault();
+    dropEvent.stopPropagation();
+    const dataTransfer = dropEvent.dataTransfer;
     const files = dataTransfer.files;
     if (files.length > 0) {
       document.getElementById("fileInput").files = files;
@@ -70,8 +70,8 @@ export const fileHandler = {
   },
 
   // 上传文件到后端，并把解析出的文本填回输入框
-  async handleFileUpload(event) {
-    const file = event.target.files[0];
+  async handleFileUpload(changeEvent) {
+    const file = changeEvent.target.files[0];
     if (!file) return;
 
     const filename = file.name.toLowerCase();
@@ -95,10 +95,10 @@ export const fileHandler = {
       ui.showProgress(20);
       ui.showStatus("正在上传文件...", "info");
 
-      const data = await apiService.uploadFile(file);
+      const uploadResponse = await apiService.uploadFile(file);
 
       ui.showProgress(100);
-      document.getElementById("inputText").value = data.content;
+      document.getElementById("inputText").value = uploadResponse.content;
 
       if (state.get("projectFile")) {
         state.set("projectFile", null);

@@ -36,13 +36,9 @@ export const converter = {
     // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
     const narratorInput = document.getElementById("narratorName").value;
     const narratorName = narratorInput.trim() ? narratorInput : "";
-    const appendSpaces =
-      parseInt(document.getElementById("appendSpaces").value, 10) || 0;
+    const appendSpaces = parseInt(document.getElementById("appendSpaces").value) || 0;
     const appendSpacesBeforeNewline =
-      parseInt(
-        document.getElementById("appendSpacesBeforeNewline").value,
-        10,
-      ) || 0;
+      parseInt(document.getElementById("appendSpacesBeforeNewline").value) || 0;
 
     this.convertFromProjectFile(
       projectFileToConvert,
@@ -67,14 +63,14 @@ export const converter = {
       ui.showProgress(10);
       ui.showStatus("正在发送项目数据...", "info");
 
-      const data = await apiService.convertText(
+      const convertResponse = await apiService.convertText(
         projectFile,
         selectedQuotes,
         narratorName,
         appendSpaces,
         appendSpacesBeforeNewline,
       );
-      const result = data.result;
+      const result = convertResponse.result;
 
       ui.showProgress(100);
       state.set("currentResult", result);

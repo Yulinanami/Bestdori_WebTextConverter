@@ -2,8 +2,12 @@ import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
+import { costumeData } from "@managers/costume/costumeData.js";
+import { quoteStore } from "@stores/quoteStore.js";
 import { FileUtils } from "@utils/FileUtils.js";
 import { positionManager } from "@managers/positionManager.js";
+import { positionStore } from "@managers/position/positionStore.js";
+import { configUI } from "@managers/config/configUI.js";
 import {
   motionManager,
   expressionManager,
@@ -45,7 +49,7 @@ export const configData = {
       configManager.defaultConfig = data.character_mapping;
       state.set("avatarMapping", data.avatar_mapping || {});
 
-      const savedConfig = this.loadLocalConfig();
+      const savedConfig = storageService.get(STORAGE_KEYS.CHARACTER_MAPPING);
       if (savedConfig) {
         state.set("currentConfig", savedConfig);
       } else {
@@ -59,16 +63,6 @@ export const configData = {
       console.error("加载配置失败:", error);
       ui.showStatus(error.message || "无法加载应用配置", "error");
     }
-  },
-
-  // 从本地读取“角色映射配置”
-  loadLocalConfig() {
-    return storageService.get(STORAGE_KEYS.CHARACTER_MAPPING);
-  },
-
-  // 保存“角色映射配置”到本地
-  saveLocalConfig(config) {
-    return storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config);
   },
 
   // 导出所有配置为一个 JSON 文件（角色/引号/服装/位置/动作表情等）
@@ -135,8 +129,8 @@ export const configData = {
   // 导入配置文件（读取 JSON，并分发给各个子系统）
   async importConfig(configManager, file) {
     try {
-      const text = await FileUtils.readFileAsText(file);
-      const config = JSON.parse(text);
+      const fileText = await FileUtils.readFileAsText(file);
+      const config = JSON.parse(fileText);
       this._applyImportedConfig(config, configManager);
       ui.showStatus("配置导入成功", "success");
     } catch (error) {
@@ -206,22 +200,22 @@ export const configData = {
 
     // 角色映射
     state.set("currentConfig", config.character_mapping);
-    this.saveLocalConfig(config.character_mapping);
+    storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config.character_mapping);
 
     // 自定义引号
     if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
       state.set("customQuotes", config.custom_quotes);
-      quoteManager.saveCustomQuotes();
+      quoteStore.saveCustomQuotes(config.custom_quotes);
     }
 
     // 服装
     if (config.costume_mapping || config.available_costumes) {
-      costumeManager.importCostumes(config);
+      costumeData.importCostumes(costumeManager, config);
     }
 
     // 位置
     if (config.position_config) {
-      positionManager.importPositions(config.position_config);
+      positionStore.importPositions(positionManager, config.position_config);
     }
 
     // 动作
@@ -245,7 +239,7 @@ export const configData = {
     }
 
     // 刷新 UI
-    configManager.renderConfigList();
+    configUI.renderConfigList(configManager);
     quoteManager.renderQuoteOptions();
 
     // 数字设置

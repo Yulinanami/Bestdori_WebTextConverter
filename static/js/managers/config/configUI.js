@@ -1,5 +1,6 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
+import { state } from "@managers/stateManager.js";
 
 // 配置 UI 层
 export const configUI = {
@@ -7,15 +8,15 @@ export const configUI = {
   bindConfigListInteractions(configManager) {
     const configList = document.getElementById("configList");
     if (configList) {
-      configList.addEventListener("click", (event) => {
-        const removeButton = event.target.closest(".remove-btn");
+      configList.addEventListener("click", (clickEvent) => {
+        const removeButton = clickEvent.target.closest(".remove-btn");
         if (removeButton) {
           removeButton.closest(".config-item").remove();
         }
       });
 
-      configList.addEventListener("input", (event) => {
-        const configItem = event.target.closest(".config-item");
+      configList.addEventListener("input", (inputEvent) => {
+        const configItem = inputEvent.target.closest(".config-item");
         if (!configItem) return;
         const avatarWrapper = configItem.querySelector(
           ".config-avatar-wrapper"
@@ -24,22 +25,23 @@ export const configUI = {
         const nameInput = configItem.querySelector(".config-name");
         const characterName = nameInput.value || "?";
 
-        if (event.target.classList.contains("config-ids")) {
-          const updatedCharacterIds = event.target.value
+        if (inputEvent.target.classList.contains("config-ids")) {
+          const updatedCharacterIds = inputEvent.target.value
             .split(",")
             .map((id) => parseInt(id.trim()))
             .filter((id) => !isNaN(id));
           const updatedPrimaryId =
             updatedCharacterIds.length > 0 ? updatedCharacterIds[0] : 0;
-          configManager.updateConfigAvatar(
+          this.updateConfigAvatar(
+            configManager,
             avatarWrapper,
             updatedPrimaryId,
             characterName
           );
-        } else if (event.target.classList.contains("config-name")) {
+        } else if (inputEvent.target.classList.contains("config-name")) {
           const avatar = avatarWrapper.querySelector(".config-avatar");
           if (avatar.classList.contains("fallback")) {
-            avatar.innerHTML = event.target.value.charAt(0) || "?";
+            avatar.innerHTML = inputEvent.target.value.charAt(0) || "?";
           }
         }
       });
@@ -49,7 +51,7 @@ export const configUI = {
   // 把配置按角色 ID 排序后渲染到页面
   renderConfigList(configManager) {
     const sortedConfig = DataUtils.sortBy(
-      Object.entries(configManager.getCurrentConfig()),
+      Object.entries(state.get("currentConfig")),
       ([, ids]) => ids?.[0] ?? Infinity,
       "asc"
     );
@@ -71,7 +73,7 @@ export const configUI = {
       const configItem = clone.querySelector(".config-item");
       const primaryId = ids?.[0] ?? 0;
       const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
-      configManager.updateConfigAvatar(avatarWrapper, primaryId, name);
+      this.updateConfigAvatar(configManager, avatarWrapper, primaryId, name);
 
       configItem.querySelector(".config-name").value = name;
       configItem.querySelector(".config-ids").value = Array.isArray(ids)
@@ -90,6 +92,7 @@ export const configUI = {
     const avatar = avatarWrapper.querySelector(".config-avatar");
     avatar.dataset.id = id;
     const avatarId = configManager.getAvatarId(id);
+    const fallbackText = name.charAt(0);
 
     DOMUtils.clearElement(avatar);
 
@@ -105,14 +108,14 @@ export const configUI = {
 
       img.addEventListener("error", () => {
         DOMUtils.clearElement(avatar);
-        avatar.textContent = name.charAt(0);
+        avatar.textContent = fallbackText;
         avatar.classList.add("fallback");
       });
 
       avatar.appendChild(img);
     } else {
       avatar.className = "config-avatar fallback";
-      avatar.textContent = name.charAt(0);
+      avatar.textContent = fallbackText;
     }
   },
 

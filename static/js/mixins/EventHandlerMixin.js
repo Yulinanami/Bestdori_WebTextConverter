@@ -1,5 +1,6 @@
 // 编辑器通用事件合集：撤销/重做、保存/导入/导出、关闭确认、快捷键等
 import { historyManager } from "@managers/historyManager.js";
+import { editorService } from "@services/EditorService.js";
 
 export const EventHandlerMixin = {
   // 初始化：把编辑器常用按钮和快捷键都绑定好
@@ -27,7 +28,9 @@ export const EventHandlerMixin = {
       ?.addEventListener("click", () => this.importProject());
     document
       .getElementById(this.exportButtonId)
-      ?.addEventListener("click", () => this.exportProject());
+      ?.addEventListener("click", () =>
+        editorService.projectManager.export(this.projectFileState),
+      );
 
     // 关闭弹窗时：如果有未保存更改就先确认
     const handleCloseAttempt = (closeEvent) => {

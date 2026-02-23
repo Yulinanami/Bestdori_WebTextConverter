@@ -1,5 +1,8 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
+import { configUI } from "@managers/config/configUI.js";
+import { assignmentStore } from "@editors/expression/assignments/assignmentStore.js";
+import { assignmentDnd } from "@editors/expression/assignments/assignmentDnd.js";
 
 // 分配 UI 渲染：负责把动作/表情分配区画到卡片底部
 export const assignmentRenderer = {
@@ -26,7 +29,7 @@ export const assignmentRenderer = {
         id: action.characterId,
         name:
           action.characterName ||
-          editorService.getCharacterNameById(action.characterId),
+          editorService.configManager.getCharacterNameById(action.characterId),
       };
 
       if (characterInfo.name) {
@@ -38,7 +41,8 @@ export const assignmentRenderer = {
           delay: action.delay || 0,
         };
 
-        const assignmentItem = editor.createAssignmentItem(
+        const assignmentItem = assignmentRenderer.createAssignmentItem(
+          editor,
           action,
           motionData,
           0,
@@ -58,7 +62,8 @@ export const assignmentRenderer = {
 
     if (action.motions && action.motions.length > 0) {
       action.motions.forEach((motionData, index) => {
-        const assignmentItem = editor.createAssignmentItem(
+        const assignmentItem = assignmentRenderer.createAssignmentItem(
+          editor,
           action,
           motionData,
           index
@@ -67,7 +72,10 @@ export const assignmentRenderer = {
       });
     }
 
-    const characterSelector = editor.createCharacterSelector(action);
+    const characterSelector = assignmentRenderer.createCharacterSelector(
+      editor,
+      action
+    );
 
     const setupButton = DOMUtils.createButton(
       "设置动作/表情",
@@ -95,13 +103,13 @@ export const assignmentRenderer = {
 
     let availableCharacters = [];
     if (action.type === "talk") {
-      availableCharacters = editor.getStagedCharacters();
+      availableCharacters = assignmentStore.getStagedCharacters(editor);
     } else if (action.type === "layout") {
       const characterInfo = {
         id: action.characterId,
         name:
           action.characterName ||
-          editorService.getCharacterNameById(action.characterId),
+          editorService.configManager.getCharacterNameById(action.characterId),
       };
       if (characterInfo.name) {
         availableCharacters = [characterInfo];
@@ -119,7 +127,8 @@ export const assignmentRenderer = {
       optionElement.dataset.characterName = characterInfo.name;
 
       const avatarDiv = option.querySelector(".dialogue-avatar");
-      editorService.updateCharacterAvatar(
+      configUI.updateConfigAvatar(
+        editorService.configManager,
         { querySelector: () => avatarDiv },
         characterInfo.id,
         characterInfo.name
@@ -147,7 +156,7 @@ export const assignmentRenderer = {
     itemContainer.appendChild(itemFragment);
     const itemElement = itemContainer.firstElementChild;
 
-    const characterName = editorService.getCharacterNameById(
+    const characterName = editorService.configManager.getCharacterNameById(
       motionData.character
     );
 
@@ -157,7 +166,8 @@ export const assignmentRenderer = {
     itemElement.dataset.actionId = action.id;
 
     const avatarDiv = itemElement.querySelector(".dialogue-avatar");
-    editorService.updateCharacterAvatar(
+    configUI.updateConfigAvatar(
+      editorService.configManager,
       { querySelector: () => avatarDiv },
       motionData.character,
       characterName
@@ -189,7 +199,11 @@ export const assignmentRenderer = {
     const delayInput = itemElement.querySelector(".assignment-delay-input");
     delayInput.value = motionData.delay || 0;
 
-    editor.initSortableForAssignmentZones(itemElement, isLayoutCard);
+    assignmentDnd.initSortableForAssignmentZones(
+      editor,
+      itemElement,
+      isLayoutCard
+    );
 
     return itemElement;
   },

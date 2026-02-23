@@ -6,9 +6,9 @@ export function attachSpeakerState(editor) {
   Object.assign(editor, {
     // 给某条对话（或当前多选的多条对话）添加一个说话人
     updateSpeakerAssignment(actionId, newSpeaker) {
-      const selectedIds = editorService.selectionManager.getSelectedIds();
+      const selectedIds = Array.from(editorService.selectionManager.selectedIds);
       const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
-      this.executeCommand((currentState) => {
+      this.baseEditor.executeCommand((currentState) => {
         targetIds.forEach((targetActionId) => {
           const actionToUpdate = currentState.actions.find(
             (actionItem) => actionItem.id === targetActionId
@@ -24,7 +24,7 @@ export function attachSpeakerState(editor) {
         });
       });
 
-      editorService.clearSelection();
+      editorService.selectionManager.selectedIds.clear();
       this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } })
       );
@@ -32,7 +32,7 @@ export function attachSpeakerState(editor) {
 
     // 从一条对话里移除某个说话人
     removeSpeakerFromAction(actionId, characterIdToRemove) {
-      this.executeCommand((currentState) => {
+      this.baseEditor.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
@@ -46,7 +46,7 @@ export function attachSpeakerState(editor) {
 
     // 清空一条对话的所有说话人（变成旁白）
     removeAllSpeakersFromAction(actionId) {
-      this.executeCommand((currentState) => {
+      this.baseEditor.executeCommand((currentState) => {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
@@ -74,7 +74,7 @@ export function attachSpeakerState(editor) {
         const defaultState = this.createProjectFileFromSegments(
           response.data.segments
         );
-        this.executeCommand((currentState) => {
+        this.baseEditor.executeCommand((currentState) => {
           Object.assign(currentState, defaultState);
         });
 

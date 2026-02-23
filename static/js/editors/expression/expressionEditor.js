@@ -7,15 +7,16 @@ import { EventHandlerMixin } from "@mixins/EventHandlerMixin.js";
 import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
-import { attachExpressionAssignments } from "@editors/expression/expressionAssignments.js";
-import { attachExpressionTimeline } from "@editors/expression/expressionTimeline.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
-import { attachExpressionLibraries } from "@editors/expression/expressionLibraries.js";
+import { bindTimelineEvents } from "@editors/expression/timeline/timelineEvents.js";
+import { renderTimeline } from "@editors/expression/timeline/timelineRenderer.js";
+import { libraryPanel } from "@editors/expression/libraries/libraryPanel.js";
+import { quickFill } from "@editors/expression/libraries/quickFill.js";
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
-    expressionEditor.renderTimeline();
+    renderTimeline(expressionEditor);
   },
   groupSize: 50,
 });
@@ -56,13 +57,17 @@ export const expressionEditor = {
       ?.addEventListener("click", () => this.reset());
     document
       .getElementById("addTempMotionBtn")
-      ?.addEventListener("click", () => this.addTempItem("motion"));
+      ?.addEventListener("click", () =>
+        libraryPanel.addTempItem(this, "motion")
+      );
     document
       .getElementById("addTempExpressionBtn")
-      ?.addEventListener("click", () => this.addTempItem("expression"));
+      ?.addEventListener("click", () =>
+        libraryPanel.addTempItem(this, "expression")
+      );
     document
       .getElementById("live2dViewerBtn")
-      ?.addEventListener("click", () => this.openLive2DViewers());
+      ?.addEventListener("click", () => libraryPanel.openLive2DViewers(this));
 
     // 给搜索框加一个“清空按钮”（输入时显示，点一下清空）
     const setupSearchClear = (inputId, clearBtnId) => {
@@ -85,12 +90,12 @@ export const expressionEditor = {
     document
       .getElementById("motionSearchInput")
       ?.addEventListener("input", (inputEvent) =>
-        this.filterLibraryList("motion", inputEvent)
+        libraryPanel.filterLibraryList("motion", inputEvent)
       );
     document
       .getElementById("expressionSearchInput")
       ?.addEventListener("input", (inputEvent) =>
-        this.filterLibraryList("expression", inputEvent)
+        libraryPanel.filterLibraryList("expression", inputEvent)
       );
 
     const libraryContainer = document.getElementById("expressionEditorLibrary");
@@ -103,12 +108,12 @@ export const expressionEditor = {
         if (deleteButton) {
           // 优先处理删除按钮
           clickEvent.stopPropagation(); // 阻止事件冒泡到 quickFillItem
-          this.deleteCustomQuickFillOption(deleteButton.dataset.value);
+          quickFill.deleteCustomQuickFillOption(this, deleteButton.dataset.value);
           return;
         }
 
         if (quickFillButton) {
-          this.toggleQuickFillDropdown(quickFillButton.dataset.type);
+          quickFill.toggleQuickFillDropdown(quickFillButton.dataset.type);
         }
 
         if (quickFillItem) {
@@ -116,9 +121,9 @@ export const expressionEditor = {
           const type = quickFillItem.dataset.type;
           const selectedValue = quickFillItem.dataset.value;
           if (type === "add-custom") {
-            this.addCustomQuickFillOption();
+            quickFill.addCustomQuickFillOption(this);
           } else {
-            this.handleQuickFillSelect(type, selectedValue);
+            quickFill.handleQuickFillSelect(type, selectedValue);
           }
         }
       });
@@ -126,11 +131,6 @@ export const expressionEditor = {
 
     // 初始化通用事件
     this.initCommonEvents();
-  },
-
-  // 导入项目后：刷新时间线显示
-  afterImport() {
-    this.renderTimeline();
   },
 
   // 恢复默认：清空所有对话/布局上的动作与表情设置（可撤销）
@@ -144,7 +144,7 @@ export const expressionEditor = {
     if (resetButton) resetButton.textContent = "恢复中...";
 
     try {
-      this.executeCommand((currentState) => {
+      this.baseEditor.executeCommand((currentState) => {
         currentState.actions.forEach((action) => {
           if (action.type === "talk") action.motions = [];
           else if (action.type === "layout") {
@@ -154,7 +154,7 @@ export const expressionEditor = {
         });
       });
       ui.showStatus("已恢复默认表情动作。", "success");
-      this.renderTimeline();
+      renderTimeline(this);
     } finally {
       if (resetButton && originalText) resetButton.textContent = originalText;
     }
@@ -188,8 +188,8 @@ export const expressionEditor = {
         }
       },
       afterOpen: async () => {
-        this.loadQuickFillOptions();
-        this.renderQuickFillDropdowns();
+        libraryPanel.loadQuickFillOptions(this);
+        quickFill.renderQuickFillDropdowns(this);
         const motionSearch = document.getElementById("motionSearchInput");
         const expressionSearch = document.getElementById(
           "expressionSearchInput"
@@ -197,20 +197,16 @@ export const expressionEditor = {
         if (motionSearch) motionSearch.value = "";
         if (expressionSearch) expressionSearch.value = "";
 
-        this.renderTimeline();
-        this.bindTimelineEvents();
+        renderTimeline(this);
+        bindTimelineEvents(this);
         this.initTimelineDrag();
-        this.renderLibraries();
+        libraryPanel.renderLibraries(this);
 
         this.domCache.modal?.focus();
       },
     });
   },
 
-  // 对外提供一个小包装：执行一次可撤销的状态修改
-  executeCommand(changeFn) {
-    baseEditor.executeCommand(changeFn);
-  },
 };
 
 // 状态桥接：让 expressionEditor 直接拥有 projectFileState 等字段
@@ -225,8 +221,5 @@ Object.assign(
   ScrollAnimationMixin
 );
 
-// 注入拆分出的功能模块（把 expressionEditor 作为宿主对象扩展方法）
-attachExpressionAssignments(expressionEditor);
-attachExpressionTimeline(expressionEditor);
+// 注入拖拽排序能力
 attachExpressionDrag(expressionEditor, baseEditor);
-attachExpressionLibraries(expressionEditor);

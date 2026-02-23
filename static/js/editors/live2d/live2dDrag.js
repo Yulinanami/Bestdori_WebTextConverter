@@ -60,7 +60,7 @@ export function attachLive2DDrag(editor, baseEditor) {
           editor.domCache.groupCheckbox?.checked || false,
         groupSize: 50,
         executeFn: (globalOldIndex, globalNewIndex) => {
-          editor.executeCommand((currentState) => {
+          editor.baseEditor.executeCommand((currentState) => {
             // 验证索引有效性
             if (
               globalOldIndex < 0 ||

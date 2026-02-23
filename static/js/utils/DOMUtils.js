@@ -2,11 +2,11 @@
 
 export const DOMUtils = {
   // 创建一个元素，并顺便设置属性/事件/子节点
-  createElement(tag, attrs = {}, children = null) {
-    const createdElement = document.createElement(tag);
+  createElement(tagName, attributes = {}, children = null) {
+    const createdElement = document.createElement(tagName);
 
     // 设置属性
-    Object.entries(attrs).forEach(([key, value]) => {
+    Object.entries(attributes).forEach(([key, value]) => {
       if (key === "className") {
         createdElement.className = value;
       } else if (key === "style" && typeof value === "object") {
@@ -76,18 +76,13 @@ export const DOMUtils = {
     }
   },
 
-  // 查询多个元素（querySelectorAll 的小包装）
-  getElements(selector, parent = document) {
-    return parent.querySelectorAll(selector);
-  },
-
   // 创建一个按钮，并可选绑定点击事件
   createButton(text, className = "btn", onClick = null) {
-    const button = this.createElement("button", { className }, text);
+    const buttonElement = this.createElement("button", { className }, text);
     if (onClick) {
-      button.addEventListener("click", onClick);
+      buttonElement.addEventListener("click", onClick);
     }
-    return button;
+    return buttonElement;
   },
 
   // 给布局卡片加上对应的样式类（appear/move/hide）

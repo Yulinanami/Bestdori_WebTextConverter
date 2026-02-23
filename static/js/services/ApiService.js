@@ -18,9 +18,9 @@ class ApiService {
       });
       return response.data;
     } catch (error) {
-      const errorMsg = this._handleError(error);
-      console.error(`[ApiService] GET ${url} 失败:`, errorMsg);
-      throw new Error(errorMsg);
+      const errorMessage = this._handleError(error);
+      console.error(`[ApiService] GET ${url} 失败:`, errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -38,9 +38,9 @@ class ApiService {
       });
       return response.data;
     } catch (error) {
-      const errorMsg = this._handleError(error);
-      console.error(`[ApiService] POST ${url} 失败:`, errorMsg);
-      throw new Error(errorMsg);
+      const errorMessage = this._handleError(error);
+      console.error(`[ApiService] POST ${url} 失败:`, errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -97,9 +97,9 @@ class ApiService {
       );
       return response.data;
     } catch (error) {
-      const errorMsg = this._handleError(error);
-      console.error("[ApiService] 下载失败:", errorMsg);
-      throw new Error(errorMsg);
+      const errorMessage = this._handleError(error);
+      console.error("[ApiService] 下载失败:", errorMessage);
+      throw new Error(errorMessage);
     }
   }
 

@@ -16,14 +16,14 @@ export const quoteStore = {
   },
 
   // 保存自定义引号列表（写入 state + localStorage）
-  saveCustomQuotes(quotes = this.getCustomQuotes()) {
+  saveCustomQuotes(quotes = quoteStore.getCustomQuotes()) {
     state.set("customQuotes", quotes);
     return storageService.set(STORAGE_KEYS.CUSTOM_QUOTES, quotes);
   },
 
   // 按名字删除一个自定义引号对
   removeCustomQuoteByName(name) {
-    const filtered = this.getCustomQuotes().filter(
+    const filtered = quoteStore.getCustomQuotes().filter(
       (quote) => quote.name !== name
     );
     return this.saveCustomQuotes(filtered);
@@ -31,19 +31,10 @@ export const quoteStore = {
 
   // 更新某个自定义引号的“是否勾选”状态
   updateCustomQuoteChecked(name, checked) {
-    const updated = this.getCustomQuotes().map((quote) =>
+    const updated = quoteStore.getCustomQuotes().map((quote) =>
       quote.name === name ? { ...quote, checked } : quote
     );
     return this.saveCustomQuotes(updated);
   },
 
-  // 读取预设引号的勾选状态（对象：key -> true/false）
-  getPresetStates() {
-    return storageService.get(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
-  },
-
-  // 保存预设引号的勾选状态
-  savePresetStates(stateMap) {
-    return storageService.set(STORAGE_KEYS.PRESET_QUOTES_STATE, stateMap);
-  },
 };

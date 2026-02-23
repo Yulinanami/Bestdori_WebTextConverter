@@ -7,6 +7,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 import { configUI } from "@managers/config/configUI.js";
 import { configData } from "@managers/config/configData.js";
+import { costumeData } from "@managers/costume/costumeData.js";
 import { FileUtils } from "@utils/FileUtils.js";
 
 export const configManager = {
@@ -18,30 +19,10 @@ export const configManager = {
     this.bindActionButtons();
   },
 
-  // 获取当前角色配置（角色名 -> ID 列表）
-  getCurrentConfig() {
-    return state.get("currentConfig");
-  },
-
   // 获取用于显示的头像 ID（有些角色会映射到“替代头像”）
   getAvatarId(characterId) {
     const avatarMapping = state.get("avatarMapping") || {};
     return avatarMapping[characterId] || characterId;
-  },
-
-  // 从后端/本地加载配置（初始化整个应用的角色与引号等数据）
-  async loadConfig() {
-    return configData.loadConfig(this);
-  },
-
-  // 读取本地保存的角色配置
-  loadLocalConfig() {
-    return configData.loadLocalConfig();
-  },
-
-  // 保存角色配置到本地
-  saveLocalConfig(config) {
-    return configData.saveLocalConfig(config);
   },
 
   // 恢复默认角色列表（会清掉自定义角色；服装尽量保留已有角色的设置）
@@ -71,7 +52,7 @@ export const configManager = {
           );
 
           await FileUtils.delay(300);
-          this.renderConfigList();
+          configUI.renderConfigList(this);
           quoteManager.renderQuoteOptions();
           ui.showStatus("已恢复默认角色配置（服装配置已保留）", "success");
         },
@@ -106,23 +87,8 @@ export const configManager = {
     );
     state.set("currentCostumes", updatedSelectedCostumes);
     costumeManager.availableCostumes = updatedAvailableCostumes;
-    costumeManager.saveLocalCostumes(updatedSelectedCostumes);
-    costumeManager.saveLocalAvailableCostumes();
-  },
-
-  // 把当前角色配置渲染到页面列表
-  renderConfigList() {
-    configUI.renderConfigList(this);
-  },
-
-  // 更新某一行的头像显示
-  updateConfigAvatar(avatarWrapper, characterId, characterName) {
-    configUI.updateConfigAvatar(this, avatarWrapper, characterId, characterName);
-  },
-
-  // 新增一行配置项（空白行）
-  addConfigItem() {
-    configUI.addConfigItem();
+    storageService.set(STORAGE_KEYS.COSTUME_MAPPING_V2, updatedSelectedCostumes);
+    costumeData.saveLocalAvailableCostumes(costumeManager);
   },
 
   // 从页面表单读出角色配置，并保存到本地
@@ -142,7 +108,7 @@ export const configManager = {
           if (characterName && characterIdsText) {
             const characterIds = characterIdsText
               .split(",")
-              .map((idText) => parseInt(idText.trim(), 10))
+              .map((idText) => parseInt(idText.trim()))
               .filter((id) => !isNaN(id));
             if (characterIds.length > 0) {
               newConfig[characterName] = characterIds;
@@ -150,7 +116,7 @@ export const configManager = {
           }
         });
         await FileUtils.delay(500);
-        if (this.saveLocalConfig(newConfig)) {
+        if (storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, newConfig)) {
           state.set("currentConfig", newConfig);
           ui.showStatus("配置已保存到本地！", "success");
         } else {
@@ -159,21 +125,6 @@ export const configManager = {
       },
       "保存中...",
     );
-  },
-
-  // 导出所有配置（包含服装、位置、动作表情等）
-  async exportConfig() {
-    return configData.exportConfig(this);
-  },
-
-  // 导入一个完整配置文件（会分发给多个子模块）
-  importConfig(file) {
-    return configData.importConfig(this, file);
-  },
-
-  // 清除所有本地缓存（恢复出厂设置）
-  async clearLocalStorage() {
-    return configData.clearLocalStorage();
   },
 
   // 用角色 ID 反查角色名（用于显示）
@@ -192,7 +143,7 @@ export const configManager = {
   bindActionButtons() {
     document
       .getElementById("addConfigBtn")
-      ?.addEventListener("click", () => this.addConfigItem());
+      ?.addEventListener("click", () => configUI.addConfigItem());
     document
       .getElementById("saveConfigBtn")
       ?.addEventListener("click", () => this.saveConfig());
@@ -201,7 +152,7 @@ export const configManager = {
       ?.addEventListener("click", () => this.resetConfig());
     document
       .getElementById("exportConfigBtn")
-      ?.addEventListener("click", () => this.exportConfig());
+      ?.addEventListener("click", () => configData.exportConfig(this));
 
     document
       .getElementById("importConfigBtn")
@@ -211,16 +162,16 @@ export const configManager = {
 
     document
       .getElementById("importConfigInput")
-      ?.addEventListener("change", (event) => {
-        const file = event.target.files?.[0];
+      ?.addEventListener("change", (changeEvent) => {
+        const file = changeEvent.target.files?.[0];
         if (file) {
-          this.importConfig(file);
-          event.target.value = "";
+          configData.importConfig(this, file);
+          changeEvent.target.value = "";
         }
       });
 
     document
       .getElementById("clearCacheBtn")
-      ?.addEventListener("click", () => this.clearLocalStorage());
+      ?.addEventListener("click", () => configData.clearLocalStorage());
   },
 };

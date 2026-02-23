@@ -32,7 +32,12 @@ export const DragHelper = {
 
   // 生成 onEnd 处理器：把拖拽的“本地索引”换算成“全局索引”，再调用 executeFn
   createOnEndHandler(params) {
-    const { editor, getGroupingEnabled, groupSize = 50, executeFn } = params;
+    const {
+      editor,
+      getGroupingEnabled,
+      groupSize = 50,
+      executeFn,
+    } = params;
 
     return (sortableEvent) => {
       if (sortableEvent.from === sortableEvent.to) {

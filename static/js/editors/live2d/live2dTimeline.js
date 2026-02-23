@@ -45,7 +45,7 @@ export function attachLive2DTimeline(editor) {
             toPositionContainer.style.display = "none";
 
             // 将终点位置设置为与起点相同（取消独立配置），并清除独立标记
-            editor.executeCommand((currentState) => {
+            editor.baseEditor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -86,7 +86,7 @@ export function attachLive2DTimeline(editor) {
             toPositionContainer.style.display = "grid";
 
             // 设置独立配置标记，阻止自动同步
-            editor.executeCommand((currentState) => {
+            editor.baseEditor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -143,14 +143,13 @@ export function attachLive2DTimeline(editor) {
 
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions || [];
-      const groupSize = 50;
       const templates =
         editor.domCache.templates ||
         (editor.domCache.templates = {
           talk: document.getElementById("timeline-talk-card-template"),
           layout: document.getElementById("timeline-layout-card-template"),
         });
-      const configEntries = editorService.getCurrentConfig() || {};
+      const configEntries = editorService.state.get("currentConfig") || {};
       const characterNameMap = new Map(
         Object.entries(configEntries).flatMap(([name, ids]) =>
           ids.map((id) => [id, name]),
@@ -168,7 +167,7 @@ export function attachLive2DTimeline(editor) {
         updateCard,
         signatureResolver: DataUtils.actionSignature,
         groupingEnabled: isGroupingEnabled,
-        groupSize,
+        groupSize: 50,
         activeGroupIndex: editor.activeGroupIndex,
         contextSignature: configSignature,
         onGroupToggle: (index) => {

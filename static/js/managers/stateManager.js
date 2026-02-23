@@ -4,6 +4,8 @@ const _state = {
   currentConfig: {},
   customQuotes: [],
   currentCostumes: {},
+  configData: null,
+  avatarMapping: {},
   projectFile: null,
 };
 

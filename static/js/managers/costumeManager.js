@@ -4,7 +4,8 @@ import { DataUtils } from "@utils/DataUtils.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
 import { FileUtils } from "@utils/FileUtils.js";
-import { costumeUI } from "@managers/costume/costumeUI.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
+import { costumeRenderer } from "@managers/costume/costumeRenderer.js";
 import { costumeData } from "@managers/costume/costumeData.js";
 
 export const costumeManager = {
@@ -17,101 +18,6 @@ export const costumeManager = {
   // 模态框内的临时状态
   tempCostumeChanges: {},
   tempAvailableCostumes: {},
-
-  // 初始化：绑定服装列表上的点击/选择事件
-  init() {
-    costumeUI.bindCostumeListEvents(this);
-  },
-
-  // 把角色名转成“安全的 DOM id”（用于 querySelector/id）
-  getSafeDomId(characterName) {
-    return characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "_");
-  },
-
-  // 把“按角色ID存”的可用服装表，转换成“按角色名存”
-  convertAvailableCostumesToNameBased() {
-    return costumeData.convertAvailableCostumesToNameBased(this);
-  },
-
-  // 把“按角色ID存”的默认服装表，转换成“按角色名存”
-  convertDefaultCostumesToNameBased() {
-    return costumeData.convertDefaultCostumesToNameBased(this);
-  },
-
-  // 从后端读取默认服装配置，并与本地配置合并
-  async loadCostumeConfig() {
-    return costumeData.loadCostumeConfig(this);
-  },
-
-  // 从本地读取“当前服装选择”
-  loadLocalCostumes() {
-    return costumeData.loadLocalCostumes();
-  },
-
-  // 保存“当前服装选择”到本地
-  saveLocalCostumes(costumes) {
-    return costumeData.saveLocalCostumes(costumes);
-  },
-
-  // 从本地读取“可用服装列表”
-  loadLocalAvailableCostumes() {
-    return costumeData.loadLocalAvailableCostumes();
-  },
-
-  // 保存“可用服装列表”到本地
-  saveLocalAvailableCostumes() {
-    return costumeData.saveLocalAvailableCostumes(this);
-  },
-
-  // 渲染整个服装列表（每个角色一块）
-  renderCostumeList() {
-    costumeUI.renderCostumeList(this);
-  },
-
-  // 打开 Bestdori Live2D 数据库页面（新标签页）
-  openLive2DDatabase() {
-    costumeUI.openLive2DDatabase();
-  },
-
-  // 渲染某个角色的“服装列表项”HTML（用于更新局部 UI）
-  renderCostumeListItems(characterName, costumeIds, safeDomId) {
-    return costumeUI.renderCostumeListItems(
-      characterName,
-      costumeIds,
-      safeDomId,
-    );
-  },
-
-  // 展开/收起某个角色的“服装管理详情”面板
-  toggleCostumeDetails(safeDomId) {
-    costumeUI.toggleCostumeDetails(safeDomId);
-  },
-
-  // 添加一个新的服装 ID 到临时列表
-  addNewCostume(characterName, safeDomId) {
-    return costumeUI.addNewCostume(this, characterName, safeDomId);
-  },
-
-  // 编辑临时列表中的某个服装 ID
-  editCostume(characterName, index, oldCostumeId, safeDomId) {
-    return costumeUI.editCostume(
-      this,
-      characterName,
-      index,
-      oldCostumeId,
-      safeDomId,
-    );
-  },
-
-  // 从临时列表删除一个服装 ID
-  deleteCostume(characterName, index, safeDomId) {
-    return costumeUI.deleteCostume(this, characterName, index, safeDomId);
-  },
-
-  // 刷新某个角色的局部 UI（列表 + 下拉框选项）
-  updateCostumeListUI(characterName, safeDomId) {
-    costumeUI.updateCostumeListUI(this, characterName, safeDomId);
-  },
 
   // 保存临时更改：写入 state + localStorage
   async saveCostumes() {
@@ -127,8 +33,11 @@ export const costumeManager = {
           this.tempAvailableCostumes,
         );
 
-        this.saveLocalCostumes(state.get("currentCostumes"));
-        this.saveLocalAvailableCostumes();
+        storageService.set(
+          STORAGE_KEYS.COSTUME_MAPPING_V2,
+          state.get("currentCostumes"),
+        );
+        costumeData.saveLocalAvailableCostumes(this);
 
         await FileUtils.delay(300);
         ui.showStatus("服装配置已保存！", "success");
@@ -168,9 +77,9 @@ export const costumeManager = {
           );
 
           const defaultCostumesByName =
-            this.convertDefaultCostumesToNameBased();
+            costumeData.convertDefaultCostumesToNameBased(this);
           const defaultAvailableCostumesByName =
-            this.convertAvailableCostumesToNameBased();
+            costumeData.convertAvailableCostumesToNameBased(this);
           this.tempCostumeChanges = {
             ...defaultCostumesByName,
             ...customCharacterCostumes,
@@ -179,16 +88,11 @@ export const costumeManager = {
             ...defaultAvailableCostumesByName,
             ...customCharacterAvailableCostumes,
           };
-          this.renderCostumeList();
+          costumeRenderer.renderCostumeList(this);
           ui.showStatus("已在编辑器中恢复默认，请保存以生效", "info");
         },
         "恢复中...",
       );
     }
-  },
-
-  // 导入配置时：把导入的服装相关字段应用到当前状态
-  importCostumes(config) {
-    costumeData.importCostumes(this, config);
   },
 };

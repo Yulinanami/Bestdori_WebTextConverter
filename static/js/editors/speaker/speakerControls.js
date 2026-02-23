@@ -55,7 +55,7 @@ export function attachSpeakerControls(editor) {
         this.isMultiSelectMode,
       );
       this.updateMultiSelectButtonUI();
-      editorService.clearSelection();
+      editorService.selectionManager.selectedIds.clear();
       this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", { detail: { selectedIds: [] } }),
       );
@@ -73,15 +73,15 @@ export function attachSpeakerControls(editor) {
 
     // 点击“编辑”按钮：弹窗修改这条对话的文本
     handleTextEdit(actionId) {
-      const action = this.projectFileState.actions.find(
+      const targetAction = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
-      if (!action) return;
-      const newText = prompt("编辑对话内容:", action.text);
+      if (!targetAction) return;
+      const editedText = prompt("编辑对话内容:", targetAction.text);
 
-      if (newText !== null && newText.trim() !== action.text.trim()) {
-        const trimmedText = newText.trim();
-        this.executeCommand((currentState) => {
+      if (editedText !== null && editedText.trim() !== targetAction.text.trim()) {
+        const trimmedText = editedText.trim();
+        this.baseEditor.executeCommand((currentState) => {
           const actionToUpdate = currentState.actions.find(
             (actionItem) => actionItem.id === actionId,
           );
@@ -153,7 +153,7 @@ export function attachSpeakerControls(editor) {
             editorService.selectionManager.selectedIds.has(itemId) &&
             editorService.selectionManager.selectedIds.size === 1;
           if (isAlreadyOnlySelected) {
-            editorService.selectionManager.clear();
+            editorService.selectionManager.selectedIds.clear();
           } else {
             editorService.selectionManager.selectSingle(itemId);
           }
@@ -167,7 +167,7 @@ export function attachSpeakerControls(editor) {
       this.domCache.canvas?.dispatchEvent(
         new CustomEvent("selectionchange", {
           detail: {
-            selectedIds: editorService.selectionManager.getSelectedIds(),
+            selectedIds: Array.from(editorService.selectionManager.selectedIds),
           },
         }),
       );
@@ -175,16 +175,16 @@ export function attachSpeakerControls(editor) {
 
     // 删除一条对话卡片（会二次确认）
     async handleCardDelete(actionId) {
-      const action = this.projectFileState.actions.find(
+      const targetAction = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
-      if (!action) return;
+      if (!targetAction) return;
 
       const confirmed = await modalService.confirm(
-        `确定要删除这条对话吗？\n\n"${action.text.substring(0, 50)}..."`,
+        `确定要删除这条对话吗？\n\n"${targetAction.text.substring(0, 50)}..."`,
       );
       if (confirmed) {
-        this.executeCommand((currentState) => {
+        this.baseEditor.executeCommand((currentState) => {
           const index = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
           );
@@ -200,7 +200,7 @@ export function attachSpeakerControls(editor) {
       const newText = await modalService.prompt("请输入新对话的内容：");
       if (newText && newText.trim()) {
         const trimmedText = newText.trim();
-        this.executeCommand((currentState) => {
+        this.baseEditor.executeCommand((currentState) => {
           const currentIndex = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
           );
@@ -224,7 +224,7 @@ export function attachSpeakerControls(editor) {
         if (this._onCardClick) {
           canvas.removeEventListener("click", this._onCardClick);
         }
-        editorService.clearSelection();
+        editorService.selectionManager.selectedIds.clear();
         if (!this._onCardClick) {
           this._onCardClick = this.handleCardClick.bind(this);
         }

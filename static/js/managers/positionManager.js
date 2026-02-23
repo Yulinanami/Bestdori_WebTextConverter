@@ -73,11 +73,6 @@ export const positionManager = {
     }
   },
 
-  // 渲染位置配置列表（每个角色一行）
-  renderPositionList() {
-    positionUI.renderPositionList(this);
-  },
-
   // 保存当前页面上的临时配置到本地存储
   async savePositions() {
     await ui.withButtonLoading(
@@ -104,7 +99,7 @@ export const positionManager = {
         async () => {
           this.tempAutoPositionMode = true;
           this.tempManualPositions = {};
-          this.renderPositionList();
+          positionUI.renderPositionList(this);
 
           const autoCheckbox = document.getElementById("autoPositionCheckbox");
           if (autoCheckbox) {
@@ -120,17 +115,4 @@ export const positionManager = {
     }
   },
 
-  // 获取某角色的最终站位配置（自动模式会按登场顺序分配位置）
-  getCharacterPositionConfig(characterName, appearanceOrder) {
-    return positionStore.getCharacterPositionConfig(
-      this,
-      characterName,
-      appearanceOrder,
-    );
-  },
-
-  // 从导入的数据里恢复位置配置（用于“导入配置”）
-  importPositions(positionConfig) {
-    positionStore.importPositions(this, positionConfig);
-  },
 };
