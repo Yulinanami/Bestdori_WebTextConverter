@@ -1,0 +1,20 @@
+{
+  "name": "bestdori-webtextconverter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bestdori Web Text Converter backend migrated to Node.js",
+  "scripts": {
+    "start": "node node_backend/server.js",
+    "dev": "node --watch node_backend/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.0",
+    "mammoth": "^1.8.0",
+    "marked": "^13.0.3",
+    "multer": "^2.0.2"
+  }
+}

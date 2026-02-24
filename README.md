@@ -82,7 +82,7 @@
 ## 技术栈
 
 - **前端**: 原生 JavaScript (ESM)
-- **后端**: Python (Flask)
+- **后端**: Node.js (Express)
 
 ---
 
@@ -90,19 +90,18 @@
 
 ### 环境要求
 
-- Python 3 (3.10+)
-- pip (Python 包管理器)
+- Node.js 18+
+- npm
 - 浏览器务必使用最新版本Chrome、Edge等现代浏览器
 
 ### 安装步骤
 
-1.  **确保系统已安装 Python 3**
+1.  **确保系统已安装 Node.js**
 
     ```bash
-    # 检查 Python 版本
-    python --version
-    # 或
-    python3 --version
+    # 检查 Node.js 版本
+    node --version
+    npm --version
     ```
 
 2.  **克隆仓库**
@@ -112,35 +111,23 @@
     cd Bestdori_WebTextConverter
     ```
 
-3.  **创建虚拟环境**
+3.  **安装依赖**
 
     ```bash
-    python -m venv .venv
-     # 或
-    python3 -m venv .venv
+    npm install
     ```
 
-4.  **激活虚拟环境**
-
-    ```bash
-    .\.venv\Scripts\activate
-    # 或
-    source .venv/bin/activate
-    ```
-
-5.  **安装依赖**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-6.  **启动项目**
+4.  **启动项目**
     ```bash
     # 运行应用
-    python run.py
-    # 或
-    python3 run.py
+    npm start
     ```
+
+可选：如果不希望启动后自动打开浏览器，可设置环境变量：
+
+```bash
+NO_OPEN_BROWSER=1 npm start
+```
 
 ---
 

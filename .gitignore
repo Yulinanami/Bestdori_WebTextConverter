@@ -61,3 +61,7 @@ config.local.yaml
 secrets.yaml
 .secrets
 .claude
+
+node_modules/
+npm-debug.log*
+yarn-error.log*

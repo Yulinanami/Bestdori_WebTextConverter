@@ -22,27 +22,14 @@
           window.process.env.NODE_ENV || "production";
       })();
     </script>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="{{ url_for('static', filename='images/favicon.svg') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/lib/prism-tomorrow.min.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/main.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/material-symbols.css') }}"
-    />
-    <script src="{{ url_for('static', filename='js/lib/Sortable.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/axios.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/prism.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/lib/prism-json.min.js') }}"></script>
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
+    <link rel="stylesheet" href="/static/css/lib/prism-tomorrow.min.css" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/material-symbols.css" />
+    <script src="/static/js/lib/Sortable.min.js"></script>
+    <script src="/static/js/lib/axios.min.js"></script>
+    <script src="/static/js/lib/prism.min.js"></script>
+    <script src="/static/js/lib/prism-json.min.js"></script>
   </head>
   <body>
     <!-- 顶部标题栏 -->
@@ -1606,10 +1593,7 @@
     </script>
 
     <!-- 模块化JS文件 -->
-    <script
-      type="module"
-      src="{{ url_for('static', filename='js/app.js') }}"
-    ></script>
+    <script type="module" src="/static/js/app.js"></script>
 
     <!-- 状态消息容器（移到 body 直接子元素，确保 fixed 定位相对于视口） -->
     <div id="statusMessage" class="status-message status-info hidden"></div>
