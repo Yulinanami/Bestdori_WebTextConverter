@@ -12,8 +12,11 @@ export const libraryPanel = {
     const sortables = (editor.sortableInstances || []).filter(
       (sortableInstance) => sortableInstance && sortableInstance.el
     );
+    const timelineElement = editor.domCache.timeline;
     const timelineSortable = sortables.find(
-      (sortableInstance) => sortableInstance.el?.id
+      (sortableInstance) =>
+        sortableInstance.el === timelineElement ||
+        sortableInstance.el?.id === "expressionEditorTimeline"
     );
     sortables
       .filter((sortableInstance) => sortableInstance !== timelineSortable)

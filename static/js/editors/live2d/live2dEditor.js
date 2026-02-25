@@ -9,6 +9,7 @@ import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
 import { attachLive2DState } from "@editors/live2d/live2dState.js";
 import { attachLive2DControls } from "@editors/live2d/live2dControls.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
@@ -17,9 +18,7 @@ import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
-    live2dEditor.renderTimeline();
-    const usedNames = live2dEditor.getUsedCharacterIds();
-    live2dEditor.renderCharacterList(usedNames);
+    live2dEditor.handleRenderCallback();
   },
   groupSize: 50,
 });
@@ -130,6 +129,18 @@ export const live2dEditor = {
     this.renderCharacterList(usedCharacterNames);
   },
 };
+
+attachGroupedReorderOptimization(live2dEditor, {
+  cardSelector: ".talk-item, .layout-item",
+  getContainer() {
+    return this.domCache.timeline;
+  },
+  onFullRender() {
+    this.renderTimeline();
+    const usedNames = this.getUsedCharacterIds();
+    this.renderCharacterList(usedNames);
+  },
+});
 
 // 状态桥接：让 live2dEditor 直接拥有 projectFileState 等字段
 applyStateBridge(live2dEditor, baseEditor);

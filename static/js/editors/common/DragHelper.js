@@ -1,6 +1,121 @@
-// 拖拽助手：帮你少写 Sortable.js 配置，处理分组模式下的索引换算。
+// 拖拽助手：处理拖拽事件中的坐标提取、落点验证、DOM 重排等通用逻辑。
 
 export const DragHelper = {
+  // 从 Sortable 事件里提取当前指针坐标（鼠标/触摸）。
+  getPointerFromSortableEvent(sortableEvent) {
+    const pointerEvent = sortableEvent?.originalEvent;
+    const point =
+      pointerEvent?.changedTouches?.[0] ||
+      pointerEvent?.touches?.[0] ||
+      pointerEvent;
+    const x = point?.clientX;
+    const y = point?.clientY;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return;
+    }
+    return { x, y };
+  },
+
+  // 判断拖拽结束落点是否仍在指定容器内。
+  isDropInsideContainer(sortableEvent, container) {
+    if (!container) {
+      return false;
+    }
+    const pointer = DragHelper.getPointerFromSortableEvent(sortableEvent);
+    if (!pointer) {
+      return false;
+    }
+    const dropTarget = document.elementFromPoint(pointer.x, pointer.y);
+    if (!dropTarget) {
+      return false;
+    }
+    return container.contains(dropTarget);
+  },
+
+  // 无效落点后，按当前状态重渲染还原 DOM 顺序。
+  handleInvalidDrop(editor) {
+    editor.handleRenderCallback?.();
+  },
+
+  // 把 actions[fromIndex] 挪到 toIndex。
+  moveAction(actions, fromIndex, toIndex, source = "DragHelper") {
+    if (!Array.isArray(actions)) {
+      console.error(`[${source}] actions 不是数组，无法重排`);
+      return;
+    }
+    if (fromIndex < 0 || fromIndex >= actions.length) {
+      console.error(
+        `[${source}] 无效索引 fromIndex=${fromIndex}, actions.length=${actions.length}`
+      );
+      return;
+    }
+
+    const [movedItem] = actions.splice(fromIndex, 1);
+    if (!movedItem) {
+      console.error(`[${source}] 重排失败，未找到 fromIndex=${fromIndex} 的元素`);
+      return;
+    }
+    actions.splice(toIndex, 0, movedItem);
+  },
+
+  // 生成“按全局索引重排 action”的执行函数，供多个编辑器复用。
+  createReorderHandler(params = {}) {
+    const { runCommand, beforeReorder, source = "DragHelper" } = params;
+    return (globalOldIndex, globalNewIndex) => {
+      if (globalOldIndex === globalNewIndex) {
+        return;
+      }
+      if (beforeReorder) {
+        beforeReorder(globalOldIndex, globalNewIndex);
+      }
+      runCommand((currentState) => {
+        DragHelper.moveAction(
+          currentState.actions,
+          globalOldIndex,
+          globalNewIndex,
+          source
+        );
+      });
+    };
+  },
+
+  // 分组拖拽排序后，仅刷新当前展开分组里的卡片序号和 actionIndex。
+  applyGroupedReorderRender(params = {}) {
+    const {
+      container,
+      cardSelector,
+      groupSize = 50,
+      totalActions = 0,
+      isGroupingEnabled = false,
+      activeGroupIndex = null,
+    } = params;
+    if (
+      !container ||
+      !isGroupingEnabled ||
+      totalActions <= groupSize ||
+      activeGroupIndex === null ||
+      activeGroupIndex < 0
+    ) {
+      return false;
+    }
+
+    const cards = container.querySelectorAll(cardSelector);
+    if (!cards.length) {
+      return false;
+    }
+
+    const groupStartIndex = activeGroupIndex * groupSize;
+    cards.forEach((cardElement, localIndex) => {
+      const globalIndex = groupStartIndex + localIndex;
+      cardElement.dataset.actionIndex = String(globalIndex);
+      const numberDiv = cardElement.querySelector(".card-sequence-number");
+      if (numberDiv) {
+        numberDiv.textContent = `#${globalIndex + 1}`;
+      }
+    });
+    return true;
+  },
+
   // 生成一个通用的 Sortable 配置（可传 group/onEnd/onAdd/extraConfig）
   createSortableConfig(options = {}) {
     const config = {

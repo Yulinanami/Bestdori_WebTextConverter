@@ -61,11 +61,7 @@ export const configUI = {
   // 按给定的数据渲染列表（使用 template 克隆 DOM）
   renderNormalConfigList(configManager, sortedConfig) {
     const configList = document.getElementById("configList");
-    const template =
-      this.configItemTemplate ||
-      (this.configItemTemplate = document.getElementById(
-        "config-item-template"
-      ));
+    const template = document.getElementById("config-item-template");
     if (!configList || !template) return;
 
     const configItems = sortedConfig.map(([name, ids]) => {

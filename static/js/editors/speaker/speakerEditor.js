@@ -8,6 +8,7 @@ import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
 import { attachSpeakerDrag } from "@editors/speaker/speakerDrag.js";
 import { attachSpeakerCanvas } from "@editors/speaker/speakerCanvas.js";
 import { attachSpeakerState } from "@editors/speaker/speakerState.js";
@@ -42,9 +43,7 @@ export const speakerEditor = {
     }
     this.renderFrameId = requestAnimationFrame(() => {
       this.renderFrameId = null;
-      const usedIds = this.renderCanvas();
-      this.renderCharacterList(usedIds);
-      this.reattachSelection();
+      this.handleRenderCallback();
     });
   },
 
@@ -151,6 +150,21 @@ export const speakerEditor = {
     editorService.selectionManager?.detach?.(this.domCache.canvas);
   },
 };
+
+attachGroupedReorderOptimization(speakerEditor, {
+  cardSelector: ".dialogue-item, .layout-item",
+  getContainer() {
+    return this.domCache.canvas;
+  },
+  onLocalRenderSuccess() {
+    this.reattachSelection();
+  },
+  onFullRender() {
+    const usedIds = this.renderCanvas();
+    this.renderCharacterList(usedIds);
+    this.reattachSelection();
+  },
+});
 
 // 状态桥接：让 speakerEditor 直接拥有 projectFileState 等字段
 applyStateBridge(speakerEditor, baseEditor);

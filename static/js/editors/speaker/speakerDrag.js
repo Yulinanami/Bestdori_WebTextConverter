@@ -1,4 +1,4 @@
-import { DragHelper } from "@utils/DragHelper.js";
+import { DragHelper } from "@editors/common/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 拖角色到卡片、拖卡片排序、拖拽时自动滚动
@@ -74,46 +74,40 @@ export function attachSpeakerDrag(editor, baseEditor) {
         })
       );
       }
+      // 复用通用重排逻辑：speaker 只保留分组模式下的局部刷新标记。
+      const runReorder = DragHelper.createReorderHandler({
+        runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
+        source: "speakerDrag",
+        beforeReorder: () => {
+          const isGroupingEnabled =
+            editor.domCache.groupCheckbox?.checked || false;
+          if (
+            isGroupingEnabled &&
+            editor.projectFileState?.actions?.length > (baseEditor.groupSize || 50) &&
+            editor.activeGroupIndex !== null &&
+            editor.activeGroupIndex >= 0
+          ) {
+            editor.markGroupedReorderRender?.();
+          }
+        },
+      });
+
       // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
       const onEndHandler = DragHelper.createOnEndHandler({
         editor: baseEditor,
         getGroupingEnabled: () =>
           editor.domCache.groupCheckbox?.checked || false,
         groupSize: 50,
-        executeFn: (globalOldIndex, globalNewIndex) => {
-          baseEditor.executeCommand((currentState) => {
-            // 验证索引有效性
-            if (
-              globalOldIndex < 0 ||
-              globalOldIndex >= currentState.actions.length
-            ) {
-              console.error(
-                `Invalid globalOldIndex: ${globalOldIndex}, actions length: ${currentState.actions.length}`
-              );
-              return;
-            }
-
-            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
-
-            // 验证 movedItem 存在
-            if (!movedItem) {
-              console.error(
-                `movedItem is undefined at index ${globalOldIndex}`
-              );
-              return;
-            }
-
-            currentState.actions.splice(globalNewIndex, 0, movedItem);
-          });
-        },
+        executeFn: runReorder,
       });
 
       // 当“角色”拖到画布上时：把角色设置成目标对话的说话人
       const onAddHandler = (sortableAddEvent) => {
         const characterItem = sortableAddEvent.item;
         characterItem.style.display = "none";
+        const dropX = sortableAddEvent.originalEvent.clientX;
         const dropY = sortableAddEvent.originalEvent.clientY;
-        const targetCard = editor._findClosestCard(dropY);
+        const targetCard = editor._findClosestCard(dropX, dropY);
 
         if (!targetCard) {
           characterItem.remove();
@@ -122,11 +116,12 @@ export function attachSpeakerDrag(editor, baseEditor) {
         const characterId = parseInt(characterItem.dataset.characterId);
         const characterName = characterItem.dataset.characterName;
         const actionId = targetCard.dataset.id;
+        const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
         if (characterId && actionId) {
           editor.updateSpeakerAssignment(actionId, {
             characterId,
             name: characterName,
-          });
+          }, actionIndex);
         }
         characterItem.remove();
       };
@@ -161,10 +156,17 @@ export function attachSpeakerDrag(editor, baseEditor) {
       }
     },
 
-    // 内部方法：根据鼠标 Y 坐标找出最接近的对话卡片（用于决定把角色丢给哪条对话）
-    _findClosestCard(y) {
+    // 内部方法：优先按落点直接命中卡片，失败时再按 Y 坐标找最近卡片
+    _findClosestCard(x, y) {
       const canvas = editor.domCache.canvas;
       if (!canvas) return null;
+
+      const dropTarget = document.elementFromPoint(x, y);
+      const directCard = dropTarget?.closest(".dialogue-item");
+      if (directCard && canvas.contains(directCard)) {
+        return directCard;
+      }
+
       const cards = Array.from(canvas.querySelectorAll(".dialogue-item"));
 
       let closestCard = null;

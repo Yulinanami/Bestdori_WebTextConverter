@@ -5,21 +5,73 @@ import { editorService } from "@services/EditorService.js";
 export function attachSpeakerState(editor) {
   Object.assign(editor, {
     // 给某条对话（或当前多选的多条对话）添加一个说话人
-    updateSpeakerAssignment(actionId, newSpeaker) {
+    updateSpeakerAssignment(actionId, newSpeaker, actionIndex) {
       const selectedIds = Array.from(editorService.selectionManager.selectedIds);
       const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
-      this.baseEditor.executeCommand((currentState) => {
-        targetIds.forEach((targetActionId) => {
-          const actionToUpdate = currentState.actions.find(
-            (actionItem) => actionItem.id === targetActionId
+      const targetActionIndexMap = new Map();
+
+      if (Number.isInteger(actionIndex)) {
+        targetActionIndexMap.set(actionId, actionIndex);
+      }
+
+      if (selectedIds.length > 0 && this.domCache.canvas) {
+        const selectedCards = this.domCache.canvas.querySelectorAll(
+          ".dialogue-item.is-selected, .layout-item.is-selected"
+        );
+        selectedCards.forEach((cardElement) => {
+          const targetActionId = cardElement.dataset.id;
+          const targetActionIndex = Number.parseInt(
+            cardElement.dataset.actionIndex,
+            10
           );
-          if (actionToUpdate) {
-            const speakerExists = actionToUpdate.speakers.some(
-              (speaker) => speaker.characterId === newSpeaker.characterId
-            );
-            if (!speakerExists) {
-              actionToUpdate.speakers.push(newSpeaker);
+          if (targetActionId && Number.isInteger(targetActionIndex)) {
+            targetActionIndexMap.set(targetActionId, targetActionIndex);
+          }
+        });
+      }
+
+      this.baseEditor.executeCommand((currentState) => {
+        const addSpeakerIfNeeded = (actionToUpdate) => {
+          const speakerExists = actionToUpdate.speakers.some(
+            (speaker) => speaker.characterId === newSpeaker.characterId
+          );
+          if (!speakerExists) {
+            actionToUpdate.speakers.push(newSpeaker);
+          }
+        };
+
+        if (selectedIds.length === 0 && Number.isInteger(actionIndex)) {
+          const actionToUpdate = currentState.actions[actionIndex];
+          if (actionToUpdate && actionToUpdate.id === actionId) {
+            addSpeakerIfNeeded(actionToUpdate);
+          }
+          return;
+        }
+
+        const unresolvedTargetIds = [];
+        targetIds.forEach((targetActionId) => {
+          const targetActionIndex = targetActionIndexMap.get(targetActionId);
+          if (Number.isInteger(targetActionIndex)) {
+            const actionToUpdate = currentState.actions[targetActionIndex];
+            if (actionToUpdate && actionToUpdate.id === targetActionId) {
+              addSpeakerIfNeeded(actionToUpdate);
+              return;
             }
+          }
+          unresolvedTargetIds.push(targetActionId);
+        });
+
+        if (unresolvedTargetIds.length === 0) {
+          return;
+        }
+
+        const actionMap = new Map(
+          currentState.actions.map((actionItem) => [actionItem.id, actionItem])
+        );
+        unresolvedTargetIds.forEach((targetActionId) => {
+          const actionToUpdate = actionMap.get(targetActionId);
+          if (actionToUpdate) {
+            addSpeakerIfNeeded(actionToUpdate);
           }
         });
       });

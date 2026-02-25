@@ -9,8 +9,7 @@ class NavigationManager {
   // 初始化：给左侧步骤按钮绑定点击事件，并默认跳到第 1 步
   init() {
     // 绑定导航项点击事件
-    const navSteps =
-      this.navSteps || (this.navSteps = document.querySelectorAll(".nav-step"));
+    const navSteps = document.querySelectorAll(".nav-step");
     navSteps.forEach((step) => {
       step.onclick = () => {
         const stepNum = parseInt(step.dataset.step);
@@ -25,8 +24,7 @@ class NavigationManager {
   // 切换到指定步骤：高亮左侧、显示右侧，并触发该步骤的初始化逻辑
   navigateToStep(stepNum) {
     // 更新导航栏激活状态
-    const navSteps =
-      this.navSteps || (this.navSteps = document.querySelectorAll(".nav-step"));
+    const navSteps = document.querySelectorAll(".nav-step");
     navSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");
@@ -36,9 +34,7 @@ class NavigationManager {
     });
 
     // 更新工作区显示的步骤
-    const workspaceSteps =
-      this.workspaceSteps ||
-      (this.workspaceSteps = document.querySelectorAll(".workspace-step"));
+    const workspaceSteps = document.querySelectorAll(".workspace-step");
     workspaceSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");

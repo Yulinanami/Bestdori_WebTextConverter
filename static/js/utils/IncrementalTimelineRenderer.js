@@ -11,6 +11,9 @@ function normalizeCardElement(cardNode) {
 
 // 更新卡片上的序号（#1/#2/...）
 function updateSequenceNumber(cardEl, index) {
+  if (cardEl) {
+    cardEl.dataset.actionIndex = String(index);
+  }
   const numberDiv = cardEl?.querySelector(".card-sequence-number");
   if (numberDiv) {
     numberDiv.textContent = `#${index + 1}`;

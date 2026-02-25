@@ -1,4 +1,4 @@
-import { DragHelper } from "@utils/DragHelper.js";
+import { DragHelper } from "@editors/common/DragHelper.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
 // 给 expressionEditor 注入“拖拽排序能力”：拖卡片排序，拖拽时自动滚动
@@ -28,18 +28,31 @@ export function attachExpressionDrag(editor, baseEditor) {
       );
       if (existing) return;
 
+      // 复用通用重排逻辑，避免每个编辑器重复写 splice 重排代码。
+      const runReorder = DragHelper.createReorderHandler({
+        runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
+        source: "expressionDrag",
+        beforeReorder: () => {
+          const isGroupingEnabled =
+            editor.domCache.groupCheckbox?.checked || false;
+          if (
+            isGroupingEnabled &&
+            editor.projectFileState?.actions?.length > (baseEditor.groupSize || 50) &&
+            editor.activeGroupIndex !== null &&
+            editor.activeGroupIndex >= 0
+          ) {
+            editor.markGroupedReorderRender?.();
+          }
+        },
+      });
+
       // 使用 DragHelper 创建 onEnd 处理器
       const onEndHandler = DragHelper.createOnEndHandler({
         editor: baseEditor,
         getGroupingEnabled: () =>
           editor.domCache.groupCheckbox?.checked || false,
         groupSize: 50,
-        executeFn: (globalOldIndex, globalNewIndex) => {
-          editor.baseEditor.executeCommand((currentState) => {
-            const [movedItem] = currentState.actions.splice(globalOldIndex, 1);
-            currentState.actions.splice(globalNewIndex, 0, movedItem);
-          });
-        },
+        executeFn: runReorder,
       });
 
       editor.sortableInstances.push(
@@ -53,6 +66,10 @@ export function attachExpressionDrag(editor, baseEditor) {
                 editor.handleDragScrolling
               );
               editor.stopScrolling();
+              if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
+                DragHelper.handleInvalidDrop(editor);
+                return;
+              }
               onEndHandler(sortableEvent);
             },
             extraConfig: {

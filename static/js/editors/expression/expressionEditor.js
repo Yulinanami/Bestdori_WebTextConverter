@@ -7,6 +7,7 @@ import { EventHandlerMixin } from "@mixins/EventHandlerMixin.js";
 import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
+import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { bindTimelineEvents } from "@editors/expression/expressionTimelineEvents.js";
 import { renderTimeline } from "@editors/expression/expressionTimelineRenderer.js";
@@ -16,7 +17,7 @@ import { quickFill } from "@editors/expression/expressionQuickFill.js";
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
   renderCallback: () => {
-    renderTimeline(expressionEditor);
+    expressionEditor.handleRenderCallback();
   },
   groupSize: 50,
 });
@@ -208,6 +209,16 @@ export const expressionEditor = {
   },
 
 };
+
+attachGroupedReorderOptimization(expressionEditor, {
+  cardSelector: ".talk-item, .layout-item",
+  getContainer() {
+    return this.domCache.timeline;
+  },
+  onFullRender() {
+    renderTimeline(this);
+  },
+});
 
 // 状态桥接：让 expressionEditor 直接拥有 projectFileState 等字段
 applyStateBridge(expressionEditor, baseEditor);
