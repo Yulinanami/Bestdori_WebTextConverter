@@ -10,23 +10,15 @@ const LEVEL_WEIGHT = {
 // 默认显示 INFO 及以上，DEBUG 用于请求细节。
 const CURRENT_LEVEL = "INFO";
 
-function pad2(num) {
-  return String(num).padStart(2, "0");
-}
-
 function formatNow() {
   const d = new Date();
   const y = d.getFullYear();
-  const m = pad2(d.getMonth() + 1);
-  const day = pad2(d.getDate());
-  const hh = pad2(d.getHours());
-  const mm = pad2(d.getMinutes());
-  const ss = pad2(d.getSeconds());
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
   return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
-}
-
-function shouldLog(level) {
-  return LEVEL_WEIGHT[level] >= LEVEL_WEIGHT[CURRENT_LEVEL];
 }
 
 function stringifyArg(arg) {
@@ -46,7 +38,7 @@ function stringifyArg(arg) {
 function createLogger(name) {
   // 按模块名创建 logger，便于定位日志来源
   function write(level, ...args) {
-    if (!shouldLog(level)) {
+    if (LEVEL_WEIGHT[level] < LEVEL_WEIGHT[CURRENT_LEVEL]) {
       return;
     }
     const msg = args.map((arg) => stringifyArg(arg)).join(" ");

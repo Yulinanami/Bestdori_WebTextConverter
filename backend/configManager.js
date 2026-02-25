@@ -1,4 +1,4 @@
-// 配置管理器：读取 config.yaml 并提供便捷取值方法
+// 配置管理器：读取 config.yaml 并缓存配置对象
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
@@ -43,51 +43,6 @@ class ConfigManager {
       );
       return {};
     }
-  }
-
-  getCharacterMapping() {
-    // 角色名 -> 角色ID列表
-    return this.config.character_mapping || {};
-  }
-
-  getParsingConfig() {
-    // 解析相关配置（如默认旁白）
-    return this.config.parsing || {};
-  }
-
-  getQuotesConfig() {
-    // 引号配置
-    return this.config.quotes || {};
-  }
-
-  getCostumeMapping() {
-    // 角色ID -> 默认服装
-    return this.config.default_costumes || {};
-  }
-
-  getAvailableCostumes() {
-    // 角色ID -> 可用服装列表
-    return this.config.costume_mapping || {};
-  }
-
-  getCharacterMotions() {
-    // 角色ID -> 动作列表
-    return this.config.character_motions || {};
-  }
-
-  getCharacterExpressions() {
-    // 角色ID -> 表情列表
-    return this.config.character_expressions || {};
-  }
-
-  getAvatarMapping() {
-    // 特殊角色ID -> 头像ID
-    return this.config.avatar_mapping || {};
-  }
-
-  getPatterns() {
-    // 正则配置
-    return this.config.patterns || {};
   }
 }
 

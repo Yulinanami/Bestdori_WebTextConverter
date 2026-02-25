@@ -9,11 +9,13 @@ export const mergerManager = {
   fileIdCounter: 0,
   mergedResult: null,
 
+  // 初始化合并模块：绑定事件并启用拖拽排序。
   init() {
     this.bindEvents();
     this.initSortable();
   },
 
+  // 绑定上传、合并、下载、复制等按钮事件。
   bindEvents() {
     const fileInput = document.getElementById("mergerFileInput");
     const fileUpload = document.getElementById("mergerFileUpload");
@@ -74,6 +76,7 @@ export const mergerManager = {
     }
   },
 
+  // 初始化文件列表排序（拖拽后同步内部数组顺序）。
   initSortable() {
     const listEl = document.getElementById("mergerFileList");
     if (listEl && window.Sortable) {
@@ -90,48 +93,38 @@ export const mergerManager = {
     }
   },
 
+  // 批量导入待合并文件：前端只上传，解析与校验由后端完成。
   async handleFilesUpload(fileList) {
     if (!fileList || fileList.length === 0) return;
 
-    // 逐个读取并解析文件
+    // 逐个上传到后端解析
     for (const file of Array.from(fileList)) {
-      if (!file.name.endsWith(".json")) {
-        ui.showStatus(`文件 ${file.name} 不是 JSON 格式。`, "warning");
-        continue;
-      }
-
       try {
-        const content = await FileUtils.readFileAsText(file);
-        const data = JSON.parse(content);
-
-        // 基本校验
-        if (!data.actions || !Array.isArray(data.actions)) {
-          ui.showStatus(
-            `文件 ${file.name} 格式不正确，缺少 actions 数组。`,
-            "error",
-          );
-          continue;
-        }
+        const response = await apiService.importMergeFile(file);
+        const parsedFile = response.file;
 
         this.files.push({
           id: `merger-file-${this.fileIdCounter++}`,
-          name: file.name,
-          data: data,
+          name: parsedFile.name,
+          data: parsedFile.data,
         });
-      } catch (parseError) {
-        ui.showStatus(`解析 ${file.name} 失败: ${parseError.message}`, "error");
+      } catch (error) {
+        ui.showStatus(error.message, "error");
       }
     }
 
     // 重置 input 以便再次选择相同文件
     const mergerFileInput = document.getElementById("mergerFileInput");
-      if (mergerFileInput) mergerFileInput.value = "";
+    if (mergerFileInput) mergerFileInput.value = "";
 
     this.updateUI();
   },
 
+  // 刷新文件列表展示和“合并”按钮状态。
   updateUI() {
-    const fileListContainer = document.getElementById("mergerFileListContainer");
+    const fileListContainer = document.getElementById(
+      "mergerFileListContainer",
+    );
     const fileListElement = document.getElementById("mergerFileList");
     const mergeButton = document.getElementById("mergeBtn");
 
@@ -172,6 +165,7 @@ export const mergerManager = {
     }
   },
 
+  // 清空待合并文件和合并结果展示区域。
   clearFiles() {
     this.files = [];
     this.updateUI();
@@ -179,37 +173,18 @@ export const mergerManager = {
     if (resultSec) resultSec.classList.add("hidden");
   },
 
+  // 删除指定文件并刷新列表。
   removeFile(fileId) {
     this.files = this.files.filter((fileEntry) => fileEntry.id !== fileId);
     this.updateUI();
   },
 
-  // 合并文件：前端负责类型验证，后端负责实际合并
+  // 合并文件：后端负责类型验证和实际合并
   async mergeFiles() {
     if (this.files.length < 1) {
       ui.showStatus("请至少上传一个文件。", "warning");
       return;
     }
-
-    const baseData = this.files[0].data;
-
-    // 类型检查：确保所有文件是同一类型（保留在前端）
-    const isFirstProject = !!baseData.version;
-    const allSameType = this.files.slice(1).every((file) => {
-      const isProject = !!file.data.version;
-      return isProject === isFirstProject;
-    });
-
-    if (!allSameType) {
-      this.clearFiles();
-      ui.showStatus(
-        "合并取消：每个文件必须是同类文件（要么全是转换结果文件，要么全是进度文件）。",
-        "error",
-      );
-      return;
-    }
-
-    this.mode = isFirstProject ? "project" : "bestdori";
 
     // 调用后端 API 执行合并
     try {
@@ -218,15 +193,20 @@ export const mergerManager = {
         data: fileEntry.data,
       }));
 
-      const response = await apiService.mergeFiles(this.mode, filesPayload);
+      const response = await apiService.mergeFiles(filesPayload);
       this.mergedResult = response.result;
+      this.mode = response.mode || "bestdori";
       this._displayMergeResult(this.mergedResult);
     } catch (error) {
+      if (error.message.includes("每个文件必须是同类文件")) {
+        this.clearFiles();
+      }
       ui.showStatus(`合并失败: ${error.message}`, "error");
     }
   },
 
-  downloadMergedResult() {
+  // 下载合并结果（统一走后端下载接口）。
+  async downloadMergedResult() {
     if (!this.mergedResult) return;
 
     const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
@@ -235,9 +215,19 @@ export const mergerManager = {
         ? `merged_bestdori_${Date.now()}.json`
         : `merged_project_${Date.now()}.json`;
 
-    FileUtils.downloadAsFile(mergedJsonText, filename);
+    try {
+      const downloadBlob = await apiService.downloadResult(
+        mergedJsonText,
+        filename,
+      );
+      FileUtils.downloadAsFile(downloadBlob, filename);
+      ui.showStatus("下载成功！", "success");
+    } catch (error) {
+      ui.showStatus(`下载失败: ${error.message}`, "error");
+    }
   },
 
+  // 复制合并结果 JSON 到剪贴板。
   async copyMergedResult() {
     if (!this.mergedResult) return;
     const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);

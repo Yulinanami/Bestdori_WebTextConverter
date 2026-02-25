@@ -18,15 +18,6 @@ import { modalService } from "@services/ModalService.js";
 
 // 配置数据层：负责从后端/本地读取配置，以及导入导出与清缓存。
 export const configData = {
-  // 生成一个带时间戳的文件名（用于导出下载）
-  generateFilename(prefix = "file", extension = "json") {
-    const timestamp = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:-]/g, "");
-    return `${prefix}_${timestamp}.${extension}`;
-  },
-
   // 把数字设置写进 localStorage，并同步到页面输入框
   applyNumericSetting(storageKey, inputId, value) {
     if (typeof value !== "number") {
@@ -70,67 +61,44 @@ export const configData = {
     await ui.withButtonLoading(
       "exportConfigBtn",
       async () => {
-        const fullConfig = {
-          character_mapping: state.get("currentConfig"),
-          custom_quotes: state.get("customQuotes"),
-          costume_mapping: state.get("currentCostumes"),
-          available_costumes: costumeManager
-            ? costumeManager.availableCostumes
-            : {},
-          built_in_characters: costumeManager
-            ? Array.from(costumeManager.builtInCharacters)
-            : [],
-          position_config: {
-            autoPositionMode: positionManager
-              ? positionManager.autoPositionMode
-              : true,
-            manualPositions: positionManager
-              ? positionManager.manualPositions
-              : {},
-          },
-          custom_motions: motionManager ? motionManager.customItems : [],
-          custom_expressions: expressionManager
-            ? expressionManager.customItems
-            : [],
-          custom_quick_fill:
+        const exportResult = await apiService.exportConfigFile({
+          characterMapping: state.get("currentConfig"),
+          customQuotes: state.get("customQuotes"),
+          costumeMapping: state.get("currentCostumes"),
+          availableCostumes: costumeManager.availableCostumes,
+          builtInCharacters: Array.from(costumeManager.builtInCharacters),
+          autoPositionMode: positionManager.autoPositionMode,
+          manualPositions: positionManager.manualPositions,
+          customMotions: motionManager.customItems,
+          customExpressions: expressionManager.customItems,
+          customQuickFill:
             storageService.get(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [],
-          auto_append_spaces: storageService.get(
+          autoAppendSpaces: storageService.get(
             STORAGE_KEYS.AUTO_APPEND_SPACES,
             0,
           ),
-          auto_append_spaces_before_newline: storageService.get(
+          autoAppendSpacesBeforeNewline: storageService.get(
             STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
             0,
           ),
-          export_date: new Date().toISOString(),
-          version: "1.4",
-        };
-        const dataStr = JSON.stringify(fullConfig, null, 2);
-        await FileUtils.delay(300);
-        FileUtils.downloadAsFile(
-          dataStr,
-          this.generateFilename("bestdori_config", "json"),
+        });
+        const downloadBlob = await apiService.downloadResult(
+          exportResult.content,
+          exportResult.filename,
         );
+        await FileUtils.delay(300);
+        FileUtils.downloadAsFile(downloadBlob, exportResult.filename);
         ui.showStatus("所有配置已导出", "success");
       },
       "导出中...",
     );
   },
 
-  // 简单校验：确认导入文件是个普通对象（避免奇怪的数据结构）
-  validateConfig(config) {
-    if (!config || typeof config !== "object" || Array.isArray(config)) {
-      console.error("配置验证失败：不是有效的对象");
-      return false;
-    }
-    return true;
-  },
-
   // 导入配置文件（读取 JSON，并分发给各个子系统）
   async importConfig(configManager, file) {
     try {
-      const fileText = await FileUtils.readFileAsText(file);
-      const config = JSON.parse(fileText);
+      const response = await apiService.importConfigFile(file);
+      const config = response.config;
       this._applyImportedConfig(config, configManager);
       ui.showStatus("配置导入成功", "success");
     } catch (error) {
@@ -189,18 +157,14 @@ export const configData = {
     );
   },
 
-  // 内部方法：校验并将导入的配置分发给各个子系统
+  // 内部方法：将导入的配置分发给各个子系统
   _applyImportedConfig(config, configManager) {
-    if (!this.validateConfig(config)) {
-      throw new Error("配置文件包含不安全的数据，导入已被阻止");
-    }
-    if (!config.character_mapping) {
-      throw new Error("配置文件中没有有效数据");
-    }
-
     // 角色映射
     state.set("currentConfig", config.character_mapping);
-    storageService.set(STORAGE_KEYS.CHARACTER_MAPPING, config.character_mapping);
+    storageService.set(
+      STORAGE_KEYS.CHARACTER_MAPPING,
+      config.character_mapping,
+    );
 
     // 自定义引号
     if (config.custom_quotes && Array.isArray(config.custom_quotes)) {

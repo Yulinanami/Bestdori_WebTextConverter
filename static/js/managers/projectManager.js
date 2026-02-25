@@ -2,6 +2,7 @@ import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { FileUtils } from "@utils/FileUtils.js";
+import { apiService } from "@services/ApiService.js";
 
 export const projectManager = {
   // 保存当前编辑进度到内存状态（并可在保存后做回调）
@@ -15,76 +16,46 @@ export const projectManager = {
   },
 
   // 把当前编辑进度导出成一个 .json 文件（方便以后继续编辑）
-  export(currentState) {
+  async export(currentState) {
     if (!currentState) {
       ui.showStatus("没有可导出的内容。", "error");
       return;
     }
 
-    // 深拷贝后清理掉运行时/废弃字段，避免泄漏到导出文件
-    const exportData = DataUtils.deepClone(currentState);
-    if (Array.isArray(exportData.actions)) {
-      exportData.actions.forEach((action) => {
-        delete action.characterStates;
-      });
+    try {
+      const exportResult = await apiService.exportProjectFile(currentState);
+      const downloadBlob = await apiService.downloadResult(
+        exportResult.content,
+        exportResult.filename,
+      );
+      FileUtils.downloadAsFile(downloadBlob, exportResult.filename);
+      ui.showStatus("项目导出成功！", "success");
+    } catch (error) {
+      ui.showStatus(`导出失败: ${error.message}`, "error");
     }
-
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const filename =
-      currentState.projectName || `bestdori_project_${Date.now()}.json`;
-    FileUtils.downloadAsFile(dataStr, filename);
   },
 
   // 选择并导入一个“编辑进度 JSON”，成功就返回项目数据，取消则返回 null
   async import() {
     return new Promise((resolve) => {
-      // 简单校验：确认这是“编辑器进度文件”，不是最终导出的 Bestdori JSON
-      const isValidProjectFile = (data) => {
-        if (!data || !Array.isArray(data.actions)) return false;
-        return data.actions.every((action) => {
-          if (!action || typeof action !== "object") return false;
-          if (typeof action.type !== "string") return false;
-          if (action.type === "talk") {
-            return (
-              Array.isArray(action.speakers) && typeof action.text === "string"
-            );
-          }
-          if (action.type === "layout") {
-            return (
-              typeof action.layoutType === "string" &&
-              Object.hasOwn(action, "characterId")
-            );
-          }
-          return false;
-        });
-      };
-
       const fileInput = document.createElement("input");
       fileInput.type = "file";
       fileInput.accept = ".json";
-      fileInput.onchange = (changeEvent) => {
+      fileInput.onchange = async (changeEvent) => {
         const file = changeEvent.target.files[0];
         if (!file) {
           resolve(null);
           return;
         }
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-          try {
-            const importedProject = JSON.parse(loadEvent.target.result);
-            if (!isValidProjectFile(importedProject)) {
-              throw new Error(
-                "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。",
-              );
-            }
-            ui.showStatus("项目导入成功！", "success");
-            resolve(importedProject);
-          } catch (error) {
-            ui.showStatus(`导入失败: ${error.message}`, "error");
-            resolve(null);
-          }
-        };
-        reader.readAsText(file);
+        try {
+          const response = await apiService.importProjectFile(file);
+          const importedProject = response.projectFile;
+          ui.showStatus("项目导入成功！", "success");
+          resolve(importedProject);
+        } catch (error) {
+          ui.showStatus(`导入失败: ${error.message}`, "error");
+          resolve(null);
+        }
       };
       fileInput.click();
     });

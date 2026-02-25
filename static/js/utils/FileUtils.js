@@ -5,16 +5,7 @@ export const FileUtils = {
     return new Promise((resolve) => setTimeout(resolve, ms));
   },
 
-  // 以 Promise 方式读取文件为文本
-  readFileAsText(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => resolve(loadEvent.target.result);
-      reader.onerror = () => reject(new Error("文件读取失败"));
-      reader.readAsText(file);
-    });
-  },
-
+  // 触发浏览器下载（支持字符串和 Blob）。
   downloadAsFile(data, filename, mimeType = "application/json") {
     const blob =
       data instanceof Blob ? data : new Blob([data], { type: mimeType });

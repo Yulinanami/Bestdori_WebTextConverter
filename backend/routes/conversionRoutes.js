@@ -1,31 +1,25 @@
-// 转换接口：项目转换、文件上传、下载、文本分段
+// 转换接口：项目转换、文件上传、下载、文本构建项目
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
 const { ProjectConverter } = require("../projectConverter");
 const { FileFormatConverter } = require("../fileFormatConverter");
 const { createLogger } = require("../logger");
+const {
+  decodeMultipartFilename,
+  isSupportedUploadFilename,
+  formatFileSize,
+} = require("./conversion/uploadHelpers");
+const {
+  sanitizeFilename,
+  buildDownloadFilename,
+} = require("./conversion/downloadHelpers");
+const { segmentInputText } = require("./conversion/projectTextBuilders");
+const {
+  isProjectFile,
+  buildProjectExport,
+} = require("./conversion/projectFileHelpers");
 
 const logger = createLogger("src.routes.conversion");
-
-function decodeMultipartFilename(rawFilename) {
-  // 修复 multipart 中常见的 latin1/utf8 文件名错码
-  if (!rawFilename) {
-    return "";
-  }
-  const decoded = Buffer.from(rawFilename, "latin1").toString("utf8");
-  return decoded.includes("\uFFFD") ? rawFilename : decoded;
-}
-
-function sanitizeFilename(name) {
-  // 下载文件名安全化
-  const normalized = path.basename(String(name || "result.json"));
-  const safe = normalized.replace(/[<>:"/\\|?*\x00-\x1F]/g, "_");
-  if (!safe.trim()) {
-    return "result.json";
-  }
-  return safe.endsWith(".json") ? safe : `${safe}.json`;
-}
 
 function createConversionRouter({ configManager, maxContentLength }) {
   const router = express.Router();
@@ -41,7 +35,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
       const data = req.body || {};
       const projectFile = data.projectFile;
       const quoteConfig = data.quoteConfig;
-      const parsingConfig = configManager.getParsingConfig();
+      const parsingConfig = configManager.config.parsing || {};
       const defaultNarrator = parsingConfig.default_narrator_name ?? " ";
       const narratorName = data.narratorName || defaultNarrator;
       const appendSpaces = Number(data.appendSpaces) || 0;
@@ -63,7 +57,9 @@ function createConversionRouter({ configManager, maxContentLength }) {
         return;
       }
 
-      const converter = new ProjectConverter(configManager.getAvatarMapping());
+      const converter = new ProjectConverter(
+        configManager.config.avatar_mapping || {},
+      );
       const result = converter.convert(
         projectFile,
         quoteConfig,
@@ -94,9 +90,15 @@ function createConversionRouter({ configManager, maxContentLength }) {
         res.status(400).json({ error: "没有选择文件" });
         return;
       }
+      if (!isSupportedUploadFilename(filename)) {
+        logger.warning(`不支持的文件类型: ${filename}`);
+        res.status(400).json({ error: "只支持 .txt, .docx, .md 文件" });
+        return;
+      }
 
-      const fileSizeKb = req.file.buffer.length / 1024;
-      logger.info(`正在处理文件: ${filename} (${fileSizeKb.toFixed(2)} KB)`);
+      logger.info(
+        `正在处理文件: ${filename} (大小: ${formatFileSize(req.file.buffer.length)})`,
+      );
       const content = await FileFormatConverter.readFileContentToText(
         filename,
         req.file.buffer,
@@ -118,7 +120,8 @@ function createConversionRouter({ configManager, maxContentLength }) {
         typeof data.content === "string"
           ? data.content
           : String(data.content ?? "");
-      const filename = sanitizeFilename(data.filename || "result.json");
+      const filenameInput = data.filename || buildDownloadFilename();
+      const filename = sanitizeFilename(filenameInput);
 
       logger.info(`生成下载文件: ${filename} (大小: ${content.length} 字符)`);
       res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -134,36 +137,72 @@ function createConversionRouter({ configManager, maxContentLength }) {
     }
   });
 
-  // /api/segment-text：按空行切分段落
+  // /api/segment-text：把文本按空行切分为段落
   router.post("/segment-text", (req, res) => {
     try {
       logger.info("收到文本分段请求");
-      const data = req.body || {};
-      const rawText = typeof data.text === "string" ? data.text : "";
-      logger.info(`正在分段文本 (长度: ${rawText.length} 字符)`);
-
-      const lines = rawText.split(/\r?\n/);
-      const segments = [];
-      let currentSegment = [];
-
-      for (const line of lines) {
-        const stripped = line.trim();
-        if (stripped) {
-          currentSegment.push(stripped);
-        } else if (currentSegment.length > 0) {
-          segments.push(currentSegment.join("\n"));
-          currentSegment = [];
-        }
-      }
-      if (currentSegment.length > 0) {
-        segments.push(currentSegment.join("\n"));
-      }
-
+      const rawText = req.body.text || "";
+      const segments = segmentInputText(rawText);
       logger.info(`文本分段完成 - 生成 ${segments.length} 个段落`);
       res.json({ segments });
     } catch (error) {
       logger.error("文本分段失败:", error);
       res.status(500).json({ error: `文本分段失败: ${error.message}` });
+    }
+  });
+
+  // /api/project-file-import：处理导入的项目进度 JSON
+  router.post("/project-file-import", upload.single("file"), (req, res) => {
+    let filename = "inline_text";
+    try {
+      logger.info("收到项目文件导入请求");
+      filename = req.file
+        ? decodeMultipartFilename(req.file.originalname || "")
+        : "inline_text";
+      if (req.file) {
+        logger.info(
+          `正在导入项目文件: ${filename} (大小: ${formatFileSize(req.file.buffer.length)})`,
+        );
+      }
+
+      const text = req.file
+        ? req.file.buffer.toString("utf8")
+        : String(req.body.text || "");
+      const projectFile = JSON.parse(text);
+      if (!isProjectFile(projectFile)) {
+        logger.warning(
+          `导入项目文件失败: 文件 ${filename} 格式不符合编辑器进度，需导入“保存进度”导出的 JSON。`,
+        );
+        res.status(400).json({
+          error: "文件格式不符合编辑器进度，需导入“保存进度”导出的 JSON。",
+        });
+        return;
+      }
+      logger.info(
+        `项目文件导入成功: ${filename} - actions: ${projectFile.actions.length}`,
+      );
+      res.json({ projectFile });
+    } catch (error) {
+      logger.warning(`导入项目文件失败: ${error.message} (文件: ${filename})`);
+      res.status(400).json({ error: `项目文件导入失败: ${error.message}` });
+    }
+  });
+
+  // /api/project-export：处理导出项目进度 JSON
+  router.post("/project-export", (req, res) => {
+    try {
+      logger.info("收到项目文件导出请求");
+      const projectFile = req.body.projectFile;
+      if (!isProjectFile(projectFile)) {
+        logger.warning("导出项目文件失败: 无效的项目文件");
+        res.status(400).json({ error: "无效的项目文件" });
+        return;
+      }
+      const result = buildProjectExport(projectFile);
+      res.json(result);
+    } catch (error) {
+      logger.warning(`导出项目文件失败: ${error.message}`);
+      res.status(400).json({ error: `项目文件导出失败: ${error.message}` });
     }
   });
 

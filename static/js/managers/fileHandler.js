@@ -4,9 +4,6 @@ import { ui } from "@utils/uiUtils.js";
 import { apiService } from "@services/ApiService.js";
 import { FileUtils } from "@utils/FileUtils.js";
 
-// 允许上传的文件类型
-const VALID_EXTENSIONS = [".txt", ".docx", ".md"];
-
 export const fileHandler = {
   // 初始化：绑定上传/下载按钮，并启用拖拽上传
   init() {
@@ -73,13 +70,6 @@ export const fileHandler = {
   async handleFileUpload(changeEvent) {
     const file = changeEvent.target.files[0];
     if (!file) return;
-
-    const filename = file.name.toLowerCase();
-    const isValidFile = VALID_EXTENSIONS.some((ext) => filename.endsWith(ext));
-    if (!isValidFile) {
-      ui.showStatus("只支持 .txt, .docx, .md 文件！", "error");
-      return;
-    }
 
     const fileUploadLabel = document.querySelector(".file-upload-label");
     const originalContent = fileUploadLabel.innerHTML;

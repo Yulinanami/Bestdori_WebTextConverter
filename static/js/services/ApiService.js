@@ -54,6 +54,18 @@ class ApiService {
     return await this.get("/api/costumes");
   }
 
+  // 导入配置文件（后端解析 JSON）
+  async importConfigFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await this.post("/api/config-import", formData);
+  }
+
+  // 导出配置文件（后端组装导出结构）
+  async exportConfigFile(payload) {
+    return await this.post("/api/config-export", payload);
+  }
+
   // 把“项目文件(projectFile)”转换成 Bestdori 可导入的 JSON 字符串
   async convertText(
     projectFile,
@@ -79,9 +91,28 @@ class ApiService {
     return await this.post("/api/upload", formData);
   }
 
+  // 导入单个待合并文件（后端解析 JSON）
+  async importMergeFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await this.post("/api/merge-file-import", formData);
+  }
+
   // 把多个文件数据发送到后端进行合并
-  async mergeFiles(mode, files) {
-    return await this.post("/api/merge", { mode, files });
+  async mergeFiles(files) {
+    return await this.post("/api/merge", { files });
+  }
+
+  // 导入项目进度文件（后端解析并校验）
+  async importProjectFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await this.post("/api/project-file-import", formData);
+  }
+
+  // 导出项目进度文件（后端清理并返回导出内容）
+  async exportProjectFile(projectFile) {
+    return await this.post("/api/project-export", { projectFile });
   }
 
   // 让后端生成一个可下载的 JSON 文件（返回 blob）
