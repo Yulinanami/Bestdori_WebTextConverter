@@ -4,8 +4,8 @@
   "private": true,
   "description": "Bestdori Web Text Converter backend migrated to Node.js",
   "scripts": {
-    "start": "node node_backend/server.js",
-    "dev": "node --watch node_backend/server.js"
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
   },
   "engines": {
     "node": ">=18"

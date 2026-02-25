@@ -26,7 +26,10 @@ class FileFormatConverter {
     try {
       const html = marked.parse(mdContent);
       let text = html.replace(/<[^>]+>/g, "");
-      text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+      text = text
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
       const lines = text
         .split("\n")
         .map((line) => line.trim())

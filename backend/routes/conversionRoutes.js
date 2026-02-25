@@ -45,9 +45,14 @@ function createConversionRouter({ configManager, maxContentLength }) {
       const defaultNarrator = parsingConfig.default_narrator_name ?? " ";
       const narratorName = data.narratorName || defaultNarrator;
       const appendSpaces = Number(data.appendSpaces) || 0;
-      const appendSpacesBeforeNewline = Number(data.appendSpacesBeforeNewline) || 0;
+      const appendSpacesBeforeNewline =
+        Number(data.appendSpacesBeforeNewline) || 0;
 
-      if (!projectFile || typeof projectFile !== "object" || Array.isArray(projectFile)) {
+      if (
+        !projectFile ||
+        typeof projectFile !== "object" ||
+        Array.isArray(projectFile)
+      ) {
         if (data.text !== undefined) {
           logger.warning("API不匹配，客户端使用旧版 text 字段");
           res.status(400).json({ error: "API不匹配，请刷新页面或清除缓存。" });
@@ -110,12 +115,17 @@ function createConversionRouter({ configManager, maxContentLength }) {
       logger.info("收到文件下载请求");
       const data = req.body || {};
       const content =
-        typeof data.content === "string" ? data.content : String(data.content ?? "");
+        typeof data.content === "string"
+          ? data.content
+          : String(data.content ?? "");
       const filename = sanitizeFilename(data.filename || "result.json");
 
       logger.info(`生成下载文件: ${filename} (大小: ${content.length} 字符)`);
       res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`,
+      );
       res.status(200).send(content);
       logger.info(`文件下载成功: ${filename}`);
     } catch (error) {

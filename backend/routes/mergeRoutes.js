@@ -49,12 +49,19 @@ function createMergeRouter() {
       }
 
       logger.info(`开始合并文件 - 模式: ${mode}, 文件数量: ${files.length}`);
-      const result = mode === "bestdori" ? mergeBestdori(files) : mergeProject(files);
-      logger.info(`文件合并成功 - 合并后 actions 数量: ${result.actions.length}`);
+      const result =
+        mode === "bestdori" ? mergeBestdori(files) : mergeProject(files);
+      logger.info(
+        `文件合并成功 - 合并后 actions 数量: ${result.actions.length}`,
+      );
       orderedJsonResponse(res, { result });
     } catch (error) {
       logger.error("文件合并失败:", error);
-      orderedJsonResponse(res, { error: `文件合并失败: ${error.message}` }, 500);
+      orderedJsonResponse(
+        res,
+        { error: `文件合并失败: ${error.message}` },
+        500,
+      );
     }
   });
 

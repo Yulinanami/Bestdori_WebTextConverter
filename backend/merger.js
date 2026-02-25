@@ -20,7 +20,9 @@ const mergeBestdori = (files) => {
   };
 
   for (const entry of files) {
-    const actions = Array.isArray(entry?.data?.actions) ? entry.data.actions : [];
+    const actions = Array.isArray(entry?.data?.actions)
+      ? entry.data.actions
+      : [];
     merged.actions.push(...actions);
   }
 
@@ -36,7 +38,9 @@ const mergeProject = (files) => {
   };
 
   for (const entry of files) {
-    const clonedActions = cloneDeep(Array.isArray(entry?.data?.actions) ? entry.data.actions : []);
+    const clonedActions = cloneDeep(
+      Array.isArray(entry?.data?.actions) ? entry.data.actions : [],
+    );
     clonedActions.forEach((action, index) => {
       const timestamp = generateTimestamp() + index;
       const actionType = action?.type ?? "";

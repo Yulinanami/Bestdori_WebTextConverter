@@ -25,7 +25,10 @@ const app = createApp({
 // 启动后自动打开浏览器访问首页
 function openBrowser(url) {
   if (process.platform === "win32") {
-    spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore" }).unref();
+    spawn("cmd", ["/c", "start", "", url], {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
     return;
   }
   if (process.platform === "darwin") {

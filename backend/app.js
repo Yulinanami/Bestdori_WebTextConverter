@@ -22,7 +22,9 @@ function createApp({
   const staticDir = path.join(projectRoot, "static");
 
   app.use(express.json({ limit: `${maxContentLength}b` }));
-  app.use(express.urlencoded({ extended: false, limit: `${maxContentLength}b` }));
+  app.use(
+    express.urlencoded({ extended: false, limit: `${maxContentLength}b` }),
+  );
 
   // 请求日志：记录请求与响应状态。
   app.use((req, res, next) => {
@@ -45,7 +47,7 @@ function createApp({
   app.use("/static", express.static(staticDir));
 
   // 首页：返回前端页面
-  app.get("/", (req, res) => {
+  app.get("/", (_req, res) => {
     res.sendFile(templatePath);
   });
 
@@ -56,7 +58,7 @@ function createApp({
   app.use("/api", createSystemRouter({ onShutdown }));
 
   // 统一处理上传大小超限等 Multer 错误。
-  app.use((error, req, res, next) => {
+  app.use((error, _req, res, next) => {
     if (!(error instanceof multer.MulterError)) {
       next(error);
       return;
@@ -69,7 +71,7 @@ function createApp({
   });
 
   // 统一处理未捕获异常。
-  app.use((error, req, res, next) => {
+  app.use((error, _req, res, next) => {
     logger.error("未处理异常:", error);
     if (res.headersSent) {
       next(error);

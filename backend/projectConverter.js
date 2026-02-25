@@ -7,7 +7,11 @@ class QuoteHandler {
   // 若文本被成对引号包裹，则移除两端引号
   removeQuotes(text, activeQuotePairs) {
     const stripped = text.trim();
-    if (stripped.length < 2 || !activeQuotePairs || !Object.keys(activeQuotePairs).length) {
+    if (
+      stripped.length < 2 ||
+      !activeQuotePairs ||
+      !Object.keys(activeQuotePairs).length
+    ) {
       return text;
     }
 
@@ -39,7 +43,8 @@ class ProjectConverter {
   }
 
   getOutputId(charId) {
-    const mapped = this.avatarMapping[charId] ?? this.avatarMapping[String(charId)];
+    const mapped =
+      this.avatarMapping[charId] ?? this.avatarMapping[String(charId)];
     return mapped ?? charId;
   }
 
@@ -147,10 +152,15 @@ class ProjectConverter {
     appendSpacesBeforeNewline,
   ) {
     // 转换对话动作
-    const speakers = Array.isArray(talkAction?.speakers) ? talkAction.speakers : [];
+    const speakers = Array.isArray(talkAction?.speakers)
+      ? talkAction.speakers
+      : [];
     const characterIds = speakers
       .map((speaker) => {
-        if (speaker?.characterId === undefined || speaker?.characterId === null) {
+        if (
+          speaker?.characterId === undefined ||
+          speaker?.characterId === null
+        ) {
           return null;
         }
         return toInt(speaker.characterId, null);
@@ -162,7 +172,10 @@ class ProjectConverter {
         ? talkAction.text
         : String(talkAction?.text ?? "");
 
-    let processedBody = this.quoteHandler.removeQuotes(originalText, activeQuotePairs);
+    let processedBody = this.quoteHandler.removeQuotes(
+      originalText,
+      activeQuotePairs,
+    );
 
     if (appendSpacesBeforeNewline > 0 && processedBody) {
       const spacesToAdd = " ".repeat(appendSpacesBeforeNewline);
@@ -241,8 +254,12 @@ class ProjectConverter {
     logger.info(
       `布局动作 - 类型: ${layoutType}, 角色ID: ${charId}, 服装: ${costume || "默认"}, 延迟: ${delay}秒`,
     );
-    logger.info(`  位置: ${sideFrom}(${offsetFrom >= 0 ? "+" : ""}${offsetFrom}) -> ${sideTo}(${offsetTo >= 0 ? "+" : ""}${offsetTo})`);
-    logger.info(`  初始状态 - 动作: ${motion || "无"}, 表情: ${expression || "无"}`);
+    logger.info(
+      `  位置: ${sideFrom}(${offsetFrom >= 0 ? "+" : ""}${offsetFrom}) -> ${sideTo}(${offsetTo >= 0 ? "+" : ""}${offsetTo})`,
+    );
+    logger.info(
+      `  初始状态 - 动作: ${motion || "无"}, 表情: ${expression || "无"}`,
+    );
 
     return {
       type: "layout",

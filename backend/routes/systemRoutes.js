@@ -8,7 +8,7 @@ function createSystemRouter({ onShutdown }) {
   const router = express.Router();
 
   // /api/shutdown：响应后触发服务退出
-  router.post("/shutdown", (req, res) => {
+  router.post("/shutdown", (_req, res) => {
     logger.info("收到关闭服务器的请求...");
     res.json({ message: "服务器正在关闭..." });
     if (typeof onShutdown === "function") {

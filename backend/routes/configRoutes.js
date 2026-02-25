@@ -8,7 +8,7 @@ function createConfigRouter({ configManager }) {
   const router = express.Router();
 
   // 获取全部基础配置
-  router.get("/config", (req, res) => {
+  router.get("/config", (_req, res) => {
     try {
       logger.info("收到配置加载请求");
       res.json({
@@ -29,7 +29,7 @@ function createConfigRouter({ configManager }) {
   });
 
   // 获取服装配置（可用服装 + 默认服装）
-  router.get("/costumes", (req, res) => {
+  router.get("/costumes", (_req, res) => {
     try {
       logger.info("收到服装配置加载请求");
       res.json({

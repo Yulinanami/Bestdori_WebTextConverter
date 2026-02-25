@@ -27,13 +27,20 @@ class ConfigManager {
       const content = fs.readFileSync(this.configPath, "utf8");
       const parsed = yaml.load(content) || {};
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        logger.error(`配置文件 ${this.configPath} 顶层不是有效对象。将使用空配置。`);
+        logger.error(
+          `配置文件 ${this.configPath} 顶层不是有效对象。将使用空配置。`,
+        );
         return {};
       }
-      logger.info(`配置文件加载成功 - 包含 ${Object.keys(parsed).length} 个顶级配置项`);
+      logger.info(
+        `配置文件加载成功 - 包含 ${Object.keys(parsed).length} 个顶级配置项`,
+      );
       return parsed;
     } catch (error) {
-      logger.error(`加载配置文件时发生错误: ${error.message}。将使用空配置。`, error);
+      logger.error(
+        `加载配置文件时发生错误: ${error.message}。将使用空配置。`,
+        error,
+      );
       return {};
     }
   }
