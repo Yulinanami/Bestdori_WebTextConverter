@@ -67,10 +67,13 @@ export const libraryPanel = {
         .forEach((itemId) => expressionItems.add(itemId));
     });
 
-    if (stagedCharacterIds.size === 0) {
+    // 没有在场角色，或在场角色无可用资源（例如旁白 ID=0）时，回退到全量资源库。
+    if (stagedCharacterIds.size === 0 || motionItems.size === 0) {
       editorService.motionManager
         .getAllKnownItems()
         .forEach((itemId) => motionItems.add(itemId));
+    }
+    if (stagedCharacterIds.size === 0 || expressionItems.size === 0) {
       editorService.expressionManager
         .getAllKnownItems()
         .forEach((itemId) => expressionItems.add(itemId));

@@ -86,7 +86,7 @@ export function attachLive2DDrag(editor, baseEditor) {
           characterName: item.dataset.characterName,
         }),
         executeFn: (data, globalInsertIndex) => {
-          if (data.characterId && data.characterName) {
+          if (data.characterName) {
             editor.insertLayoutAction(
               data.characterId,
               data.characterName,

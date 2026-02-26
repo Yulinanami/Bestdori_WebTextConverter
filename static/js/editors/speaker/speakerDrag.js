@@ -127,11 +127,15 @@ export function attachSpeakerDrag(editor, baseEditor) {
         const characterName = characterItem.dataset.characterName;
         const actionId = targetCard.dataset.id;
         const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
-        if (characterId && actionId) {
-          editor.updateSpeakerAssignment(actionId, {
-            characterId,
-            name: characterName,
-          }, actionIndex);
+        if (actionId) {
+          editor.updateSpeakerAssignment(
+            actionId,
+            {
+              characterId,
+              name: characterName,
+            },
+            actionIndex
+          );
         }
         characterItem.remove();
       };
