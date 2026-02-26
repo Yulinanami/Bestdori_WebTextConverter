@@ -17,14 +17,17 @@ jobs:
         include:
           - os: ubuntu-22.04
             artifact_name: WebTextConverter_Linux_x64
+            pkg_target: node18-linux-x64
             cmd_pack: "tar -czvf"
             archive_ext: ".tar.gz"
           - os: windows-latest
             artifact_name: WebTextConverter_Windows_x64
+            pkg_target: node18-win-x64
             cmd_pack: "7z a -tzip"
             archive_ext: ".zip"
           - os: macos-latest
             artifact_name: WebTextConverter_macOS_arm64
+            pkg_target: node18-macos-arm64
             cmd_pack: "tar -czvf"
             archive_ext: ".tar.gz"
 
@@ -52,14 +55,9 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          PACKAGE_NAME="${{ matrix.artifact_name }}_${VERSION}"
+          node .github/scripts/buildReleasePackage.js "${VERSION}" "${{ matrix.artifact_name }}" "${{ matrix.pkg_target }}"
 
-          mkdir -p "${PACKAGE_NAME}"
-          cp -r node_backend static templates "${PACKAGE_NAME}/"
-          cp -r assets "${PACKAGE_NAME}/" 2>/dev/null || true
-          cp -r example "${PACKAGE_NAME}/" 2>/dev/null || true
-          cp README.md LICENSE config.yaml favicon.ico package.json "${PACKAGE_NAME}/"
-          cp package-lock.json "${PACKAGE_NAME}/" 2>/dev/null || true
+          PACKAGE_NAME="${{ matrix.artifact_name }}_${VERSION}"
 
           ${{ matrix.cmd_pack }} "${PACKAGE_NAME}${{ matrix.archive_ext }}" "${PACKAGE_NAME}"
 

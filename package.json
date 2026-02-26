@@ -3,9 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "description": "Bestdori Web Text Converter backend migrated to Node.js",
+  "bin": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node --watch backend/server.js"
+    "dev": "node --watch backend/server.js",
+    "build-exe": "node scripts/build-release.js"
+  },
+  "pkg": {
+    "scripts": [
+      "backend/**/*.js"
+    ],
+    "assets": [
+      "favicon.ico"
+    ]
   },
   "engines": {
     "node": ">=18"
@@ -16,5 +26,9 @@
     "mammoth": "^1.8.0",
     "marked": "^13.0.3",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1",
+    "resedit-cli": "^3.0.1"
   }
 }

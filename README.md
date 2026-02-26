@@ -123,11 +123,7 @@
     npm start
     ```
 
-可选：如果不希望启动后自动打开浏览器，可设置环境变量：
-
-```bash
-NO_OPEN_BROWSER=1 npm start
-```
+**config.yaml配置文件**：程序启动时会从这里加载默认配置，可以自行调整
 
 ---
 
