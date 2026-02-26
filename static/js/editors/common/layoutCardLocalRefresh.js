@@ -134,6 +134,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
       const hasGroupHeader = Boolean(
         container.querySelector(".timeline-group-header")
       );
+      const preservedScrollTop = container.scrollTop;
 
       if (shouldGroup) {
         // 分组模式：刷新组头并仅重建当前展开分组。
@@ -208,6 +209,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
         }
 
         container.replaceChildren(fragment);
+        container.scrollTop = preservedScrollTop;
         return true;
       }
 
@@ -222,6 +224,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
           fragment.appendChild(renderedCard);
         }
         container.replaceChildren(fragment);
+        container.scrollTop = preservedScrollTop;
         return true;
       }
 

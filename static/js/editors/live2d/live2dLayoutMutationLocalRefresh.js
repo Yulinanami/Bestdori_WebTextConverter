@@ -59,6 +59,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
     // 分组模式下：重建分组头与当前展开分组内容，完成增删后的局部刷新。
     applyGroupedLayoutMutationRender(actions) {
       const timeline = this.domCache.timeline;
+      const preservedScrollTop = timeline?.scrollTop ?? 0;
       const groupSize = this.baseEditor.groupSize;
       if (!timeline || !actions.length) {
         return false;
@@ -144,6 +145,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       }
 
       timeline.replaceChildren(fragment);
+      timeline.scrollTop = preservedScrollTop;
       return true;
     },
 

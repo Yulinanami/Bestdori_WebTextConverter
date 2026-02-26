@@ -175,6 +175,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
     // 分组模式下：只重绘当前展开分组的卡片，并同步组头文案。
     applyGroupedMutationRender(actions) {
       const canvas = this.domCache.canvas;
+      const preservedScrollTop = canvas?.scrollTop ?? 0;
       const groupSize = this.baseEditor.groupSize;
       const activeGroupIndex = this.activeGroupIndex;
       const totalActions = actions.length;
@@ -237,6 +238,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
       }
       removableCards.forEach((cardElement) => cardElement.remove());
       canvas.insertBefore(fragment, nextNode);
+      canvas.scrollTop = preservedScrollTop;
 
       return true;
     },
