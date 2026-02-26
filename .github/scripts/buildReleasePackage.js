@@ -14,6 +14,7 @@ const packageDir = path.join(rootDir, packageName);
 const isWindowsTarget = target.includes("win");
 const binaryName = `WebTextConverter_${version}${isWindowsTarget ? ".exe" : ""}`;
 const binaryPath = path.join(packageDir, binaryName);
+const iconPath = path.join(rootDir, "favicon.ico");
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "wtc-build-"));
 const buildDir = path.join(tempDir, "build");
 
@@ -29,7 +30,6 @@ fs.mkdirSync(packageDir, { recursive: true });
   ["config.yaml", "config.yaml"],
   ["README.md", "README.md"],
   ["LICENSE", "LICENSE.txt"],
-  ["favicon.ico", "favicon.ico"],
 ].forEach(([from, to]) => {
   fs.cpSync(path.join(rootDir, from), path.join(packageDir, to));
 });
@@ -67,8 +67,8 @@ execSync(
 
 if (isWindowsTarget) {
   execSync(
-    `npx --yes resedit-cli --icon 1,favicon.ico --in "${binaryPath}" --out "${binaryPath}"`,
-    { cwd: packageDir, stdio: "inherit" },
+    `npx --yes resedit-cli --icon 1,"${iconPath}" --in "${binaryPath}" --out "${binaryPath}"`,
+    { cwd: rootDir, stdio: "inherit" },
   );
 }
 
