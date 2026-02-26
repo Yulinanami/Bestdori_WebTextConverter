@@ -1,6 +1,36 @@
 // 拖拽助手：处理拖拽事件中的坐标提取、落点验证、DOM 重排等通用逻辑。
 
 export const DragHelper = {
+  // 按当前 DOM 顺序批量刷新卡片的 actionIndex 与显示序号。
+  syncCardOrderMeta(params = {}) {
+    const {
+      container,
+      cardSelector,
+      startIndex = 0,
+      baseIndex = 0,
+    } = params;
+    if (!container) {
+      return false;
+    }
+    const cards = container.querySelectorAll(cardSelector);
+    if (!cards.length) {
+      return false;
+    }
+
+    const from = Math.max(0, Number(startIndex) || 0);
+    const base = Number(baseIndex) || 0;
+    for (let localIndex = from; localIndex < cards.length; localIndex++) {
+      const globalIndex = base + localIndex;
+      const cardElement = cards[localIndex];
+      cardElement.dataset.actionIndex = String(globalIndex);
+      const numberDiv = cardElement.querySelector(".card-sequence-number");
+      if (numberDiv) {
+        numberDiv.textContent = `#${globalIndex + 1}`;
+      }
+    }
+    return true;
+  },
+
   // 从 Sortable 事件里提取当前指针坐标（鼠标/触摸）。
   getPointerFromSortableEvent(sortableEvent) {
     const pointerEvent = sortableEvent?.originalEvent;
@@ -34,33 +64,18 @@ export const DragHelper = {
 
   // 无效落点后，按当前状态重渲染还原 DOM 顺序。
   handleInvalidDrop(editor) {
-    editor.handleRenderCallback?.();
+    editor.handleRenderCallback();
   },
 
   // 把 actions[fromIndex] 挪到 toIndex。
-  moveAction(actions, fromIndex, toIndex, source = "DragHelper") {
-    if (!Array.isArray(actions)) {
-      console.error(`[${source}] actions 不是数组，无法重排`);
-      return;
-    }
-    if (fromIndex < 0 || fromIndex >= actions.length) {
-      console.error(
-        `[${source}] 无效索引 fromIndex=${fromIndex}, actions.length=${actions.length}`
-      );
-      return;
-    }
-
+  moveAction(actions, fromIndex, toIndex) {
     const [movedItem] = actions.splice(fromIndex, 1);
-    if (!movedItem) {
-      console.error(`[${source}] 重排失败，未找到 fromIndex=${fromIndex} 的元素`);
-      return;
-    }
     actions.splice(toIndex, 0, movedItem);
   },
 
   // 生成“按全局索引重排 action”的执行函数，供多个编辑器复用。
   createReorderHandler(params = {}) {
-    const { runCommand, beforeReorder, source = "DragHelper" } = params;
+    const { runCommand, beforeReorder } = params;
     return (globalOldIndex, globalNewIndex) => {
       if (globalOldIndex === globalNewIndex) {
         return;
@@ -72,8 +87,7 @@ export const DragHelper = {
         DragHelper.moveAction(
           currentState.actions,
           globalOldIndex,
-          globalNewIndex,
-          source
+          globalNewIndex
         );
       });
     };
@@ -88,9 +102,77 @@ export const DragHelper = {
       totalActions = 0,
       isGroupingEnabled = false,
       activeGroupIndex = null,
+      reorderByState = false,
+      activeGroupActionIds = [],
     } = params;
+    if (!container) {
+      return false;
+    }
+
+    if (reorderByState) {
+      const expectedIds = activeGroupActionIds;
+      if (!expectedIds.length) {
+        return false;
+      }
+
+      const shouldGroup =
+        isGroupingEnabled &&
+        totalActions > groupSize &&
+        activeGroupIndex !== null &&
+        activeGroupIndex >= 0;
+
+      let currentCards = [];
+      let insertBeforeNode = null;
+
+      if (shouldGroup) {
+        const activeHeader = container.querySelector(
+          `.timeline-group-header[data-group-idx="${activeGroupIndex}"]`
+        );
+        if (!activeHeader) {
+          return false;
+        }
+
+        let nextNode = activeHeader.nextElementSibling;
+        while (
+          nextNode &&
+          !nextNode.classList.contains("timeline-group-header")
+        ) {
+          currentCards.push(nextNode);
+          nextNode = nextNode.nextElementSibling;
+        }
+        insertBeforeNode = nextNode;
+      } else {
+        currentCards = Array.from(container.querySelectorAll(cardSelector));
+        insertBeforeNode = null;
+      }
+
+      if (!currentCards.length || currentCards.length !== expectedIds.length) {
+        return false;
+      }
+
+      const cardById = new Map(
+        currentCards.map((cardElement) => [cardElement.dataset.id, cardElement])
+      );
+      const fragment = document.createDocumentFragment();
+      for (const actionId of expectedIds) {
+        const cardElement = cardById.get(actionId);
+        if (!cardElement) {
+          return false;
+        }
+        fragment.appendChild(cardElement);
+      }
+      container.insertBefore(fragment, insertBeforeNode);
+
+      const baseIndex = shouldGroup ? activeGroupIndex * groupSize : 0;
+      return DragHelper.syncCardOrderMeta({
+        container,
+        cardSelector,
+        startIndex: 0,
+        baseIndex,
+      });
+    }
+
     if (
-      !container ||
       !isGroupingEnabled ||
       totalActions <= groupSize ||
       activeGroupIndex === null ||
@@ -99,21 +181,13 @@ export const DragHelper = {
       return false;
     }
 
-    const cards = container.querySelectorAll(cardSelector);
-    if (!cards.length) {
-      return false;
-    }
-
     const groupStartIndex = activeGroupIndex * groupSize;
-    cards.forEach((cardElement, localIndex) => {
-      const globalIndex = groupStartIndex + localIndex;
-      cardElement.dataset.actionIndex = String(globalIndex);
-      const numberDiv = cardElement.querySelector(".card-sequence-number");
-      if (numberDiv) {
-        numberDiv.textContent = `#${globalIndex + 1}`;
-      }
+    return DragHelper.syncCardOrderMeta({
+      container,
+      cardSelector,
+      startIndex: 0,
+      baseIndex: groupStartIndex,
     });
-    return true;
   },
 
   // 生成一个通用的 Sortable 配置（可传 group/onEnd/onAdd/extraConfig）

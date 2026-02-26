@@ -87,15 +87,7 @@ export function bindTimelineEvents(editor) {
           (actionItem) => actionItem.id === actionId
         );
         if (action && action.type === "layout") {
-          editor.baseEditor.executeCommand((currentState) => {
-            const layoutAction = currentState.actions.find(
-              (actionItem) => actionItem.id === actionId
-            );
-            if (layoutAction) {
-              delete layoutAction.initialState;
-              delete layoutAction.delay;
-            }
-          });
+          assignmentStore.removeLayoutAssignment(editor, actionId);
         } else {
           assignmentStore.removeMotionAssignment(editor, actionId, assignmentIndex);
         }
@@ -141,7 +133,16 @@ export function bindTimelineEvents(editor) {
     }
 
     if (clickEvent.target.matches(".layout-remove-btn")) {
-      editor.deleteLayoutAction(timelineCard.dataset.id);
+      const actionId = timelineCard.dataset.id;
+      const deleteIndex = editor.projectFileState.actions.findIndex(
+        (actionItem) => actionItem.id === actionId
+      );
+      if (deleteIndex > -1) {
+        editor.markLayoutMutationRender(actionId, "delete", {
+          startIndex: deleteIndex,
+        });
+      }
+      editor.deleteLayoutAction(actionId);
       return;
     }
   };
@@ -160,14 +161,7 @@ export function bindTimelineEvents(editor) {
       );
 
       if (action && action.type === "layout") {
-        editor.baseEditor.executeCommand((currentState) => {
-          const layoutAction = currentState.actions.find(
-            (actionItem) => actionItem.id === actionId
-          );
-          if (layoutAction) {
-            layoutAction.delay = delayValue;
-          }
-        });
+        assignmentStore.updateLayoutDelay(editor, actionId, delayValue);
       } else {
         assignmentStore.updateMotionAssignment(editor, actionId, assignmentIndex, {
           delay: delayValue,
@@ -180,14 +174,7 @@ export function bindTimelineEvents(editor) {
       const actionId = changeEvent.target.dataset.actionId;
       const delayValue = parseFloat(changeEvent.target.value) || 0;
 
-      editor.baseEditor.executeCommand((currentState) => {
-        const action = currentState.actions.find(
-          (actionItem) => actionItem.id === actionId
-        );
-        if (action) {
-          action.delay = delayValue;
-        }
-      });
+      assignmentStore.updateLayoutDelay(editor, actionId, delayValue);
       return;
     }
 

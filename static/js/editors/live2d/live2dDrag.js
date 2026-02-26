@@ -56,18 +56,12 @@ export function attachLive2DDrag(editor, baseEditor) {
       // 复用通用重排逻辑，避免每个编辑器重复写 splice 重排代码。
       const runReorder = DragHelper.createReorderHandler({
         runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
-        source: "live2dDrag",
-        beforeReorder: () => {
-          const isGroupingEnabled =
-            editor.domCache.groupCheckbox?.checked || false;
-          if (
-            isGroupingEnabled &&
-            editor.projectFileState?.actions?.length > (baseEditor.groupSize || 50) &&
-            editor.activeGroupIndex !== null &&
-            editor.activeGroupIndex >= 0
-          ) {
-            editor.markGroupedReorderRender?.();
-          }
+        beforeReorder: (globalOldIndex, globalNewIndex) => {
+          editor.markGroupedReorderRender(
+            "state",
+            "drag",
+            `index: ${globalOldIndex} -> ${globalNewIndex}`
+          );
         },
       });
 

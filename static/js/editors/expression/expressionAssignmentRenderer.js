@@ -6,44 +6,77 @@ import { assignmentDnd } from "@editors/expression/expressionAssignmentDnd.js";
 
 // 分配 UI 渲染：负责把动作/表情分配区画到卡片底部
 export const assignmentRenderer = {
-  // 根据 action 类型渲染分配区（talk 显示列表；layout 显示 initialState）
-  showExpressionSetupUI(editor, cardElement) {
-    const actionId = cardElement.dataset.id;
-    const action = editor.projectFileState.actions.find(
-      (actionItem) => actionItem.id === actionId
+  // 渲染卡片 footer：有分配数据就画分配区，否则只画“设置动作/表情”按钮。
+  renderCardFooter(editor, cardElement, options = {}) {
+    const { action = null } = options;
+    const actionId = cardElement?.dataset?.id;
+    if (!actionId) return false;
+
+    const resolvedAction =
+      action ||
+      editor.projectFileState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
+    if (!resolvedAction) return false;
+
+    const footer = cardElement.querySelector(".timeline-item-footer");
+    if (!footer) return false;
+
+    DOMUtils.clearElement(footer);
+
+    if (assignmentStore.actionHasExpressionData(resolvedAction)) {
+      assignmentRenderer.showExpressionSetupUI(editor, cardElement, resolvedAction);
+      return true;
+    }
+
+    const setupButton = DOMUtils.createButton(
+      "设置动作/表情",
+      "btn btn-secondary btn-sm setup-expressions-btn"
     );
-    if (!action) return;
+    footer.appendChild(setupButton);
+    return true;
+  },
+
+  // 根据 action 类型渲染分配区（talk 显示列表；layout 显示 initialState）
+  showExpressionSetupUI(editor, cardElement, action = null) {
+    const actionId = cardElement.dataset.id;
+    const resolvedAction =
+      action ||
+      editor.projectFileState.actions.find(
+        (actionItem) => actionItem.id === actionId
+      );
+    if (!resolvedAction) return;
 
     const footer = cardElement.querySelector(".timeline-item-footer");
     if (!footer) return;
 
     DOMUtils.clearElement(footer);
 
-    if (action.type === "layout") {
+    if (resolvedAction.type === "layout") {
       const assignmentsContainer = DOMUtils.createElement("div", {
         className: "motion-assignments-container",
       });
-      assignmentsContainer.dataset.actionId = action.id;
+      assignmentsContainer.dataset.actionId = resolvedAction.id;
 
       const characterInfo = {
-        id: action.characterId,
+        id: resolvedAction.characterId,
         name:
-          action.characterName ||
-          editorService.configManager.getCharacterNameById(action.characterId),
+          resolvedAction.characterName ||
+          editorService.configManager.getCharacterNameById(resolvedAction.characterId),
       };
 
       if (characterInfo.name) {
-        const initialState = action.initialState || {};
+        const initialState = resolvedAction.initialState || {};
         const motionData = {
           character: characterInfo.id,
           motion: initialState.motion || "",
           expression: initialState.expression || "",
-          delay: action.delay || 0,
+          delay: resolvedAction.delay || 0,
         };
 
         const assignmentItem = assignmentRenderer.createAssignmentItem(
           editor,
-          action,
+          resolvedAction,
           motionData,
           0,
           true
@@ -60,11 +93,11 @@ export const assignmentRenderer = {
     });
     assignmentsContainer.dataset.actionId = actionId;
 
-    if (action.motions && action.motions.length > 0) {
-      action.motions.forEach((motionData, index) => {
+    if (resolvedAction.motions && resolvedAction.motions.length > 0) {
+      resolvedAction.motions.forEach((motionData, index) => {
         const assignmentItem = assignmentRenderer.createAssignmentItem(
           editor,
-          action,
+          resolvedAction,
           motionData,
           index
         );
@@ -74,7 +107,7 @@ export const assignmentRenderer = {
 
     const characterSelector = assignmentRenderer.createCharacterSelector(
       editor,
-      action
+      resolvedAction
     );
 
     const setupButton = DOMUtils.createButton(

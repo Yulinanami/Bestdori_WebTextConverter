@@ -14,6 +14,7 @@ export class BaseEditor {
 
     // 配置回调函数
     this.renderCallback = config.renderCallback || (() => {});
+    this.commandRenderHintResolver = config.commandRenderHintResolver || null;
 
     // 分组大小配置
     this.groupSize = config.groupSize || 50;
@@ -37,6 +38,8 @@ export class BaseEditor {
     let executedOnce = false;
     const command = {
       execute: () => {
+        const stateBefore = this.projectFileState;
+        const phase = executedOnce ? "redo" : "execute";
         // 第一次执行直接使用 produceWithPatches 的产物，避免重复应用补丁
         if (!executedOnce) {
           executedOnce = true;
@@ -44,13 +47,30 @@ export class BaseEditor {
         } else {
           this.projectFileState = applyPatches(this.projectFileState, patches);
         }
+        this.commandRenderHintResolver?.({
+          phase,
+          stateBefore,
+          stateAfter: this.projectFileState,
+          patchesApplied: patches,
+          patches,
+          inversePatches,
+        });
         this.renderCallback();
       },
       undo: () => {
+        const stateBefore = this.projectFileState;
         this.projectFileState = applyPatches(
           this.projectFileState,
           inversePatches
         );
+        this.commandRenderHintResolver?.({
+          phase: "undo",
+          stateBefore,
+          stateAfter: this.projectFileState,
+          patchesApplied: inversePatches,
+          patches,
+          inversePatches,
+        });
         this.renderCallback();
       },
     };

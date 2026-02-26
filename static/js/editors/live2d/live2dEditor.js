@@ -10,10 +10,45 @@ import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { CharacterListMixin } from "@mixins/CharacterListMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
 import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
+import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
+import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
+import { perfLog } from "@editors/common/perfLogger.js";
 import { attachLive2DState } from "@editors/live2d/live2dState.js";
 import { attachLive2DControls } from "@editors/live2d/live2dControls.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
+import { attachLive2DLayoutMutationLocalRefresh } from "@editors/live2d/live2dLayoutMutationLocalRefresh.js";
+
+function shortValue(value) {
+  if (value === undefined) return "undefined";
+  if (value === null) return "null";
+  const text =
+    typeof value === "string"
+      ? value
+      : JSON.stringify(value);
+  if (text === undefined) return "undefined";
+  if (text === "") return '""';
+  const normalized = String(text).replace(/\s+/g, " ").trim();
+  if (normalized.length <= 84) {
+    return normalized;
+  }
+  return `${normalized.slice(0, 84)}...`;
+}
+
+function summarizeChanges(changes = []) {
+  if (!Array.isArray(changes) || changes.length === 0) {
+    return "";
+  }
+  return changes
+    .slice(0, 3)
+    .map(
+      (change) =>
+        `${change.path}: ${shortValue(change.beforeValue)} -> ${shortValue(
+          change.afterValue
+        )}`
+    )
+    .join("; ");
+}
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
@@ -130,15 +165,117 @@ export const live2dEditor = {
   },
 };
 
+attachLayoutCardLocalRefresh(live2dEditor, {
+  getContainer() {
+    return this.domCache.timeline;
+  },
+  showToggleButton: true,
+});
+attachLive2DLayoutMutationLocalRefresh(live2dEditor);
+
 attachGroupedReorderOptimization(live2dEditor, {
+  debugTag: "live2dReorder",
   cardSelector: ".talk-item, .layout-item",
   getContainer() {
     return this.domCache.timeline;
+  },
+  onBeforeFullRender() {
+    const failedReasons = [];
+    const pendingLayout = this.pendingLayoutPropertyRender;
+    if (pendingLayout) {
+      if (this.applyPendingLayoutPropertyRender()) {
+        const detail = pendingLayout.detail || {};
+        const hasValueDiff =
+          typeof detail === "object" &&
+          ("beforeValue" in detail || "afterValue" in detail);
+        const logParts = [`action=${pendingLayout.actionId || "unknown"}`];
+        if (detail.source) {
+          logParts.push(`source=${detail.source}`);
+        }
+        if (detail.field) {
+          logParts.push(`field=${detail.field}`);
+        }
+        if (hasValueDiff) {
+          logParts.push(
+            `${shortValue(detail.beforeValue)} -> ${shortValue(detail.afterValue)}`
+          );
+        }
+        if (detail.changes) {
+          logParts.push(`changes=${summarizeChanges(detail.changes)}`);
+        }
+        perfLog(
+          `[PERF][live2d][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
+        );
+        return true;
+      }
+      failedReasons.push(
+        `布局属性更新失败(action=${pendingLayout.actionId || "unknown"})`
+      );
+    }
+    const pendingMutation = this.pendingLayoutMutationRender;
+    if (pendingMutation) {
+      if (this.applyPendingLayoutMutationRender()) {
+        const logParts = [
+          `type=${pendingMutation.type || "unknown"}`,
+          `action=${pendingMutation.actionId || "unknown"}`,
+        ];
+        if (pendingMutation.source) {
+          logParts.push(`source=${pendingMutation.source}`);
+        }
+        if (pendingMutation.detail) {
+          logParts.push(`详情=${pendingMutation.detail}`);
+        }
+        perfLog(`[PERF][live2d][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`);
+        return true;
+      }
+      failedReasons.push(
+        `布局卡片增删失败(type=${pendingMutation.type || "unknown"}, action=${
+          pendingMutation.actionId || "unknown"
+        })`
+      );
+    }
+    if (failedReasons.length) {
+      perfLog(
+        `[PERF][live2d][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
+      );
+    }
+    return false;
   },
   onFullRender() {
     this.renderTimeline();
     const usedNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedNames);
+  },
+});
+
+attachUndoRedoLocalShortcut(baseEditor, {
+  debugTag: "live2dUndoRedo",
+  onActionAdded({ actionAfter, summary, phase }) {
+    if (actionAfter?.type === "layout") {
+      live2dEditor.markLayoutMutationRender(actionAfter.id, "add", {
+        source: phase,
+        detail: summary,
+      });
+    }
+  },
+  onActionRemoved({ actionBefore, summary, phase }) {
+    if (actionBefore?.type === "layout") {
+      live2dEditor.markLayoutMutationRender(actionBefore.id, "delete", {
+        source: phase,
+        detail: summary,
+      });
+    }
+  },
+  onActionOrderChanged({ phase, orderSummary }) {
+    live2dEditor.markGroupedReorderRender("state", phase, orderSummary);
+  },
+  onLayoutFieldChanged({ actionId, actionAfter, changes, phase }) {
+    if (actionAfter?.type === "layout") {
+      live2dEditor.markLayoutPropertyRender(actionId, {
+        source: phase,
+        changes,
+      });
+    }
   },
 });
 
@@ -156,7 +293,7 @@ Object.assign(
 );
 
 // 注入拆分出的功能模块（把 live2dEditor 作为宿主对象扩展方法）
-attachLive2DState(live2dEditor, baseEditor);
+attachLive2DState(live2dEditor);
 attachLive2DControls(live2dEditor);
 attachLive2DTimeline(live2dEditor);
 attachLive2DDrag(live2dEditor, baseEditor);

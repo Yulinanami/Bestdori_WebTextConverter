@@ -8,11 +8,49 @@ import { LayoutPropertyMixin } from "@mixins/LayoutPropertyMixin.js";
 import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 import { applyStateBridge } from "@editors/common/stateBridge.js";
 import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
+import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
+import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
+import { perfLog } from "@editors/common/perfLogger.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
+import { attachExpressionCardLocalRefresh } from "@editors/expression/expressionCardLocalRefresh.js";
 import { bindTimelineEvents } from "@editors/expression/expressionTimelineEvents.js";
-import { renderTimeline } from "@editors/expression/expressionTimelineRenderer.js";
+import {
+  createExpressionRenderers,
+  renderTimeline,
+} from "@editors/expression/expressionTimelineRenderer.js";
 import { libraryPanel } from "@editors/expression/expressionLibraryPanel.js";
 import { quickFill } from "@editors/expression/expressionQuickFill.js";
+
+function shortValue(value) {
+  if (value === undefined) return "undefined";
+  if (value === null) return "null";
+  const text =
+    typeof value === "string"
+      ? value
+      : JSON.stringify(value);
+  if (text === undefined) return "undefined";
+  if (text === "") return '""';
+  const normalized = String(text).replace(/\s+/g, " ").trim();
+  if (normalized.length <= 84) {
+    return normalized;
+  }
+  return `${normalized.slice(0, 84)}...`;
+}
+
+function summarizeChanges(changes = []) {
+  if (!Array.isArray(changes) || changes.length === 0) {
+    return "";
+  }
+  return changes
+    .slice(0, 3)
+    .map(
+      (change) =>
+        `${change.path}: ${shortValue(change.beforeValue)} -> ${shortValue(
+          change.afterValue
+        )}`
+    )
+    .join("; ");
+}
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
@@ -208,15 +246,169 @@ export const expressionEditor = {
     });
   },
 
+  // 导入项目后：立即刷新时间线与右侧动作/表情列表
+  afterImport() {
+    renderTimeline(this);
+    libraryPanel.renderLibraries(this);
+  },
+
 };
 
+attachExpressionCardLocalRefresh(expressionEditor);
+
+attachLayoutCardLocalRefresh(expressionEditor, {
+  getContainer() {
+    return this.domCache.timeline;
+  },
+  cardSelector: ".talk-item, .layout-item",
+  showToggleButton: false,
+  renderActionCard(action, actionIndex) {
+    return createExpressionRenderers(this).renderSingleCard(action, actionIndex);
+  },
+  onGroupToggle(groupIndex, isOpening) {
+    renderTimeline(this);
+    if (!isOpening) {
+      return;
+    }
+    setTimeout(() => {
+      const scrollContainer = this.domCache.timeline;
+      const header = scrollContainer?.querySelector(
+        `.timeline-group-header[data-group-idx="${groupIndex}"]`
+      );
+      if (
+        scrollContainer &&
+        header &&
+        scrollContainer.scrollTop !== header.offsetTop - 110
+      ) {
+        scrollContainer.scrollTo({
+          top: header.offsetTop - 110,
+          behavior: "smooth",
+        });
+      }
+    }, 0);
+  },
+});
+
 attachGroupedReorderOptimization(expressionEditor, {
+  debugTag: "expressionReorder",
   cardSelector: ".talk-item, .layout-item",
   getContainer() {
     return this.domCache.timeline;
   },
+  onBeforeFullRender() {
+    const failedReasons = [];
+    const pendingLayoutMutation = this.pendingLayoutMutationRender;
+    if (pendingLayoutMutation) {
+      if (this.applyPendingLayoutMutationRender()) {
+        const logParts = [
+          `type=${pendingLayoutMutation.type || "unknown"}`,
+          `action=${pendingLayoutMutation.actionId || "unknown"}`,
+        ];
+        if (pendingLayoutMutation.source) {
+          logParts.push(`source=${pendingLayoutMutation.source}`);
+        }
+        if (pendingLayoutMutation.detail) {
+          logParts.push(`详情=${pendingLayoutMutation.detail}`);
+        }
+        perfLog(
+          `[PERF][expression][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
+        );
+        return true;
+      }
+      failedReasons.push(
+        `布局卡片增删失败(type=${pendingLayoutMutation.type || "unknown"}, action=${
+          pendingLayoutMutation.actionId || "unknown"
+        })`
+      );
+    }
+    const pendingCardSummary = this.peekPendingExpressionCardSummary();
+    if (pendingCardSummary) {
+      if (this.applyPendingExpressionCardRender()) {
+        perfLog(
+          `[PERF][expression][局部短路] 命中动作/表情卡片更新: ${pendingCardSummary}`
+        );
+        return true;
+      }
+      failedReasons.push("动作/表情卡片更新失败");
+    }
+    const pendingLayoutProperty = this.pendingLayoutPropertyRender;
+    if (pendingLayoutProperty) {
+      if (this.applyPendingLayoutPropertyRender()) {
+        const detail = pendingLayoutProperty.detail || {};
+        const hasValueDiff =
+          typeof detail === "object" &&
+          ("beforeValue" in detail || "afterValue" in detail);
+        const logParts = [`action=${pendingLayoutProperty.actionId || "unknown"}`];
+        if (detail.source) {
+          logParts.push(`source=${detail.source}`);
+        }
+        if (detail.field) {
+          logParts.push(`field=${detail.field}`);
+        }
+        if (hasValueDiff) {
+          logParts.push(
+            `${shortValue(detail.beforeValue)} -> ${shortValue(detail.afterValue)}`
+          );
+        }
+        if (detail.changes) {
+          logParts.push(`changes=${summarizeChanges(detail.changes)}`);
+        }
+        perfLog(
+          `[PERF][expression][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
+        );
+        return true;
+      }
+      failedReasons.push(
+        `布局属性更新失败(action=${pendingLayoutProperty.actionId || "unknown"})`
+      );
+    }
+    if (failedReasons.length) {
+      perfLog(
+        `[PERF][expression][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
+      );
+    }
+    return false;
+  },
   onFullRender() {
     renderTimeline(this);
+  },
+});
+
+attachUndoRedoLocalShortcut(baseEditor, {
+  debugTag: "expressionUndoRedo",
+  onActionAdded({ actionAfter, summary, phase }) {
+    if (actionAfter?.type === "layout") {
+      expressionEditor.markLayoutMutationRender(actionAfter.id, "add", {
+        source: phase,
+        detail: summary,
+      });
+    }
+  },
+  onActionRemoved({ actionBefore, summary, phase }) {
+    if (actionBefore?.type === "layout") {
+      expressionEditor.markLayoutMutationRender(actionBefore.id, "delete", {
+        source: phase,
+        detail: summary,
+      });
+    }
+  },
+  onActionOrderChanged({ phase, orderSummary }) {
+    expressionEditor.markGroupedReorderRender("state", phase, orderSummary);
+  },
+  onLayoutFieldChanged({ actionId, actionAfter, changes, phase }) {
+    if (actionAfter?.type === "layout") {
+      expressionEditor.markLayoutPropertyRender(actionId, {
+        source: phase,
+        changes,
+      });
+    }
+  },
+  onExpressionFieldChanged({ actionId, changes, phase }) {
+    const changeSummary = summarizeChanges(changes) || "none";
+    expressionEditor.markExpressionCardRender(actionId, {
+      operation: "undo-redo",
+      detail: `source=${phase}, changes=${changeSummary}`,
+    });
   },
 });
 

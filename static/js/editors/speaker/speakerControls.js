@@ -2,6 +2,14 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { editorService } from "@services/EditorService.js";
 import { modalService } from "@services/ModalService.js";
 
+function shortText(text, maxLength = 36) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+  return `${normalized.slice(0, maxLength)}...`;
+}
+
 // 多选模式、文本编辑、卡片点击逻辑等
 export function attachSpeakerControls(editor) {
   Object.assign(editor, {
@@ -81,6 +89,15 @@ export function attachSpeakerControls(editor) {
 
       if (editedText !== null && editedText.trim() !== targetAction.text.trim()) {
         const trimmedText = editedText.trim();
+        this.pendingTextEditRender = {
+          actionId,
+          text: trimmedText,
+          oldText: targetAction.text || "",
+          detail: `text: "${shortText(targetAction.text)}" -> "${shortText(
+            trimmedText
+          )}"`,
+          source: "ui",
+        };
         this.baseEditor.executeCommand((currentState) => {
           const actionToUpdate = currentState.actions.find(
             (actionItem) => actionItem.id === actionId,
@@ -129,6 +146,23 @@ export function attachSpeakerControls(editor) {
       if (layoutDeleteButton) {
         const layoutCard = layoutDeleteButton.closest(".layout-item");
         if (layoutCard && layoutCard.dataset.id) {
+          const layoutAction = this.projectFileState.actions.find(
+            (actionItem) => actionItem.id === layoutCard.dataset.id
+          );
+          const deleteIndex = this.projectFileState.actions.findIndex(
+            (actionItem) => actionItem.id === layoutCard.dataset.id
+          );
+          if (deleteIndex > -1) {
+            this.pendingCardMutationRender = {
+              type: "delete",
+              actionId: layoutCard.dataset.id,
+              startIndex: deleteIndex,
+              source: "ui",
+              detail: `type=layout, character=${
+                layoutAction?.characterName || layoutAction?.characterId || "?"
+              }, layoutType=${layoutAction?.layoutType || "unknown"}`,
+            };
+          }
           this.deleteLayoutAction(layoutCard.dataset.id);
           return;
         }
@@ -184,6 +218,19 @@ export function attachSpeakerControls(editor) {
         `确定要删除这条对话吗？\n\n"${targetAction.text.substring(0, 50)}..."`,
       );
       if (confirmed) {
+        const deleteIndex = this.projectFileState.actions.findIndex(
+          (actionItem) => actionItem.id === actionId,
+        );
+        if (deleteIndex < 0) return;
+        this.pendingCardMutationRender = {
+          type: "delete",
+          actionId,
+          startIndex: deleteIndex,
+          source: "ui",
+          detail: `type=talk, text="${shortText(
+            targetAction.text
+          )}", speakers=${(targetAction.speakers || []).length}`,
+        };
         this.baseEditor.executeCommand((currentState) => {
           const index = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
@@ -199,18 +246,29 @@ export function attachSpeakerControls(editor) {
     async handleCardAdd(actionId) {
       const newText = await modalService.prompt("请输入新对话的内容：");
       if (newText && newText.trim()) {
+        const currentIndex = this.projectFileState.actions.findIndex(
+          (actionItem) => actionItem.id === actionId,
+        );
+        if (currentIndex < 0) return;
+
         const trimmedText = newText.trim();
+        const newAction = {
+          id: `action-id-${Date.now()}-${Math.random()}`,
+          type: "talk",
+          text: trimmedText,
+          speakers: [],
+        };
+        this.pendingCardMutationRender = {
+          type: "add",
+          actionId: newAction.id,
+          source: "ui",
+          detail: `type=talk, text="${shortText(trimmedText)}", speakers=0`,
+        };
         this.baseEditor.executeCommand((currentState) => {
           const currentIndex = currentState.actions.findIndex(
             (actionItem) => actionItem.id === actionId,
           );
           if (currentIndex > -1) {
-            const newAction = {
-              id: `action-id-${Date.now()}-${Math.random()}`,
-              type: "talk",
-              text: trimmedText,
-              speakers: [],
-            };
             currentState.actions.splice(currentIndex + 1, 0, newAction);
           }
         });

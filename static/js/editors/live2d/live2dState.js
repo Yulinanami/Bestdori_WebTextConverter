@@ -3,7 +3,7 @@ import { editorService } from "@services/EditorService.js";
 import { positionStore } from "@managers/position/positionStore.js";
 
 // 自动布局、插入布局动作、清空布局等
-export function attachLive2DState(editor, _baseEditor) {
+export function attachLive2DState(editor) {
   Object.assign(editor, {
     // 清空所有布局动作（只保留对话动作）
     async clearAllLayouts() {
@@ -94,24 +94,30 @@ export function attachLive2DState(editor, _baseEditor) {
 
     // 插入一条布局动作（拖拽角色到时间轴时用，会自动决定 appear/move/hide）
     insertLayoutAction(characterId, characterName, index) {
+      const layoutActionId = `layout-action-${Date.now()}-${Math.random()}`;
+      const previousState = editor.getCharacterStateAtIndex(
+        editor.projectFileState?.actions || [],
+        characterName,
+        index
+      );
+      const layoutType = previousState.onStage
+        ? editor.subsequentLayoutMode
+        : "appear";
+      const costumeToUse =
+        previousState.lastCostume || editor.getDefaultCostume(characterName);
+      const defaultPosition = editor.getDefaultPosition(characterName);
+      const fromPosition = previousState.lastPosition
+        ? { ...previousState.lastPosition }
+        : { side: defaultPosition.position, offsetX: defaultPosition.offset };
+      editor.markLayoutMutationRender(layoutActionId, "add", {
+        source: "ui",
+        detail: `type=layout, character=${characterName}, layoutType=${layoutType}, costume=${costumeToUse}, from=${JSON.stringify(
+          fromPosition
+        )}`,
+      });
       editor.baseEditor.executeCommand((currentState) => {
-        const previousState = editor.getCharacterStateAtIndex(
-          currentState.actions,
-          characterName,
-          index
-        );
-        const layoutType = previousState.onStage
-          ? editor.subsequentLayoutMode
-          : "appear";
-        const costumeToUse =
-          previousState.lastCostume || editor.getDefaultCostume(characterName);
-        const defaultPosition = editor.getDefaultPosition(characterName);
-        const fromPosition = previousState.lastPosition
-          ? { ...previousState.lastPosition }
-          : { side: defaultPosition.position, offsetX: defaultPosition.offset };
-
         const newLayoutAction = {
-          id: `layout-action-${Date.now()}`,
+          id: layoutActionId,
           type: "layout",
           characterId,
           characterName,

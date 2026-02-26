@@ -3,6 +3,70 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 
+function getLayoutFieldSnapshot(action, targetClassName) {
+  if (!action) {
+    return { field: targetClassName, beforeValue: undefined };
+  }
+  if (targetClassName.includes("layout-type-select")) {
+    return { field: "layoutType", beforeValue: action.layoutType };
+  }
+  if (targetClassName.includes("layout-costume-select")) {
+    return { field: "costume", beforeValue: action.costume };
+  }
+  if (targetClassName.includes("layout-position-select-to")) {
+    return { field: "position.to.side", beforeValue: action.position?.to?.side };
+  }
+  if (targetClassName.includes("layout-offset-input-to")) {
+    return {
+      field: "position.to.offsetX",
+      beforeValue: action.position?.to?.offsetX,
+    };
+  }
+  if (targetClassName.includes("layout-position-select")) {
+    if (action.customToPosition) {
+      return {
+        field: "position.from.side",
+        beforeValue: action.position?.from?.side,
+      };
+    }
+    if (action.layoutType === "move") {
+      return {
+        field: "position.to.side",
+        beforeValue: action.position?.to?.side,
+      };
+    }
+    return {
+      field: "position.from.side & position.to.side",
+      beforeValue: {
+        from: action.position?.from?.side,
+        to: action.position?.to?.side,
+      },
+    };
+  }
+  if (targetClassName.includes("layout-offset-input")) {
+    if (action.customToPosition) {
+      return {
+        field: "position.from.offsetX",
+        beforeValue: action.position?.from?.offsetX,
+      };
+    }
+    if (action.layoutType === "move") {
+      return {
+        field: "position.to.offsetX",
+        beforeValue: action.position?.to?.offsetX,
+      };
+    }
+    return {
+      field: "position.from.offsetX & position.to.offsetX",
+      beforeValue: {
+        from: action.position?.from?.offsetX,
+        to: action.position?.to?.offsetX,
+      },
+    };
+  }
+  return { field: targetClassName, beforeValue: undefined };
+}
+
 export const LayoutPropertyMixin = {
   // 不同控件对应不同字段：这里集中放“控件 class -> 如何更新 action”
   _layoutPropertyHandlerMap: {
@@ -80,6 +144,16 @@ export const LayoutPropertyMixin = {
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const targetClassName = targetElement.className;
+    const currentAction = this.projectFileState?.actions?.find(
+      (actionItem) => actionItem.id === actionId
+    );
+    const snapshot = getLayoutFieldSnapshot(currentAction, targetClassName);
+    this.markLayoutPropertyRender?.(actionId, {
+      source: "ui",
+      field: snapshot.field,
+      beforeValue: snapshot.beforeValue,
+      afterValue: targetValue,
+    });
 
     this.baseEditor.executeCommand((currentState) => {
       const action = currentState.actions.find(

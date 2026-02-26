@@ -31,12 +31,14 @@ export function attachSpeakerState(editor) {
       }
 
       this.baseEditor.executeCommand((currentState) => {
+        const updatedActionIds = [];
         const addSpeakerIfNeeded = (actionToUpdate) => {
           const speakerExists = actionToUpdate.speakers.some(
             (speaker) => speaker.characterId === newSpeaker.characterId
           );
           if (!speakerExists) {
             actionToUpdate.speakers.push(newSpeaker);
+            updatedActionIds.push(actionToUpdate.id);
           }
         };
 
@@ -44,6 +46,13 @@ export function attachSpeakerState(editor) {
           const actionToUpdate = currentState.actions[actionIndex];
           if (actionToUpdate && actionToUpdate.id === actionId) {
             addSpeakerIfNeeded(actionToUpdate);
+          }
+          if (updatedActionIds.length > 0) {
+            this.markSpeakerRender(
+              updatedActionIds,
+              "ui",
+              `add speaker=${newSpeaker.name}(ID:${newSpeaker.characterId})`
+            );
           }
           return;
         }
@@ -62,6 +71,13 @@ export function attachSpeakerState(editor) {
         });
 
         if (unresolvedTargetIds.length === 0) {
+          if (updatedActionIds.length > 0) {
+            this.markSpeakerRender(
+              updatedActionIds,
+              "ui",
+              `add speaker=${newSpeaker.name}(ID:${newSpeaker.characterId})`
+            );
+          }
           return;
         }
 
@@ -74,6 +90,14 @@ export function attachSpeakerState(editor) {
             addSpeakerIfNeeded(actionToUpdate);
           }
         });
+
+        if (updatedActionIds.length > 0) {
+          this.markSpeakerRender(
+            updatedActionIds,
+            "ui",
+            `add speaker=${newSpeaker.name}(ID:${newSpeaker.characterId})`
+          );
+        }
       });
 
       editorService.selectionManager.selectedIds.clear();
@@ -88,9 +112,18 @@ export function attachSpeakerState(editor) {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
-        if (action) {
-          action.speakers = action.speakers.filter(
-            (speaker) => speaker.characterId !== characterIdToRemove
+        if (!action) {
+          return;
+        }
+        const nextSpeakers = action.speakers.filter(
+          (speaker) => speaker.characterId !== characterIdToRemove
+        );
+        if (nextSpeakers.length !== action.speakers.length) {
+          action.speakers = nextSpeakers;
+          this.markSpeakerRender(
+            [actionId],
+            "ui",
+            `remove speakerId=${characterIdToRemove}`
           );
         }
       });
@@ -102,8 +135,9 @@ export function attachSpeakerState(editor) {
         const action = currentState.actions.find(
           (actionItem) => actionItem.id === actionId
         );
-        if (action) {
+        if (action && action.speakers.length > 0) {
           action.speakers = [];
+          this.markSpeakerRender([actionId], "ui", "clear speakers");
         }
       });
     },

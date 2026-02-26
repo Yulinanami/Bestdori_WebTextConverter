@@ -13,7 +13,9 @@ export const assignmentDnd = {
       new Sortable(zone, {
         group: {
           name: zone.dataset.type,
-          put: function (_to, _from, dragEl) {
+          // Sortable 的 put 回调第 3 个参数是被拖拽的元素。
+          put: (...sortableArgs) => {
+            const dragEl = sortableArgs[2];
             return dragEl.classList.contains("draggable-item");
           },
         },

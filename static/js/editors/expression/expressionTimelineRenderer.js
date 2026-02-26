@@ -11,18 +11,12 @@ import {
 import { editorService } from "@services/EditorService.js";
 import { configUI } from "@managers/config/configUI.js";
 import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
-import { assignmentStore } from "@editors/expression/expressionAssignmentStore.js";
 
 // 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
 const timelineCache = createTimelineRenderCache();
 
-// 渲染动作/表情编辑器的时间线
-export function renderTimeline(editor) {
-  const timeline = editor.domCache.timeline;
-  if (!timeline) return;
-
-  const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
-  const actions = editor.projectFileState.actions || [];
+// 创建动作/表情编辑器的卡片渲染器：供时间线全量渲染与局部刷新复用。
+export function createExpressionRenderers(editor) {
   const templates =
     editor.domCache.templates ||
     (editor.domCache.templates = {
@@ -30,31 +24,12 @@ export function renderTimeline(editor) {
       layout: document.getElementById("timeline-layout-card-template"),
     });
   const configEntries = editorService.state.get("currentConfig") || {};
-  const configSignature = DataUtils.shallowSignature(configEntries);
   const characterNameMap = new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
       ids.map((id) => [id, name]),
     ),
   );
-
-  // 渲染卡片底部：决定显示“设置按钮”还是直接显示分配区
-  const renderFooter = (card, action) => {
-    const footer = card.querySelector(".timeline-item-footer");
-    if (!footer) return;
-    DOMUtils.clearElement(footer);
-
-    if (assignmentStore.actionHasExpressionData(action)) {
-      // 复用统一的分配渲染逻辑，避免两套实现
-      assignmentRenderer.showExpressionSetupUI(editor, card);
-      return;
-    }
-
-    const setupButton = DOMUtils.createButton(
-      "设置动作/表情",
-      "btn btn-secondary btn-sm setup-expressions-btn",
-    );
-    footer.appendChild(setupButton);
-  };
+  const configSignature = DataUtils.shallowSignature(configEntries);
 
   // 画一个卡片（talk/layout）
   const renderSingleCard = (action, globalIndex = -1) => {
@@ -98,7 +73,7 @@ export function renderTimeline(editor) {
     if (numberDiv && globalIndex !== -1) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
-    renderFooter(renderedCard, action);
+    assignmentRenderer.renderCardFooter(editor, renderedCard, { action });
 
     return renderedCard;
   };
@@ -192,9 +167,22 @@ export function renderTimeline(editor) {
       numberDiv.textContent = `#${globalIndex + 1}`;
     }
 
-    renderFooter(cardElement, action);
+    assignmentRenderer.renderCardFooter(editor, cardElement, { action });
     return true;
   };
+
+  return { renderSingleCard, updateCard, configSignature };
+}
+
+// 渲染动作/表情编辑器的时间线
+export function renderTimeline(editor) {
+  const timeline = editor.domCache.timeline;
+  if (!timeline) return;
+
+  const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
+  const actions = editor.projectFileState.actions || [];
+  const { renderSingleCard, updateCard, configSignature } =
+    createExpressionRenderers(editor);
 
   renderIncrementalTimeline({
     container: timeline,

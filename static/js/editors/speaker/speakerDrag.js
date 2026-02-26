@@ -64,12 +64,28 @@ export function attachSpeakerDrag(editor, baseEditor) {
               if (cardItem.classList.contains("dialogue-item")) {
                 editor.removeAllSpeakersFromAction(actionId);
               } else if (cardItem.classList.contains("layout-item")) {
+                const layoutAction = editor.projectFileState.actions.find(
+                  (actionItem) => actionItem.id === actionId
+                );
+                const deleteIndex = editor.projectFileState.actions.findIndex(
+                  (actionItem) => actionItem.id === actionId
+                );
+                if (deleteIndex > -1) {
+                  editor.pendingCardMutationRender = {
+                    type: "delete",
+                    actionId,
+                    startIndex: deleteIndex,
+                    source: "ui",
+                    detail: `type=layout, character=${
+                      layoutAction?.characterName || layoutAction?.characterId || "?"
+                    }, layoutType=${layoutAction?.layoutType || "unknown"}`,
+                  };
+                }
                 editor.deleteLayoutAction(actionId);
               }
             }
 
             cardItem.remove();
-            editor.renderCanvas();
           },
         })
       );
@@ -77,18 +93,12 @@ export function attachSpeakerDrag(editor, baseEditor) {
       // 复用通用重排逻辑：speaker 只保留分组模式下的局部刷新标记。
       const runReorder = DragHelper.createReorderHandler({
         runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
-        source: "speakerDrag",
-        beforeReorder: () => {
-          const isGroupingEnabled =
-            editor.domCache.groupCheckbox?.checked || false;
-          if (
-            isGroupingEnabled &&
-            editor.projectFileState?.actions?.length > (baseEditor.groupSize || 50) &&
-            editor.activeGroupIndex !== null &&
-            editor.activeGroupIndex >= 0
-          ) {
-            editor.markGroupedReorderRender?.();
-          }
+        beforeReorder: (globalOldIndex, globalNewIndex) => {
+          editor.markGroupedReorderRender(
+            "state",
+            "drag",
+            `index: ${globalOldIndex} -> ${globalNewIndex}`
+          );
         },
       });
 
