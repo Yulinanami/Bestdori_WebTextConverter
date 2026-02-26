@@ -1,6 +1,10 @@
 import { editorService } from "@services/EditorService.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
 import { createSpeakerRenderers } from "@editors/speaker/speakerRenderers.js";
+import {
+  getGroupRange,
+  updateGroupHeader,
+} from "@editors/common/groupHeaderUtils.js";
 
 // 说话人编辑器：对话卡片增删改的局部刷新能力。
 export function attachSpeakerCardLocalRefresh(editor) {
@@ -190,12 +194,18 @@ export function attachSpeakerCardLocalRefresh(editor) {
       }
 
       headers.forEach((header, groupIndex) => {
-        const startNum = groupIndex * groupSize + 1;
-        const endNum = Math.min((groupIndex + 1) * groupSize, totalActions);
-        const count = Math.max(0, endNum - startNum + 1);
+        const { startNum, endNum } = getGroupRange(
+          groupIndex,
+          groupSize,
+          totalActions
+        );
         const isActive = groupIndex === activeGroupIndex;
-        header.classList.toggle("active", isActive);
-        header.textContent = `${isActive ? "▼" : "▶"} 对话 ${startNum} - ${endNum} (${count}条)`;
+        updateGroupHeader(header, {
+          groupIndex,
+          isActive,
+          startNum,
+          endNum,
+        });
       });
 
       const activeHeader = canvas.querySelector(

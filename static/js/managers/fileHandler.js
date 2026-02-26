@@ -82,12 +82,10 @@ export const fileHandler = {
         `;
 
     try {
-      ui.showProgress(20);
       ui.showStatus("正在上传文件...", "info");
 
       const uploadResponse = await apiService.uploadFile(file);
 
-      ui.showProgress(100);
       document.getElementById("inputText").value = uploadResponse.content;
 
       if (state.get("projectFile")) {
@@ -95,10 +93,8 @@ export const fileHandler = {
       }
 
       ui.showStatus("文件上传成功！", "success");
-      setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
       ui.showStatus(error.message, "error");
-      ui.hideProgress();
     } finally {
       fileUploadLabel.innerHTML = originalContent;
       document.getElementById("fileInput").value = "";

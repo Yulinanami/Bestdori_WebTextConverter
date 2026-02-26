@@ -1,4 +1,4 @@
-// 页面 UI 小工具：进度条、提示条、按钮 loading、复制、跳转等。
+// 页面 UI 小工具：提示条、按钮 loading、复制、跳转等。
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
@@ -6,18 +6,6 @@ let statusTimer = null;
 const GROUPING_STORAGE_KEY = STORAGE_KEYS.CARD_GROUPING;
 
 const uiUtils = {
-  // 显示顶部进度条，并设置进度百分比
-  showProgress(percent) {
-    document.getElementById("progressContainer").style.display = "block";
-    document.getElementById("progressFill").style.width = `${percent}%`;
-  },
-
-  // 隐藏顶部进度条
-  hideProgress() {
-    document.getElementById("progressContainer").style.display = "none";
-    document.getElementById("progressFill").style.width = "0%";
-  },
-
   // 在页面右下角弹出一条提示（success/info/error）
   showStatus(message, type) {
     const statusElement = document.getElementById("statusMessage");

@@ -11,6 +11,13 @@ import { attachGroupedReorderOptimization } from "@editors/common/groupedReorder
 import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
 import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
 import { perfLog } from "@editors/common/perfLogger.js";
+import {
+  buildLayoutLogParts,
+  runShortcutSteps,
+} from "@editors/common/localShortcutUtils.js";
+import {
+  summarizeChanges,
+} from "@editors/common/changeSummaryUtils.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { attachExpressionCardLocalRefresh } from "@editors/expression/expressionCardLocalRefresh.js";
 import { bindTimelineEvents } from "@editors/expression/expressionTimelineEvents.js";
@@ -20,37 +27,6 @@ import {
 } from "@editors/expression/expressionTimelineRenderer.js";
 import { libraryPanel } from "@editors/expression/expressionLibraryPanel.js";
 import { quickFill } from "@editors/expression/expressionQuickFill.js";
-
-function shortValue(value) {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
-  const text =
-    typeof value === "string"
-      ? value
-      : JSON.stringify(value);
-  if (text === undefined) return "undefined";
-  if (text === "") return '""';
-  const normalized = String(text).replace(/\s+/g, " ").trim();
-  if (normalized.length <= 84) {
-    return normalized;
-  }
-  return `${normalized.slice(0, 84)}...`;
-}
-
-function summarizeChanges(changes = []) {
-  if (!Array.isArray(changes) || changes.length === 0) {
-    return "";
-  }
-  return changes
-    .slice(0, 3)
-    .map(
-      (change) =>
-        `${change.path}: ${shortValue(change.beforeValue)} -> ${shortValue(
-          change.afterValue
-        )}`
-    )
-    .join("; ");
-}
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
@@ -212,7 +188,7 @@ export const expressionEditor = {
           await this.prepareProjectState({
             onExistingProjectLoaded: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
-            onNewProjectCreated: (_, { rawText }) => {
+            onNewProjectCreated: ({ rawText }) => {
               if (rawText?.trim()) {
                 ui.showStatus("已根据当前文本创建新项目。", "info");
               }
@@ -296,78 +272,63 @@ attachGroupedReorderOptimization(expressionEditor, {
     return this.domCache.timeline;
   },
   onBeforeFullRender() {
-    const failedReasons = [];
     const pendingLayoutMutation = this.pendingLayoutMutationRender;
-    if (pendingLayoutMutation) {
-      if (this.applyPendingLayoutMutationRender()) {
-        const logParts = [
-          `type=${pendingLayoutMutation.type || "unknown"}`,
-          `action=${pendingLayoutMutation.actionId || "unknown"}`,
-        ];
-        if (pendingLayoutMutation.source) {
-          logParts.push(`source=${pendingLayoutMutation.source}`);
-        }
-        if (pendingLayoutMutation.detail) {
-          logParts.push(`详情=${pendingLayoutMutation.detail}`);
-        }
-        perfLog(
-          `[PERF][expression][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
-        );
-        return true;
-      }
-      failedReasons.push(
-        `布局卡片增删失败(type=${pendingLayoutMutation.type || "unknown"}, action=${
-          pendingLayoutMutation.actionId || "unknown"
-        })`
-      );
-    }
     const pendingCardSummary = this.peekPendingExpressionCardSummary();
-    if (pendingCardSummary) {
-      if (this.applyPendingExpressionCardRender()) {
-        perfLog(
-          `[PERF][expression][局部短路] 命中动作/表情卡片更新: ${pendingCardSummary}`
-        );
-        return true;
-      }
-      failedReasons.push("动作/表情卡片更新失败");
-    }
     const pendingLayoutProperty = this.pendingLayoutPropertyRender;
-    if (pendingLayoutProperty) {
-      if (this.applyPendingLayoutPropertyRender()) {
-        const detail = pendingLayoutProperty.detail || {};
-        const hasValueDiff =
-          typeof detail === "object" &&
-          ("beforeValue" in detail || "afterValue" in detail);
-        const logParts = [`action=${pendingLayoutProperty.actionId || "unknown"}`];
-        if (detail.source) {
-          logParts.push(`source=${detail.source}`);
-        }
-        if (detail.field) {
-          logParts.push(`field=${detail.field}`);
-        }
-        if (hasValueDiff) {
-          logParts.push(
-            `${shortValue(detail.beforeValue)} -> ${shortValue(detail.afterValue)}`
-          );
-        }
-        if (detail.changes) {
-          logParts.push(`changes=${summarizeChanges(detail.changes)}`);
-        }
+    return runShortcutSteps(
+      [
+        {
+          pending: pendingLayoutMutation,
+          apply: () => this.applyPendingLayoutMutationRender(),
+          onHit: () => {
+            const logParts = [
+              `type=${pendingLayoutMutation.type || "unknown"}`,
+              `action=${pendingLayoutMutation.actionId || "unknown"}`,
+            ];
+            if (pendingLayoutMutation.source) {
+              logParts.push(`source=${pendingLayoutMutation.source}`);
+            }
+            if (pendingLayoutMutation.detail) {
+              logParts.push(`详情=${pendingLayoutMutation.detail}`);
+            }
+            perfLog(
+              `[PERF][expression][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
+            );
+          },
+          failReason: () =>
+            `布局卡片增删失败(type=${pendingLayoutMutation.type || "unknown"}, action=${
+              pendingLayoutMutation.actionId || "unknown"
+            })`,
+        },
+        {
+          pending: pendingCardSummary,
+          apply: () => this.applyPendingExpressionCardRender(),
+          onHit: () => {
+            perfLog(
+              `[PERF][expression][局部短路] 命中动作/表情卡片更新: ${pendingCardSummary}`
+            );
+          },
+          failReason: () => "动作/表情卡片更新失败",
+        },
+        {
+          pending: pendingLayoutProperty,
+          apply: () => this.applyPendingLayoutPropertyRender(),
+          onHit: () => {
+            const logParts = buildLayoutLogParts(pendingLayoutProperty);
+            perfLog(
+              `[PERF][expression][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
+            );
+          },
+          failReason: () =>
+            `布局属性更新失败(action=${pendingLayoutProperty.actionId || "unknown"})`,
+        },
+      ],
+      (failedReasons) => {
         perfLog(
-          `[PERF][expression][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
+          `[PERF][expression][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
         );
-        return true;
       }
-      failedReasons.push(
-        `布局属性更新失败(action=${pendingLayoutProperty.actionId || "unknown"})`
-      );
-    }
-    if (failedReasons.length) {
-      perfLog(
-        `[PERF][expression][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
-      );
-    }
-    return false;
+    );
   },
   onFullRender() {
     renderTimeline(this);

@@ -441,13 +441,6 @@
                   <span id="convertIcon"></span>
                   <span id="convertText">开始转换</span>
                 </button>
-
-                <!-- 进度条容器 -->
-                <div class="progress-container hidden" id="progressContainer">
-                  <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -458,6 +451,13 @@
                 <div class="flex flex-gap-sm">
                   <button class="btn btn-success" id="downloadBtn">
                     下载JSON
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    id="copyBtn"
+                    title="复制JSON内容"
+                  >
+                    复制内容
                   </button>
                   <button
                     class="btn btn-primary"
@@ -533,19 +533,19 @@
                 <h3 class="card-title">合并结果</h3>
                 <div class="flex flex-gap-sm">
                   <button class="btn btn-success" id="downloadMergeBtn">
-                    下载合成 JSON
+                    下载JSON
                   </button>
                   <button
                     class="btn btn-secondary"
                     id="copyMergeBtn"
-                    title="复制合并后的 JSON"
+                    title="复制JSON内容"
                   >
                     复制内容
                   </button>
                   <button
                     class="btn btn-primary hidden"
                     id="gotoBestdoriMergeBtn"
-                    title="复制内容并跳转到 Bestdori"
+                    title="在新标签页打开 Bestdori 故事编辑器"
                   >
                     跳转到 Bestdori
                   </button>

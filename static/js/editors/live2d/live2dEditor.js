@@ -13,42 +13,15 @@ import { attachGroupedReorderOptimization } from "@editors/common/groupedReorder
 import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
 import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
 import { perfLog } from "@editors/common/perfLogger.js";
+import {
+  buildLayoutLogParts,
+  runShortcutSteps,
+} from "@editors/common/localShortcutUtils.js";
 import { attachLive2DState } from "@editors/live2d/live2dState.js";
 import { attachLive2DControls } from "@editors/live2d/live2dControls.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
 import { attachLive2DLayoutMutationLocalRefresh } from "@editors/live2d/live2dLayoutMutationLocalRefresh.js";
-
-function shortValue(value) {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
-  const text =
-    typeof value === "string"
-      ? value
-      : JSON.stringify(value);
-  if (text === undefined) return "undefined";
-  if (text === "") return '""';
-  const normalized = String(text).replace(/\s+/g, " ").trim();
-  if (normalized.length <= 84) {
-    return normalized;
-  }
-  return `${normalized.slice(0, 84)}...`;
-}
-
-function summarizeChanges(changes = []) {
-  if (!Array.isArray(changes) || changes.length === 0) {
-    return "";
-  }
-  return changes
-    .slice(0, 3)
-    .map(
-      (change) =>
-        `${change.path}: ${shortValue(change.beforeValue)} -> ${shortValue(
-          change.afterValue
-        )}`
-    )
-    .join("; ");
-}
 
 // 创建一个通用的 BaseEditor（负责分组渲染、撤销/重做等）
 const baseEditor = new BaseEditor({
@@ -124,7 +97,7 @@ export const live2dEditor = {
           await this.prepareProjectState({
             onExistingProjectLoaded: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
-            onNewProjectCreated: (_, { rawText }) => {
+            onNewProjectCreated: ({ rawText }) => {
               if (rawText?.trim()) {
                 ui.showStatus("已根据当前文本创建新项目。", "info");
               }
@@ -180,66 +153,52 @@ attachGroupedReorderOptimization(live2dEditor, {
     return this.domCache.timeline;
   },
   onBeforeFullRender() {
-    const failedReasons = [];
     const pendingLayout = this.pendingLayoutPropertyRender;
-    if (pendingLayout) {
-      if (this.applyPendingLayoutPropertyRender()) {
-        const detail = pendingLayout.detail || {};
-        const hasValueDiff =
-          typeof detail === "object" &&
-          ("beforeValue" in detail || "afterValue" in detail);
-        const logParts = [`action=${pendingLayout.actionId || "unknown"}`];
-        if (detail.source) {
-          logParts.push(`source=${detail.source}`);
-        }
-        if (detail.field) {
-          logParts.push(`field=${detail.field}`);
-        }
-        if (hasValueDiff) {
-          logParts.push(
-            `${shortValue(detail.beforeValue)} -> ${shortValue(detail.afterValue)}`
-          );
-        }
-        if (detail.changes) {
-          logParts.push(`changes=${summarizeChanges(detail.changes)}`);
-        }
-        perfLog(
-          `[PERF][live2d][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
-        );
-        return true;
-      }
-      failedReasons.push(
-        `布局属性更新失败(action=${pendingLayout.actionId || "unknown"})`
-      );
-    }
     const pendingMutation = this.pendingLayoutMutationRender;
-    if (pendingMutation) {
-      if (this.applyPendingLayoutMutationRender()) {
-        const logParts = [
-          `type=${pendingMutation.type || "unknown"}`,
-          `action=${pendingMutation.actionId || "unknown"}`,
-        ];
-        if (pendingMutation.source) {
-          logParts.push(`source=${pendingMutation.source}`);
-        }
-        if (pendingMutation.detail) {
-          logParts.push(`详情=${pendingMutation.detail}`);
-        }
-        perfLog(`[PERF][live2d][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`);
-        return true;
+    return runShortcutSteps(
+      [
+        {
+          pending: pendingLayout,
+          apply: () => this.applyPendingLayoutPropertyRender(),
+          onHit: () => {
+            const logParts = buildLayoutLogParts(pendingLayout);
+            perfLog(
+              `[PERF][live2d][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
+            );
+          },
+          failReason: () =>
+            `布局属性更新失败(action=${pendingLayout.actionId || "unknown"})`,
+        },
+        {
+          pending: pendingMutation,
+          apply: () => this.applyPendingLayoutMutationRender(),
+          onHit: () => {
+            const logParts = [
+              `type=${pendingMutation.type || "unknown"}`,
+              `action=${pendingMutation.actionId || "unknown"}`,
+            ];
+            if (pendingMutation.source) {
+              logParts.push(`source=${pendingMutation.source}`);
+            }
+            if (pendingMutation.detail) {
+              logParts.push(`详情=${pendingMutation.detail}`);
+            }
+            perfLog(
+              `[PERF][live2d][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
+            );
+          },
+          failReason: () =>
+            `布局卡片增删失败(type=${pendingMutation.type || "unknown"}, action=${
+              pendingMutation.actionId || "unknown"
+            })`,
+        },
+      ],
+      (failedReasons) => {
+        perfLog(
+          `[PERF][live2d][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
+        );
       }
-      failedReasons.push(
-        `布局卡片增删失败(type=${pendingMutation.type || "unknown"}, action=${
-          pendingMutation.actionId || "unknown"
-        })`
-      );
-    }
-    if (failedReasons.length) {
-      perfLog(
-        `[PERF][live2d][局部短路] 回退全量渲染: 原因=${failedReasons.join("; ")}`
-      );
-    }
-    return false;
+    );
   },
   onFullRender() {
     this.renderTimeline();

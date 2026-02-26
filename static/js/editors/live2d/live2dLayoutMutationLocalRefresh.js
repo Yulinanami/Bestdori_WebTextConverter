@@ -1,6 +1,10 @@
 import { editorService } from "@services/EditorService.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
 import { createLive2DRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
+import {
+  getGroupRange,
+  updateGroupHeader,
+} from "@editors/common/groupHeaderUtils.js";
 
 // Live2D 编辑器：布局卡片增删后的局部短路刷新（不改后续模式判定逻辑）。
 export function attachLive2DLayoutMutationLocalRefresh(editor) {
@@ -89,23 +93,25 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
         const header = headers[groupIndex] || headers[0].cloneNode(true);
         const isActive =
           activeGroupIndex !== null && groupIndex === activeGroupIndex;
-        const startNum = groupIndex * groupSize + 1;
-        const endNum = Math.min((groupIndex + 1) * groupSize, totalActions);
-        const headerText = `${isActive ? "▼" : "▶"} 对话 ${startNum} - ${endNum} (${
-          endNum - startNum + 1
-        }条)`;
-        header.classList.add("timeline-group-header");
-        header.dataset.groupIdx = String(groupIndex);
-        header.classList.toggle("active", isActive);
-        header.textContent = headerText;
-        header.onclick = () => {
-          const isOpening = this.activeGroupIndex !== groupIndex;
-          this.activeGroupIndex = isOpening ? groupIndex : null;
+        const { startNum, endNum } = getGroupRange(
+          groupIndex,
+          groupSize,
+          totalActions
+        );
+        updateGroupHeader(header, {
+          groupIndex,
+          isActive,
+          startNum,
+          endNum,
+          onToggle: (index) => {
+            const isOpening = this.activeGroupIndex !== index;
+            this.activeGroupIndex = isOpening ? index : null;
+            const targetGroupIndex = index;
           this.renderTimeline();
           if (isOpening) {
             setTimeout(() => {
               const headerElement = this.domCache.timeline.querySelector(
-                `.timeline-group-header[data-group-idx="${groupIndex}"]`,
+                `.timeline-group-header[data-group-idx="${targetGroupIndex}"]`,
               );
               if (this.domCache.timeline && headerElement) {
                 this.domCache.timeline.scrollTo({
@@ -115,7 +121,8 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
               }
             }, 0);
           }
-        };
+          },
+        });
         fragment.appendChild(header);
 
         if (isActive) {

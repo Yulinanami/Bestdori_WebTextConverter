@@ -114,10 +114,10 @@ export const BaseEditorMixin = {
       });
       const segments = response.data?.segments || [];
       initialState = this.createProjectFileFromSegments(segments);
-      onNewProjectCreated?.(initialState, { rawText, segments });
+      onNewProjectCreated?.({ rawText, segments });
     } else {
       initialState = this.createProjectFileFromSegments([]);
-      onNewProjectCreated?.(initialState, { rawText, segments: [] });
+      onNewProjectCreated?.({ rawText, segments: [] });
     }
 
     this.projectFileState = DataUtils.deepClone(initialState);

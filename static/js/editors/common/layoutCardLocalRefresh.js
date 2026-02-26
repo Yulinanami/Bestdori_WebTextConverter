@@ -2,6 +2,10 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { editorService } from "@services/EditorService.js";
 import { configUI } from "@managers/config/configUI.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
+import {
+  getGroupRange,
+  updateGroupHeader,
+} from "@editors/common/groupHeaderUtils.js";
 
 // 布局卡片字段变更后的局部刷新：优先就地更新目标卡片，失败再回退全量渲染。
 export function attachLayoutCardLocalRefresh(editor, options = {}) {
@@ -166,20 +170,22 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
           const header = headers[groupIndex] || document.createElement("div");
           const isActive =
             activeGroupIndex !== null && groupIndex === activeGroupIndex;
-          const startNum = groupIndex * groupSize + 1;
-          const endNum = Math.min((groupIndex + 1) * groupSize, totalActions);
-          const headerText = `${isActive ? "▼" : "▶"} 对话 ${startNum} - ${endNum} (${
-            endNum - startNum + 1
-          }条)`;
-          header.classList.add("timeline-group-header");
-          header.dataset.groupIdx = String(groupIndex);
-          header.classList.toggle("active", isActive);
-          header.textContent = headerText;
-          header.onclick = () => {
-            const isOpening = this.activeGroupIndex !== groupIndex;
-            this.activeGroupIndex = isOpening ? groupIndex : null;
-            onGroupToggle.call(this, groupIndex, isOpening);
-          };
+          const { startNum, endNum } = getGroupRange(
+            groupIndex,
+            groupSize,
+            totalActions
+          );
+          updateGroupHeader(header, {
+            groupIndex,
+            isActive,
+            startNum,
+            endNum,
+            onToggle: (index) => {
+              const isOpening = this.activeGroupIndex !== index;
+              this.activeGroupIndex = isOpening ? index : null;
+              onGroupToggle.call(this, index, isOpening);
+            },
+          });
           fragment.appendChild(header);
 
           if (isActive) {

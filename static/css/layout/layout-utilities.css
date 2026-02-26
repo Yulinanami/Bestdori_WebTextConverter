@@ -17,7 +17,7 @@
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 /* Flex布局工具类 */

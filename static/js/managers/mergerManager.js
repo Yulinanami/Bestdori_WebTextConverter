@@ -66,7 +66,7 @@ export const mergerManager = {
         try {
           await navigator.clipboard.writeText(mergedJsonText);
           ui.showStatus("合并结果已复制，正在跳转到 Bestdori...", "success");
-        } catch (clipboardError) {
+        } catch {
           ui.showStatus("复制失败，请手动选择复制后跳转。", "warning");
         }
         setTimeout(() => {
@@ -186,6 +186,20 @@ export const mergerManager = {
       return;
     }
 
+    const mergeButton = document.getElementById("mergeBtn");
+    const mergeIcon = document.getElementById("mergeIcon");
+    const mergeText = document.getElementById("mergeText");
+    const wasDisabled = mergeButton ? mergeButton.disabled : false;
+
+    if (mergeButton) {
+      mergeButton.disabled = true;
+      mergeButton.classList.add("btn-loading");
+    }
+    if (mergeIcon && mergeText) {
+      mergeIcon.innerHTML = '<div class="loading"></div>';
+      mergeText.textContent = "合成中...";
+    }
+
     // 调用后端 API 执行合并
     try {
       const filesPayload = this.files.map((fileEntry) => ({
@@ -202,6 +216,15 @@ export const mergerManager = {
         this.clearFiles();
       }
       ui.showStatus(`合并失败: ${error.message}`, "error");
+    } finally {
+      if (mergeButton) {
+        mergeButton.classList.remove("btn-loading");
+        mergeButton.disabled = wasDisabled || this.files.length < 1;
+      }
+      if (mergeIcon && mergeText) {
+        mergeIcon.textContent = "";
+        mergeText.textContent = "合成文件";
+      }
     }
   },
 
@@ -234,7 +257,7 @@ export const mergerManager = {
     try {
       await navigator.clipboard.writeText(mergedJsonText);
       ui.showStatus("合并结果已复制到剪贴板！", "success");
-    } catch (clipboardError) {
+    } catch {
       ui.showStatus("复制失败，请手动选择复制。", "error");
     }
   },

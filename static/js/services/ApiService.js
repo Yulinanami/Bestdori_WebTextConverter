@@ -138,7 +138,7 @@ class ApiService {
   async shutdownServer() {
     try {
       await this.post("/api/shutdown", {}, { timeout: 1000 });
-    } catch (error) {
+    } catch {
       console.warn("Shutdown request sent. Server is closing.");
     }
   }

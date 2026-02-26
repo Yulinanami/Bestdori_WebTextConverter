@@ -12,6 +12,27 @@ export const converter = {
     if (convertButton) {
       convertButton.addEventListener("click", this.convertText.bind(this));
     }
+
+    const copyButton = document.getElementById("copyBtn");
+    if (copyButton) {
+      copyButton.addEventListener("click", this.copyResult.bind(this));
+    }
+  },
+
+  // 复制当前转换结果 JSON
+  async copyResult() {
+    const currentResult = state.get("currentResult");
+    if (!currentResult) {
+      ui.showStatus("没有可复制的结果！", "error");
+      return;
+    }
+
+    const copied = await ui.copyToClipboard(currentResult);
+    if (copied) {
+      ui.showStatus("转换结果已复制到剪贴板！", "success");
+      return;
+    }
+    ui.showStatus("复制失败，请手动选择复制。", "error");
   },
 
   // 收集输入内容与选项，并开始转换（文本模式或“已保存的项目模式”）
@@ -60,7 +81,6 @@ export const converter = {
     const buttonId = "convertBtn";
     try {
       ui.setButtonLoading(buttonId, true, "转换中...");
-      ui.showProgress(10);
       ui.showStatus("正在发送项目数据...", "info");
 
       const convertResponse = await apiService.convertText(
@@ -72,7 +92,6 @@ export const converter = {
       );
       const result = convertResponse.result;
 
-      ui.showProgress(100);
       state.set("currentResult", result);
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
@@ -80,11 +99,8 @@ export const converter = {
       resultSection.classList.remove("hidden");
       ui.showStatus("转换完成！", "success");
       resultSection.scrollIntoView({ behavior: "smooth" });
-
-      setTimeout(() => ui.hideProgress(), 1000);
     } catch (error) {
       ui.showStatus(error.message, "error");
-      ui.hideProgress();
     } finally {
       ui.setButtonLoading(buttonId, false);
     }
