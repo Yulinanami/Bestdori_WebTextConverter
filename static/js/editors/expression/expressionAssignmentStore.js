@@ -1,5 +1,6 @@
 import { editorService } from "@services/EditorService.js";
 
+// 把日志值压成单行短文本，避免日志过长。
 function shortValue(value) {
   if (value === undefined) return "undefined";
   if (value === null) return "null";
@@ -12,6 +13,7 @@ function shortValue(value) {
   return String(text).replace(/\s+/g, " ").trim();
 }
 
+// 生成动作/表情分配项摘要，供日志打印。
 function summarizeAssignmentItem(item) {
   if (!item) {
     return "none";

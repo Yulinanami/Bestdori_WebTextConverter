@@ -2,6 +2,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { editorService } from "@services/EditorService.js";
 import { modalService } from "@services/ModalService.js";
 
+// 压缩文本用于日志，避免控制台输出过长。
 function shortText(text, maxLength = 36) {
   const normalized = String(text || "").replace(/\s+/g, " ").trim();
   if (normalized.length <= maxLength) {

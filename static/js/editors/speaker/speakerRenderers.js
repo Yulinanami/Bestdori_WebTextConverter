@@ -10,6 +10,7 @@ function setSpeakerKey(card, speakers = []) {
   card.dataset.speakerKey = speakerKey;
 }
 
+// 创建对话编辑器的卡片渲染器：供全量渲染与局部刷新共用。
 export function createSpeakerRenderers(
   editor,
   { templates, characterNameMap },
@@ -116,6 +117,7 @@ export function createSpeakerRenderers(
     return renderedCard;
   };
 
+  // 尝试就地更新卡片内容（返回 false 表示需要整张重画）。
   const updateCard = (action, cardElement, globalIndex = -1) => {
     if (!cardElement) return false;
     if (

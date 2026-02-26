@@ -233,14 +233,17 @@ export const expressionEditor = {
 attachExpressionCardLocalRefresh(expressionEditor);
 
 attachLayoutCardLocalRefresh(expressionEditor, {
+  // 局部刷新目标容器（动作/表情时间线）。
   getContainer() {
     return this.domCache.timeline;
   },
   cardSelector: ".talk-item, .layout-item",
   showToggleButton: false,
+  // 局部新增布局卡片时复用单卡渲染函数。
   renderActionCard(action, actionIndex) {
     return createExpressionRenderers(this).renderSingleCard(action, actionIndex);
   },
+  // 分组头开关后重画，并在展开时滚动到对应组头。
   onGroupToggle(groupIndex, isOpening) {
     renderTimeline(this);
     if (!isOpening) {
@@ -268,9 +271,11 @@ attachLayoutCardLocalRefresh(expressionEditor, {
 attachGroupedReorderOptimization(expressionEditor, {
   debugTag: "expressionReorder",
   cardSelector: ".talk-item, .layout-item",
+  // 分组重排局部短路的目标容器。
   getContainer() {
     return this.domCache.timeline;
   },
+  // 排序局部短路失败后，再尝试其它局部短路分支。
   onBeforeFullRender() {
     const pendingLayoutMutation = this.pendingLayoutMutationRender;
     const pendingCardSummary = this.peekPendingExpressionCardSummary();
@@ -330,6 +335,7 @@ attachGroupedReorderOptimization(expressionEditor, {
       }
     );
   },
+  // 所有局部短路都未命中时，执行全量重绘。
   onFullRender() {
     renderTimeline(this);
   },
@@ -337,6 +343,7 @@ attachGroupedReorderOptimization(expressionEditor, {
 
 attachUndoRedoLocalShortcut(baseEditor, {
   debugTag: "expressionUndoRedo",
+  // 撤销/恢复导致新增布局卡片时，标记布局增删局部短路。
   onActionAdded({ actionAfter, summary, phase }) {
     if (actionAfter?.type === "layout") {
       expressionEditor.markLayoutMutationRender(actionAfter.id, "add", {
@@ -345,6 +352,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       });
     }
   },
+  // 撤销/恢复导致删除布局卡片时，标记布局增删局部短路。
   onActionRemoved({ actionBefore, summary, phase }) {
     if (actionBefore?.type === "layout") {
       expressionEditor.markLayoutMutationRender(actionBefore.id, "delete", {
@@ -353,9 +361,11 @@ attachUndoRedoLocalShortcut(baseEditor, {
       });
     }
   },
+  // 撤销/恢复触发排序变化时，标记排序局部短路。
   onActionOrderChanged({ phase, orderSummary }) {
     expressionEditor.markGroupedReorderRender("state", phase, orderSummary);
   },
+  // 撤销/恢复触发布局字段变化时，标记布局属性局部短路。
   onLayoutFieldChanged({ actionId, actionAfter, changes, phase }) {
     if (actionAfter?.type === "layout") {
       expressionEditor.markLayoutPropertyRender(actionId, {
@@ -364,6 +374,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       });
     }
   },
+  // 撤销/恢复触发动作/表情字段变化时，标记卡片 footer 局部短路。
   onExpressionFieldChanged({ actionId, changes, phase }) {
     const changeSummary = summarizeChanges(changes) || "none";
     expressionEditor.markExpressionCardRender(actionId, {

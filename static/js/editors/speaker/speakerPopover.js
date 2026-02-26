@@ -85,6 +85,7 @@ export function attachSpeakerPopover(editor) {
       setTimeout(() => {
         document.addEventListener(
           "click",
+          // 点击浮层外部时自动关闭浮层。
           function onClickOutside(clickEvent) {
             if (!popover.contains(clickEvent.target)) {
               popover.remove();

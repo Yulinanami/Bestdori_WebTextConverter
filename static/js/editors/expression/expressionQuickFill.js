@@ -89,6 +89,7 @@ export const quickFill = {
       setTimeout(() => {
         document.addEventListener(
           "click",
+          // 点击下拉区域外部时自动收起。
           function onClickOutside(clickEvent) {
             if (!dropdown.parentElement.contains(clickEvent.target)) {
               dropdown.classList.add("hidden");

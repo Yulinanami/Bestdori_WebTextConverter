@@ -139,6 +139,7 @@ export const live2dEditor = {
 };
 
 attachLayoutCardLocalRefresh(live2dEditor, {
+  // 局部刷新目标容器（Live2D 时间线）。
   getContainer() {
     return this.domCache.timeline;
   },
@@ -149,9 +150,11 @@ attachLive2DLayoutMutationLocalRefresh(live2dEditor);
 attachGroupedReorderOptimization(live2dEditor, {
   debugTag: "live2dReorder",
   cardSelector: ".talk-item, .layout-item",
+  // 分组重排局部短路的目标容器。
   getContainer() {
     return this.domCache.timeline;
   },
+  // 排序局部短路失败后，再尝试布局相关局部短路分支。
   onBeforeFullRender() {
     const pendingLayout = this.pendingLayoutPropertyRender;
     const pendingMutation = this.pendingLayoutMutationRender;
@@ -200,6 +203,7 @@ attachGroupedReorderOptimization(live2dEditor, {
       }
     );
   },
+  // 所有局部短路都未命中时，执行全量重绘（时间线 + 角色列表）。
   onFullRender() {
     this.renderTimeline();
     const usedNames = this.getUsedCharacterIds();
@@ -209,6 +213,7 @@ attachGroupedReorderOptimization(live2dEditor, {
 
 attachUndoRedoLocalShortcut(baseEditor, {
   debugTag: "live2dUndoRedo",
+  // 撤销/恢复导致新增布局卡片时，标记布局增删局部短路。
   onActionAdded({ actionAfter, summary, phase }) {
     if (actionAfter?.type === "layout") {
       live2dEditor.markLayoutMutationRender(actionAfter.id, "add", {
@@ -217,6 +222,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       });
     }
   },
+  // 撤销/恢复导致删除布局卡片时，标记布局增删局部短路。
   onActionRemoved({ actionBefore, summary, phase }) {
     if (actionBefore?.type === "layout") {
       live2dEditor.markLayoutMutationRender(actionBefore.id, "delete", {
@@ -225,9 +231,11 @@ attachUndoRedoLocalShortcut(baseEditor, {
       });
     }
   },
+  // 撤销/恢复触发排序变化时，标记排序局部短路。
   onActionOrderChanged({ phase, orderSummary }) {
     live2dEditor.markGroupedReorderRender("state", phase, orderSummary);
   },
+  // 撤销/恢复触发布局字段变化时，标记布局属性局部短路。
   onLayoutFieldChanged({ actionId, actionAfter, changes, phase }) {
     if (actionAfter?.type === "layout") {
       live2dEditor.markLayoutPropertyRender(actionId, {

@@ -32,6 +32,7 @@ export function attachSpeakerState(editor) {
 
       this.baseEditor.executeCommand((currentState) => {
         const updatedActionIds = [];
+        // 只在该说话人尚未存在时追加，避免重复写入。
         const addSpeakerIfNeeded = (actionToUpdate) => {
           const speakerExists = actionToUpdate.speakers.some(
             (speaker) => speaker.characterId === newSpeaker.characterId

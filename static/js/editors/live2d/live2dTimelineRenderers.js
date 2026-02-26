@@ -7,6 +7,7 @@ import {
 import { editorService } from "@services/EditorService.js";
 import { configUI } from "@managers/config/configUI.js";
 
+// 创建 Live2D 编辑器的卡片渲染器：供全量渲染与局部刷新共用。
 export function createLive2DRenderers(editor, { templates, characterNameMap }) {
   // renderSingleCard负责画一个卡片，updateCard 负责就地更新卡片
   const renderSingleCard = (action, globalIndex = -1) => {
@@ -53,6 +54,7 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
     return renderedCard;
   };
 
+  // 尝试就地更新卡片内容（返回 false 表示需要整张重画）。
   const updateCard = (action, cardElement, globalIndex = -1) => {
     if (!cardElement) return false;
     if (

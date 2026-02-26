@@ -12,6 +12,7 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
     debugTag = "",
   } = options;
   const debugPrefix = debugTag ? `[PERF][${debugTag}]` : "";
+  // 统一把触发来源转换成可读中文标签，用于日志输出。
   const getTriggerLabel = (trigger) => {
     if (trigger === "undo") return "撤销";
     if (trigger === "redo") return "恢复";

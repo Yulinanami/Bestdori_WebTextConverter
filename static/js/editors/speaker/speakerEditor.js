@@ -165,20 +165,25 @@ export const speakerEditor = {
 
 attachSpeakerCardLocalRefresh(speakerEditor);
 attachLayoutCardLocalRefresh(speakerEditor, {
+  // 局部刷新目标容器（对话画布）。
   getContainer() {
     return this.domCache.canvas;
   },
   showToggleButton: false,
+  // 布局卡片局部新增时复用单卡渲染函数。
   renderActionCard: speakerEditor.renderActionCard,
+  // 分组头切换后复用导入后的刷新流程。
   onGroupToggle: speakerEditor.afterImport,
 });
 
 attachGroupedReorderOptimization(speakerEditor, {
   debugTag: "speakerReorder",
   cardSelector: ".dialogue-item, .layout-item",
+  // 分组重排局部短路的目标容器。
   getContainer() {
     return this.domCache.canvas;
   },
+  // 排序局部短路失败后，再尝试说话人/文本/增删/布局字段局部短路。
   onBeforeFullRender() {
     const pendingSpeaker = this.pendingSpeakerRender;
     const pendingText = this.pendingTextEditRender;
@@ -273,9 +278,11 @@ attachGroupedReorderOptimization(speakerEditor, {
       }
     );
   },
+  // 命中局部短路后，补一次选择态绑定。
   onLocalRenderSuccess() {
     this.reattachSelection();
   },
+  // 所有局部短路都未命中时，执行全量重绘。
   onFullRender() {
     const usedIds = this.renderCanvas();
     this.renderCharacterList(usedIds);
@@ -285,6 +292,7 @@ attachGroupedReorderOptimization(speakerEditor, {
 
 attachUndoRedoLocalShortcut(baseEditor, {
   debugTag: "speakerUndoRedo",
+  // 撤销/恢复导致新增卡片时，标记卡片增删局部短路。
   onActionAdded({ actionAfter, summary, phase }) {
     speakerEditor.pendingCardMutationRender = {
       type: "add",
@@ -293,6 +301,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       detail: summary,
     };
   },
+  // 撤销/恢复导致删除卡片时，标记卡片增删局部短路。
   onActionRemoved({ actionBefore, indexBefore, summary, phase }) {
     speakerEditor.pendingCardMutationRender = {
       type: "delete",
@@ -302,9 +311,11 @@ attachUndoRedoLocalShortcut(baseEditor, {
       detail: summary,
     };
   },
+  // 撤销/恢复触发排序变化时，标记排序局部短路。
   onActionOrderChanged({ phase, orderSummary }) {
     speakerEditor.markGroupedReorderRender("state", phase, orderSummary);
   },
+  // 撤销/恢复触发文本变化时，标记文本局部短路。
   onTextChanged({ actionId, actionBefore, actionAfter, changes, phase }) {
     speakerEditor.pendingTextEditRender = {
       actionId,
@@ -314,6 +325,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       detail: summarizeChanges(changes, 72),
     };
   },
+  // 撤销/恢复触发说话人字段变化时，标记说话人局部短路。
   onSpeakerFieldChanged({ actionId, changes, phase }) {
     speakerEditor.markSpeakerRender(
       [actionId],
@@ -321,6 +333,7 @@ attachUndoRedoLocalShortcut(baseEditor, {
       `changes=${summarizeChanges(changes, 72) || "none"}`
     );
   },
+  // 撤销/恢复触发布局字段变化时，标记布局属性局部短路。
   onLayoutFieldChanged({ actionId, changes, phase }) {
     speakerEditor.markLayoutPropertyRender(actionId, {
       source: phase,

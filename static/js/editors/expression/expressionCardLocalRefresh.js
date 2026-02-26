@@ -4,6 +4,7 @@ import { perfLog } from "@editors/common/perfLogger.js";
 // 动作/表情编辑器：卡片底部分配区的局部短路刷新。
 export function attachExpressionCardLocalRefresh(editor) {
   const debugPrefix = "[PERF][expressionCard]";
+  // 把 detail 入参统一转成字符串，便于日志直出。
   const normalizeDetail = (detail) => {
     if (!detail) return "";
     if (typeof detail === "string") return detail;
