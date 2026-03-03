@@ -309,6 +309,35 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
       beforeActions,
       afterActions,
     );
+
+    const hasSpeakerFieldChange = actionPaths.some((patch) =>
+      speakerKeys.has(String(patch.path[2]))
+    );
+    const hasOnlySpeakerFieldChange =
+      actionPaths.length > 0 &&
+      actionPaths.every((patch) => speakerKeys.has(String(patch.path[2])));
+
+    // 第三步：多 action 的撤销/恢复里，若仅改了 speakers 字段，走批量说话人局部短路。
+    if (touchedActionIds.size > 1) {
+      if (hasOnlySpeakerFieldChange && onSpeakerFieldChanged) {
+        const actionIds = Array.from(touchedActionIds);
+        perfLog(
+          `${debugPrefix}[撤销恢复] 命中说话人字段(批量): 操作=${phaseLabel}, actions=${actionIds.join("|")}`,
+        );
+        onSpeakerFieldChanged({
+          phase,
+          actionIds,
+          changes: [],
+        });
+        return;
+      }
+
+      perfLog(
+        `${debugPrefix}[撤销恢复] 跳过字段级判定: touchedActions=${touchedActionIds.size}`,
+      );
+      return;
+    }
+
     if (touchedActionIds.size !== 1) {
       perfLog(
         `${debugPrefix}[撤销恢复] 跳过字段级判定: touchedActions=${touchedActionIds.size}`,
@@ -348,10 +377,7 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
       });
     }
 
-    if (
-      actionPaths.some((patch) => speakerKeys.has(String(patch.path[2]))) &&
-      onSpeakerFieldChanged
-    ) {
+    if (hasSpeakerFieldChange && onSpeakerFieldChanged) {
       const detailText = formatChangeDetails(changeDetails, speakerKeyList);
       perfLog(
         `${debugPrefix}[撤销恢复] 命中说话人字段: 操作=${phaseLabel}, action=${actionId}, 变更=${detailText || "无"}`,

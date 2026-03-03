@@ -326,9 +326,13 @@ attachUndoRedoLocalShortcut(baseEditor, {
     };
   },
   // 撤销/恢复触发说话人字段变化时，标记说话人局部短路。
-  onSpeakerFieldChanged({ actionId, changes, phase }) {
+  onSpeakerFieldChanged({ actionId, actionIds, changes, phase }) {
+    const targetActionIds =
+      Array.isArray(actionIds) && actionIds.length > 0
+        ? actionIds
+        : [actionId];
     speakerEditor.markSpeakerRender(
-      [actionId],
+      targetActionIds,
       phase,
       `changes=${summarizeChanges(changes, 72) || "none"}`
     );
