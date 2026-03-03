@@ -10,15 +10,23 @@
 /* 基础元素样式 */
 body {
   font-family: var(--font-primary);
-  background: var(--secondary-gradient);
+  /* 苹果 macOS 背景，带有些微的颜色过渡 */
+  background: var(--bg-dark)
+    linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background-attachment: fixed;
   min-height: 100vh;
   padding: var(--spacing-lg);
   color: var(--text-primary);
+  /* macOS 字体抗锯齿增强 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 用于在模态框打开时锁定body滚动 */
 body.modal-open {
   overflow: hidden;
+  /* 防止 iOS/macOS 滚动链 */
+  overscroll-behavior: none;
 }
 
 /* 标题样式 */
@@ -50,6 +58,8 @@ h4 {
 p {
   line-height: 1.6;
   margin-bottom: var(--spacing-sm);
+  /* 较小文本增加字间距 */
+  letter-spacing: 0.01em;
 }
 
 a {
@@ -97,7 +107,7 @@ pre code {
 hr {
   border: none;
   border-top: 1px solid var(--border-primary);
-  margin: 25px 0;
+  margin: var(--spacing-xl) 0;
 }
 
 /* 输入框基础样式 */

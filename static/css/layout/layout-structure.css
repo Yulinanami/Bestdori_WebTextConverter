@@ -7,14 +7,17 @@
   left: 0;
   right: 0;
   height: 64px;
+  /* 苹果高级毛玻璃（Vibrancy 3.0） */
   background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-primary);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  /* Retina 极细分割线 */
+  box-shadow: 0 1px 0 0 var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-xl);
   z-index: 1000;
-  box-shadow: var(--shadow-sm);
 }
 
 .app-logo h1 {
@@ -39,8 +42,12 @@
 /* 左侧导航栏 */
 .app-sidebar {
   width: 280px;
-  background: var(--bg-primary);
-  border-right: 1px solid var(--border-primary);
+  /* 较薄材质的毛玻璃用于侧边栏 */
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  /* 右侧 Retina 边界 */
+  box-shadow: 1px 0 0 0 var(--border-primary);
   overflow-y: auto;
   position: fixed;
   left: 0;
@@ -89,14 +96,16 @@
 }
 
 .nav-step.active {
-  background: var(--primary-gradient);
+  /* 苹果列表项选中时的“Bubble气泡”样式 */
+  background: var(--color-primary);
   color: var(--text-white);
-  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  transform: scale(0.98);
 }
 
 .nav-step.active .step-number {
-  background: var(--text-white);
-  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-white);
 }
 
 .nav-step.active .step-label {
@@ -127,7 +136,8 @@
   margin-left: 280px;
   flex: 1;
   padding: var(--spacing-2xl);
-  background: var(--secondary-gradient);
+  /* 移除原本的实色背景，透出底部的body背景 */
+  background: transparent;
   min-height: calc(100vh - 64px);
 }
 
@@ -195,10 +205,12 @@
   border-radius: var(--radius-md);
   font-weight: 500;
   z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
   min-width: 300px;
   max-width: 500px;
-  animation: slideInLeft 0.3s ease;
+  animation: slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
 }
 
 .status-success {

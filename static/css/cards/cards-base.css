@@ -1,11 +1,20 @@
 /* 通用卡片与配置列表样式 */
 
-/* 通用卡片样式 */
+/* 通用卡片样式 (Bento Grid 风格) */
 .card {
   background: var(--bg-primary);
-  border-radius: var(--radius-xl);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-2xl); /* 更圆润的 Bento 风格 */
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px) scale(1.005);
 }
 
 .card-header {
@@ -35,8 +44,14 @@
   margin-bottom: var(--spacing-md);
   padding: var(--spacing-md);
   background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all var(--transition-normal);
+}
+
+.config-item:hover {
+  background: var(--bg-tertiary);
+  transform: scale(1.01);
 }
 
 /* 输入框调整 */

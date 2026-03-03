@@ -7,11 +7,11 @@
   }
 }
 
-/* 模态框淡入 (用于模态框显示) */
+/* 模态框弹出 (模拟弹簧) */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translate(-50%, -45%) scale(0.95);
   }
   to {
     opacity: 1;

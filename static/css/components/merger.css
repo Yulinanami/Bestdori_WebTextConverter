@@ -1,10 +1,5 @@
 /* merger.css - 文件合成器相关样式 */
 
-.merger-mode-toggle {
-  display: flex;
-  align-items: center;
-}
-
 .merger-file-list {
   list-style: none;
   padding: 0;

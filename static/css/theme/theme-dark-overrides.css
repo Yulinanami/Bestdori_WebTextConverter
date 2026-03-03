@@ -147,21 +147,21 @@
 
 /* 状态消息 */
 [data-theme="dark"] .status-success {
-  background: #064e3b;
+  background: rgba(16, 185, 129, 0.2);
   color: #34d399;
-  border-color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 [data-theme="dark"] .status-error {
-  background: #7f1d1d;
+  background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
-  border-color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 [data-theme="dark"] .status-info {
-  background: #374151;
+  background: rgba(107, 114, 128, 0.2);
   color: #d1d5db;
-  border-color: #6b7280;
+  border-color: rgba(107, 114, 128, 0.4);
 }
 
 /* 多说话人弹出菜单 - 深色模式 */

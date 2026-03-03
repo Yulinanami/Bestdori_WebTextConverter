@@ -10,9 +10,4 @@
   .btn-group {
     gap: var(--spacing-sm);
   }
-
-  /* 隐藏桌面端才显示的元素 */
-  .hidden-mobile {
-    display: none !important;
-  }
 }

@@ -9,7 +9,8 @@
   width: 100%;
   height: 100%;
   background: var(--bg-overlay);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
   z-index: 2000;
   overflow-y: auto;
 }
@@ -20,12 +21,17 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--bg-primary);
+  /* 模态浮窗的层级极高结构 */
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-xl);
   border-radius: var(--radius-xl);
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  animation: modalFadeIn 0.3s ease;
+  animation: modalFadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15); /* App Spring */
   z-index: 2001;
 }
 
@@ -56,8 +62,10 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  transition: background-color var(--transition-fast),
-    color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .modal-close:hover {
