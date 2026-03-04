@@ -19,7 +19,7 @@ export const configUI = {
         const configItem = inputEvent.target.closest(".config-item");
         if (!configItem) return;
         const avatarWrapper = configItem.querySelector(
-          ".config-avatar-wrapper",
+          ".config-avatar-wrapper"
         );
 
         const nameInput = configItem.querySelector(".config-name");
@@ -36,7 +36,7 @@ export const configUI = {
             configManager,
             avatarWrapper,
             updatedPrimaryId,
-            characterName,
+            characterName
           );
         } else if (inputEvent.target.classList.contains("config-name")) {
           const avatar = avatarWrapper.querySelector(".config-avatar");
@@ -53,7 +53,7 @@ export const configUI = {
     const sortedConfig = DataUtils.sortBy(
       Object.entries(state.get("currentConfig")),
       ([, ids]) => ids?.[0] ?? Infinity,
-      "asc",
+      "asc"
     );
     this.renderNormalConfigList(configManager, sortedConfig);
   },

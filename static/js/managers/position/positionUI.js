@@ -161,9 +161,8 @@ export const positionUI = {
       const avatarId = configManager.getAvatarId(primaryId);
       const avatarPath =
         avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
-      const characterPositionConfig = positionManager.tempManualPositions[
-        name
-      ] || {
+      const characterPositionConfig =
+        positionManager.tempManualPositions[name] || {
         position: "center",
         offset: 0,
       };
