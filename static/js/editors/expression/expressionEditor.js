@@ -23,6 +23,7 @@ import { attachExpressionCardLocalRefresh } from "@editors/expression/expression
 import { bindTimelineEvents } from "@editors/expression/expressionTimelineEvents.js";
 import {
   createExpressionRenderers,
+  resetExpressionTimelineCache,
   renderTimeline,
 } from "@editors/expression/expressionTimelineRenderer.js";
 import { libraryPanel } from "@editors/expression/expressionLibraryPanel.js";
@@ -226,6 +227,15 @@ export const expressionEditor = {
   afterImport() {
     renderTimeline(this);
     libraryPanel.renderLibraries(this);
+  },
+
+  // 关闭弹窗前：清理局部短路标记和增量渲染缓存。
+  onBeforeClose() {
+    this.pendingGroupedReorderRender = null;
+    this.pendingLayoutPropertyRender = null;
+    this.pendingLayoutMutationRender = null;
+    this.pendingExpressionCardRenders = new Map();
+    resetExpressionTimelineCache();
   },
 
 };

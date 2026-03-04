@@ -1,6 +1,7 @@
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
+  resetTimelineRenderCache,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
@@ -14,6 +15,11 @@ import { assignmentRenderer } from "@editors/expression/expressionAssignmentRend
 
 // 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
 const timelineCache = createTimelineRenderCache();
+
+// 清空动作/表情时间线缓存，供编辑器关闭时调用。
+export function resetExpressionTimelineCache() {
+  resetTimelineRenderCache(timelineCache);
+}
 
 // 创建动作/表情编辑器的卡片渲染器：供时间线全量渲染与局部刷新复用。
 export function createExpressionRenderers(editor) {

@@ -48,6 +48,9 @@ export const BaseEditorMixin = {
 
   // 关闭编辑器：做清理（拖拽实例、滚动动画、子模块钩子）
   closeEditor() {
+    // 关闭时清空撤销栈，避免下次打开沿用上次会话的撤销/重做状态。
+    historyManager.clear();
+
     EditorHelper.closeEditor({
       modalId: this.modalId,
       beforeClose: () => {

@@ -1,6 +1,7 @@
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
+  resetTimelineRenderCache,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
@@ -11,6 +12,11 @@ export function attachSpeakerCanvas(editor) {
   const canvasCache = createTimelineRenderCache();
 
   Object.assign(editor, {
+    // 重置渲染缓存，避免关闭编辑器后残留旧卡片状态。
+    resetCanvasRenderCache() {
+      resetTimelineRenderCache(canvasCache);
+    },
+
     // 渲染左侧卡片列表（对话/布局），并返回“已出现角色集合”
     renderCanvas() {
       const canvas = editor.domCache.canvas;

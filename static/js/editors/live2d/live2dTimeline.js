@@ -1,6 +1,7 @@
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
+  resetTimelineRenderCache,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { editorService } from "@services/EditorService.js";
@@ -11,6 +12,11 @@ export function attachLive2DTimeline(editor) {
   const timelineCache = createTimelineRenderCache();
 
   Object.assign(editor, {
+    // 重置渲染缓存，确保重开编辑器时不复用旧卡片快照。
+    resetTimelineCache() {
+      resetTimelineRenderCache(timelineCache);
+    },
+
     // 绑定时间线上的点击/修改事件（删除、展开终点位置、改下拉框等）
     bindTimelineEvents() {
       const timeline = editor.domCache.timeline;

@@ -109,6 +109,14 @@ export function createTimelineRenderCache() {
   };
 }
 
+// 清空时间线渲染缓存：用于编辑器关闭后重开时强制重新比对和重绘。
+export function resetTimelineRenderCache(cache) {
+  if (!cache) return;
+  cache.nodesById.clear();
+  cache.signatures.clear();
+  cache.contextSignature = null;
+}
+
 // 增量渲染时间线（支持分组模式：只渲染当前展开的一组）
 export function renderIncrementalTimeline({
   container,

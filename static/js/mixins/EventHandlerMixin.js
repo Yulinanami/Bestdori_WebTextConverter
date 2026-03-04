@@ -32,16 +32,23 @@ export const EventHandlerMixin = {
         editorService.projectManager.export(this.projectFileState),
       );
 
-    // 关闭弹窗时：如果有未保存更改就先确认
-    const handleCloseAttempt = (closeEvent) => {
+    // 统一关闭流程：未保存时先确认，确认后再关闭。
+    const attemptCloseEditor = (closeEvent = null) => {
       if (JSON.stringify(this.projectFileState) !== this.originalStateOnOpen) {
         if (!confirm("您有未保存的更改，确定要关闭吗？")) {
-          closeEvent.stopPropagation();
-          closeEvent.preventDefault();
+          closeEvent?.stopPropagation();
+          closeEvent?.preventDefault();
           return;
         }
       }
+      closeEvent?.stopPropagation();
+      closeEvent?.preventDefault();
       this.closeEditor();
+    };
+
+    // 关闭弹窗时：走统一关闭流程。
+    const handleCloseAttempt = (closeEvent) => {
+      attemptCloseEditor(closeEvent);
     };
     this.domCache.modal
       ?.querySelector(".modal-close")
@@ -57,6 +64,12 @@ export const EventHandlerMixin = {
 
     // 快捷键：Ctrl/Cmd+Z 撤销，Ctrl/Cmd+Y 或 Ctrl/Cmd+Shift+Z 重做
     this.domCache.modal?.addEventListener("keydown", (keyboardEvent) => {
+      // Esc：尝试关闭当前编辑器弹窗（含未保存确认）。
+      if (keyboardEvent.key === "Escape") {
+        attemptCloseEditor(keyboardEvent);
+        return;
+      }
+
       // 忽略在输入框中的按键
       if (
         keyboardEvent.target.tagName === "INPUT" ||

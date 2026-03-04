@@ -136,6 +136,14 @@ export const live2dEditor = {
     const usedCharacterNames = this.getUsedCharacterIds();
     this.renderCharacterList(usedCharacterNames);
   },
+
+  // 关闭弹窗前：清理局部短路标记和增量渲染缓存。
+  onBeforeClose() {
+    this.pendingGroupedReorderRender = null;
+    this.pendingLayoutPropertyRender = null;
+    this.pendingLayoutMutationRender = null;
+    this.resetTimelineCache?.();
+  },
 };
 
 attachLayoutCardLocalRefresh(live2dEditor, {
