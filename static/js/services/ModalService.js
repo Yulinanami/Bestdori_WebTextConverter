@@ -12,6 +12,7 @@ class ModalService {
     if (this.initialized) return;
 
     this._bindCloseButtons();
+    this._bindEscClose();
 
     this.initialized = true;
   }
@@ -104,6 +105,30 @@ class ModalService {
           }
         });
       });
+  }
+
+  // 内部方法：按 Esc 关闭当前最上层的“非编辑器”弹窗。
+  _bindEscClose() {
+    document.addEventListener("keydown", (keyboardEvent) => {
+      if (keyboardEvent.key !== "Escape") {
+        return;
+      }
+
+      const openedModalIds = Array.from(this.openModals);
+      const topModalId = openedModalIds[openedModalIds.length - 1];
+      if (!topModalId) {
+        return;
+      }
+
+      const topModal = document.getElementById(topModalId);
+      // 编辑器弹窗（全屏）保持走各自的未保存确认逻辑。
+      if (topModal?.classList.contains("modal-fullscreen")) {
+        return;
+      }
+
+      keyboardEvent.preventDefault();
+      this.close(topModalId);
+    });
   }
 }
 
