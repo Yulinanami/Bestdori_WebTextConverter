@@ -91,7 +91,9 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       const fragment = document.createDocumentFragment();
 
       for (let groupIndex = 0; groupIndex < totalGroups; groupIndex++) {
-        const header = headers[groupIndex] || headers[0].cloneNode(true);
+        const header = headers[groupIndex]
+          ? headers[groupIndex].cloneNode(true)
+          : headers[0].cloneNode(true);
         const isActive =
           activeGroupIndex !== null && groupIndex === activeGroupIndex;
         const { startNum, endNum } = getGroupRange(

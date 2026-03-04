@@ -168,7 +168,9 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
         const fragment = document.createDocumentFragment();
 
         for (let groupIndex = 0; groupIndex < totalGroups; groupIndex++) {
-          const header = headers[groupIndex] || document.createElement("div");
+          const header = headers[groupIndex]
+            ? headers[groupIndex].cloneNode(true)
+            : document.createElement("div");
           const isActive =
             activeGroupIndex !== null && groupIndex === activeGroupIndex;
           const { startNum, endNum } = getGroupRange(

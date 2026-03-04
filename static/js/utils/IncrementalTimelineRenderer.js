@@ -73,30 +73,13 @@ function ensureCard({
 // 创建一个“分组标题”节点（点击可展开/收起）
 function createGroupHeader({ start, end, index, isActive, onClick }) {
   const header = document.createElement("div");
-  header.className = "timeline-group-header";
-  header.dataset.groupIdx = index;
-  header.style.cursor = "pointer";
-  header.style.padding = "12px 18px";
-  header.style.background = "var(--bg-secondary)";
-  header.style.border = "1px solid var(--border-primary)";
-  header.style.borderRadius = "var(--radius-lg)";
-  header.style.marginBottom = "15px";
-  header.style.fontWeight = "600";
-  header.style.transition = "all 0.2s ease";
-  header.textContent = `${isActive ? "▼" : "▶"} 对话 ${start} - ${end} (${
-    end - start + 1
-  }条)`;
-
-  if (isActive) {
-    header.classList.add("active");
-    header.style.background = "var(--group-header-active-bg, #ebf8ff)";
-    header.style.borderColor = "var(--group-header-active-border, #90cdf4)";
-  }
-
-  if (typeof onClick === "function") {
-    header.addEventListener("click", () => onClick(index));
-  }
-
+  updateGroupHeader(header, {
+    groupIndex: index,
+    isActive,
+    startNum: start,
+    endNum: end,
+    onToggle: typeof onClick === "function" ? onClick : null,
+  });
   return header;
 }
 
@@ -204,3 +187,4 @@ export function renderIncrementalTimeline({
   container.replaceChildren(fragment);
   container.scrollTop = preserveScrollTop;
 }
+import { updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
