@@ -131,8 +131,22 @@ export function attachSpeakerCardLocalRefresh(editor) {
         if (targetCard) {
           targetCard.replaceWith(newCard);
         } else {
-          const referenceNode = cards[actionIndex] || null;
-          canvas.insertBefore(newCard, referenceNode);
+          // 卡片被 Sortable 跨容器移出画布后，拖拽动画可能打乱了
+          // 剩余卡片的 DOM 顺序。将新卡片加入后按 state 重排全部卡片。
+          canvas.appendChild(newCard);
+          const allCards = Array.from(canvas.querySelectorAll(cardSelector));
+          const cardById = new Map(
+            allCards.map((cardElement) => [
+              cardElement.dataset.id,
+              cardElement,
+            ]),
+          );
+          for (const stateAction of actions) {
+            const card = cardById.get(stateAction.id);
+            if (card) {
+              canvas.appendChild(card);
+            }
+          }
         }
 
         if (actionIndex < startIndex) {

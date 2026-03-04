@@ -3,12 +3,7 @@
 export const DragHelper = {
   // 按当前 DOM 顺序批量刷新卡片的 actionIndex 与显示序号。
   syncCardOrderMeta(params = {}) {
-    const {
-      container,
-      cardSelector,
-      startIndex = 0,
-      baseIndex = 0,
-    } = params;
+    const { container, cardSelector, startIndex = 0, baseIndex = 0 } = params;
     if (!container) {
       return false;
     }
@@ -124,13 +119,13 @@ export const DragHelper = {
       const cardById = new Map(
         allCards.map((cardElement) => [cardElement.dataset.id, cardElement])
       );
-      const fragment = document.createDocumentFragment();
+
+      // 将所有验证前置：确保任何 return false 都发生在 DOM 修改之前，
+      // 避免部分卡片已移入 fragment 后因条件不满足而丢失。
       for (const actionId of expectedIds) {
-        const cardElement = cardById.get(actionId);
-        if (!cardElement) {
+        if (!cardById.has(actionId)) {
           return false;
         }
-        fragment.appendChild(cardElement);
       }
 
       if (shouldGroup) {
@@ -139,6 +134,12 @@ export const DragHelper = {
         );
         if (!activeHeader) {
           return false;
+        }
+
+        // 验证全部通过，开始修改 DOM。
+        const fragment = document.createDocumentFragment();
+        for (const actionId of expectedIds) {
+          fragment.appendChild(cardById.get(actionId));
         }
 
         const removableCards = [];
@@ -156,7 +157,14 @@ export const DragHelper = {
         removableCards.forEach((cardElement) => cardElement.remove());
         container.insertBefore(fragment, nextNode);
       } else {
-        allCards.forEach((cardElement) => cardElement.remove());
+        // 验证全部通过，开始修改 DOM。
+        const fragment = document.createDocumentFragment();
+        for (const actionId of expectedIds) {
+          fragment.appendChild(cardById.get(actionId));
+        }
+        // fragment.appendChild 已将卡片从容器移出，容器中不再有这些卡片，
+        // 直接 appendChild 即可。不能对 allCards 调用 remove()，
+        // 否则会把卡片从 fragment 中也删除，导致全部卡片消失。
         container.appendChild(fragment);
       }
 
@@ -218,12 +226,7 @@ export const DragHelper = {
 
   // 生成 onEnd 处理器：把拖拽的“本地索引”换算成“全局索引”，再调用 executeFn
   createOnEndHandler(params) {
-    const {
-      editor,
-      getGroupingEnabled,
-      groupSize = 50,
-      executeFn,
-    } = params;
+    const { editor, getGroupingEnabled, groupSize = 50, executeFn } = params;
 
     return (sortableEvent) => {
       if (sortableEvent.from === sortableEvent.to) {
