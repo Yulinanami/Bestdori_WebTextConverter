@@ -4,6 +4,8 @@ import { costumeRenderer } from "@managers/costume/costumeRenderer.js";
 
 // 负责“怎么点”：绑定事件、响应按钮点击、弹窗输入、更新临时数据
 export const costumeInteractions = {
+  escCloseBound: false,
+
   // 绑定服装列表里的各种点击/切换事件
   bindCostumeListEvents(costumeManager) {
     const costumeList = document.getElementById("costumeList");
@@ -89,6 +91,8 @@ export const costumeInteractions = {
         costumeManager.resetCostumes.bind(costumeManager)
       );
     }
+
+    this.bindEscCloseCostumeDetails();
   },
 
   // 打开 Bestdori Live2D 数据库（新标签页）
@@ -117,6 +121,56 @@ export const costumeInteractions = {
       details.style.display = "none";
       toggle.textContent = "▼";
     }
+  },
+
+  // 关闭所有已展开的服装详情面板（Esc 使用）。
+  closeAllCostumeDetails() {
+    const costumeList = document.getElementById("costumeList");
+    if (!costumeList) {
+      return false;
+    }
+
+    let hasOpenDetails = false;
+    const detailsList = costumeList.querySelectorAll(".costume-details");
+    detailsList.forEach((detailsElement) => {
+      const isOpen =
+        !detailsElement.classList.contains("hidden") &&
+        detailsElement.style.display !== "none";
+      if (!isOpen) {
+        return;
+      }
+
+      hasOpenDetails = true;
+      detailsElement.classList.add("hidden");
+      detailsElement.style.display = "none";
+
+      if (detailsElement.id.startsWith("costume-details-")) {
+        const safeDomId = detailsElement.id.replace("costume-details-", "");
+        const toggleIcon = document.getElementById(`toggle-${safeDomId}`);
+        if (toggleIcon) {
+          toggleIcon.textContent = "▼";
+        }
+      }
+    });
+
+    return hasOpenDetails;
+  },
+
+  // 绑定 Esc：在服装管理页面按下时收起展开项。
+  bindEscCloseCostumeDetails() {
+    if (this.escCloseBound) {
+      return;
+    }
+    this.escCloseBound = true;
+
+    document.addEventListener("keydown", (keyboardEvent) => {
+      if (keyboardEvent.key !== "Escape") {
+        return;
+      }
+      if (this.closeAllCostumeDetails()) {
+        keyboardEvent.preventDefault();
+      }
+    });
   },
 
   // 新增：弹窗输入一个服装 ID，并加入临时列表
