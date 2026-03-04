@@ -112,6 +112,8 @@ export const live2dEditor = {
         }
       },
       afterOpen: async () => {
+        // 角色/说话人可能在其它编辑器里改过，打开时先清理旧缓存再渲染。
+        this.resetTimelineCache?.();
         this.renderTimeline();
         const usedCharacterNames = this.getUsedCharacterIds();
         this.renderCharacterList(usedCharacterNames);

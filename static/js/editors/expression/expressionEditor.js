@@ -51,6 +51,8 @@ export const expressionEditor = {
     default: [],
     custom: [],
   },
+  // 标记“下一次渲染必须全量刷新”（用于恢复默认这类批量改动）。
+  forceFullRenderOnce: false,
 
   // 初始化：缓存 DOM、绑定按钮事件、绑定搜索与快捷填充交互
   init() {
@@ -160,16 +162,28 @@ export const expressionEditor = {
     if (resetButton) resetButton.textContent = "恢复中...";
 
     try {
+      // 恢复默认属于“全局批量改动”，先清空局部短路标记，避免只刷新少量卡片。
+      this.pendingGroupedReorderRender = null;
+      this.pendingLayoutPropertyRender = null;
+      this.pendingLayoutMutationRender = null;
+      this.pendingExpressionCardRenders = new Map();
+      this.forceFullRenderOnce = true;
       this.baseEditor.executeCommand((currentState) => {
         currentState.actions.forEach((action) => {
-          if (action.type === "talk") action.motions = [];
-          else if (action.type === "layout") {
+          // 只要 action 上存在 motions 数组，就清空（兼容历史数据结构）。
+          if (Array.isArray(action.motions)) {
+            action.motions = [];
+          }
+          if (action.type === "layout") {
             delete action.initialState;
             delete action.delay;
           }
         });
       });
+      // executeCommand 结束后立即复位，避免“无变更时”残留到下一次渲染。
+      this.forceFullRenderOnce = false;
       ui.showStatus("已恢复默认表情动作。", "success");
+      resetExpressionTimelineCache();
       renderTimeline(this);
     } finally {
       if (resetButton && originalText) resetButton.textContent = originalText;
@@ -287,6 +301,11 @@ attachGroupedReorderOptimization(expressionEditor, {
   },
   // 排序局部短路失败后，再尝试其它局部短路分支。
   onBeforeFullRender() {
+    // 批量操作（如恢复默认）本轮强制全量渲染，避免被局部短路拦截。
+    if (this.forceFullRenderOnce) {
+      this.forceFullRenderOnce = false;
+      return false;
+    }
     const pendingLayoutMutation = this.pendingLayoutMutationRender;
     const pendingCardSummary = this.peekPendingExpressionCardSummary();
     const pendingLayoutProperty = this.pendingLayoutPropertyRender;
