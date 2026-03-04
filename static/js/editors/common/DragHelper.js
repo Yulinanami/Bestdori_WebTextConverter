@@ -62,11 +62,6 @@ export const DragHelper = {
     return container.contains(dropTarget);
   },
 
-  // 无效落点后，按当前状态重渲染还原 DOM 顺序。
-  handleInvalidDrop(editor) {
-    editor.handleRenderCallback();
-  },
-
   // 把 actions[fromIndex] 挪到 toIndex。
   moveAction(actions, fromIndex, toIndex) {
     const [movedItem] = actions.splice(fromIndex, 1);
@@ -121,37 +116,13 @@ export const DragHelper = {
         activeGroupIndex !== null &&
         activeGroupIndex >= 0;
 
-      let currentCards = [];
-      let insertBeforeNode = null;
-
-      if (shouldGroup) {
-        const activeHeader = container.querySelector(
-          `.timeline-group-header[data-group-idx="${activeGroupIndex}"]`
-        );
-        if (!activeHeader) {
-          return false;
-        }
-
-        let nextNode = activeHeader.nextElementSibling;
-        while (
-          nextNode &&
-          !nextNode.classList.contains("timeline-group-header")
-        ) {
-          currentCards.push(nextNode);
-          nextNode = nextNode.nextElementSibling;
-        }
-        insertBeforeNode = nextNode;
-      } else {
-        currentCards = Array.from(container.querySelectorAll(cardSelector));
-        insertBeforeNode = null;
-      }
-
-      if (!currentCards.length || currentCards.length !== expectedIds.length) {
+      const allCards = Array.from(container.querySelectorAll(cardSelector));
+      if (!allCards.length) {
         return false;
       }
 
       const cardById = new Map(
-        currentCards.map((cardElement) => [cardElement.dataset.id, cardElement])
+        allCards.map((cardElement) => [cardElement.dataset.id, cardElement])
       );
       const fragment = document.createDocumentFragment();
       for (const actionId of expectedIds) {
@@ -161,7 +132,33 @@ export const DragHelper = {
         }
         fragment.appendChild(cardElement);
       }
-      container.insertBefore(fragment, insertBeforeNode);
+
+      if (shouldGroup) {
+        const activeHeader = container.querySelector(
+          `.timeline-group-header[data-group-idx="${activeGroupIndex}"]`
+        );
+        if (!activeHeader) {
+          return false;
+        }
+
+        const removableCards = [];
+        let nextNode = activeHeader.nextElementSibling;
+        while (
+          nextNode &&
+          !nextNode.classList.contains("timeline-group-header")
+        ) {
+          if (nextNode.matches(cardSelector)) {
+            removableCards.push(nextNode);
+          }
+          nextNode = nextNode.nextElementSibling;
+        }
+
+        removableCards.forEach((cardElement) => cardElement.remove());
+        container.insertBefore(fragment, nextNode);
+      } else {
+        allCards.forEach((cardElement) => cardElement.remove());
+        container.appendChild(fragment);
+      }
 
       const baseIndex = shouldGroup ? activeGroupIndex * groupSize : 0;
       return DragHelper.syncCardOrderMeta({

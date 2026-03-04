@@ -4,6 +4,14 @@ import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 // 拖角色到卡片、拖卡片排序、拖拽时自动滚动
 export function attachSpeakerDrag(editor, baseEditor) {
   Object.assign(editor, {
+    // 统一开关说话人编辑器的拖拽能力（角色列表拖拽 + 时间线排序）。
+    setSpeakerDragEnabled(enabled) {
+      const disabled = !enabled;
+      this.sortableInstances.forEach((instance) => {
+        instance?.option?.("disabled", disabled);
+      });
+    },
+
     // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
     handleDragScrolling: (dragEvent) => {
       const containers = [
@@ -41,6 +49,9 @@ export function attachSpeakerDrag(editor, baseEditor) {
             },
             sort: false,
             onMove: (sortableMoveEvent) => {
+              if (sortableMoveEvent.dragged.classList.contains("layout-item")) {
+                return false;
+              }
               return !sortableMoveEvent.related.closest(
                 "#speakerEditorCharacterList"
               );
@@ -55,40 +66,22 @@ export function attachSpeakerDrag(editor, baseEditor) {
               );
               editor.stopScrolling();
             },
-          onAdd: (sortableAddEvent) => {
-            const cardItem = sortableAddEvent.item;
-            const actionId = cardItem.dataset.id;
+            onAdd: (sortableAddEvent) => {
+              const cardItem = sortableAddEvent.item;
+              const actionId = cardItem.dataset.id;
 
-            if (actionId) {
-              // 判断被拖入卡片的类型
-              if (cardItem.classList.contains("dialogue-item")) {
+              // 右侧角色列表只承接“对话卡片清空说话人”。
+              if (actionId && cardItem.classList.contains("dialogue-item")) {
                 editor.removeAllSpeakersFromAction(actionId);
-              } else if (cardItem.classList.contains("layout-item")) {
-                const layoutAction = editor.projectFileState.actions.find(
-                  (actionItem) => actionItem.id === actionId
-                );
-                const deleteIndex = editor.projectFileState.actions.findIndex(
-                  (actionItem) => actionItem.id === actionId
-                );
-                if (deleteIndex > -1) {
-                  editor.pendingCardMutationRender = {
-                    type: "delete",
-                    actionId,
-                    startIndex: deleteIndex,
-                    source: "ui",
-                    detail: `type=layout, character=${
-                      layoutAction?.characterName || layoutAction?.characterId || "?"
-                    }, layoutType=${layoutAction?.layoutType || "unknown"}`,
-                  };
-                }
-                editor.deleteLayoutAction(actionId);
               }
-            }
 
-            cardItem.remove();
-          },
-        })
-      );
+              cardItem.remove();
+              // 某些操作不会产生 state patch（例如旁白卡片清空说话人），
+              // 这里补一次渲染，避免卡片只在 DOM 上被移除后“假消失”。
+              editor.scheduleRender();
+            },
+          })
+        );
       }
       // 复用通用重排逻辑：speaker 只保留分组模式下的局部刷新标记。
       const runReorder = DragHelper.createReorderHandler({
@@ -115,19 +108,34 @@ export function attachSpeakerDrag(editor, baseEditor) {
       const onAddHandler = (sortableAddEvent) => {
         const characterItem = sortableAddEvent.item;
         characterItem.style.display = "none";
-        const dropX = sortableAddEvent.originalEvent.clientX;
-        const dropY = sortableAddEvent.originalEvent.clientY;
-        const targetCard = editor._findClosestCard(dropX, dropY);
+        const pointerEvent = sortableAddEvent.originalEvent;
+        const pointer =
+          pointerEvent?.changedTouches?.[0] ||
+          pointerEvent?.touches?.[0] ||
+          pointerEvent;
+        const dropX = pointer?.clientX;
+        const dropY = pointer?.clientY;
+
+        let targetCard = editor._findClosestCard(dropX, dropY);
+        if (!targetCard) {
+          const nextCard = characterItem.nextElementSibling?.closest(
+            ".dialogue-item"
+          );
+          const prevCard = characterItem.previousElementSibling?.closest(
+            ".dialogue-item"
+          );
+          targetCard = nextCard || prevCard || null;
+        }
 
         if (!targetCard) {
           characterItem.remove();
           return;
         }
-        const characterId = parseInt(characterItem.dataset.characterId);
+        const characterId = parseInt(characterItem.dataset.characterId, 10);
         const characterName = characterItem.dataset.characterName;
         const actionId = targetCard.dataset.id;
         const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
-        if (actionId) {
+        if (actionId && Number.isInteger(characterId)) {
           editor.updateSpeakerAssignment(
             actionId,
             {
@@ -152,6 +160,12 @@ export function attachSpeakerDrag(editor, baseEditor) {
                   editor.handleDragScrolling
                 );
                 editor.stopScrolling();
+                // 与另外两个编辑器一致：落点不在时间线内就回滚，避免拖出时误重排。
+                if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
+                  editor.applyGroupedReorderRender("state");
+                  editor.reattachSelection();
+                  return;
+                }
                 onEndHandler(sortableEvent);
               },
               onAdd: onAddHandler,
@@ -168,6 +182,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
           )
         );
       }
+      this.setSpeakerDragEnabled(true);
     },
 
     // 内部方法：优先按落点直接命中卡片，失败时再按 Y 坐标找最近卡片
