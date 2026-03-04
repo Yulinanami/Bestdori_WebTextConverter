@@ -35,7 +35,7 @@ export const costumeRenderer = {
       const avatarDiv = costumeItem.querySelector(".config-avatar");
       avatarDiv.dataset.id = primaryCharacterId;
       const avatarPath =
-        avatarId > 0 ? `/static/dist/images/avatars/${avatarId}.webp` : "";
+        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
 
       if (avatarId > 0) {
         const img = DOMUtils.createElement("img", {

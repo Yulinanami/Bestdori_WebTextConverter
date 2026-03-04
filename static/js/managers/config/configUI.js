@@ -96,7 +96,7 @@ export const configUI = {
       avatar.className = "config-avatar";
 
       const img = DOMUtils.createElement("img", {
-        src: `/static/dist/images/avatars/${avatarId}.webp`,
+        src: `/static/images/avatars/${avatarId}.png`,
         alt: name,
         className: "config-avatar-img",
         loading: "lazy",

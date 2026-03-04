@@ -1,7 +1,3 @@
-// 引入所有 CSS 样式（由 Webpack 处理合并）
-import "../css/main.css";
-import "../css/material-symbols.css";
-
 // 应用入口：页面加载完成后，初始化各个模块并绑定事件
 import { state } from "@managers/stateManager.js";
 import { ui, initPerformanceSettingsPersistence } from "@utils/uiUtils.js";

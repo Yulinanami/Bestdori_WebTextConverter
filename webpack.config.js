@@ -6,8 +6,12 @@ module.exports = {
   // 设置打包模式，生产模式会自动压缩代码
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
 
-  // 入口文件：目前的前端总文件
-  entry: "./static/js/app.js",
+  // 入口文件：CSS 和 JS 统一从这里引入，无需修改 JS 源码
+  entry: [
+    "./static/css/main.css",
+    "./static/css/material-symbols.css",
+    "./static/js/app.js",
+  ],
 
   output: {
     // 打包后的文件名
@@ -43,12 +47,24 @@ module.exports = {
         test: /\.js$/,
         // 排除压缩库和 node_modules，避免不必要的降级编译
         exclude: /node_modules|lib/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-env"],
+            },
           },
-        },
+          {
+            // 编译时自动替换头像路径：PNG → WebP，原始目录 → dist 目录
+            // 这样 JS 源码无需任何修改，Webpack 在打包时动态完成路径重写
+            loader: "string-replace-loader",
+            options: {
+              search: "/static/images/avatars/\\$\\{(\\w+)\\}\\.png",
+              replace: "/static/dist/images/avatars/$${$1}.webp",
+              flags: "g",
+            },
+          },
+        ],
       },
       {
         // 处理 CSS 文件（由 style-loader 动态注入到页面中）

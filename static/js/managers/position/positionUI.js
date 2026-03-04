@@ -160,7 +160,7 @@ export const positionUI = {
       const primaryId = ids[0];
       const avatarId = configManager.getAvatarId(primaryId);
       const avatarPath =
-        avatarId > 0 ? `/static/dist/images/avatars/${avatarId}.webp` : "";
+        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
       const characterPositionConfig = positionManager.tempManualPositions[
         name
       ] || {
