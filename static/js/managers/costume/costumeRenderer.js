@@ -22,7 +22,10 @@ export const costumeRenderer = {
       const clone = template.content.cloneNode(true);
       const costumeItem = clone.querySelector(".costume-config-item");
       const primaryCharacterId = characterIds[0];
-      const safeDomId = characterName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, "_");
+      const safeDomId = characterName.replace(
+        /[^a-zA-Z0-9\u4e00-\u9fa5]/g,
+        "_",
+      );
       const avatarId = configManager.getAvatarId(primaryCharacterId);
       const availableCostumesForCharacter =
         costumeManager.tempAvailableCostumes[characterName] || [];
@@ -32,7 +35,7 @@ export const costumeRenderer = {
       const avatarDiv = costumeItem.querySelector(".config-avatar");
       avatarDiv.dataset.id = primaryCharacterId;
       const avatarPath =
-        avatarId > 0 ? `/static/images/avatars/${avatarId}.png` : "";
+        avatarId > 0 ? `/static/dist/images/avatars/${avatarId}.webp` : "";
 
       if (avatarId > 0) {
         const img = DOMUtils.createElement("img", {
@@ -138,19 +141,22 @@ export const costumeRenderer = {
       `costume-details-${safeDomId}`,
     );
     if (costumeDetailsContainer) {
-        const costumeSelect =
-          costumeDetailsContainer.querySelector(".costume-select");
-        if (costumeSelect && costumeSelect.dataset.characterName === characterName) {
-          const selectedCostumeId =
-            costumeManager.tempCostumeChanges[characterName] || "";
-          const availableCostumesForCharacter =
-            costumeManager.tempAvailableCostumes[characterName] || [];
+      const costumeSelect =
+        costumeDetailsContainer.querySelector(".costume-select");
+      if (
+        costumeSelect &&
+        costumeSelect.dataset.characterName === characterName
+      ) {
+        const selectedCostumeId =
+          costumeManager.tempCostumeChanges[characterName] || "";
+        const availableCostumesForCharacter =
+          costumeManager.tempAvailableCostumes[characterName] || [];
 
-          DOMUtils.clearElement(costumeSelect);
+        DOMUtils.clearElement(costumeSelect);
 
-          const emptyOption = DOMUtils.createElement("option", { value: "" });
-          emptyOption.textContent = "无服装";
-          costumeSelect.appendChild(emptyOption);
+        const emptyOption = DOMUtils.createElement("option", { value: "" });
+        emptyOption.textContent = "无服装";
+        costumeSelect.appendChild(emptyOption);
 
         availableCostumesForCharacter.forEach((costumeId) => {
           const option = DOMUtils.createElement("option", { value: costumeId });
@@ -159,9 +165,9 @@ export const costumeRenderer = {
           if (costumeId === selectedCostumeId) {
             option.selected = true;
           }
-            costumeSelect.appendChild(option);
-          });
-        }
+          costumeSelect.appendChild(option);
+        });
       }
+    }
   },
 };
