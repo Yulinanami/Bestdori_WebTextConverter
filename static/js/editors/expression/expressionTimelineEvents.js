@@ -31,18 +31,14 @@ export function bindTimelineEvents(editor) {
         return;
       }
 
-      const characterSelector = footer?.querySelector(
-        ".motion-character-selector"
-      );
-      if (characterSelector) {
-        const isHidden = characterSelector.style.display === "none";
-        characterSelector.style.display = isHidden ? "block" : "none";
-      } else {
-        assignmentRenderer.showExpressionSetupUI(editor, timelineCard);
-        const newSelector = footer?.querySelector(".motion-character-selector");
-        if (newSelector) {
-          newSelector.style.display = "block";
-        }
+      const previousSelector = footer?.querySelector(".motion-character-selector");
+      const shouldOpenAfterRefresh =
+        !previousSelector || previousSelector.style.display === "none";
+      // 对话卡片每次点击都重建选择器，确保角色列表跟随最新登场角色变化。
+      assignmentRenderer.showExpressionSetupUI(editor, timelineCard);
+      const newSelector = footer?.querySelector(".motion-character-selector");
+      if (newSelector) {
+        newSelector.style.display = shouldOpenAfterRefresh ? "block" : "none";
       }
       return;
     }
