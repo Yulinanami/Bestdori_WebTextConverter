@@ -21,6 +21,30 @@
   font-size: 20px;
 }
 
+/* 对话卡片内联编辑栏 */
+.dialogue-item.is-inline-editing .dialogue-text {
+  display: none;
+}
+
+.dialogue-inline-editor {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialogue-inline-input {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.dialogue-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 /* 角色选择器容器 */
 .motion-character-selector {
   display: flex;

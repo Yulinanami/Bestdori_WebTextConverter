@@ -110,7 +110,7 @@ export function attachLive2DDrag(editor, baseEditor) {
                 );
                 editor.stopScrolling();
                 if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
-                  DragHelper.handleInvalidDrop(editor);
+                  editor.applyGroupedReorderRender("state");
                   return;
                 }
                 onEndHandler(sortableEvent);

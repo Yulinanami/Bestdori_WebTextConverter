@@ -14,6 +14,8 @@ function shortText(text, maxLength = 36) {
 // 多选模式、文本编辑、卡片点击逻辑等
 export function attachSpeakerControls(editor) {
   Object.assign(editor, {
+    inlineTextEditor: null,
+
     // 从本地读取“多选/编辑模式”的开关状态
     loadModePreferences() {
       const savedMultiSelect = storageService.get(
@@ -78,37 +80,190 @@ export function attachSpeakerControls(editor) {
         this.isTextEditMode,
       );
       this.applyModeUIState();
+      if (!this.isTextEditMode) {
+        this.closeInlineTextEditor();
+      }
     },
 
-    // 点击“编辑”按钮：弹窗修改这条对话的文本
+    // 关闭卡片内文本编辑栏并清理编辑态样式。
+    closeInlineTextEditor() {
+      const inlineEditor = this.inlineTextEditor;
+      if (!inlineEditor) {
+        return;
+      }
+      inlineEditor.card?.classList.remove("is-inline-editing");
+      if (inlineEditor.textElement) {
+        inlineEditor.textElement.style.display = "";
+      }
+      inlineEditor.editorElement?.remove();
+      this.inlineTextEditor = null;
+      this.setSpeakerDragEnabled?.(true);
+    },
+
+    // 保存卡片内编辑文本：沿用原 command 链路，保持撤销/局部短路一致。
+    commitInlineTextEdit(actionId, editedText) {
+      const targetAction = this.projectFileState.actions.find(
+        (actionItem) => actionItem.id === actionId,
+      );
+      if (!targetAction) return;
+
+      const oldText = targetAction.text || "";
+      const trimmedText = editedText.trim();
+      this.closeInlineTextEditor();
+
+      if (trimmedText === oldText.trim()) {
+        return;
+      }
+
+      this.pendingTextEditRender = {
+        actionId,
+        text: trimmedText,
+        oldText,
+        detail: `text: "${shortText(oldText)}" -> "${shortText(trimmedText)}"`,
+        source: "ui",
+      };
+      this.baseEditor.executeCommand((currentState) => {
+        const actionToUpdate = currentState.actions.find(
+          (actionItem) => actionItem.id === actionId,
+        );
+        if (actionToUpdate) {
+          actionToUpdate.text = trimmedText;
+        }
+      });
+    },
+
+    // 保存“新增对话”内联编辑文本：保存后在当前卡片下方插入新卡片。
+    commitInlineTextAdd(actionId, editedText) {
+      const trimmedText = editedText.trim();
+      this.closeInlineTextEditor();
+      if (!trimmedText) {
+        return;
+      }
+
+      const newAction = {
+        id: `action-id-${Date.now()}-${Math.random()}`,
+        type: "talk",
+        text: trimmedText,
+        speakers: [],
+      };
+      this.pendingCardMutationRender = {
+        type: "add",
+        actionId: newAction.id,
+        source: "ui",
+        detail: `type=talk, text="${shortText(trimmedText)}", speakers=0`,
+      };
+      this.baseEditor.executeCommand((currentState) => {
+        const currentIndex = currentState.actions.findIndex(
+          (actionItem) => actionItem.id === actionId,
+        );
+        if (currentIndex > -1) {
+          currentState.actions.splice(currentIndex + 1, 0, newAction);
+        }
+      });
+    },
+
+    // 在指定卡片内打开文本编辑栏，保存逻辑由 onSave 决定（编辑/新增共用）。
+    openInlineTextEditor(actionId, initialText, onSave, mode = "edit") {
+      const canvas = this.domCache.canvas;
+      const dialogueCard = canvas?.querySelector(
+        `.dialogue-item[data-id="${actionId}"]`,
+      );
+      if (!dialogueCard) return;
+
+      const currentEditor = this.inlineTextEditor;
+      if (currentEditor?.actionId === actionId && currentEditor.mode === mode) {
+        currentEditor.inputElement?.focus();
+        return;
+      }
+
+      this.closeInlineTextEditor();
+
+      const dialogueContent = dialogueCard.querySelector(".dialogue-content");
+      const dialogueText = dialogueCard.querySelector(".dialogue-text");
+      if (!dialogueContent || !dialogueText) {
+        return;
+      }
+
+      const editorElement = document.createElement("div");
+      editorElement.className = "dialogue-inline-editor";
+
+      const inputElement = document.createElement("textarea");
+      inputElement.className = "form-input dialogue-inline-input";
+      inputElement.value = initialText || "";
+
+      const actionsElement = document.createElement("div");
+      actionsElement.className = "dialogue-inline-actions";
+
+      const saveButton = document.createElement("button");
+      saveButton.className = "btn btn-primary btn-sm";
+      saveButton.textContent = "保存";
+
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "btn btn-secondary btn-sm";
+      cancelButton.textContent = "取消";
+
+      actionsElement.appendChild(cancelButton);
+      actionsElement.appendChild(saveButton);
+      editorElement.appendChild(inputElement);
+      editorElement.appendChild(actionsElement);
+
+      dialogueCard.classList.add("is-inline-editing");
+      dialogueText.style.display = "none";
+      dialogueContent.appendChild(editorElement);
+
+      this.inlineTextEditor = {
+        actionId,
+        mode,
+        card: dialogueCard,
+        textElement: dialogueText,
+        editorElement,
+        inputElement,
+      };
+      this.setSpeakerDragEnabled?.(false);
+
+      editorElement.addEventListener("click", (clickEvent) => {
+        clickEvent.stopPropagation();
+      });
+      cancelButton.addEventListener("click", () => {
+        this.closeInlineTextEditor();
+      });
+      saveButton.addEventListener("click", () => {
+        onSave(inputElement.value);
+      });
+      inputElement.addEventListener("keydown", (keyboardEvent) => {
+        if (keyboardEvent.key === "Escape") {
+          keyboardEvent.preventDefault();
+          this.closeInlineTextEditor();
+          return;
+        }
+        if (
+          keyboardEvent.key === "Enter" &&
+          (keyboardEvent.ctrlKey || keyboardEvent.metaKey)
+        ) {
+          keyboardEvent.preventDefault();
+          onSave(inputElement.value);
+        }
+      });
+
+      inputElement.focus();
+      inputElement.setSelectionRange(
+        inputElement.value.length,
+        inputElement.value.length,
+      );
+    },
+
+    // 点击“编辑”按钮：在卡片内打开编辑栏。
     handleTextEdit(actionId) {
       const targetAction = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
       if (!targetAction) return;
-      const editedText = prompt("编辑对话内容:", targetAction.text);
-
-      if (editedText !== null && editedText.trim() !== targetAction.text.trim()) {
-        const trimmedText = editedText.trim();
-        this.pendingTextEditRender = {
-          actionId,
-          text: trimmedText,
-          oldText: targetAction.text || "",
-          detail: `text: "${shortText(targetAction.text)}" -> "${shortText(
-            trimmedText
-          )}"`,
-          source: "ui",
-        };
-        this.baseEditor.executeCommand((currentState) => {
-          const actionToUpdate = currentState.actions.find(
-            (actionItem) => actionItem.id === actionId,
-          );
-
-          if (actionToUpdate) {
-            actionToUpdate.text = trimmedText;
-          }
-        });
-      }
+      this.openInlineTextEditor(
+        actionId,
+        targetAction.text || "",
+        (editedText) => this.commitInlineTextEdit(actionId, editedText),
+        "edit",
+      );
     },
 
     // 点击卡片时：根据多选/快捷键决定如何选择、或触发编辑/新增/删除
@@ -210,6 +365,7 @@ export function attachSpeakerControls(editor) {
 
     // 删除一条对话卡片（会二次确认）
     async handleCardDelete(actionId) {
+      this.closeInlineTextEditor();
       const targetAction = this.projectFileState.actions.find(
         (actionItem) => actionItem.id === actionId,
       );
@@ -243,43 +399,21 @@ export function attachSpeakerControls(editor) {
       }
     },
 
-    // 在当前卡片下方新增一条对话（弹窗输入文本）
-    async handleCardAdd(actionId) {
-      const newText = await modalService.prompt("请输入新对话的内容：");
-      if (newText && newText.trim()) {
-        const currentIndex = this.projectFileState.actions.findIndex(
-          (actionItem) => actionItem.id === actionId,
-        );
-        if (currentIndex < 0) return;
-
-        const trimmedText = newText.trim();
-        const newAction = {
-          id: `action-id-${Date.now()}-${Math.random()}`,
-          type: "talk",
-          text: trimmedText,
-          speakers: [],
-        };
-        this.pendingCardMutationRender = {
-          type: "add",
-          actionId: newAction.id,
-          source: "ui",
-          detail: `type=talk, text="${shortText(trimmedText)}", speakers=0`,
-        };
-        this.baseEditor.executeCommand((currentState) => {
-          const currentIndex = currentState.actions.findIndex(
-            (actionItem) => actionItem.id === actionId,
-          );
-          if (currentIndex > -1) {
-            currentState.actions.splice(currentIndex + 1, 0, newAction);
-          }
-        });
-      }
+    // 在当前卡片内打开新增编辑栏，保存后插入新对话卡片。
+    handleCardAdd(actionId) {
+      this.openInlineTextEditor(
+        actionId,
+        "",
+        (editedText) => this.commitInlineTextAdd(actionId, editedText),
+        "add",
+      );
     },
 
     // 重新绑定画布点击事件（避免重复绑定/旧 handler 残留）
     reattachSelection() {
       const canvas = this.domCache.canvas;
       if (canvas) {
+        this.closeInlineTextEditor();
         if (this._onCardClick) {
           canvas.removeEventListener("click", this._onCardClick);
         }

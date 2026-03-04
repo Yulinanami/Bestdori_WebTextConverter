@@ -159,6 +159,7 @@ export const speakerEditor = {
       cancelAnimationFrame(this.renderFrameId);
       this.renderFrameId = null;
     }
+    this.closeInlineTextEditor?.();
     // 关闭后清理局部短路标记，避免下次打开误命中旧状态。
     this.pendingGroupedReorderRender = null;
     this.pendingLayoutPropertyRender = null;

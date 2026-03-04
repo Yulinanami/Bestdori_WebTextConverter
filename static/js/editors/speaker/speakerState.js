@@ -7,16 +7,23 @@ export function attachSpeakerState(editor) {
     // 给某条对话（或当前多选的多条对话）添加一个说话人
     updateSpeakerAssignment(actionId, newSpeaker, actionIndex) {
       const selectedIds = Array.from(editorService.selectionManager.selectedIds);
-      const targetIds = selectedIds.length > 0 ? selectedIds : [actionId];
+      const selectedTalkIds = selectedIds.filter((selectedId) =>
+        Boolean(
+          this.domCache.canvas?.querySelector(
+            `.dialogue-item[data-id="${selectedId}"]`
+          )
+        )
+      );
+      const targetIds = selectedTalkIds.length > 0 ? selectedTalkIds : [actionId];
       const targetActionIndexMap = new Map();
 
       if (Number.isInteger(actionIndex)) {
         targetActionIndexMap.set(actionId, actionIndex);
       }
 
-      if (selectedIds.length > 0 && this.domCache.canvas) {
+      if (selectedTalkIds.length > 0 && this.domCache.canvas) {
         const selectedCards = this.domCache.canvas.querySelectorAll(
-          ".dialogue-item.is-selected, .layout-item.is-selected"
+          ".dialogue-item.is-selected"
         );
         selectedCards.forEach((cardElement) => {
           const targetActionId = cardElement.dataset.id;
@@ -34,6 +41,12 @@ export function attachSpeakerState(editor) {
         const updatedActionIds = [];
         // 只在该说话人尚未存在时追加，避免重复写入。
         const addSpeakerIfNeeded = (actionToUpdate) => {
+          if (!actionToUpdate || actionToUpdate.type !== "talk") {
+            return;
+          }
+          if (!Array.isArray(actionToUpdate.speakers)) {
+            actionToUpdate.speakers = [];
+          }
           const speakerExists = actionToUpdate.speakers.some(
             (speaker) => speaker.characterId === newSpeaker.characterId
           );
@@ -43,7 +56,7 @@ export function attachSpeakerState(editor) {
           }
         };
 
-        if (selectedIds.length === 0 && Number.isInteger(actionIndex)) {
+        if (selectedTalkIds.length === 0 && Number.isInteger(actionIndex)) {
           const actionToUpdate = currentState.actions[actionIndex];
           if (actionToUpdate && actionToUpdate.id === actionId) {
             addSpeakerIfNeeded(actionToUpdate);
