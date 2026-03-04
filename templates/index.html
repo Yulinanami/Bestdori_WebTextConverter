@@ -434,10 +434,7 @@
                 <h3 class="card-title">开始转换</h3>
               </div>
               <div class="card-body">
-                <button
-                  class="btn btn-primary btn-lg btn-block"
-                  id="convertBtn"
-                >
+                <button class="btn btn-primary btn-lg" id="convertBtn">
                   <span id="convertIcon"></span>
                   <span id="convertText">开始转换</span>
                 </button>
@@ -480,7 +477,14 @@
               <div class="card-header">
                 <h3 class="card-title">文件合成器</h3>
               </div>
-              <div class="card-body">
+              <div
+                class="card-body"
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start;
+                "
+              >
                 <p class="text-hint mb-15">
                   上传多个转换后的 JSON
                   或项目进度文件，拖拽调整顺序后合成为一个文件。这有助于分段调试长剧情。
@@ -517,7 +521,7 @@
                 </div>
 
                 <button
-                  class="btn btn-primary btn-lg btn-block"
+                  class="btn btn-primary btn-lg mt-10"
                   id="mergeBtn"
                   disabled
                 >

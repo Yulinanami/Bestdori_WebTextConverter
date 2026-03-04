@@ -45,7 +45,6 @@
   font-family: var(--font-mono);
 }
 
-/* 文件上传 */
 .file-upload {
   position: relative;
   display: inline-block;

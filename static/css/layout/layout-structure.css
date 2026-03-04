@@ -144,6 +144,8 @@
 /* 工作区步骤容器 */
 .workspace-step {
   display: none;
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
 .workspace-step.active {
