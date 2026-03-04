@@ -1,10 +1,11 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const sharp = require("sharp");
+const isProduction = process.env.NODE_ENV === "production";
 
 module.exports = {
   // 设置打包模式，生产模式会自动压缩代码
-  mode: process.env.NODE_ENV === "production" ? "production" : "development",
+  mode: isProduction ? "production" : "development",
 
   // 入口文件：CSS 和 JS 统一从这里引入，无需修改 JS 源码
   entry: [
@@ -55,8 +56,7 @@ module.exports = {
             },
           },
           {
-            // 编译时自动替换头像路径：PNG → WebP，原始目录 → dist 目录
-            // 这样 JS 源码无需任何修改，Webpack 在打包时动态完成路径重写
+            // 编译时把头像路径从 PNG 改到构建产物中的 WebP。
             loader: "string-replace-loader",
             options: {
               search: "/static/images/avatars/\\$\\{(\\w+)\\}\\.png",
@@ -74,8 +74,8 @@ module.exports = {
     ],
   },
 
-  // 生成 SourceMap，方便在浏览器的开发者工具中调试原始代码
-  devtool: "source-map",
+  // 仅开发环境生成 SourceMap，减少生产产物体积
+  devtool: isProduction ? false : "source-map",
 
   plugins: [
     new CopyWebpackPlugin({
@@ -88,11 +88,10 @@ module.exports = {
             ignore: ["**/avatars/**"],
           },
         },
-        // 将 avatars 目录下的 PNG 转换为 WebP 格式后输出
+        // 将 avatars 目录下的 PNG 转为 WebP 后输出。
         {
           from: path.resolve(__dirname, "static/images/avatars"),
           to({ absoluteFilename }) {
-            // 将输出文件名的 .png 扩展名替换为 .webp
             const basename = path.basename(absoluteFilename, ".png");
             return path.resolve(
               __dirname,

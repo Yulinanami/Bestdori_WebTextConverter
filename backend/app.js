@@ -15,6 +15,7 @@ function createApp({
   configManager,
   maxContentLength,
   onShutdown,
+  enableShutdown,
 }) {
   // 创建并配置 Express 应用实例
   const app = express();
@@ -55,7 +56,7 @@ function createApp({
   app.use("/api", createConfigRouter({ configManager }));
   app.use("/api", createConversionRouter({ configManager, maxContentLength }));
   app.use("/api", createMergeRouter());
-  app.use("/api", createSystemRouter({ onShutdown }));
+  app.use("/api", createSystemRouter({ onShutdown, enableShutdown }));
 
   // 统一处理上传大小超限等 Multer 错误。
   app.use((error, _req, res, next) => {

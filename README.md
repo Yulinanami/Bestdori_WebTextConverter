@@ -117,9 +117,13 @@
     npm install
     ```
 
-4.  **启动项目**
+4.  **构建前端资源**
     ```bash
-    # 运行应用
+    npm run build
+    ```
+
+5.  **启动项目**
+    ```bash
     npm start
     ```
 
