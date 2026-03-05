@@ -6,6 +6,8 @@
   display: flex;
   align-items: flex-start;
   position: relative;
+  content-visibility: auto; /* 优化长列表滚动性能 */
+  contain-intrinsic-size: 80px; /* 预估默认高度，防止滚动条抖动 */
 }
 
 /* 对话内容样式优化 */

@@ -11,8 +11,9 @@
   z-index: 6;
 }
 
-/* 当编辑模式激活时，才显示按钮容器 */
-.text-edit-mode-active .card-action-buttons {
+/* 当编辑模式激活且卡片被悬停或选中时，才显示按钮容器 */
+.text-edit-mode-active .dialogue-item:hover .card-action-buttons,
+.text-edit-mode-active .dialogue-item.is-selected .card-action-buttons {
   display: flex;
 }
 
