@@ -134,15 +134,6 @@ class ApiService {
     }
   }
 
-  // 请求后端关闭本地服务器（桌面打包版会用到）
-  async shutdownServer() {
-    try {
-      await this.post("/api/shutdown", {}, { timeout: 1000 });
-    } catch {
-      console.warn("Shutdown request sent. Server is closing.");
-    }
-  }
-
   // 内部方法：把 axios 的报错“翻译”成用户能看懂的提示文字
   _handleError(error) {
     if (error.response) {
