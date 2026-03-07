@@ -7,9 +7,10 @@ const { createLogger } = require("./logger");
 
 const logger = createLogger("server");
 
-const HOST = "0.0.0.0";
-const PORT = 5000;
+const HOST = process.env.HOST || "0.0.0.0";
+const PORT = Number.parseInt(process.env.PORT || "5000", 10);
 const MAX_CONTENT_LENGTH = 16 * 1024 * 1024;
+const shouldOpenBrowser = process.env.OPEN_BROWSER === "1";
 
 const projectRoot = path.resolve(__dirname, "..");
 const configManager = new ConfigManager(path.join(projectRoot, "config.yaml"));
@@ -18,8 +19,6 @@ const app = createApp({
   projectRoot,
   configManager,
   maxContentLength: MAX_CONTENT_LENGTH,
-  // 供 /api/shutdown 使用：异步触发进程退出
-  onShutdown: () => setTimeout(() => process.exit(0), 100),
 });
 
 // 启动后自动打开浏览器访问首页
@@ -45,14 +44,16 @@ const server = app.listen(PORT, HOST, () => {
   logger.info(`本地访问: http://127.0.0.1:${PORT}`);
   logger.info("=".repeat(60));
 
-  setTimeout(() => {
-    try {
-      logger.info(`正在打开浏览器: http://127.0.0.1:${PORT}`);
-      openBrowser(`http://127.0.0.1:${PORT}`);
-    } catch (error) {
-      logger.warning(`自动打开浏览器失败: ${error.message}`);
-    }
-  }, 1000);
+  if (shouldOpenBrowser) {
+    setTimeout(() => {
+      try {
+        logger.info(`正在打开浏览器: http://127.0.0.1:${PORT}`);
+        openBrowser(`http://127.0.0.1:${PORT}`);
+      } catch (error) {
+        logger.warning(`自动打开浏览器失败: ${error.message}`);
+      }
+    }, 1000);
+  }
 });
 
 server.on("error", (error) => {

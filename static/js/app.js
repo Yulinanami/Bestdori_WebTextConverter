@@ -19,7 +19,6 @@ import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { mergerManager } from "@managers/mergerManager.js";
 import { modalService } from "@services/ModalService.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
-import { apiService } from "@services/ApiService.js";
 import "@managers/navigationManager.js"; // 初始化导航
 import "@managers/themeManager.js"; // 初始化主题
 
@@ -116,23 +115,6 @@ const bindGlobalEvents = () => {
   document
     .getElementById("helpBtn")
     ?.addEventListener("click", () => modalService.open("helpModal"));
-
-  document.getElementById("shutdownBtn")?.addEventListener("click", () => {
-    if (confirm("确定要关闭应用程序吗？")) {
-      ui.showStatus("正在关闭服务器...", "info");
-      apiService.shutdownServer();
-      setTimeout(() => {
-        document.body.innerHTML = `
-          <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; text-align: center; background: var(--secondary-gradient); color: var(--text-primary);">
-            <div>
-              <h1 style="font-size: 2rem; margin-bottom: 1rem;">程序已关闭</h1>
-              <p style="font-size: 1.1rem; color: var(--text-secondary);">你现在可以安全地关闭此浏览器窗口了。</p>
-            </div>
-          </div>
-        `;
-      }, 500);
-    }
-  });
 
   document.getElementById("inputText")?.addEventListener("input", () => {
     if (state.get("projectFile")) {

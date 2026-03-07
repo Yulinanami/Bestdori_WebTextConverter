@@ -6,16 +6,10 @@ const { createLogger } = require("./logger");
 const { createConfigRouter } = require("./routes/configRoutes");
 const { createConversionRouter } = require("./routes/conversionRoutes");
 const { createMergeRouter } = require("./routes/mergeRoutes");
-const { createSystemRouter } = require("./routes/systemRoutes");
 
 const logger = createLogger("src.app");
 
-function createApp({
-  projectRoot,
-  configManager,
-  maxContentLength,
-  onShutdown,
-}) {
+function createApp({ projectRoot, configManager, maxContentLength }) {
   // 创建并配置 Express 应用实例
   const app = express();
   const templatePath = path.join(projectRoot, "templates", "index.html");
@@ -55,7 +49,6 @@ function createApp({
   app.use("/api", createConfigRouter({ configManager }));
   app.use("/api", createConversionRouter({ configManager, maxContentLength }));
   app.use("/api", createMergeRouter());
-  app.use("/api", createSystemRouter({ onShutdown }));
 
   // 统一处理上传大小超限等 Multer 错误。
   app.use((error, _req, res, next) => {

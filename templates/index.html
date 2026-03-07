@@ -24,8 +24,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
     <link rel="stylesheet" href="/static/css/lib/prism-tomorrow.min.css" />
-    <link rel="stylesheet" href="/static/css/main.css" />
-    <link rel="stylesheet" href="/static/css/material-symbols.css" />
+    <!-- 业务 CSS 已由 Webpack 负责打包并注入 -->
     <script src="/static/js/lib/Sortable.min.js"></script>
     <script src="/static/js/lib/axios.min.js"></script>
     <script src="/static/js/lib/prism.min.js"></script>
@@ -60,19 +59,6 @@
           title="使用说明"
         >
           ?
-        </button>
-        <button
-          id="shutdownBtn"
-          class="btn btn-icon"
-          aria-label="关闭应用程序"
-          title="关闭程序"
-          style="
-            color: var(--color-error);
-            border-color: var(--color-error-light);
-          "
-        >
-          <!-- 使用 Google Icon Font -->
-          <span class="material-symbols-outlined"> power_settings_new </span>
         </button>
       </div>
     </div>
@@ -1589,22 +1575,8 @@
       </div>
     </template>
 
-    <!-- Import Map: 提供 JS 别名（需在所有 module 脚本之前） -->
-    <script type="importmap">
-      {
-        "imports": {
-          "immer": "/static/js/lib/immer.production.mjs",
-          "@utils/": "/static/js/utils/",
-          "@services/": "/static/js/services/",
-          "@editors/": "/static/js/editors/",
-          "@managers/": "/static/js/managers/",
-          "@mixins/": "/static/js/mixins/"
-        }
-      }
-    </script>
-
-    <!-- 模块化JS文件 -->
-    <script type="module" src="/static/js/app.js"></script>
+    <!-- 由 Webpack 生成 -->
+    <script src="/static/dist/bundle.js" defer></script>
 
     <!-- 状态消息容器（移到 body 直接子元素，确保 fixed 定位相对于视口） -->
     <div id="statusMessage" class="status-message status-info hidden"></div>
