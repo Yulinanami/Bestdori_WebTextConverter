@@ -93,11 +93,6 @@ export class BaseEditor {
     return offset + localIndex;
   }
 
-  // 备份：记录打开编辑器时的原始状态（用于判断是否有未保存更改）
-  backupState() {
-    this.originalStateOnOpen = JSON.stringify(this.projectFileState);
-  }
-
   // 清理备份：保存成功后就不再提示“未保存更改”
   clearBackup() {
     this.originalStateOnOpen = null;

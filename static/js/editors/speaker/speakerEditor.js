@@ -153,7 +153,7 @@ export const speakerEditor = {
     this.renderCharacterList(usedCharacterNames);
   },
 
-  // 关闭弹窗前：取消渲染任务，并解绑选择事件
+  // 关闭弹窗前：取消渲染任务并清理局部状态
   onBeforeClose() {
     if (this.renderFrameId) {
       cancelAnimationFrame(this.renderFrameId);
@@ -169,7 +169,6 @@ export const speakerEditor = {
     this.pendingCardMutationRender = null;
     this.lastSpeakerRenderFailReason = "";
     this.resetCanvasRenderCache?.();
-    editorService.selectionManager.detach(this.domCache.canvas);
   },
 };
 

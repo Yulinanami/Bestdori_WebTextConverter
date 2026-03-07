@@ -2,7 +2,6 @@
 class ApiService {
   constructor() {
     // 初始化：设置接口前缀、超时和默认请求头
-    this.baseURL = "";
     this.timeout = 30000;
     this.defaultHeaders = {
       "Content-Type": "application/json",

@@ -7,7 +7,6 @@ import { positionUI } from "@managers/position/positionUI.js";
 import { positionStore } from "@managers/position/positionStore.js";
 
 export const positionManager = {
-  positions: ["leftOver", "leftInside", "center", "rightInside", "rightOver"],
   autoLayoutPositions: ["leftInside", "center", "rightInside"],
   positionNames: positionUI.positionNames,
 

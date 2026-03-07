@@ -2,7 +2,6 @@
 
 import { state } from "@managers/stateManager.js";
 import { configManager } from "@managers/configManager.js";
-import { historyManager } from "@managers/historyManager.js";
 import { projectManager } from "@managers/projectManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
@@ -19,7 +18,6 @@ class EditorService {
     // 初始化：允许外部传入依赖（测试/替换实现时很有用）
     this.state = dependencyOverrides.state || state;
     this.configManager = dependencyOverrides.configManager || configManager;
-    this.historyManager = dependencyOverrides.historyManager || historyManager;
     this.projectManager = dependencyOverrides.projectManager || projectManager;
     this.pinnedCharacterManager =
       dependencyOverrides.pinnedCharacterManager || pinnedCharacterManager;
@@ -31,8 +29,6 @@ class EditorService {
     this.selectionManager =
       dependencyOverrides.selectionManager || selectionManager;
   }
-
-  // historyManager 已经通过 BaseEditor 集成，编辑器不需要直接访问
 }
 
 // 创建并导出单例（编辑器直接用 editorService）
