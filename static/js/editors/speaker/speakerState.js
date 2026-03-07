@@ -156,7 +156,7 @@ export function attachSpeakerState(editor) {
       });
     },
 
-    // 恢复默认：按原始文本重新分段并重建项目（可撤销）
+    // 恢复默认：按原始文本重建项目（可撤销）
     async reset() {
       if (!confirm("确定要恢复默认说话人吗？此操作可以撤销。")) {
         return;
@@ -168,12 +168,7 @@ export function attachSpeakerState(editor) {
 
       try {
         const rawText = document.getElementById("inputText").value;
-        const response = await axios.post("/api/segment-text", {
-          text: rawText,
-        });
-        const defaultState = this.createProjectFileFromSegments(
-          response.data.segments
-        );
+        const defaultState = this.createProjectFile(rawText);
         this.baseEditor.executeCommand((currentState) => {
           Object.assign(currentState, defaultState);
         });

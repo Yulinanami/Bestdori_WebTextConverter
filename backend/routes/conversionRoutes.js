@@ -13,7 +13,6 @@ const {
   sanitizeFilename,
   buildDownloadFilename,
 } = require("./conversion/downloadHelpers");
-const { segmentInputText } = require("./conversion/projectTextBuilders");
 const {
   isProjectFile,
   buildProjectExport,
@@ -134,20 +133,6 @@ function createConversionRouter({ configManager, maxContentLength }) {
     } catch (error) {
       logger.error("文件下载失败:", error);
       res.status(500).json({ error: `文件下载失败: ${error.message}` });
-    }
-  });
-
-  // /api/segment-text：把文本按空行切分为段落
-  router.post("/segment-text", (req, res) => {
-    try {
-      logger.info("收到文本分段请求");
-      const rawText = req.body.text || "";
-      const segments = segmentInputText(rawText);
-      logger.info(`文本分段完成 - 生成 ${segments.length} 个段落`);
-      res.json({ segments });
-    } catch (error) {
-      logger.error("文本分段失败:", error);
-      res.status(500).json({ error: `文本分段失败: ${error.message}` });
     }
   });
 

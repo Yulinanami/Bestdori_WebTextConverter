@@ -84,11 +84,10 @@ export const BaseEditorMixin = {
     });
   },
 
-  // 把“分段后的文本”组装成项目文件（actions 数组）
-  createProjectFileFromSegments(segments) {
-    const text = segments.join("\n\n");
+  // 把输入文本组装成项目文件（actions 数组）
+  createProjectFile(rawText) {
     const baseProject = createProjectFileFromText(
-      text,
+      rawText,
       editorService.state.get("currentConfig")
     );
     const actions = baseProject.actions.map((action, index) =>
@@ -112,15 +111,11 @@ export const BaseEditorMixin = {
       initialState = projectState;
       onExistingProjectLoaded?.(initialState, { rawText });
     } else if (trimmedText) {
-      const response = await axios.post("/api/segment-text", {
-        text: rawText,
-      });
-      const segments = response.data?.segments || [];
-      initialState = this.createProjectFileFromSegments(segments);
-      onNewProjectCreated?.({ rawText, segments });
+      initialState = this.createProjectFile(rawText);
+      onNewProjectCreated?.({ rawText });
     } else {
-      initialState = this.createProjectFileFromSegments([]);
-      onNewProjectCreated?.({ rawText, segments: [] });
+      initialState = this.createProjectFile("");
+      onNewProjectCreated?.({ rawText });
     }
 
     this.projectFileState = DataUtils.deepClone(initialState);

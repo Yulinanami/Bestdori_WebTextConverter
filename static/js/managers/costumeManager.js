@@ -13,7 +13,6 @@ export const costumeManager = {
   defaultAvailableCostumes: {},
   availableCostumes: {},
   builtInCharacters: new Set(),
-  mujicaMapping: {},
 
   // 模态框内的临时状态
   tempCostumeChanges: {},

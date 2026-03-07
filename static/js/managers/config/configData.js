@@ -168,7 +168,6 @@ export const configData = {
 
     // 自定义引号
     if (config.custom_quotes && Array.isArray(config.custom_quotes)) {
-      state.set("customQuotes", config.custom_quotes);
       quoteStore.saveCustomQuotes(config.custom_quotes);
     }
 

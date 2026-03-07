@@ -23,8 +23,7 @@ export const quoteManager = {
 
   // 从本地读取自定义引号列表（并写入全局状态）
   loadCustomQuotes() {
-    const savedQuotes = quoteStore.loadCustomQuotes();
-    return savedQuotes.length > 0;
+    quoteStore.loadCustomQuotes();
   },
 
   // 把“预设 + 自定义”引号渲染成一组复选框

@@ -22,9 +22,6 @@ export const EditorHelper = {
         // 等待一小段时间，让 UI 更新
         await FileUtils.delay(100);
 
-        // 备份当前状态
-        editor.backupState();
-
         // 执行打开前的回调
         if (beforeOpen) {
           await beforeOpen();
