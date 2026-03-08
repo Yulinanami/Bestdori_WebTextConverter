@@ -1,11 +1,11 @@
-// 统一管理弹窗（打开/关闭/绑定关闭按钮）
+// 管理弹窗开关
 
 class ModalService {
   constructor() {
     // 初始化：记录已打开的弹窗，并防止重复初始化
     this.openModals = new Set();
     this.initialized = false;
-    this.specialHandlers = {}; // 某些弹窗需要“自定义关闭方式”时放这里
+    this.specialHandlers = {}; // 某些弹窗的自定义关闭方式
   }
 
   init() {
@@ -67,6 +67,7 @@ class ModalService {
 
   // 弹出“确认/取消”的对话框（返回 Promise<boolean>）
   async confirm(message, _options = {}) {
+    // 等用户点确定或取消
     return new Promise((resolve) => {
       // 使用原生 confirm（后续可以改为自定义模态框时使用 options.title、confirmText、cancelText）
       const result = window.confirm(message);
@@ -76,6 +77,7 @@ class ModalService {
 
   // 弹出“只有一个确定按钮”的提示框（返回 Promise<void>）
   async alert(message, _options = {}) {
+    // 等用户关掉提示框
     return new Promise((resolve) => {
       // 使用原生 alert（后续可以改为自定义模态框时使用 options.title）
       window.alert(message);
@@ -85,6 +87,7 @@ class ModalService {
 
   // 弹出“输入框”对话框（返回用户输入的字符串或 null）
   async prompt(message, defaultValue = "") {
+    // 等用户输完内容
     return new Promise((resolve) => {
       // 使用原生 prompt（后续可以改为自定义模态框）
       const result = window.prompt(message, defaultValue);
@@ -96,7 +99,9 @@ class ModalService {
   _bindCloseButtons() {
     document
       .querySelectorAll(".modal-close, .btn-modal-close")
+      // 给每个关闭按钮加点击处理
       .forEach((button) => {
+        // 点击时关掉对应弹窗
         button.addEventListener("click", () => {
           const modalId =
             button.dataset.modalId || button.closest(".modal")?.id;
@@ -107,8 +112,9 @@ class ModalService {
       });
   }
 
-  // 内部方法：按 Esc 关闭当前最上层的“非编辑器”弹窗。
+  // 内部方法：按 Esc 关闭当前最上层的“非编辑器”弹窗
   _bindEscClose() {
+    // 按 Esc 时关掉最上面的普通弹窗
     document.addEventListener("keydown", (keyboardEvent) => {
       if (keyboardEvent.key !== "Escape") {
         return;
@@ -121,7 +127,7 @@ class ModalService {
       }
 
       const topModal = document.getElementById(topModalId);
-      // 编辑器弹窗（全屏）保持走各自的未保存确认逻辑。
+// 编辑器弹窗继续走自己的未保存提醒
       if (topModal?.classList.contains("modal-fullscreen")) {
         return;
       }
@@ -132,5 +138,5 @@ class ModalService {
   }
 }
 
-// 导出单例（全站共用同一个弹窗管理器）
+// 导出单例
 export const modalService = new ModalService();

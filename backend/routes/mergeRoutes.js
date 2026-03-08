@@ -1,4 +1,4 @@
-// 合并接口：合并 Bestdori 结果文件或项目进度文件
+// 处理合并接口
 const express = require("express");
 const multer = require("multer");
 const { createLogger } = require("../logger");
@@ -8,12 +8,12 @@ const { formatFileSize } = require("./conversion/uploadHelpers");
 
 const logger = createLogger("src.routes.merger");
 
-// 注册合并相关路由（文件导入 + 合并执行）。
+// 创建合并路由
 function createMergeRouter() {
   const router = express.Router();
   const upload = multer({ storage: multer.memoryStorage() });
 
-  // /api/merge-file-import：解析单个合并文件
+  // 导入合并文件
   router.post("/merge-file-import", upload.single("file"), (req, res) => {
     try {
       const file = parseMergeUpload(req.file);
@@ -32,7 +32,7 @@ function createMergeRouter() {
     }
   });
 
-  // /api/merge：合并文件列表
+  // 合并文件
   router.post("/merge", (req, res) => {
     try {
       const data = req.body || {};

@@ -1,4 +1,4 @@
-// 把任意值转成简短可读文本，用于性能日志输出。
+// 把值整理成更短的文字
 export function shortValue(value, maxLength = 84) {
   if (value === undefined) return "undefined";
   if (value === null) return "null";
@@ -12,7 +12,7 @@ export function shortValue(value, maxLength = 84) {
   return `${normalized.slice(0, maxLength)}...`;
 }
 
-// 把 patch 变化数组压缩成一行摘要，供局部短路命中日志复用。
+// 把变化整理成一行短文字
 export function summarizeChanges(changes = [], maxLength = 84) {
   if (!Array.isArray(changes) || changes.length === 0) {
     return "";

@@ -1,7 +1,7 @@
-// 管理浅色/深色主题：读取本地保存的选择，并把主题应用到页面上
+// 切换浅色和深色主题
 export class ThemeManager {
   constructor() {
-    // 初始化：定义存储 key，并立刻启动初始化流程
+    // 保存存储 key 并立即初始化
     this.STORAGE_KEY = "theme-preference";
     this.themeSelector = null;
     this.init();
@@ -11,6 +11,7 @@ export class ThemeManager {
   init() {
     // 等待 DOM 加载完成
     if (document.readyState === "loading") {
+      // 等页面加载完再找主题下拉框
       document.addEventListener("DOMContentLoaded", () => this.setup());
     } else {
       this.setup();
@@ -25,12 +26,13 @@ export class ThemeManager {
       return;
     }
 
-    // 加载保存的主题偏好
+    // 读取已保存的主题
     this.loadTheme();
 
     // 监听主题切换事件
+    // 切换下拉框时立即换主题
     this.themeSelector.addEventListener("change", (changeEvent) => {
-      this.setTheme(changeEvent.target.value);
+      this.changeTheme(changeEvent.target.value);
     });
   }
 
@@ -49,7 +51,7 @@ export class ThemeManager {
   }
 
   // 切换主题，并把选择保存到 localStorage
-  setTheme(theme) {
+  changeTheme(theme) {
     try {
       this.applyTheme(theme);
       localStorage.setItem(this.STORAGE_KEY, theme);
@@ -58,7 +60,7 @@ export class ThemeManager {
     }
   }
 
-  // 真正把主题写到 DOM（通过 data-theme 控制 CSS）
+  // 把主题写到 DOM
   applyTheme(theme) {
     if (theme === "dark") {
       document.documentElement.setAttribute("data-theme", "dark");
@@ -68,5 +70,5 @@ export class ThemeManager {
   }
 }
 
-// 导出单例（导入即自动初始化）
+// 导出单例
 export const themeManager = new ThemeManager();

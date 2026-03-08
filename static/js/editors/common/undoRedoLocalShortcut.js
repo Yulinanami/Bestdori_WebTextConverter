@@ -1,6 +1,7 @@
+// 处理撤销重做的局部刷新
 import { perfLog } from "@editors/common/perfLogger.js";
 
-// 文本展示裁剪：日志里避免超长字段刷屏。
+// 截短长文本
 function shortenText(text, maxLength = 48) {
   const normalized = String(text || "")
     .replace(/\s+/g, " ")
@@ -11,7 +12,7 @@ function shortenText(text, maxLength = 48) {
   return `${normalized.slice(0, maxLength)}...`;
 }
 
-// 统一把不同类型值转成可读日志文本。
+// 把值转成日志文本
 function formatValue(value) {
   if (value === undefined) return "undefined";
   if (value === null) return "null";
@@ -29,8 +30,8 @@ function formatValue(value) {
   }
 }
 
-// 按 path 片段读取嵌套值（用于 patch 前后值对比）。
-function getValueBySegments(target, segments) {
+// 按路径取值
+function readValueBySegments(target, segments) {
   let current = target;
   for (const segment of segments) {
     if (current === null || current === undefined) {
@@ -41,7 +42,7 @@ function getValueBySegments(target, segments) {
   return current;
 }
 
-// 把 path 片段转成可读路径：如 ["position","to","offsetX"] -> position.to.offsetX。
+// 把路径片段转成字符串
 function formatSegments(segments) {
   let output = "";
   segments.forEach((segment) => {
@@ -54,7 +55,7 @@ function formatSegments(segments) {
   return output || "(root)";
 }
 
-// 把说话人数组压缩成简短摘要。
+// 压缩说话人列表
 function summarizeSpeakers(speakers = []) {
   if (speakers.length === 0) {
     return "[]";
@@ -64,7 +65,7 @@ function summarizeSpeakers(speakers = []) {
     .join("|");
 }
 
-// 生成 action 摘要，供增删日志直接打印关键信息。
+// 生 action 摘要
 function summarizeAction(action) {
   if (!action) {
     return "action=unknown";
@@ -87,7 +88,7 @@ function summarizeAction(action) {
   return `type=${action.type || "unknown"}, id=${action.id || "unknown"}`;
 }
 
-// 比较 actions 前后列表：识别新增、删除和纯排序变化。
+// 比较 action 列表
 function analyzeActionDiff(beforeActions, afterActions) {
   const beforeIdSet = new Set(beforeActions.map((action) => action.id));
   const afterIdSet = new Set(afterActions.map((action) => action.id));
@@ -108,7 +109,7 @@ function analyzeActionDiff(beforeActions, afterActions) {
   return { addedIds, removedIds, orderChanged };
 }
 
-// 从 action 相关 patch 中收集“受影响 actionId”集合。
+// 收集受影响的 action id
 function collectTouchedActionIds(actionPaths, beforeActions, afterActions) {
   const touchedActionIds = new Set();
   actionPaths.forEach((patch) => {
@@ -121,7 +122,7 @@ function collectTouchedActionIds(actionPaths, beforeActions, afterActions) {
   return touchedActionIds;
 }
 
-// 抽取单个 action 的字段变化明细（路径 + 前后值）。
+// 收集 action 字段变化
 function collectActionChangeDetails(actionPaths, beforeAction, afterAction) {
   const details = [];
   const seenPath = new Set();
@@ -138,14 +139,14 @@ function collectActionChangeDetails(actionPaths, beforeAction, afterAction) {
     details.push({
       path: pathText,
       rootKey: String(segments[0]),
-      beforeValue: getValueBySegments(beforeAction, segments),
-      afterValue: getValueBySegments(afterAction, segments),
+      beforeValue: readValueBySegments(beforeAction, segments),
+      afterValue: readValueBySegments(afterAction, segments),
     });
   });
   return details;
 }
 
-// 过滤并格式化字段变化，避免一次打印过多细节。
+// 整理字段变化文本
 function formatChangeDetails(changeDetails, filterKeys, limit = 4) {
   const filtered = changeDetails.filter((detail) =>
     filterKeys.includes(detail.rootKey)
@@ -166,7 +167,7 @@ function formatChangeDetails(changeDetails, filterKeys, limit = 4) {
   return `${head}; ...+${filtered.length - limit}`;
 }
 
-// 汇总排序变化（仅显示前几项）。
+// 整理排序变化
 function summarizeOrderChange(beforeIndexById, afterIndexById) {
   const movedItems = [];
   beforeIndexById.forEach((beforeIndex, actionId) => {
@@ -190,8 +191,8 @@ function summarizeOrderChange(beforeIndexById, afterIndexById) {
   return `${preview}; ...+${movedItems.length - 4}`;
 }
 
-// 给编辑器注入“undo/redo 的局部短路标记”能力。
-export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
+// 挂撤销重做局部刷新
+export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
   const {
     debugTag = "undoRedo",
     onActionAdded,
@@ -218,8 +219,8 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
   const speakerKeyList = Array.from(speakerKeys);
   const expressionKeyList = Array.from(expressionKeys);
 
-  const previousResolver = baseEditor.commandRenderHintResolver;
-  baseEditor.commandRenderHintResolver = (context) => {
+  const previousResolver = editor.commandRenderHintResolver;
+  editor.commandRenderHintResolver = (context) => {
     previousResolver?.(context);
 
     const { phase, stateBefore, stateAfter, patchesApplied } = context;
@@ -251,7 +252,7 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
       afterActions,
     );
 
-    // 第一步：先处理“增删排序”这类结构变化。
+    // 第一步：先处理“增删排序”这类结构变化
     if (addedIds.length === 1 && removedIds.length === 0 && onActionAdded) {
       const actionId = addedIds[0];
       const actionAfter = afterActionById.get(actionId);
@@ -300,7 +301,7 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
       return;
     }
 
-    // 第二步：仅在“单个 action 字段变化”时做字段级短路标记。
+    // 第二步：仅在“单个 action 字段变化”时做字段级短路标记
     const actionPaths = patchesApplied.filter(
       (patch) => patch.path[0] === "actions" && Number.isInteger(patch.path[1]),
     );
@@ -317,7 +318,7 @@ export function attachUndoRedoLocalShortcut(baseEditor, handlers = {}) {
       actionPaths.length > 0 &&
       actionPaths.every((patch) => speakerKeys.has(String(patch.path[2])));
 
-    // 第三步：多 action 的撤销/恢复里，若仅改了 speakers 字段，走批量说话人局部短路。
+    // 第三步：多 action 的撤销/恢复里，若仅改了 speakers 字段，走批量说话人局部短路
     if (touchedActionIds.size > 1) {
       if (hasOnlySpeakerFieldChange && onSpeakerFieldChanged) {
         const actionIds = Array.from(touchedActionIds);

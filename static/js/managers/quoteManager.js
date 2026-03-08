@@ -1,8 +1,7 @@
-// 管理“去引号”选项：渲染引号复选框、保存选择、支持自定义引号对
+// 管理去引号选项
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { quoteStore } from "@managers/quote/quoteStore.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 export const quoteManager = {
@@ -21,23 +20,25 @@ export const quoteManager = {
     }
   },
 
-  // 从本地读取自定义引号列表（并写入全局状态）
-  loadCustomQuotes() {
-    quoteStore.loadCustomQuotes();
+  // 保存自定义引号列表
+  persistCustomQuotes(quotes) {
+    const nextQuotes = quotes ?? (state.customQuotes || []);
+    state.customQuotes = nextQuotes;
+    return storageService.save(STORAGE_KEYS.CUSTOM_QUOTES, nextQuotes);
   },
 
-  // 把“预设 + 自定义”引号渲染成一组复选框
+// 渲染预设和自定义引号
   renderQuoteOptions() {
     const quoteOptionsContainer = document.getElementById("quoteOptionsContainer");
     if (!quoteOptionsContainer) return;
     DOMUtils.clearElement(quoteOptionsContainer);
-    this.loadCustomQuotes();
+    state.customQuotes = storageService.load(STORAGE_KEYS.CUSTOM_QUOTES, []);
 
     // 加载预设引号的保存状态
-    this.presetStates = storageService.get(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
+    this.presetStates = storageService.load(STORAGE_KEYS.PRESET_QUOTES_STATE, {});
 
     const fragment = document.createDocumentFragment();
-    const quotesConfig = state.get("configData")?.quotes_config;
+    const quotesConfig = state.configData?.quotes_config;
     if (quotesConfig && quotesConfig.quote_categories) {
       Object.entries(quotesConfig.quote_categories).forEach(
         ([categoryName, quoteCharacters]) => {
@@ -59,7 +60,7 @@ export const quoteManager = {
         }
       );
     }
-    quoteStore.getCustomQuotes().forEach((quote, index) => {
+    (state.customQuotes || []).forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
       const optionElement = this.createQuoteOptionElement(
         checkboxId,
@@ -74,7 +75,7 @@ export const quoteManager = {
     this.attachCheckboxListeners();
   },
 
-  // 生成“一行引号选项”的 DOM（复选框 + 文案 + 可选删除按钮）
+  // 创建一行引号选项
   createQuoteOptionElement(
     checkboxId,
     categoryName,
@@ -142,25 +143,31 @@ export const quoteManager = {
     const closeChar = checkbox.dataset.close;
     if (!openChar || !closeChar) return;
 
-    if (checkbox.id.includes("custom-saved")) {
-      const quoteName = `${openChar}...${closeChar}`;
-      quoteStore.updateCustomQuoteChecked(quoteName, checkbox.checked);
-    } else {
+      if (checkbox.id.includes("custom-saved")) {
+        const quoteName = `${openChar}...${closeChar}`;
+        this.persistCustomQuotes(
+          (state.customQuotes || []).map((quote) =>
+            quote.name === quoteName ? { ...quote, checked: checkbox.checked } : quote
+          ),
+        );
+      } else {
       const stateKey = `${openChar}_${closeChar}`;
       this.presetStates[stateKey] = checkbox.checked;
-      storageService.set(STORAGE_KEYS.PRESET_QUOTES_STATE, this.presetStates);
+      storageService.save(STORAGE_KEYS.PRESET_QUOTES_STATE, this.presetStates);
     }
   },
 
-  // 删除某个自定义引号对，并重新渲染列表
+// 删除一个自定义引号后刷新列表
   removeCustomQuote(quoteName) {
-    quoteStore.removeCustomQuoteByName(quoteName);
+    this.persistCustomQuotes(
+      (state.customQuotes || []).filter((quote) => quote.name !== quoteName),
+    );
     this.renderQuoteOptions();
     ui.showStatus("自定义引号已删除", "success");
   },
 
   // 收集当前勾选的引号对（交给后端做“去引号”）
-  getSelectedQuotes() {
+  collectSelectedQuotes() {
     const selectedPairs = [];
 
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
@@ -187,15 +194,13 @@ export const quoteManager = {
     }
 
     const categoryName = `${openChar}...${closeChar}`;
-    if (
-      quoteStore.getCustomQuotes().some((quote) => quote.name === categoryName)
-    ) {
+    if ((state.customQuotes || []).some((quote) => quote.name === categoryName)) {
       ui.showStatus("该引号对已存在！", "error");
       return;
     }
 
     const quotes = [
-      ...quoteStore.getCustomQuotes(),
+      ...(state.customQuotes || []),
       {
         name: categoryName,
         open: openChar,
@@ -204,7 +209,7 @@ export const quoteManager = {
       },
     ];
 
-    quoteStore.saveCustomQuotes(quotes);
+    this.persistCustomQuotes(quotes);
     this.renderQuoteOptions();
 
     document.getElementById(openInputId).value = "";

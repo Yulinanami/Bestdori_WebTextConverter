@@ -1,6 +1,6 @@
-// 转换统计
+// 统计动作数量
 
-// 统计转换后动作数量与涉及角色数量。
+// 数动作和角色
 function collectActionStats(actions) {
   let talkCount = 0;
   let layoutCount = 0;

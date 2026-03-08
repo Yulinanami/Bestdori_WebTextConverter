@@ -1,31 +1,27 @@
+// 处理说话人编辑器拖拽
 import { DragHelper } from "@editors/common/DragHelper.js";
-import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
-// 拖角色到卡片、拖卡片排序、拖拽时自动滚动
-export function attachSpeakerDrag(editor, baseEditor) {
+// 添加拖拽能力
+export function attachSpeakerDrag(editor) {
   Object.assign(editor, {
-    // 统一开关说话人编辑器的拖拽能力（角色列表拖拽 + 时间线排序）。
-    setSpeakerDragEnabled(enabled) {
+    // 开关拖拽
+    toggleSpeakerDrag(enabled) {
       const disabled = !enabled;
       this.sortableInstances.forEach((instance) => {
         instance?.option?.("disabled", disabled);
       });
     },
 
-    // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
+    // 拖动时自动滚动
     handleDragScrolling: (dragEvent) => {
-      const containers = [
-        editor.domCache.canvas,
-        editor.domCache.characterList,
-      ];
-      ScrollAnimationMixin.handleDragScrolling.call(
+      DragHelper.handleAutoScroll(
         editor,
         dragEvent,
-        containers
+        [editor.domCache.canvas, editor.domCache.characterList]
       );
     },
 
-    // 初始化拖拽：角色列表可拖出，画布可接收并可排序
+    // 初始化拖拽
     initDragAndDrop() {
       const characterList = editor.domCache.characterList;
       const canvas = editor.domCache.canvas;
@@ -38,7 +34,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
         (instance) => instance?.el === canvas
       );
 
-      // 角色列表的Sortable配置
+      // 角色列表支持拖出
       if (!hasCharacterSortable) {
         editor.sortableInstances.push(
           new Sortable(characterList, {
@@ -64,28 +60,27 @@ export function attachSpeakerDrag(editor, baseEditor) {
                 "dragover",
                 editor.handleDragScrolling
               );
-              editor.stopScrolling();
+              DragHelper.stopAutoScroll(editor);
             },
             onAdd: (sortableAddEvent) => {
               const cardItem = sortableAddEvent.item;
               const actionId = cardItem.dataset.id;
 
-              // 右侧角色列表只承接“对话卡片清空说话人”。
+              // 拖回右侧就清空说话人
               if (actionId && cardItem.classList.contains("dialogue-item")) {
                 editor.removeAllSpeakersFromAction(actionId);
               }
 
               cardItem.remove();
-              // 某些操作不会产生 state patch（例如旁白卡片清空说话人），
-              // 这里补一次渲染，避免卡片只在 DOM 上被移除后“假消失”。
+              // 有些操作不会触发 patch 所以补一次渲染
               editor.scheduleRender();
             },
           })
         );
       }
-      // 复用通用重排逻辑：speaker 只保留分组模式下的局部刷新标记。
+      // 创建重排处理
       const runReorder = DragHelper.createReorderHandler({
-        runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
+        runCommand: (changeFn) => editor.executeCommand(changeFn),
         beforeReorder: (globalOldIndex, globalNewIndex) => {
           editor.markGroupedReorderRender(
             "state",
@@ -95,16 +90,14 @@ export function attachSpeakerDrag(editor, baseEditor) {
         },
       });
 
-      // 使用 DragHelper 创建 onEnd 处理器（移动现有卡片）
+      // 创建拖拽结束处理
       const onEndHandler = DragHelper.createOnEndHandler({
-        editor: baseEditor,
-        getGroupingEnabled: () =>
-          editor.domCache.groupCheckbox?.checked || false,
+        editor,
         groupSize: 50,
         executeFn: runReorder,
       });
 
-      // 当“角色”拖到画布上时：把角色设置成目标对话的说话人
+      // 角色拖到卡片上时改说话人
       const onAddHandler = (sortableAddEvent) => {
         const characterItem = sortableAddEvent.item;
         characterItem.style.display = "none";
@@ -159,8 +152,8 @@ export function attachSpeakerDrag(editor, baseEditor) {
                   "dragover",
                   editor.handleDragScrolling
                 );
-                editor.stopScrolling();
-                // 与另外两个编辑器一致：落点不在时间线内就回滚，避免拖出时误重排。
+                DragHelper.stopAutoScroll(editor);
+                // 没落在画布里就回滚
                 if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
                   editor.applyGroupedReorderRender("state");
                   editor.reattachSelection();
@@ -182,10 +175,10 @@ export function attachSpeakerDrag(editor, baseEditor) {
           )
         );
       }
-      this.setSpeakerDragEnabled(true);
+      this.toggleSpeakerDrag(true);
     },
 
-    // 内部方法：优先按落点直接命中卡片，失败时再按 Y 坐标找最近卡片
+    // 找离落点最近的卡片
     _findClosestCard(x, y) {
       const canvas = editor.domCache.canvas;
       if (!canvas) return null;
@@ -211,7 +204,7 @@ export function attachSpeakerDrag(editor, baseEditor) {
           closestCard = dialogueCard;
         }
       }
-      // 添加一个阈值，如果拖拽位置离任何卡片都太远，则不视为有效目标
+      // 离得太远就不算命中
       const closestRect = closestCard
         ? closestCard.getBoundingClientRect()
         : null;

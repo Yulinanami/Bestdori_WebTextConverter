@@ -1,11 +1,12 @@
-// 常用 DOM 小工具：创建元素、清空、批量 append、显示/隐藏等。
+// 常用 DOM 小工具：创建元素、清空、批量 append、显示/隐藏等
 
 export const DOMUtils = {
-  // 创建一个元素，并顺便设置属性/事件/子节点
+  // 创建元素并设置属性 事件和子节点
   createElement(tagName, attributes = {}, children = null) {
     const createdElement = document.createElement(tagName);
 
     // 设置属性
+    // 一个个设置元素属性和事件
     Object.entries(attributes).forEach(([key, value]) => {
       if (key === "className") {
         createdElement.className = value;
@@ -15,6 +16,7 @@ export const DOMUtils = {
         const eventName = key.slice(2).toLowerCase();
         createdElement.addEventListener(eventName, value);
       } else if (key === "dataset" && typeof value === "object") {
+        // 一个个设置 data 属性
         Object.entries(value).forEach(([dataKey, dataValue]) => {
           createdElement.dataset[dataKey] = dataValue;
         });
@@ -28,6 +30,7 @@ export const DOMUtils = {
       if (typeof children === "string") {
         createdElement.textContent = children;
       } else if (Array.isArray(children)) {
+        // 一个个加上子节点或文字
         children.forEach((child) => {
           if (child instanceof Element) {
             createdElement.appendChild(child);
@@ -57,6 +60,7 @@ export const DOMUtils = {
   // 把一组子元素批量 append 到父元素（用 fragment 减少重排）
   appendChildren(parent, children) {
     const fragment = document.createDocumentFragment();
+    // 先把要加的节点放进 fragment
     children.forEach((child) => {
       if (child instanceof Element) {
         fragment.appendChild(child);
@@ -76,7 +80,7 @@ export const DOMUtils = {
     }
   },
 
-  // 创建一个按钮，并可选绑定点击事件
+  // 创建按钮并按需绑定点击事件
   createButton(text, className = "btn", onClick = null) {
     const buttonElement = this.createElement("button", { className }, text);
     if (onClick) {

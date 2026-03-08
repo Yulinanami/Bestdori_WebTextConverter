@@ -1,4 +1,4 @@
-// 编辑器的“内核”：负责状态管理 + 撤销/重做（通过 immer patches）。
+// 编辑器通用状态和撤销重做
 
 import { historyManager } from "@managers/historyManager.js";
 import { applyPatches, enablePatches, produceWithPatches } from "immer";
@@ -6,25 +6,27 @@ import { applyPatches, enablePatches, produceWithPatches } from "immer";
 enablePatches();
 
 export class BaseEditor {
+  // 创建编辑器基础对象
   constructor(config = {}) {
-    // 项目状态
+    // 当前项目状态
     this.projectFileState = null;
     this.originalStateOnOpen = null;
     this.activeGroupIndex = 0;
 
-    // 配置回调函数
+    // 保存外面传进来的方法
     this.renderCallback = config.renderCallback || (() => {});
     this.commandRenderHintResolver = config.commandRenderHintResolver || null;
 
-    // 分组大小配置
+    // 每组默认大小
     this.groupSize = config.groupSize || 50;
   }
 
-  // 执行一次“可撤销的修改”（changeFn 会修改 draft）
+  // 执行一次可撤销修改
   executeCommand(changeFn, options = {}) {
     const beforeState = this.projectFileState || {};
     const [nextState, patches, inversePatches] = produceWithPatches(
       beforeState,
+      // 把修改写进草稿对象
       (draft) => {
         changeFn(draft);
       }
@@ -37,10 +39,11 @@ export class BaseEditor {
 
     let executedOnce = false;
     const command = {
+      // 执行这次修改
       execute: () => {
         const stateBefore = this.projectFileState;
         const phase = executedOnce ? "redo" : "execute";
-        // 第一次执行直接使用 produceWithPatches 的产物，避免重复应用补丁
+        // 第一次直接用算好的结果
         if (!executedOnce) {
           executedOnce = true;
           this.projectFileState = nextState;
@@ -57,6 +60,7 @@ export class BaseEditor {
         });
         this.renderCallback();
       },
+      // 撤销这次修改
       undo: () => {
         const stateBefore = this.projectFileState;
         this.projectFileState = applyPatches(
@@ -78,8 +82,8 @@ export class BaseEditor {
     historyManager.do(command);
   }
 
-  // 分组模式下：把“组内索引”换算成“全局索引”
-  getGlobalIndex(localIndex, isGroupingEnabled = false) {
+  // 把组内序号换成全局序号
+  resolveGlobalIndex(localIndex, isGroupingEnabled = false) {
     if (
       !isGroupingEnabled ||
       this.activeGroupIndex === null ||
@@ -88,18 +92,13 @@ export class BaseEditor {
       return localIndex;
     }
 
-    // 当前分组的起始位置 = 分组索引 × 每组大小
+    // 算出当前组在全列表里的起点
     const offset = this.activeGroupIndex * this.groupSize;
     return offset + localIndex;
   }
 
-  // 清理备份：保存成功后就不再提示“未保存更改”
-  clearBackup() {
-    this.originalStateOnOpen = null;
-  }
-
-  // 分组模式下：计算列表里“分组标题”占用的偏移量
-  getHeaderOffset(isGroupingEnabled = false) {
+  // 算出分组头占了多少位置
+  resolveHeaderOffset(isGroupingEnabled = false) {
     if (
       !isGroupingEnabled ||
       this.activeGroupIndex === null ||

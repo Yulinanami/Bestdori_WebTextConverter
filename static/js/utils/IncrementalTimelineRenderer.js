@@ -1,6 +1,6 @@
-// 增量时间线渲染：缓存卡片 DOM，只更新变动的部分，避免整列表重画。
+// 时间线列表的增量刷新
 
-// 把 DocumentFragment/Element 统一转换成卡片元素
+// 把节点转成卡片元素
 function normalizeCardElement(cardNode) {
   if (!cardNode) return null;
   if (cardNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -9,7 +9,7 @@ function normalizeCardElement(cardNode) {
   return cardNode;
 }
 
-// 更新卡片上的序号（#1/#2/...）
+// 更新卡片序号
 function updateSequenceNumber(cardEl, index) {
   if (cardEl) {
     cardEl.dataset.actionIndex = String(index);
@@ -20,7 +20,7 @@ function updateSequenceNumber(cardEl, index) {
   }
 }
 
-// 清理缓存：把已经不存在的卡片节点删掉
+// 删掉已经没用的缓存卡片
 function removeStaleNodes(cache, validIds) {
   for (const [id, node] of cache.nodesById.entries()) {
     if (!validIds.has(id)) {
@@ -31,7 +31,7 @@ function removeStaleNodes(cache, validIds) {
   }
 }
 
-// 获取某条 action 对应的卡片：能复用就复用，不能就重新渲染
+// 拿到一张可用的卡片
 function ensureCard({
   action,
   index,
@@ -70,7 +70,7 @@ function ensureCard({
   return cardEl;
 }
 
-// 创建一个“分组标题”节点（点击可展开/收起）
+// 创建分组标题
 function createGroupHeader({ start, end, index, isActive, onClick }) {
   const header = document.createElement("div");
   updateGroupHeader(header, {
@@ -83,7 +83,7 @@ function createGroupHeader({ start, end, index, isActive, onClick }) {
   return header;
 }
 
-// 创建时间线渲染缓存（节点 Map + 签名 Map）
+// 创建时间线缓存
 export function createTimelineRenderCache() {
   return {
     nodesById: new Map(),
@@ -92,7 +92,7 @@ export function createTimelineRenderCache() {
   };
 }
 
-// 清空时间线渲染缓存：用于编辑器关闭后重开时强制重新比对和重绘。
+// 清空时间线缓存
 export function resetTimelineRenderCache(cache) {
   if (!cache) return;
   cache.nodesById.clear();
@@ -100,7 +100,7 @@ export function resetTimelineRenderCache(cache) {
   cache.contextSignature = null;
 }
 
-// 增量渲染时间线（支持分组模式：只渲染当前展开的一组）
+// 按变化刷新时间线
 export function renderIncrementalTimeline({
   container,
   actions = [],
@@ -116,7 +116,7 @@ export function renderIncrementalTimeline({
 }) {
   if (!container || typeof renderCard !== "function" || !cache) return;
 
-  // 上下文发生变化时强制刷新卡片内容
+  // 上下文变了就重新比对卡片
   if (cache.contextSignature !== contextSignature) {
     cache.signatures.clear();
     cache.contextSignature = contextSignature;

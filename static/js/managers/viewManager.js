@@ -1,9 +1,9 @@
-// 处理“页面上和文本输入相关”的小功能（例如格式化输入文本）
+// 输入框相关的小功能
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 
 export const viewManager = {
-  // 初始化：绑定“格式化文本”按钮
+  // 初始化页面按钮
   init() {
     const formatButton = document.getElementById("formatTextBtn");
     if (formatButton) {
@@ -11,7 +11,7 @@ export const viewManager = {
     }
   },
 
-  // 把输入框里的文本整理成“段落间空一行”的格式
+  // 整理输入框里的文本
   formatText() {
     const textarea = document.getElementById("inputText");
     const originalText = textarea.value;
@@ -28,8 +28,8 @@ export const viewManager = {
     const formattedText = contentLines.join("\n\n");
     textarea.value = formattedText;
 
-    if (state.get("projectFile")) {
-      state.set("projectFile", null);
+    if (state.projectFile) {
+      state.projectFile = null;
     }
     ui.showStatus("文本已成功格式化！", "success");
   },

@@ -1,4 +1,4 @@
-// 应用装配：注册中间件、静态资源、API 路由与错误处理
+// 创建后端应用
 const path = require("path");
 const express = require("express");
 const multer = require("multer");
@@ -16,7 +16,7 @@ function createApp({
   maxContentLength,
   onShutdown,
 }) {
-  // 创建并配置 Express 应用实例
+  // 创建应用实例
   const app = express();
   const templatePath = path.join(projectRoot, "templates", "index.html");
   const staticDir = path.join(projectRoot, "static");
@@ -26,7 +26,7 @@ function createApp({
     express.urlencoded({ extended: false, limit: `${maxContentLength}b` }),
   );
 
-  // 请求日志：记录请求与响应状态。
+  // 记录请求日志
   app.use((req, res, next) => {
     logger.debug(`收到请求: ${req.method} ${req.path}`);
     const contentType = req.headers["content-type"] || "";
@@ -46,18 +46,18 @@ function createApp({
 
   app.use("/static", express.static(staticDir));
 
-  // 首页：返回前端页面
+  // 返回首页
   app.get("/", (_req, res) => {
     res.sendFile(templatePath);
   });
 
-  // 注册所有 API 路由
+  // 注册路由
   app.use("/api", createConfigRouter({ configManager }));
   app.use("/api", createConversionRouter({ configManager, maxContentLength }));
   app.use("/api", createMergeRouter());
   app.use("/api", createSystemRouter({ onShutdown }));
 
-  // 统一处理上传大小超限等 Multer 错误。
+  // 处理上传报错
   app.use((error, _req, res, next) => {
     if (!(error instanceof multer.MulterError)) {
       next(error);
@@ -70,7 +70,7 @@ function createApp({
     res.status(400).json({ error: `文件处理失败: ${error.message}` });
   });
 
-  // 统一处理未捕获异常。
+  // 处理未捕获的错误
   app.use((error, _req, res, next) => {
     logger.error("未处理异常:", error);
     if (res.headersSent) {

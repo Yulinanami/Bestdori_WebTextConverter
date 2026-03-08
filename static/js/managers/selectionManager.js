@@ -1,8 +1,9 @@
+// 列表里的选中状态
 export const selectionManager = {
   selectedIds: new Set(),
   lastSelectedId: null,
 
-  // Ctrl/Command 点击：把某一项加入/移出“已选中集合”
+  // 切换一项的选中状态
   toggle(itemId) {
     if (this.selectedIds.has(itemId)) {
       this.selectedIds.delete(itemId);
@@ -11,13 +12,13 @@ export const selectionManager = {
     }
   },
 
-  // 普通点击：只保留一个选中项
+  // 只保留一个选中项
   selectSingle(itemId) {
     this.selectedIds.clear();
     this.selectedIds.add(itemId);
   },
 
-  // Shift 点击：把“上一次选中的项”到“当前项”之间的全部选中
+  // 选中一整段内容
   selectRange(endId, container, itemSelector) {
     if (!this.lastSelectedId) {
       this.selectSingle(endId);
@@ -30,10 +31,12 @@ export const selectionManager = {
     const endIndex = itemIds.indexOf(endId);
 
     if (startIndex === -1 || endIndex === -1) return;
+    // 把前后顺序排好
     const [start, end] = [startIndex, endIndex].sort(
       (leftIndex, rightIndex) => leftIndex - rightIndex
     );
     const rangeIds = itemIds.slice(start, end + 1);
+    // 把这一段都加入选中集合
     rangeIds.forEach((itemId) => this.selectedIds.add(itemId));
   },
 };

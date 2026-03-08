@@ -1,6 +1,6 @@
-// 项目文件校验与导出
+// 处理项目进度文件
 
-// 校验对象是否为可识别的项目文件结构。
+// 判断是不是项目文件
 function isProjectFile(projectFile) {
   if (!projectFile || !Array.isArray(projectFile.actions)) {
     return false;
@@ -25,7 +25,7 @@ function isProjectFile(projectFile) {
   });
 }
 
-// 导出项目文件并去掉运行态字段 characterStates。
+// 生成导出内容
 function buildProjectExport(projectFile) {
   const copy = JSON.parse(JSON.stringify(projectFile));
   copy.actions.forEach((action) => {

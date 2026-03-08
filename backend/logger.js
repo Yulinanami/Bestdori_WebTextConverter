@@ -1,5 +1,5 @@
-// 统一日志工具：输出固定日志格式
-// YYYY-MM-DD HH:MM:SS - [LEVEL] - module - message
+// 记录日志
+// 时间 - 级别 - 模块 - 内容
 const LEVEL_WEIGHT = {
   DEBUG: 10,
   INFO: 20,
@@ -7,9 +7,10 @@ const LEVEL_WEIGHT = {
   ERROR: 40,
 };
 
-// 默认显示 INFO 及以上，DEBUG 用于请求细节。
+// 默认只打 INFO 以上
 const CURRENT_LEVEL = "INFO";
 
+// 获取当前时间
 function formatNow() {
   const d = new Date();
   const y = d.getFullYear();
@@ -21,6 +22,7 @@ function formatNow() {
   return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
 }
 
+// 把日志参数转成字符串
 function stringifyArg(arg) {
   if (arg instanceof Error) {
     return arg.stack || arg.message;
@@ -35,8 +37,9 @@ function stringifyArg(arg) {
   }
 }
 
+// 按模块名创建 logger
 function createLogger(name) {
-  // 按模块名创建 logger，便于定位日志来源
+  // 记录一条日志
   function write(level, ...args) {
     if (LEVEL_WEIGHT[level] < LEVEL_WEIGHT[CURRENT_LEVEL]) {
       return;

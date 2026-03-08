@@ -1,11 +1,12 @@
-// 文件操作工具：封装浏览器端文件操作的通用逻辑
+// 管理浏览器里的文件操作
 export const FileUtils = {
   // 延迟指定毫秒数
   delay(ms) {
+    // 等指定时间后继续
     return new Promise((resolve) => setTimeout(resolve, ms));
   },
 
-  // 触发浏览器下载（支持字符串和 Blob）。
+  // 触发浏览器下载（支持字符串和 Blob）
   downloadAsFile(data, filename, mimeType = "application/json") {
     const blob =
       data instanceof Blob ? data : new Blob([data], { type: mimeType });

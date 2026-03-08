@@ -1,8 +1,8 @@
-// 上传文件相关处理
+// 处理上传文件
 
 const SUPPORTED_UPLOAD_EXTENSIONS = [".txt", ".docx", ".md"];
 
-// 尝试修复 multipart 文件名的 latin1/utf8 错码。
+// 修正上传文件名
 function decodeMultipartFilename(rawFilename) {
   if (!rawFilename) {
     return "";
@@ -11,13 +11,13 @@ function decodeMultipartFilename(rawFilename) {
   return decoded.includes("\uFFFD") ? rawFilename : decoded;
 }
 
-// 判断上传文件扩展名是否在支持列表内。
+// 判断后缀支不支持
 function isSupportedUploadFilename(filename) {
   const lower = filename.toLowerCase();
   return SUPPORTED_UPLOAD_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
 
-// 统一文件大小显示格式（B/KB/MB）。
+// 格式化文件大小
 function formatFileSize(byteLength) {
   if (!Number.isFinite(byteLength) || byteLength < 0) {
     return "0 B";

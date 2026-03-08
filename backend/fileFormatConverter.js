@@ -1,4 +1,4 @@
-// 文件内容转换：把上传文件统一解析成纯文本
+// 把上传文件转成纯文本
 const mammoth = require("mammoth");
 const { marked } = require("marked");
 const { createLogger } = require("./logger");
@@ -6,7 +6,7 @@ const { createLogger } = require("./logger");
 const logger = createLogger("src.utils");
 
 class FileFormatConverter {
-  // docx（二进制） -> 纯文本
+  // 读取 Word
   static async docxToText(fileContent) {
     try {
       const result = await mammoth.extractRawText({ buffer: fileContent });
@@ -21,8 +21,9 @@ class FileFormatConverter {
     }
   }
 
+  // 读取 Markdown
   static markdownToText(mdContent) {
-    // Markdown -> HTML -> 去标签文本
+    // 先转 HTML 再去标签
     try {
       const html = marked.parse(mdContent);
       let text = html.replace(/<[^>]+>/g, "");
@@ -41,8 +42,8 @@ class FileFormatConverter {
     }
   }
 
+  // 先按 utf8 读取 失败时再用 latin1
   static decodeUtf8OrLatin1(content) {
-    // 先尝试 UTF-8，失败再回退 latin-1
     try {
       const decoder = new TextDecoder("utf-8", { fatal: true });
       return decoder.decode(content);
@@ -53,8 +54,8 @@ class FileFormatConverter {
     }
   }
 
+  // 按后缀选读取方式
   static async readFileContentToText(filename, content) {
-    // 按文件后缀选择对应解析策略
     const lower = filename.toLowerCase();
     if (lower.endsWith(".docx")) {
       return this.docxToText(content);

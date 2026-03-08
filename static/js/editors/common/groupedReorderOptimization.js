@@ -1,19 +1,20 @@
+// 分组拖拽后的局部刷新
 import { DragHelper } from "@editors/common/DragHelper.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 
-// 给编辑器注入“分组拖拽排序局部刷新”能力。
+// 给编辑器添加分组重排优化
 export function attachGroupedReorderOptimization(editor, options = {}) {
   const {
     cardSelector = ".talk-item, .layout-item",
-    getContainer,
+    containerKey,
     onBeforeFullRender,
     onFullRender,
     onLocalRenderSuccess,
     debugTag = "",
   } = options;
   const debugPrefix = debugTag ? `[PERF][${debugTag}]` : "";
-  // 统一把触发来源转换成可读中文标签，用于日志输出。
-  const getTriggerLabel = (trigger) => {
+  // 把触发来源转成提示文字
+  const resolveTriggerLabel = (trigger) => {
     if (trigger === "undo") return "撤销";
     if (trigger === "redo") return "恢复";
     if (trigger === "drag") return "拖拽";
@@ -23,17 +24,18 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
   Object.assign(editor, {
     pendingGroupedReorderRender: null,
 
-    // 标记“当前是分组内拖拽排序”，下次渲染尝试局部刷新。
+    // 记录一次分组重排
     markGroupedReorderRender(mode = "meta", trigger = "unknown", detail = "") {
+// 标记分组重排刷新
       this.pendingGroupedReorderRender = { mode, trigger, detail };
     },
 
-    // 仅更新当前展开组卡片的序号与 actionIndex。
+    // 只刷新当前组的顺序
     applyGroupedReorderRender(mode = "meta") {
       const shouldReorderByState = mode === "state";
       let activeGroupActionIds = [];
       if (shouldReorderByState) {
-        const groupSize = this.baseEditor.groupSize;
+        const groupSize = this.groupSize;
         const actions = this.projectFileState.actions;
         const activeGroupIndex = this.activeGroupIndex;
         const shouldGroup =
@@ -52,9 +54,9 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
         }
       }
       return DragHelper.applyGroupedReorderRender({
-        container: getContainer.call(this),
+        container: this.domCache?.[containerKey],
         cardSelector,
-        groupSize: this.baseEditor.groupSize,
+        groupSize: this.groupSize,
         totalActions: this.projectFileState.actions.length,
         isGroupingEnabled: this.domCache.groupCheckbox.checked,
         activeGroupIndex: this.activeGroupIndex,
@@ -63,14 +65,14 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
       });
     },
 
-    // 统一处理状态变化后的渲染：优先局部刷新，失败则全量渲染。
+    // 处理重排后的刷新
     handleRenderCallback() {
       if (this.pendingGroupedReorderRender) {
         const pendingRender = this.pendingGroupedReorderRender;
         const pendingMode = pendingRender.mode;
         const pendingTrigger = pendingRender.trigger;
         const pendingDetail = pendingRender.detail;
-        const triggerLabel = getTriggerLabel(pendingTrigger);
+        const triggerLabel = resolveTriggerLabel(pendingTrigger);
         this.pendingGroupedReorderRender = null;
         const isGroupingEnabled = this.domCache.groupCheckbox.checked;
         const modeLabel = isGroupingEnabled ? "分组模式" : "非分组模式";
@@ -92,7 +94,7 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
           );
         }
 
-        // 撤销/恢复的排序回放必须保证看到中间态；失败时直接全量渲染，避免被其它局部分支拦截。
+        // 撤销重做失败时直接整页刷新
         if (pendingMode === "state") {
           if (debugPrefix) {
             perfLog(

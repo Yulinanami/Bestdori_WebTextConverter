@@ -1,4 +1,4 @@
-// 配置接口：返回前端初始化需要的配置数据
+// 处理配置接口
 const express = require("express");
 const multer = require("multer");
 const { createLogger } = require("../logger");
@@ -6,11 +6,12 @@ const { configFromText, buildConfigExport } = require("./config/configIO");
 
 const logger = createLogger("src.routes.config");
 
+// 创建配置路由
 function createConfigRouter({ configManager }) {
   const router = express.Router();
   const upload = multer({ storage: multer.memoryStorage() });
 
-  // 获取全部基础配置
+  // 取基础配置
   router.get("/config", (_req, res) => {
     try {
       logger.info("收到配置加载请求");
@@ -31,7 +32,7 @@ function createConfigRouter({ configManager }) {
     }
   });
 
-  // 获取服装配置（可用服装 + 默认服装）
+  // 取服装配置
   router.get("/costumes", (_req, res) => {
     try {
       logger.info("收到服装配置加载请求");
@@ -46,7 +47,7 @@ function createConfigRouter({ configManager }) {
     }
   });
 
-  // 处理导入配置文件结构
+  // 导入配置
   router.post("/config-import", upload.single("file"), (req, res) => {
     try {
       logger.info("收到导入配置请求");
@@ -61,7 +62,7 @@ function createConfigRouter({ configManager }) {
     }
   });
 
-  // 处理导出配置文件结构
+  // 导出配置
   router.post("/config-export", (req, res) => {
     try {
       logger.info("收到导出配置请求");

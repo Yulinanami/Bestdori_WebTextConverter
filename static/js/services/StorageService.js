@@ -1,7 +1,7 @@
-// localStorage：读/写/删除
+// localStorage 的读写和删除
 
 export const STORAGE_KEYS = {
-  // 这里集中放所有 localStorage 的 key（避免到处写字符串写错）
+  // 统一放 localStorage 的 key
   CHARACTER_MAPPING: "bestdori_character_mapping",
   CUSTOM_QUOTES: "bestdori_custom_quotes",
   PRESET_QUOTES_STATE: "bestdori_preset_quotes_state",
@@ -23,18 +23,18 @@ export const STORAGE_KEYS = {
 
 class StorageService {
   constructor() {
-    // 当存储空间满了时，用这个回调通知 UI（外部可以赋值）
+    // 存储空间满了时用这个回调通知页面
     this.onQuotaExceeded = null;
   }
 
-  // 读取一个 key：如果没有就返回默认值（并自动尝试 JSON.parse）
-  get(key, defaultValue = null) {
+  // 读取存储项
+  load(key, defaultValue = null) {
     try {
       const storedValue = localStorage.getItem(key);
       if (storedValue === null) {
         return defaultValue;
       }
-      // 尝试解析 JSON，如果失败则返回原始字符串
+      // JSON 解析失败时返回原始字符串
       try {
         return JSON.parse(storedValue);
       } catch {
@@ -46,8 +46,8 @@ class StorageService {
     }
   }
 
-  // 保存一个 key：自动把对象转成 JSON 字符串；失败时返回 false
-  set(key, value) {
+  // 保存一个存储项
+  save(key, value) {
     try {
       const serialized =
         typeof value === "string" ? value : JSON.stringify(value);
@@ -59,14 +59,14 @@ class StorageService {
         console.error("LocalStorage 空间已满");
         // 调用回调通知用户
         if (this.onQuotaExceeded) {
-          this.onQuotaExceeded(key, this.getSizeFormatted());
+          this.onQuotaExceeded(key, this.formatSizeText());
         }
       }
       return false;
     }
   }
 
-  // 删除一个 key
+  // 删除一个存储项
   remove(key) {
     try {
       localStorage.removeItem(key);
@@ -77,9 +77,10 @@ class StorageService {
     }
   }
 
-  // 批量删除多个 key（有一个失败就返回 false）
+  // 批量删除多个存储项
   removeMultiple(keys) {
     let allSuccess = true;
+    // 逐个删除
     keys.forEach((key) => {
       if (!this.remove(key)) {
         allSuccess = false;
@@ -88,18 +89,19 @@ class StorageService {
     return allSuccess;
   }
 
-  // 估算 localStorage 当前占用大小（字节）
-  getSize() {
+  // 估算 localStorage 当前占用大小
+  measureSize() {
     let size = 0;
+    // 累加每条内容的长度
     Object.entries(localStorage).forEach(([key, value]) => {
       size += value.length + key.length;
     });
     return size;
   }
 
-  // 把占用大小格式化成人类可读的字符串（例如 1.2 MB）
-  getSizeFormatted() {
-    const bytes = this.getSize();
+  // 把占用大小转成易读的文字
+  formatSizeText() {
+    const bytes = this.measureSize();
     if (bytes === 0) return "0 Bytes";
     const bytesPerUnit = 1024;
     const sizes = ["Bytes", "KB", "MB"];
@@ -108,5 +110,5 @@ class StorageService {
   }
 }
 
-// 导出单例（全站共用同一个存储服务）
+// 导出单例
 export const storageService = new StorageService();

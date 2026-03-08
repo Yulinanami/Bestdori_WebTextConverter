@@ -1,8 +1,8 @@
-// 对话动作转换
+// 转换对话动作
 const { toInt, toNumber } = require("./valueParsers");
 const { removeWrappedQuotes } = require("./quoteTools");
 
-// 将单个 talk 动作转换为目标动作结构并记录明细日志。
+// 转换一条对话动作
 function convertTalkAction(options) {
   const {
     talkAction,

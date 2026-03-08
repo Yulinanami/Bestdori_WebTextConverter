@@ -1,7 +1,75 @@
-// 拖拽助手：处理拖拽事件中的坐标提取、落点验证、DOM 重排等通用逻辑。
+// 拖拽相关的通用方法
 
 export const DragHelper = {
-  // 按当前 DOM 顺序批量刷新卡片的 actionIndex 与显示序号。
+  // 拖拽时自动滚动容器
+  handleAutoScroll(editor, dragEvent, scrollContainers = []) {
+    if (!scrollContainers.length) {
+      return;
+    }
+
+    let scrollTarget = null;
+    for (const scrollContainer of scrollContainers) {
+      if (scrollContainer && scrollContainer.contains(dragEvent.target)) {
+        scrollTarget = scrollContainer;
+        break;
+      }
+    }
+
+    if (!scrollTarget) {
+      DragHelper.stopAutoScroll(editor);
+      return;
+    }
+
+    const rect = scrollTarget.getBoundingClientRect();
+    const mouseY = dragEvent.clientY;
+    const hotZone = 75;
+    let nextScrollSpeed = 0;
+
+    if (mouseY < rect.top + hotZone) {
+      nextScrollSpeed = -10;
+    } else if (mouseY > rect.bottom - hotZone) {
+      nextScrollSpeed = 10;
+    }
+
+    if (nextScrollSpeed === 0) {
+      DragHelper.stopAutoScroll(editor);
+      return;
+    }
+
+    if (
+      nextScrollSpeed !== editor.scrollSpeed ||
+      !editor.scrollAnimationFrame
+    ) {
+      editor.scrollSpeed = nextScrollSpeed;
+      DragHelper.startAutoScroll(editor, scrollTarget);
+    }
+  },
+
+  // 开始自动滚动
+  startAutoScroll(editor, elementToScroll) {
+    DragHelper.stopAutoScroll(editor);
+
+    // 每一帧继续滚动
+    const scroll = () => {
+      if (elementToScroll && editor.scrollSpeed !== 0) {
+        elementToScroll.scrollTop += editor.scrollSpeed;
+        editor.scrollAnimationFrame = requestAnimationFrame(scroll);
+      }
+    };
+
+    scroll();
+  },
+
+  // 停止自动滚动
+  stopAutoScroll(editor) {
+    if (editor.scrollAnimationFrame) {
+      cancelAnimationFrame(editor.scrollAnimationFrame);
+      editor.scrollAnimationFrame = null;
+    }
+    editor.scrollSpeed = 0;
+  },
+
+  // 按当前顺序刷新卡片序号
   syncCardOrderMeta(params = {}) {
     const { container, cardSelector, startIndex = 0, baseIndex = 0 } = params;
     if (!container) {
@@ -26,8 +94,8 @@ export const DragHelper = {
     return true;
   },
 
-  // 从 Sortable 事件里提取当前指针坐标（鼠标/触摸）。
-  getPointerFromSortableEvent(sortableEvent) {
+  // 从拖拽事件里拿到指针位置
+  extractPointerFromSortableEvent(sortableEvent) {
     const pointerEvent = sortableEvent?.originalEvent;
     const point =
       pointerEvent?.changedTouches?.[0] ||
@@ -41,12 +109,12 @@ export const DragHelper = {
     return { x, y };
   },
 
-  // 判断拖拽结束落点是否仍在指定容器内。
+  // 看拖拽最后有没有落在容器里
   isDropInsideContainer(sortableEvent, container) {
     if (!container) {
       return false;
     }
-    const pointer = DragHelper.getPointerFromSortableEvent(sortableEvent);
+    const pointer = DragHelper.extractPointerFromSortableEvent(sortableEvent);
     if (!pointer) {
       return false;
     }
@@ -57,13 +125,13 @@ export const DragHelper = {
     return container.contains(dropTarget);
   },
 
-  // 把 actions[fromIndex] 挪到 toIndex。
+  // 把一项挪到新位置
   moveAction(actions, fromIndex, toIndex) {
     const [movedItem] = actions.splice(fromIndex, 1);
     actions.splice(toIndex, 0, movedItem);
   },
 
-  // 生成“按全局索引重排 action”的执行函数，供多个编辑器复用。
+  // 生成重排方法
   createReorderHandler(params = {}) {
     const { runCommand, beforeReorder } = params;
     return (globalOldIndex, globalNewIndex) => {
@@ -83,7 +151,7 @@ export const DragHelper = {
     };
   },
 
-  // 分组拖拽排序后，仅刷新当前展开分组里的卡片序号和 actionIndex。
+  // 分组拖拽后刷新当前组序号
   applyGroupedReorderRender(params = {}) {
     const {
       container,
@@ -120,8 +188,7 @@ export const DragHelper = {
         allCards.map((cardElement) => [cardElement.dataset.id, cardElement])
       );
 
-      // 将所有验证前置：确保任何 return false 都发生在 DOM 修改之前，
-      // 避免部分卡片已移入 fragment 后因条件不满足而丢失。
+      // 先确认要动的卡片都在
       for (const actionId of expectedIds) {
         if (!cardById.has(actionId)) {
           return false;
@@ -136,7 +203,7 @@ export const DragHelper = {
           return false;
         }
 
-        // 验证全部通过，开始修改 DOM。
+        // 检查完后再改 DOM
         const fragment = document.createDocumentFragment();
         for (const actionId of expectedIds) {
           fragment.appendChild(cardById.get(actionId));
@@ -157,14 +224,12 @@ export const DragHelper = {
         removableCards.forEach((cardElement) => cardElement.remove());
         container.insertBefore(fragment, nextNode);
       } else {
-        // 验证全部通过，开始修改 DOM。
+        // 检查完后再改 DOM
         const fragment = document.createDocumentFragment();
         for (const actionId of expectedIds) {
           fragment.appendChild(cardById.get(actionId));
         }
-        // fragment.appendChild 已将卡片从容器移出，容器中不再有这些卡片，
-        // 直接 appendChild 即可。不能对 allCards 调用 remove()，
-        // 否则会把卡片从 fragment 中也删除，导致全部卡片消失。
+        // 直接把 fragment 放回去
         container.appendChild(fragment);
       }
 
@@ -195,7 +260,7 @@ export const DragHelper = {
     });
   },
 
-  // 生成一个通用的 Sortable 配置（可传 group/onEnd/onAdd/extraConfig）
+  // 生成通用拖拽配置
   createSortableConfig(options = {}) {
     const config = {
       animation: 150,
@@ -224,13 +289,13 @@ export const DragHelper = {
     return config;
   },
 
-  // 生成 onEnd 处理器：把拖拽的“本地索引”换算成“全局索引”，再调用 executeFn
+  // 生成拖拽结束处理
   createOnEndHandler(params) {
-    const { editor, getGroupingEnabled, groupSize = 50, executeFn } = params;
+    const { editor, groupSize = 50, executeFn } = params;
 
     return (sortableEvent) => {
       if (sortableEvent.from === sortableEvent.to) {
-        const isGroupingEnabled = getGroupingEnabled();
+        const isGroupingEnabled = editor.domCache?.groupCheckbox?.checked || false;
         let localOldIndex = sortableEvent.oldIndex;
         let localNewIndex = sortableEvent.newIndex;
 
@@ -240,17 +305,17 @@ export const DragHelper = {
           editor.activeGroupIndex !== null &&
           editor.activeGroupIndex >= 0
         ) {
-          // 减去前面所有分组标题（包括当前分组）占据的位置
-          const headerOffset = editor.getHeaderOffset(true);
+          // 减掉前面分组标题占的位置
+          const headerOffset = editor.resolveHeaderOffset(true);
           localOldIndex = Math.max(0, localOldIndex - headerOffset);
           localNewIndex = Math.max(0, localNewIndex - headerOffset);
         }
 
-        const globalOldIndex = editor.getGlobalIndex(
+        const globalOldIndex = editor.resolveGlobalIndex(
           localOldIndex,
           isGroupingEnabled
         );
-        const globalNewIndex = editor.getGlobalIndex(
+        const globalNewIndex = editor.resolveGlobalIndex(
           localNewIndex,
           isGroupingEnabled
         );
@@ -260,11 +325,10 @@ export const DragHelper = {
     };
   },
 
-  // 生成 onAdd 处理器：校验拖入项 -> 提取数据 -> 计算插入位置 -> 调用 executeFn
+  // 生成拖入处理
   createOnAddHandler(params) {
     const {
       editor,
-      getGroupingEnabled,
       validateItem,
       extractData,
       executeFn,
@@ -274,13 +338,13 @@ export const DragHelper = {
     return (sortableEvent) => {
       const draggedItem = sortableEvent.item;
 
-      // 验证拖拽项
+      // 先检查拖进来的内容
       if (!validateItem(draggedItem)) {
         draggedItem.remove();
         return;
       }
 
-      const isGroupingEnabled = getGroupingEnabled();
+      const isGroupingEnabled = editor.domCache?.groupCheckbox?.checked || false;
       let localInsertIndex =
         sortableEvent.newDraggableIndex !== undefined &&
         sortableEvent.newDraggableIndex !== null
@@ -301,25 +365,25 @@ export const DragHelper = {
         editor.activeGroupIndex !== null &&
         editor.activeGroupIndex >= 0
       ) {
-        // 减去前面所有分组标题（包括当前分组）占据的位置
-        const headerOffset = editor.getHeaderOffset(true);
+        // 减掉前面分组标题占的位置
+        const headerOffset = editor.resolveHeaderOffset(true);
         localInsertIndex = Math.max(0, Number(localInsertIndex) - headerOffset);
       }
 
-      const globalInsertIndex = editor.getGlobalIndex(
+      const globalInsertIndex = editor.resolveGlobalIndex(
         Number(localInsertIndex),
         isGroupingEnabled
       );
 
-      // 提取数据
+      // 取出拖进来的数据
       const data = extractData(draggedItem);
 
-      // 执行添加
+      // 把数据加进去
       if (data) {
         executeFn(data, globalInsertIndex);
       }
 
-      // 移除拖拽项（仅当它不属于源列表时，避免误删原始节点）
+      // 不是原列表节点时再删掉拖拽占位
       if (
         draggedItem &&
         draggedItem.parentNode &&

@@ -1,4 +1,4 @@
-// 服务启动入口：创建应用、监听端口、处理进程退出
+// 启动服务
 const path = require("path");
 const { spawn } = require("child_process");
 const { ConfigManager } = require("./configManager");
@@ -18,11 +18,11 @@ const app = createApp({
   projectRoot,
   configManager,
   maxContentLength: MAX_CONTENT_LENGTH,
-  // 供 /api/shutdown 使用：异步触发进程退出
+  // 收到关闭请求后退出
   onShutdown: () => setTimeout(() => process.exit(0), 100),
 });
 
-// 启动后自动打开浏览器访问首页
+// 打开浏览器
 function openBrowser(url) {
   if (process.platform === "win32") {
     spawn("cmd", ["/c", "start", "", url], {
@@ -60,6 +60,7 @@ server.on("error", (error) => {
   process.exit(1);
 });
 
+// 关闭服务
 const shutdown = (signal) => {
   logger.info(`收到 ${signal}，正在关闭服务器...`);
   server.close(() => {

@@ -1,3 +1,4 @@
+// 动作表情时间线显示
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
@@ -5,23 +6,27 @@ import {
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
+import { state } from "@managers/stateManager.js";
 import {
   createTalkCard,
   createLayoutCard,
+  createCharacterNameMap,
+  updateCardSequenceNumber,
+  updateLayoutCard,
+  updateTalkCard,
 } from "@utils/TimelineCardFactory.js";
-import { editorService } from "@services/EditorService.js";
-import { configUI } from "@managers/config/configUI.js";
 import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
-// 时间线渲染：把 actions 画成卡片（支持分组），并把 footer（设置动作/表情）渲染出来
+// 时间线缓存
 const timelineCache = createTimelineRenderCache();
 
-// 清空动作/表情时间线缓存，供编辑器关闭时调用。
+// 清空时间线缓存
 export function resetExpressionTimelineCache() {
   resetTimelineRenderCache(timelineCache);
 }
 
-// 创建动作/表情编辑器的卡片渲染器：供时间线全量渲染与局部刷新复用。
+// 建动作表情卡片方法
 export function createExpressionRenderers(editor) {
   const templates =
     editor.domCache.templates ||
@@ -29,15 +34,15 @@ export function createExpressionRenderers(editor) {
       talk: document.getElementById("timeline-talk-card-template"),
       layout: document.getElementById("timeline-layout-card-template"),
     });
-  const configEntries = editorService.state.get("currentConfig") || {};
-  const characterNameMap = new Map(
-    Object.entries(configEntries).flatMap(([name, ids]) =>
-      ids.map((id) => [id, name]),
-    ),
-  );
+  const configEntries = state.currentConfig || {};
+  const characterNameMap = createCharacterNameMap(configEntries);
   const configSignature = DataUtils.shallowSignature(configEntries);
+  const renderLayoutControls = (cardEl, layoutAction, characterName) =>
+    editor.renderLayoutCardControls(cardEl, layoutAction, characterName, {
+      showToggleButton: false,
+    });
 
-  // 画一个卡片（talk/layout）
+  // 渲染一张卡片
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
 
@@ -54,15 +59,7 @@ export function createExpressionRenderers(editor) {
         {
           template: templates.layout,
           templateId: templates.layout?.id || "timeline-layout-card-template",
-          renderLayoutControls: (cardEl, layoutAction, characterName) =>
-            editor.renderLayoutCardControls(
-              cardEl,
-              layoutAction,
-              characterName,
-              {
-                showToggleButton: false,
-              },
-            ),
+          renderLayoutControls,
         },
       );
     } else {
@@ -75,104 +72,27 @@ export function createExpressionRenderers(editor) {
         : cardElement;
     if (!renderedCard) return null;
 
-    const numberDiv = renderedCard.querySelector(".card-sequence-number");
-    if (numberDiv && globalIndex !== -1) {
-      numberDiv.textContent = `#${globalIndex + 1}`;
-    }
+    updateCardSequenceNumber(renderedCard, globalIndex);
     assignmentRenderer.renderCardFooter(editor, renderedCard, { action });
 
     return renderedCard;
   };
 
-  // 尝试就地更新卡片内容（返回 false 表示需要整张重画）
+  // 尝试只更新卡片内容
   const updateCard = (action, cardElement, globalIndex = -1) => {
     if (!cardElement) return false;
-
-    if (
-      action.type === "talk" &&
-      cardElement.classList.contains("talk-item")
-    ) {
-      const nameDiv = cardElement.querySelector(".speaker-name");
-      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
-      const preview = cardElement.querySelector(".dialogue-preview-text");
-
-      if (action.speakers && action.speakers.length > 0) {
-        const firstSpeaker = action.speakers[0];
-        if (nameDiv) {
-          nameDiv.textContent = action.speakers
-            .map((speaker) => speaker.name)
-            .join(" & ");
-        }
-        if (
-          avatarDiv &&
-          avatarDiv.dataset.characterId !==
-            String(firstSpeaker.characterId || "")
-        ) {
-          configUI.updateConfigAvatar(
-            editorService.configManager,
-            { querySelector: () => avatarDiv },
-            firstSpeaker.characterId,
-            firstSpeaker.name,
-          );
-          avatarDiv.dataset.characterId = String(
-            firstSpeaker.characterId || "",
-          );
-        }
-      } else {
-        if (nameDiv) nameDiv.textContent = "旁白";
-        if (avatarDiv) {
-          avatarDiv.classList.add("fallback");
-          avatarDiv.textContent = "N";
-        }
-      }
-
-      if (preview) {
-        preview.textContent = action.text;
-      }
-    } else if (
-      action.type === "layout" &&
-      cardElement.classList.contains("layout-item")
-    ) {
-      cardElement.dataset.id = action.id;
-      cardElement.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
-
-      const characterId = action.characterId;
-      const characterName =
-        action.characterName || characterNameMap.get(action.characterId);
-      const nameDiv = cardElement.querySelector(".speaker-name");
-      if (nameDiv) {
-        nameDiv.textContent =
-          characterName || `未知角色 (ID: ${characterId ?? "?"})`;
-      }
-
-      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
-      if (
-        avatarDiv &&
-        avatarDiv.dataset.characterId !== String(characterId || "")
-      ) {
-        configUI.updateConfigAvatar(
-          editorService.configManager,
-          { querySelector: () => avatarDiv },
-          characterId,
-          characterName,
-        );
-        avatarDiv.dataset.characterId = String(characterId || "");
-      }
-
-      // 同步布局属性控件（位置、偏移、服装等）到最新状态
-      editor.renderLayoutCardControls(cardElement, action, characterName, {
-        showToggleButton: false,
-      });
-    } else {
+    const updated =
+      (action.type === "talk" && updateTalkCard(cardElement, action)) ||
+      (action.type === "layout" &&
+        updateLayoutCard(cardElement, action, {
+          characterName: characterNameMap.get(action.characterId),
+          renderLayoutControls,
+        }));
+    if (!updated) {
       return false;
     }
 
-    const numberDiv = cardElement.querySelector(".card-sequence-number");
-    if (numberDiv && globalIndex !== -1) {
-      numberDiv.textContent = `#${globalIndex + 1}`;
-    }
-
+    updateCardSequenceNumber(cardElement, globalIndex);
     assignmentRenderer.renderCardFooter(editor, cardElement, { action });
     return true;
   };
@@ -180,7 +100,12 @@ export function createExpressionRenderers(editor) {
   return { renderSingleCard, updateCard, configSignature };
 }
 
-// 渲染动作/表情编辑器的时间线
+// 渲染一张动作表情编辑器卡片
+export function renderExpressionActionCard(editor, action, globalIndex = -1) {
+  return createExpressionRenderers(editor).renderSingleCard(action, globalIndex);
+}
+
+// 渲染动作表情时间线
 export function renderTimeline(editor) {
   const timeline = editor.domCache.timeline;
   if (!timeline) return;
@@ -190,6 +115,7 @@ export function renderTimeline(editor) {
   const { renderSingleCard, updateCard, configSignature } =
     createExpressionRenderers(editor);
 
+  // 切换分组时重新渲染时间线
   renderIncrementalTimeline({
     container: timeline,
     actions,
@@ -207,22 +133,10 @@ export function renderTimeline(editor) {
       renderTimeline(editor);
 
       if (isOpening) {
-        setTimeout(() => {
-          const scrollContainer = editor.domCache.timeline;
-          const header = scrollContainer?.querySelector(
-            `.timeline-group-header[data-group-idx="${index}"]`,
-          );
-          if (
-            scrollContainer &&
-            header &&
-            scrollContainer.scrollTop !== header.offsetTop - 110
-          ) {
-            scrollContainer.scrollTo({
-              top: header.offsetTop - 110,
-              behavior: "smooth",
-            });
-          }
-        }, 0);
+        setTimeout(
+          () => scrollToGroupHeader(editor.domCache.timeline, index),
+          0,
+        );
       }
     },
   });

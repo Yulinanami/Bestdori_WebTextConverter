@@ -1,6 +1,6 @@
-// 配置导入导出处理
+// 处理配置导入导出
 
-// 解析并校验导入配置文本。
+// 读导入的配置
 function configFromText(text) {
   const config = JSON.parse(text);
   if (!config || typeof config !== "object" || Array.isArray(config)) {
@@ -12,7 +12,7 @@ function configFromText(text) {
   return config;
 }
 
-// 组装导出配置结构并生成下载文件名。
+// 生成导出内容
 function buildConfigExport(data) {
   const config = {
     character_mapping: data.characterMapping,

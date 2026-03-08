@@ -1,4 +1,4 @@
-// 常用数据工具：深拷贝、排序、生成轻量签名等。
+// 常用数据工具：深拷贝、排序、生成轻量签名等
 
 export const DataUtils = {
   // 深拷贝：避免改动一个对象时把原对象也改了
@@ -17,6 +17,7 @@ export const DataUtils = {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const orderArray = Array.isArray(orders) ? orders : [orders];
 
+    // 按给的规则比较两项谁在前面
     return [...sourceList].sort((leftItem, rightItem) => {
       for (const [keyIndex, key] of keyArray.entries()) {
         const order = orderArray[keyIndex] || "asc";
@@ -32,7 +33,7 @@ export const DataUtils = {
     });
   },
 
-  // 给 action 生成“轻量签名”：用于判断卡片是否需要重新渲染
+// 生成 action 的短标记
   actionSignature(action) {
     if (!action || typeof action !== "object") return "";
     if (action.type === "talk") {
@@ -40,10 +41,12 @@ export const DataUtils = {
         id: action.id,
         type: action.type,
         text: action.text,
+        // 把说话人信息拼进对比字符串
         speakers: (action.speakers || []).map((speaker) => ({
           id: speaker.characterId,
           name: speaker.name,
         })),
+        // 把动作信息拼进对比字符串
         motions: (action.motions || []).map((motionAssignment) => ({
           c: motionAssignment.character,
           m: motionAssignment.motion,
@@ -78,6 +81,7 @@ export const DataUtils = {
     if (!sourceObject || typeof sourceObject !== "object") return "";
     const sorted = Object.keys(sourceObject)
       .sort()
+      // 按字段名顺序整理一层数据
       .map((key) => [key, sourceObject[key]]);
     return JSON.stringify(sorted);
   },
