@@ -1,29 +1,30 @@
-// 管理左侧导航点击步骤时切换右侧内容，并在需要时初始化该步骤的数据
+// 切换步骤并初始化对应页面
 
 class NavigationManager {
   constructor() {
-    // 初始化：创建实例后立刻绑定导航点击事件
+    // 创建后立即绑定导航事件
     this.init();
   }
 
-  // 初始化：给左侧步骤按钮绑定点击事件，并默认跳到第 1 步
+  // 绑定步骤按钮并默认打开第 1 步
   init() {
-    // 绑定导航项点击事件
+    // 给每个步骤按钮绑定点击事件
     const navSteps = document.querySelectorAll(".nav-step");
     navSteps.forEach((step) => {
+      // 点击后切到对应步骤
       step.onclick = () => {
         const stepNum = parseInt(step.dataset.step);
         this.navigateToStep(stepNum);
       };
     });
 
-    // 初始化显示第一步
+    // 默认显示第 1 步
     this.navigateToStep(1);
   }
 
-  // 切换到指定步骤：高亮左侧、显示右侧，并触发该步骤的初始化逻辑
+  // 切到指定步骤
   navigateToStep(stepNum) {
-    // 更新导航栏激活状态
+    // 更新左侧高亮
     const navSteps = document.querySelectorAll(".nav-step");
     navSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
@@ -33,7 +34,7 @@ class NavigationManager {
       }
     });
 
-    // 更新工作区显示的步骤
+    // 更新右侧内容
     const workspaceSteps = document.querySelectorAll(".workspace-step");
     workspaceSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
@@ -43,93 +44,50 @@ class NavigationManager {
       }
     });
 
-    // 根据步骤初始化特定功能
+    // 按需初始化当前步骤
     this.initializeStepContent(stepNum);
 
-    // 滚动到页面顶部
+    // 切换后回到页面顶部
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  // 每个步骤需要“进场初始化”时，就在这里写对应的加载逻辑
+  // 每一步打开时要做的初始化
   _stepInitializerMap = {
-    // 第 5 步：配置管理（角色列表）
+    // 第 5 步加载角色配置
     5: async () => {
-      const [{ configManager }, { configUI }] = await Promise.all([
+      const [{ configManager }] = await Promise.all([
         import("@managers/configManager.js"),
-        import("@managers/config/configUI.js"),
       ]);
-      configUI.renderConfigList(configManager);
+      configManager.renderConfigList();
     },
 
-    // 第 6 步：服装配置（初始化临时修改区，避免直接改动正式数据）
+    // 第 6 步准备服装配置
     6: async () => {
-      const [{ costumeManager }, { state }, { DataUtils }, { costumeRenderer }] = await Promise.all([
+      const [{ costumeManager }] = await Promise.all([
         import("@managers/costumeManager.js"),
-        import("@managers/stateManager.js"),
-        import("@utils/DataUtils.js"),
-        import("@managers/costume/costumeRenderer.js"),
       ]);
-
-      // 初始化临时状态
-      costumeManager.tempCostumeChanges = DataUtils.deepClone(
-        state.get("currentCostumes")
-      );
-      costumeManager.tempAvailableCostumes = DataUtils.deepClone(
-        costumeManager.availableCostumes
-      );
-      costumeRenderer.renderCostumeList(costumeManager);
+      costumeManager.prepareStep();
     },
 
-    // 第 7 步：位置配置（初始化临时配置，并渲染列表）
+    // 第 7 步准备位置配置
     7: async () => {
-      const [{ positionManager }, { DataUtils }, { positionUI }] =
-        await Promise.all([
-          import("@managers/positionManager.js"),
-          import("@utils/DataUtils.js"),
-          import("@managers/position/positionUI.js"),
-        ]);
-
-      // 初始化临时状态
-      positionManager.tempAutoPositionMode = positionManager.autoPositionMode;
-      positionManager.tempManualPositions = DataUtils.deepClone(
-        positionManager.manualPositions
-      );
-
-      const autoCheckbox = document.getElementById("autoPositionCheckbox");
-      if (autoCheckbox) {
-        autoCheckbox.checked = positionManager.tempAutoPositionMode;
-      }
-
-      positionUI.renderPositionList(positionManager);
-      positionManager.toggleManualConfig();
+      const [{ positionManager }] = await Promise.all([
+        import("@managers/positionManager.js"),
+      ]);
+      positionManager.prepareStep();
     },
 
-    // 第 8 步：动作/表情配置（初始化临时列表，并渲染）
+    // 第 8 步准备动作和表情配置
     8: async () => {
-      const [
-        { motionExpressionManager },
-        { motionManager, expressionManager },
-        { DataUtils },
-      ] = await Promise.all([
+      const [{ motionExpressionManager }] = await Promise.all([
         import("@managers/motionExpressionManager.js"),
-        import("@managers/genericConfigManager.js"),
-        import("@utils/DataUtils.js"),
       ]);
-
-      // 初始化临时状态（类似 open 方法的逻辑）
-      motionExpressionManager.tempCustomMotions = DataUtils.deepClone(
-        motionManager.customItems
-      );
-      motionExpressionManager.tempCustomExpressions = DataUtils.deepClone(
-        expressionManager.customItems
-      );
-      motionExpressionManager.renderLists();
+      motionExpressionManager.prepareStep();
     },
   };
 
-  // 进入某个步骤时，按需执行该步骤对应的初始化函数
+  // 进入步骤时执行对应的初始化
   async initializeStepContent(stepNum) {
-    // 使用策略模式查找并执行对应的初始化器
     const initializer = this._stepInitializerMap[stepNum];
     if (initializer) {
       await initializer();
@@ -137,5 +95,5 @@ class NavigationManager {
   }
 }
 
-// 创建单例（导入即生效）
+// 导出单例
 export const navigationManager = new NavigationManager();

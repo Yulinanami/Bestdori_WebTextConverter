@@ -1,4 +1,4 @@
-// 转换接口：项目转换、文件上传、下载、文本构建项目
+// 处理转换相关接口
 const express = require("express");
 const multer = require("multer");
 const { ProjectConverter } = require("../projectConverter");
@@ -20,6 +20,7 @@ const {
 
 const logger = createLogger("src.routes.conversion");
 
+// 创建转换路由
 function createConversionRouter({ configManager, maxContentLength }) {
   const router = express.Router();
   const upload = multer({
@@ -27,7 +28,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     limits: { fileSize: maxContentLength },
   });
 
-  // /api/convert：接收项目文件并返回结果 JSON 字符串
+  // 转换项目
   router.post("/convert", (req, res) => {
     try {
       logger.info("收到项目转换请求");
@@ -73,7 +74,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     }
   });
 
-  // /api/upload：接收文件并解析为纯文本
+  // 上传文件
   router.post("/upload", upload.single("file"), async (req, res) => {
     try {
       logger.info("收到文件上传请求");
@@ -110,7 +111,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     }
   });
 
-  // /api/download：将传入内容作为 JSON 附件下载
+  // 下载结果
   router.post("/download", (req, res) => {
     try {
       logger.info("收到文件下载请求");
@@ -136,7 +137,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     }
   });
 
-  // /api/project-file-import：处理导入的项目进度 JSON
+  // 导入项目进度
   router.post("/project-file-import", upload.single("file"), (req, res) => {
     let filename = "inline_text";
     try {
@@ -173,7 +174,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     }
   });
 
-  // /api/project-export：处理导出项目进度 JSON
+  // 导出项目进度
   router.post("/project-export", (req, res) => {
     try {
       logger.info("收到项目文件导出请求");

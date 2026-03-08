@@ -1,23 +1,24 @@
+// Live2D 时间线显示和事件
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
   resetTimelineRenderCache,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
-import { editorService } from "@services/EditorService.js";
+import { state } from "@managers/stateManager.js";
+import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
 import { createLive2DRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
+import { createCharacterNameMap } from "@utils/TimelineCardFactory.js";
 
-// 渲染卡片、响应删除/控件修改等
+// 给编辑器添加时间线方法
 export function attachLive2DTimeline(editor) {
   const timelineCache = createTimelineRenderCache();
 
   Object.assign(editor, {
-    // 重置渲染缓存，确保重开编辑器时不复用旧卡片快照。
-    resetTimelineCache() {
-      resetTimelineRenderCache(timelineCache);
-    },
+    // 清空时间线缓存
+    resetTimelineCache: () => resetTimelineRenderCache(timelineCache),
 
-    // 绑定时间线上的点击/修改事件（删除、展开终点位置、改下拉框等）
+    // 绑定时间线事件
     bindTimelineEvents() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
@@ -26,7 +27,7 @@ export function attachLive2DTimeline(editor) {
         const layoutCard = clickEvent.target.closest(".layout-item");
         if (!layoutCard) return;
 
-        // 删除卡片
+        // 点按钮时删除布局卡片
         if (clickEvent.target.matches(".layout-remove-btn")) {
           const actionId = layoutCard.dataset.id;
           const action = editor.projectFileState.actions.find(
@@ -42,7 +43,7 @@ export function attachLive2DTimeline(editor) {
           return;
         }
 
-        // 切换 to 位置信息是否独立配置
+        // 切换终点位置是否单独设置
         if (clickEvent.target.closest(".toggle-position-btn")) {
           const toggleButton = layoutCard.querySelector(".toggle-position-btn");
           const isExpanded = toggleButton.classList.contains("expanded");
@@ -55,8 +56,8 @@ export function attachLive2DTimeline(editor) {
           });
 
           if (isExpanded) {
-            // 收起：清除独立配置标记，并把终点位置回写为起点
-            editor.baseEditor.executeCommand((currentState) => {
+            // 收起时把终点改回跟起点一样
+            editor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -74,8 +75,8 @@ export function attachLive2DTimeline(editor) {
                 currentAction.position.from.offsetX || 0;
             });
           } else {
-            // 展开：设置独立配置标记，UI由局部刷新统一更新
-            editor.baseEditor.executeCommand((currentState) => {
+            // 展开后单独保存终点设置
+            editor.executeCommand((currentState) => {
               const currentAction = currentState.actions.find(
                 (actionItem) => actionItem.id === actionId,
               );
@@ -97,7 +98,7 @@ export function attachLive2DTimeline(editor) {
       };
     },
 
-    // 渲染时间线：对话卡片只读，布局卡片可编辑（支持分组模式）
+// 渲染时间线
     renderTimeline() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
@@ -110,16 +111,13 @@ export function attachLive2DTimeline(editor) {
           talk: document.getElementById("timeline-talk-card-template"),
           layout: document.getElementById("timeline-layout-card-template"),
         });
-      const configEntries = editorService.state.get("currentConfig") || {};
-      const characterNameMap = new Map(
-        Object.entries(configEntries).flatMap(([name, ids]) =>
-          ids.map((id) => [id, name]),
-        ),
-      );
+      const configEntries = state.currentConfig || {};
+      const characterNameMap = createCharacterNameMap(configEntries);
       const { renderSingleCard, updateCard, contextSignature } =
         createLive2DRenderers(editor, { templates, characterNameMap });
       const configSignature = contextSignature(configEntries);
 
+      // 切换分组时重新渲染时间线
       renderIncrementalTimeline({
         container: timeline,
         actions,
@@ -137,18 +135,10 @@ export function attachLive2DTimeline(editor) {
           editor.renderTimeline();
 
           if (isOpening) {
-            setTimeout(() => {
-              const scrollContainer = editor.domCache.timeline;
-              const header = scrollContainer?.querySelector(
-                `.timeline-group-header[data-group-idx="${index}"]`,
-              );
-              if (scrollContainer && header) {
-                scrollContainer.scrollTo({
-                  top: header.offsetTop - 110,
-                  behavior: "smooth",
-                });
-              }
-            }, 0);
+            setTimeout(
+              () => scrollToGroupHeader(editor.domCache.timeline, index),
+              0,
+            );
           }
         },
       });

@@ -1,4 +1,4 @@
-// 页面 UI 小工具：提示条、按钮 loading、复制、跳转等。
+// 页面 UI 小工具：提示条、按钮 loading、复制、跳转等
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
@@ -15,13 +15,14 @@ const uiUtils = {
     statusElement.textContent = message;
     statusElement.className = `status-message status-${type}`;
     statusElement.style.display = "block";
+    // 4 秒后自动隐藏提示
     statusTimer = setTimeout(() => {
       statusElement.style.display = "none";
     }, 4000);
   },
 
   // 把按钮切换到“加载中/正常”状态（并可替换按钮文字）
-  setButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
+  toggleButtonLoading(buttonId, isLoading, loadingText = "处理中...") {
     const button = document.getElementById(buttonId);
 
     if (!button) return;
@@ -62,11 +63,11 @@ const uiUtils = {
 
   // 用 try/finally 包住异步函数：自动开/关按钮 loading
   async withButtonLoading(buttonId, asyncFn, loadingText = "处理中...") {
-    this.setButtonLoading(buttonId, true, loadingText);
+    this.toggleButtonLoading(buttonId, true, loadingText);
     try {
       await asyncFn();
     } finally {
-      this.setButtonLoading(buttonId, false);
+      this.toggleButtonLoading(buttonId, false);
     }
   },
 
@@ -83,8 +84,8 @@ const uiUtils = {
 
   // 一键跳转到 Bestdori 发帖页面（会先尝试把 JSON 复制到剪贴板）
   async goToBestdori() {
-    if (state.get("currentResult")) {
-      const copied = await this.copyToClipboard(state.get("currentResult"));
+    if (state.currentResult) {
+      const copied = await this.copyToClipboard(state.currentResult);
       if (copied) {
         this.showStatus(
           "JSON 已复制到剪贴板，正在跳转到 Bestdori...",
@@ -92,6 +93,7 @@ const uiUtils = {
         );
       }
     }
+    // 稍等一下再打开 Bestdori 页面
     setTimeout(() => {
       window.open("https://bestdori.com/community/stories/new", "_blank");
     }, 500);
@@ -104,12 +106,13 @@ export function initPerformanceSettingsPersistence() {
   if (!checkbox) return;
 
   // 加载保存的设置
-  const savedState = storageService.get(GROUPING_STORAGE_KEY, true);
+  const savedState = storageService.load(GROUPING_STORAGE_KEY, true);
   checkbox.checked = savedState === true || savedState === "true";
 
   // 监听变化
+  // 切换开关时保存当前选项
   checkbox.addEventListener("change", (changeEvent) => {
-    if (!storageService.set(GROUPING_STORAGE_KEY, changeEvent.target.checked)) {
+    if (!storageService.save(GROUPING_STORAGE_KEY, changeEvent.target.checked)) {
       console.error("保存卡片分组设置失败");
       if (uiUtils && uiUtils.showStatus) {
         uiUtils.showStatus("无法保存设置，可能是浏览器存储空间已满。", "error");

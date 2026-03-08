@@ -1,6 +1,6 @@
-// 引号处理
+// 处理引号
 
-// 将引号配置数组转换为 { 开引号: 闭引号 } 映射。
+// 把引号配置转成映射
 function buildActiveQuotePairs(quoteConfig) {
   const activeQuotePairs = {};
   if (Array.isArray(quoteConfig)) {
@@ -13,7 +13,7 @@ function buildActiveQuotePairs(quoteConfig) {
   return activeQuotePairs;
 }
 
-// 若文本整体被成对引号包裹，则去掉外层引号。
+// 去掉外层引号
 function removeWrappedQuotes(text, activeQuotePairs) {
   const stripped = text.trim();
   if (

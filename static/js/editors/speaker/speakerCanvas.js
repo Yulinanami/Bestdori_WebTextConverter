@@ -1,50 +1,55 @@
+// 对话编辑器左边的卡片列表
 import {
   createTimelineRenderCache,
   renderIncrementalTimeline,
   resetTimelineRenderCache,
 } from "@utils/IncrementalTimelineRenderer.js";
 import { DataUtils } from "@utils/DataUtils.js";
-import { editorService } from "@services/EditorService.js";
+import { state } from "@managers/stateManager.js";
 import { createSpeakerRenderers } from "@editors/speaker/speakerRenderers.js";
 
-// 把 actions 画成左侧卡片列表
+// 给编辑器添加左侧卡片显示
 export function attachSpeakerCanvas(editor) {
   const canvasCache = createTimelineRenderCache();
 
   Object.assign(editor, {
-    // 重置渲染缓存，避免关闭编辑器后残留旧卡片状态。
-    resetCanvasRenderCache() {
-      resetTimelineRenderCache(canvasCache);
+// 读取这次要用的方法
+    buildSpeakerRendererSet() {
+      const templates =
+        this.domCache.templates ||
+        (this.domCache.templates = {
+          talk: document.getElementById("text-snippet-card-template"),
+          layout: document.getElementById("timeline-layout-card-template"),
+        });
+      const configEntries = state.currentConfig || {};
+      return {
+        configSignature: DataUtils.shallowSignature(configEntries),
+        ...createSpeakerRenderers(this, {
+          templates,
+          characterNameMap: new Map(
+            Object.entries(configEntries).flatMap(([name, ids]) =>
+              ids.map((id) => [id, name])
+            )
+          ),
+        }),
+      };
     },
 
-    // 渲染左侧卡片列表（对话/布局），并返回“已出现角色集合”
+    // 清空左侧列表缓存
+    resetCanvasRenderCache: () => resetTimelineRenderCache(canvasCache),
+
+// 渲染左侧卡片列表
     renderCanvas() {
       const canvas = editor.domCache.canvas;
       if (!canvas) return new Set();
 
-      const usedIds = editor.getUsedCharacterIds();
+      const usedIds = editor.collectUsedCharacterIds();
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions || [];
+      const { configSignature, renderSingleCard, updateCard } =
+        editor.buildSpeakerRendererSet();
 
-      const templates =
-        editor.domCache.templates ||
-        (editor.domCache.templates = {
-          talk: document.getElementById("text-snippet-card-template"),
-          layout: document.getElementById("timeline-layout-card-template"),
-        });
-      const configEntries = editorService.state.get("currentConfig") || {};
-      const configSignature = DataUtils.shallowSignature(configEntries);
-      const characterNameMap = new Map(
-        Object.entries(configEntries).flatMap(([name, ids]) =>
-          ids.map((id) => [id, name])
-        )
-      );
-
-      const { renderSingleCard, updateCard } = createSpeakerRenderers(editor, {
-        templates,
-        characterNameMap,
-      });
-
+      // 切换分组时重新渲染列表
       renderIncrementalTimeline({
         container: canvas,
         actions,
@@ -61,6 +66,7 @@ export function attachSpeakerCanvas(editor) {
           editor.activeGroupIndex = isOpening ? index : null;
           editor.renderCanvas();
           if (isOpening) {
+            // 打开分组后滚到组头
             setTimeout(() => {
               const scrollContainer = editor.domCache.canvas;
               const header = scrollContainer?.querySelector(

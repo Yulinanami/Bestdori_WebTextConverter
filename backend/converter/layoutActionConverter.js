@@ -1,7 +1,7 @@
-// 布局动作转换
+// 转换布局动作
 const { toInt, toNumber } = require("./valueParsers");
 
-// 将单个 layout 动作转换为目标动作结构并记录布局日志。
+// 转换一条布局动作
 function convertLayoutAction(layoutAction, mapOutputId, logger) {
   const position = layoutAction?.position || {};
   const initialState = layoutAction?.initialState || {};

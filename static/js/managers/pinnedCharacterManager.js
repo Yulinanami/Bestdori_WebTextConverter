@@ -1,33 +1,37 @@
+// 置顶角色
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.PINNED_CHARACTERS;
-let pinnedCharacters = new Set();
+export const pinnedCharacters = new Set();
 
-// 从本地读取“置顶角色列表”到内存
+// 从本地读取置顶角色
 function load() {
   try {
-    const saved = storageService.get(LOCAL_STORAGE_KEY, []);
-    pinnedCharacters = new Set(Array.isArray(saved) ? saved : []);
+    const saved = storageService.load(LOCAL_STORAGE_KEY, []);
+    pinnedCharacters.clear();
+    (Array.isArray(saved) ? saved : []).forEach((name) =>
+      pinnedCharacters.add(name),
+    );
   } catch (error) {
     console.error("加载置顶角色配置失败:", error);
-    pinnedCharacters = new Set();
+    pinnedCharacters.clear();
   }
 }
 
-// 把当前“置顶角色列表”保存到本地
+// 把置顶角色存回本地
 function save() {
   try {
-    storageService.set(LOCAL_STORAGE_KEY, Array.from(pinnedCharacters));
+    storageService.save(LOCAL_STORAGE_KEY, Array.from(pinnedCharacters));
   } catch (error) {
     console.error("保存置顶角色配置失败:", error);
   }
 }
 
-// 管理“置顶角色”：让常用角色显示在更靠前的位置
+// 对外提供置顶角色功能
 export const pinnedCharacterManager = {
   load,
 
-  // 切换某个角色是否置顶（置顶/取消置顶）
+  // 切换角色是否置顶
   toggle(characterName) {
     if (pinnedCharacters.has(characterName)) {
       pinnedCharacters.delete(characterName);
@@ -37,8 +41,4 @@ export const pinnedCharacterManager = {
     save();
   },
 
-  // 获取当前所有置顶角色（Set）
-  getPinned() {
-    return pinnedCharacters;
-  },
 };

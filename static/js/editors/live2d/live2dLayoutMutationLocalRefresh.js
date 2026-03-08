@@ -1,14 +1,17 @@
-import { editorService } from "@services/EditorService.js";
+// 处理 Live2D 卡片增删后的局部刷新
+import { state } from "@managers/stateManager.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
 import { createLive2DRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
 import {
-  getGroupRange,
+  resolveGroupRange,
+  scrollToGroupHeader,
   updateGroupHeader,
 } from "@editors/common/groupHeaderUtils.js";
+import { createCharacterNameMap } from "@utils/TimelineCardFactory.js";
 
-// Live2D 编辑器：布局卡片增删后的局部短路刷新（不改后续模式判定逻辑）。
+// 添加布局卡片局部刷新
 export function attachLive2DLayoutMutationLocalRefresh(editor) {
-  // 统一解析布局增删标记的日志信息。
+  // 解析增删日志信息
   const parseMutationDetail = (detail) => {
     if (!detail) {
       return { source: null, text: "" };
@@ -24,7 +27,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
   Object.assign(editor, {
     pendingLayoutMutationRender: null,
 
-    // 标记“下次渲染优先局部处理布局卡片增删变更”。
+    // 标记要刷新的增删操作
     markLayoutMutationRender(actionId, type = "add", detail = null) {
       const parsedDetail = parseMutationDetail(detail);
       this.pendingLayoutMutationRender = {
@@ -35,7 +38,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       };
     },
 
-    // 渲染单条 action 卡片（talk/layout），用于局部插入。
+    // 渲染一张时间线卡片
     renderTimelineActionCard(action, globalIndex) {
       const templates =
         this.domCache.templates ||
@@ -43,12 +46,8 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
           talk: document.getElementById("timeline-talk-card-template"),
           layout: document.getElementById("timeline-layout-card-template"),
         });
-      const configEntries = editorService.state.get("currentConfig") || {};
-      const characterNameMap = new Map(
-        Object.entries(configEntries).flatMap(([name, ids]) =>
-          ids.map((id) => [id, name]),
-        ),
-      );
+      const configEntries = state.currentConfig || {};
+      const characterNameMap = createCharacterNameMap(configEntries);
       const { renderSingleCard } = createLive2DRenderers(this, {
         templates,
         characterNameMap,
@@ -56,11 +55,11 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       return renderSingleCard(action, globalIndex);
     },
 
-    // 分组模式下：重建分组头与当前展开分组内容，完成增删后的局部刷新。
+    // 分组模式下重新渲染当前组
     applyGroupedLayoutMutationRender(actions) {
       const timeline = this.domCache.timeline;
       const preservedScrollTop = timeline?.scrollTop ?? 0;
-      const groupSize = this.baseEditor.groupSize;
+      const groupSize = this.groupSize;
       if (!timeline || !actions.length) {
         return false;
       }
@@ -96,7 +95,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
           : headers[0].cloneNode(true);
         const isActive =
           activeGroupIndex !== null && groupIndex === activeGroupIndex;
-        const { startNum, endNum } = getGroupRange(
+        const { startNum, endNum } = resolveGroupRange(
           groupIndex,
           groupSize,
           totalActions
@@ -109,21 +108,13 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
           onToggle: (index) => {
             const isOpening = this.activeGroupIndex !== index;
             this.activeGroupIndex = isOpening ? index : null;
-            const targetGroupIndex = index;
-          this.renderTimeline();
-          if (isOpening) {
-            setTimeout(() => {
-              const headerElement = this.domCache.timeline.querySelector(
-                `.timeline-group-header[data-group-idx="${targetGroupIndex}"]`,
+            this.renderTimeline();
+            if (isOpening) {
+              setTimeout(
+                () => scrollToGroupHeader(this.domCache.timeline, index),
+                0,
               );
-              if (this.domCache.timeline && headerElement) {
-                this.domCache.timeline.scrollTo({
-                  top: headerElement.offsetTop - 110,
-                  behavior: "smooth",
-                });
-              }
-            }, 0);
-          }
+            }
           },
         });
         fragment.appendChild(header);
@@ -151,7 +142,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       return true;
     },
 
-    // 布局卡片增删时：优先局部更新，失败则回退全量渲染。
+    // 尝试局部处理卡片增删
     applyPendingLayoutMutationRender() {
       const pendingPatch = this.pendingLayoutMutationRender;
       if (
@@ -169,20 +160,18 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       }
 
       const isGroupingEnabled = this.domCache.groupCheckbox.checked;
-      const groupSize = this.baseEditor.groupSize;
+      const groupSize = this.groupSize;
       if (isGroupingEnabled && actions.length > groupSize) {
         if (!this.applyGroupedLayoutMutationRender(actions)) {
           return false;
         }
-        const usedNames = this.getUsedCharacterIds();
-        this.renderCharacterList(usedNames);
+        this.renderCharacterListForCurrentProject();
         return true;
       }
 
       if (timeline.querySelector(".timeline-group-header")) {
         this.renderTimeline();
-        const usedNames = this.getUsedCharacterIds();
-        this.renderCharacterList(usedNames);
+        this.renderCharacterListForCurrentProject();
         return true;
       }
 
@@ -204,8 +193,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
           baseIndex: 0,
         });
 
-        const usedNames = this.getUsedCharacterIds();
-        this.renderCharacterList(usedNames);
+        this.renderCharacterListForCurrentProject();
         return true;
       }
 
@@ -236,8 +224,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
         baseIndex: 0,
       });
 
-      const usedNames = this.getUsedCharacterIds();
-      this.renderCharacterList(usedNames);
+      this.renderCharacterListForCurrentProject();
       return true;
     },
   });

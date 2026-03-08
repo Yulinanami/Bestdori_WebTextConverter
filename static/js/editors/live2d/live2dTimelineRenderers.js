@@ -1,15 +1,22 @@
+// Live2D 卡片显示
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import {
   createTalkCard,
   createLayoutCard,
+  updateCardSequenceNumber,
+  updateLayoutCard,
+  updateTalkCard,
 } from "@utils/TimelineCardFactory.js";
-import { editorService } from "@services/EditorService.js";
-import { configUI } from "@managers/config/configUI.js";
 
-// 创建 Live2D 编辑器的卡片渲染器：供全量渲染与局部刷新共用。
+// 创建 Live2D 卡片方法
 export function createLive2DRenderers(editor, { templates, characterNameMap }) {
-  // renderSingleCard负责画一个卡片，updateCard 负责就地更新卡片
+// 刷新布局卡片上的控件
+  const renderLayoutControls = (cardEl, layoutAction, characterName) =>
+    editor.renderLayoutCardControls(cardEl, layoutAction, characterName, {
+      showToggleButton: true,
+    });
+  // 渲染一张卡片
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
 
@@ -26,15 +33,7 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
         {
           template: templates.layout,
           templateId: templates.layout?.id || "timeline-layout-card-template",
-          renderLayoutControls: (cardEl, layoutAction, characterName) =>
-            editor.renderLayoutCardControls(
-              cardEl,
-              layoutAction,
-              characterName,
-              {
-                showToggleButton: true,
-              }
-            ),
+          renderLayoutControls,
         }
       );
     } else {
@@ -47,105 +46,32 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
         : cardElement;
     if (!renderedCard) return null;
 
-    const numberDiv = renderedCard.querySelector(".card-sequence-number");
-    if (numberDiv && globalIndex !== -1) {
-      numberDiv.textContent = `#${globalIndex + 1}`;
-    }
+    updateCardSequenceNumber(renderedCard, globalIndex);
     return renderedCard;
   };
 
-  // 尝试就地更新卡片内容（返回 false 表示需要整张重画）。
+  // 尝试只更新卡片内容
   const updateCard = (action, cardElement, globalIndex = -1) => {
     if (!cardElement) return false;
-    if (
-      action.type === "talk" &&
-      cardElement.classList.contains("talk-item")
-    ) {
-      const nameDiv = cardElement.querySelector(".speaker-name");
-      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
-      const preview = cardElement.querySelector(".dialogue-preview-text");
-
-      if (action.speakers && action.speakers.length > 0) {
-        const firstSpeaker = action.speakers[0];
-        if (nameDiv) {
-          nameDiv.textContent = action.speakers
-            .map((speaker) => speaker.name)
-            .join(" & ");
-        }
-        if (
-          avatarDiv &&
-          avatarDiv.dataset.characterId !==
-            String(firstSpeaker.characterId || "")
-        ) {
-          configUI.updateConfigAvatar(
-            editorService.configManager,
-            { querySelector: () => avatarDiv },
-            firstSpeaker.characterId,
-            firstSpeaker.name
-          );
-          avatarDiv.dataset.characterId = String(
-            firstSpeaker.characterId || ""
-          );
-        }
-      } else {
-        if (nameDiv) nameDiv.textContent = "旁白";
-        if (avatarDiv) {
-          avatarDiv.classList.add("fallback");
-          avatarDiv.textContent = "N";
-        }
-      }
-
-      if (preview) {
-        preview.textContent = action.text;
-      }
-    } else if (
-      action.type === "layout" &&
-      cardElement.classList.contains("layout-item")
-    ) {
-      cardElement.dataset.id = action.id;
-      cardElement.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
-
-      const characterId = action.characterId;
-      const characterName =
-        action.characterName || characterNameMap.get(action.characterId);
-      const nameDiv = cardElement.querySelector(".speaker-name");
-      if (nameDiv) {
-        nameDiv.textContent =
-          characterName || `未知角色 (ID: ${characterId ?? "?"})`;
-      }
-
-      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
-      if (
-        avatarDiv &&
-        avatarDiv.dataset.characterId !== String(characterId || "")
-      ) {
-        configUI.updateConfigAvatar(
-          editorService.configManager,
-          { querySelector: () => avatarDiv },
-          characterId,
-          characterName
-        );
-        avatarDiv.dataset.characterId = String(characterId || "");
-      }
-
-      editor.renderLayoutCardControls(cardElement, action, characterName, {
-        showToggleButton: true,
-      });
-    } else {
+    const updated =
+      (action.type === "talk" && updateTalkCard(cardElement, action)) ||
+      (action.type === "layout" &&
+        updateLayoutCard(cardElement, action, {
+          characterName: characterNameMap.get(action.characterId),
+          renderLayoutControls,
+        }));
+    if (!updated) {
       return false;
     }
 
-    const numberDiv = cardElement.querySelector(".card-sequence-number");
-    if (numberDiv && globalIndex !== -1) {
-      numberDiv.textContent = `#${globalIndex + 1}`;
-    }
+    updateCardSequenceNumber(cardElement, globalIndex);
     return true;
   };
 
   return {
     renderSingleCard,
     updateCard,
+    // 返回当前配置签名
     contextSignature: (configEntries) =>
       DataUtils.shallowSignature(configEntries),
   };

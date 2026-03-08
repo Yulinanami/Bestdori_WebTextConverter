@@ -1,24 +1,23 @@
+// 处理动作表情编辑器拖拽
 import { DragHelper } from "@editors/common/DragHelper.js";
-import { ScrollAnimationMixin } from "@mixins/ScrollAnimationMixin.js";
 
-// 给 expressionEditor 注入“拖拽排序能力”：拖卡片排序，拖拽时自动滚动
-export function attachExpressionDrag(editor, baseEditor) {
+// 添加拖拽能力
+export function attachExpressionDrag(editor) {
   Object.assign(editor, {
-    // 拖拽时自动滚动：把事件转交给 ScrollAnimationMixin
+    // 拖动时自动滚动
     handleDragScrolling: (dragEvent) => {
-      const containers = [
-        editor.domCache.timeline,
-        editor.domCache.motionList,
-        editor.domCache.expressionList,
-      ];
-      ScrollAnimationMixin.handleDragScrolling.call(
+      DragHelper.handleAutoScroll(
         editor,
         dragEvent,
-        containers
+        [
+          editor.domCache.timeline,
+          editor.domCache.motionList,
+          editor.domCache.expressionList,
+        ]
       );
     },
 
-    // 初始化：让时间线支持拖拽排序（move action 的顺序）
+    // 初始化拖拽排序
     initTimelineDrag() {
       const timeline = editor.domCache.timeline;
       if (!timeline) return;
@@ -28,9 +27,9 @@ export function attachExpressionDrag(editor, baseEditor) {
       );
       if (existing) return;
 
-      // 复用通用重排逻辑，避免每个编辑器重复写 splice 重排代码。
+      // 创建重排处理
       const runReorder = DragHelper.createReorderHandler({
-        runCommand: (changeFn) => baseEditor.executeCommand(changeFn),
+        runCommand: (changeFn) => editor.executeCommand(changeFn),
         beforeReorder: (globalOldIndex, globalNewIndex) => {
           editor.markGroupedReorderRender(
             "state",
@@ -40,11 +39,9 @@ export function attachExpressionDrag(editor, baseEditor) {
         },
       });
 
-      // 使用 DragHelper 创建 onEnd 处理器
+      // 创建拖拽结束处理
       const onEndHandler = DragHelper.createOnEndHandler({
-        editor: baseEditor,
-        getGroupingEnabled: () =>
-          editor.domCache.groupCheckbox?.checked || false,
+        editor,
         groupSize: 50,
         executeFn: runReorder,
       });
@@ -59,7 +56,7 @@ export function attachExpressionDrag(editor, baseEditor) {
                 "dragover",
                 editor.handleDragScrolling
               );
-              editor.stopScrolling();
+              DragHelper.stopAutoScroll(editor);
               if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
                 editor.applyGroupedReorderRender("state");
                 return;

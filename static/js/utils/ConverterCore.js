@@ -1,7 +1,7 @@
-// 把"纯文本剧本"转换成"项目文件(projectFile)"结构（不依赖 DOM/全局状态）。
+// 把纯文本转成项目数据
 import { state } from "@managers/stateManager.js";
 
-// 把角色配置（角色名 -> ids）变成 Map，方便快速用角色名查到 characterId
+// 把角色设置整理成方便查找的表
 function buildCharacterMap(characterConfig = {}) {
   return new Map(
     Object.entries(characterConfig).map(([name, ids]) => [
@@ -11,25 +11,25 @@ function buildCharacterMap(characterConfig = {}) {
   );
 }
 
-// 获取说话人分隔符正则表达式（从配置读取）
-function getSpeakerPattern() {
-  const configData = state.get("configData");
+// 读取说话人匹配规则
+function buildSpeakerPattern() {
+  const configData = state.configData;
   const patternStr = configData?.patterns?.speaker_pattern;
 
   if (patternStr) {
     try {
-      // 从配置字符串创建正则表达式，添加 s 标志以支持跨行匹配
+      // 用配置里的规则生成正则
       return new RegExp(patternStr, "s");
     } catch (error) {
       console.warn("无效的 speaker_pattern 正则表达式，使用默认值:", error);
     }
   }
 
-  // 默认正则：匹配 "角色名：台词" 或 "角色名: 台词"
+  // 没配时用默认规则
   return /^(.*?)\s*[：:]\s*(.*)$/s;
 }
 
-// 把输入文本按空行分段，并识别"角色名:台词"，生成 projectFile.actions
+// 把输入文字转成项目数据
 export function createProjectFileFromText(text, characterConfig = {}) {
   const segments = text
     .split(/\n\s*\n/)
@@ -37,7 +37,7 @@ export function createProjectFileFromText(text, characterConfig = {}) {
     .filter(Boolean);
 
   const characterMap = buildCharacterMap(characterConfig);
-  const speakerPattern = getSpeakerPattern();
+  const speakerPattern = buildSpeakerPattern();
 
   return {
     version: "1.0",

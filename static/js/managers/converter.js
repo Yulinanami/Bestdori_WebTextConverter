@@ -21,7 +21,7 @@ export const converter = {
 
   // 复制当前转换结果 JSON
   async copyResult() {
-    const currentResult = state.get("currentResult");
+    const currentResult = state.currentResult;
     if (!currentResult) {
       ui.showStatus("没有可复制的结果！", "error");
       return;
@@ -39,8 +39,8 @@ export const converter = {
   async convertText() {
     let projectFileToConvert;
 
-    if (state.get("projectFile")) {
-      projectFileToConvert = state.get("projectFile");
+    if (state.projectFile) {
+      projectFileToConvert = state.projectFile;
     } else {
       const inputText = document.getElementById("inputText").value.trim();
       if (!inputText) {
@@ -49,11 +49,11 @@ export const converter = {
       }
       projectFileToConvert = createProjectFileFromText(
         inputText,
-        state.get("currentConfig"),
+        state.currentConfig,
       );
     }
 
-    const selectedQuotes = quoteManager.getSelectedQuotes();
+    const selectedQuotes = quoteManager.collectSelectedQuotes();
     // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
     const narratorInput = document.getElementById("narratorName").value;
     const narratorName = narratorInput.trim() ? narratorInput : "";
@@ -70,7 +70,7 @@ export const converter = {
     );
   },
 
-  // 把项目文件发给后端转换，并把 JSON 结果渲染到页面上
+// 把项目文件发到后端再把结果放到页面上
   async convertFromProjectFile(
     projectFile,
     selectedQuotes = [],
@@ -80,9 +80,10 @@ export const converter = {
   ) {
     const buttonId = "convertBtn";
     try {
-      ui.setButtonLoading(buttonId, true, "转换中...");
+      ui.toggleButtonLoading(buttonId, true, "转换中...");
       ui.showStatus("正在发送项目数据...", "info");
 
+      // 把当前内容发给后端转换
       const convertResponse = await apiService.convertText(
         projectFile,
         selectedQuotes,
@@ -92,7 +93,7 @@ export const converter = {
       );
       const result = convertResponse.result;
 
-      state.set("currentResult", result);
+      state.currentResult = result;
       document.getElementById("resultContent").textContent = result;
       Prism.highlightElement(document.getElementById("resultContent"));
       const resultSection = document.getElementById("resultSection");
@@ -102,7 +103,7 @@ export const converter = {
     } catch (error) {
       ui.showStatus(error.message, "error");
     } finally {
-      ui.setButtonLoading(buttonId, false);
+      ui.toggleButtonLoading(buttonId, false);
     }
   },
 };

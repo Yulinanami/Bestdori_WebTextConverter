@@ -1,7 +1,7 @@
-// 合并业务：按模式校验并执行多文件合并
+// 处理文件合并
 const { mergeBestdori, mergeProject } = require("../../merger");
 
-// 校验文件列表并执行文件合并。
+// 合并文件列表
 function mergeFiles(files, logger) {
   if (!Array.isArray(files) || files.length < 1) {
     const error = new Error("请至少提供一个文件");
@@ -17,7 +17,7 @@ function mergeFiles(files, logger) {
   }
 
   const isProject = !!firstData.version;
-  // 要求同批文件类型一致：全部 project 或全部 bestdori。
+  // 同一批文件类型要一致
   const allSameType = files.every((fileEntry) => {
     const fileData = fileEntry?.data;
     return (
@@ -34,7 +34,7 @@ function mergeFiles(files, logger) {
     throw error;
   }
 
-  // 用首个文件推导模式，前端无需再传 mode。
+  // 按第一个文件判断模式
   const mode = isProject ? "project" : "bestdori";
   logger.info(`开始合并文件 - 模式: ${mode}, 文件数量: ${files.length}`);
   const result =

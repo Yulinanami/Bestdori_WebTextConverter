@@ -1,3 +1,4 @@
+// 编辑器里的性能日志
 const PERF_STYLES = {
   candidate: "color:#60a5fa;font-weight:600;",
   hit: "color:#22c55e;font-weight:700;",
@@ -10,10 +11,10 @@ const PERF_STYLES = {
   base: "color:#e2e8f0;",
 };
 
-// 局部短路日志总开关：默认开启；可在控制台执行 window.__EDITOR_PERF_LOG__ = false 关闭。
+// 默认打开性能日志
 const PERF_LOG_ENABLED = true;
 
-// 运行时读取日志开关（优先使用 window 上的临时覆盖值）。
+// 看现在要不要输出日志
 function isPerfLogEnabled() {
   if (typeof window !== "undefined" && typeof window.__EDITOR_PERF_LOG__ === "boolean") {
     return window.__EDITOR_PERF_LOG__;
@@ -21,7 +22,7 @@ function isPerfLogEnabled() {
   return PERF_LOG_ENABLED;
 }
 
-// 根据日志关键字选择控制台颜色，便于区分局部短路命中/失败/回退。
+// 按日志内容选颜色
 function resolvePerfStyle(message) {
   if (!message.includes("[PERF]")) {
     return "";
@@ -53,7 +54,7 @@ function resolvePerfStyle(message) {
   return PERF_STYLES.base;
 }
 
-// PERF 调试日志：按“命中/失败/回退/撤销恢复”等类型统一上色。
+// 打印性能日志
 export function perfLog(message) {
   if (typeof message !== "string") {
     if (!isPerfLogEnabled()) return;

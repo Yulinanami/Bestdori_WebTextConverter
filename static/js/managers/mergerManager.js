@@ -1,3 +1,4 @@
+// 管理文件合并页面
 import { ui } from "@utils/uiUtils.js";
 import { FileUtils } from "@utils/FileUtils.js";
 import { apiService } from "@services/ApiService.js";
@@ -9,13 +10,13 @@ export const mergerManager = {
   fileIdCounter: 0,
   mergedResult: null,
 
-  // 初始化合并模块：绑定事件并启用拖拽排序。
+  // 初始化
   init() {
     this.bindEvents();
     this.initSortable();
   },
 
-  // 绑定上传、合并、下载、复制等按钮事件。
+  // 绑定页面事件
   bindEvents() {
     const fileInput = document.getElementById("mergerFileInput");
     const fileUpload = document.getElementById("mergerFileUpload");
@@ -76,7 +77,7 @@ export const mergerManager = {
     }
   },
 
-  // 初始化文件列表排序（拖拽后同步内部数组顺序）。
+  // 初始化拖拽排序
   initSortable() {
     const listEl = document.getElementById("mergerFileList");
     if (listEl && window.Sortable) {
@@ -85,7 +86,7 @@ export const mergerManager = {
         handle: ".merger-file-drag-handle",
         ghostClass: "sortable-ghost",
         onEnd: (sortableEvent) => {
-          // 同步内部数组顺序
+          // 同步数组顺序
           const movedItem = this.files.splice(sortableEvent.oldIndex, 1)[0];
           this.files.splice(sortableEvent.newIndex, 0, movedItem);
         },
@@ -93,11 +94,11 @@ export const mergerManager = {
     }
   },
 
-  // 批量导入待合并文件：前端只上传，解析与校验由后端完成。
+  // 上传并导入文件
   async handleFilesUpload(fileList) {
     if (!fileList || fileList.length === 0) return;
 
-    // 逐个上传到后端解析
+    // 逐个传到后端解析
     for (const file of Array.from(fileList)) {
       try {
         const response = await apiService.importMergeFile(file);
@@ -113,14 +114,14 @@ export const mergerManager = {
       }
     }
 
-    // 重置 input 以便再次选择相同文件
+    // 清空 input 方便重新选择同名文件
     const mergerFileInput = document.getElementById("mergerFileInput");
     if (mergerFileInput) mergerFileInput.value = "";
 
     this.updateUI();
   },
 
-  // 刷新文件列表展示和“合并”按钮状态。
+  // 刷新列表和按钮
   updateUI() {
     const fileListContainer = document.getElementById(
       "mergerFileListContainer",
@@ -152,7 +153,7 @@ export const mergerManager = {
         fileListElement.appendChild(fileListItem);
       });
 
-      // 只绑定一次全局删除事件
+      // 删除事件只绑一次
       if (!this._isDeleteEventBound) {
         document.addEventListener("remove-merger-file", (removeFileEvent) => {
           this.removeFile(removeFileEvent.detail);
@@ -165,7 +166,7 @@ export const mergerManager = {
     }
   },
 
-  // 清空待合并文件和合并结果展示区域。
+  // 清空文件和结果
   clearFiles() {
     this.files = [];
     this.updateUI();
@@ -173,13 +174,13 @@ export const mergerManager = {
     if (resultSec) resultSec.classList.add("hidden");
   },
 
-  // 删除指定文件并刷新列表。
+  // 删除一个文件
   removeFile(fileId) {
     this.files = this.files.filter((fileEntry) => fileEntry.id !== fileId);
     this.updateUI();
   },
 
-  // 合并文件：后端负责类型验证和实际合并
+  // 发起合并
   async mergeFiles() {
     if (this.files.length < 1) {
       ui.showStatus("请至少上传一个文件。", "warning");
@@ -200,7 +201,7 @@ export const mergerManager = {
       mergeText.textContent = "合成中...";
     }
 
-    // 调用后端 API 执行合并
+    // 调后端做合并
     try {
       const filesPayload = this.files.map((fileEntry) => ({
         name: fileEntry.name,
@@ -228,7 +229,7 @@ export const mergerManager = {
     }
   },
 
-  // 下载合并结果（统一走后端下载接口）。
+  // 下载合并结果
   async downloadMergedResult() {
     if (!this.mergedResult) return;
 
@@ -250,7 +251,7 @@ export const mergerManager = {
     }
   },
 
-  // 复制合并结果 JSON 到剪贴板。
+  // 复制合并结果
   async copyMergedResult() {
     if (!this.mergedResult) return;
     const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
@@ -262,13 +263,13 @@ export const mergerManager = {
     }
   },
 
-  // 内部方法：展示合并结果
+  // 显示合并结果
   _displayMergeResult(mergedData) {
     const resultSec = document.getElementById("mergeResultSection");
     const resultContent = document.getElementById("mergeResultContent");
     const jsonStr = JSON.stringify(mergedData, null, 2);
 
-    // 根据模式切换操作按钮
+    // 按模式切按钮
     const copyButton = document.getElementById("copyMergeBtn");
     const gotoButton = document.getElementById("gotoBestdoriMergeBtn");
     if (this.mode === "project") {

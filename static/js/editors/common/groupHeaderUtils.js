@@ -1,23 +1,23 @@
-// 计算某个分组的起止序号（1-based）。
-export function getGroupRange(groupIndex, groupSize, totalActions) {
+// 分组标题
+export function resolveGroupRange(groupIndex, groupSize, totalActions) {
   const startNum = groupIndex * groupSize + 1;
   const endNum = Math.min((groupIndex + 1) * groupSize, totalActions);
   return { startNum, endNum };
 }
 
-// 统一分组头文案。
-export function getGroupHeaderText(isActive, startNum, endNum) {
+// 生成分组标题文字
+export function buildGroupHeaderText(isActive, startNum, endNum) {
   return `${isActive ? "▼" : "▶"} 对话 ${startNum} - ${endNum} (${
     endNum - startNum + 1
   }条)`;
 }
 
-// 同步分组头样式和文案；需要时绑定点击事件。
+// 更新分组标题的样式和文字
 export function updateGroupHeader(header, options) {
   const { groupIndex, isActive, startNum, endNum, onToggle } = options;
   header.classList.add("timeline-group-header");
   header.dataset.groupIdx = String(groupIndex);
-  // 统一组头基础样式，保证局部短路新建组头与全量渲染外观一致。
+  // 先写入基础样式
   header.style.cursor = "pointer";
   header.style.padding = "12px 18px";
   header.style.background = "var(--bg-secondary)";
@@ -33,8 +33,27 @@ export function updateGroupHeader(header, options) {
   } else {
     header.style.borderColor = "var(--border-primary)";
   }
-  header.textContent = getGroupHeaderText(isActive, startNum, endNum);
+  header.textContent = buildGroupHeaderText(isActive, startNum, endNum);
   if (onToggle) {
+    // 点击标题时切换分组
     header.onclick = () => onToggle(groupIndex);
+  }
+}
+
+// 滚动到指定分组标题
+export function scrollToGroupHeader(container, groupIndex, offset = 110) {
+  const header = container?.querySelector(
+    `.timeline-group-header[data-group-idx="${groupIndex}"]`
+  );
+  if (!header) {
+    return;
+  }
+
+  const targetTop = header.offsetTop - offset;
+  if (container.scrollTop !== targetTop) {
+    container.scrollTo({
+      top: targetTop,
+      behavior: "smooth",
+    });
   }
 }

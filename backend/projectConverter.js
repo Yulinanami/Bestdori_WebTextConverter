@@ -1,4 +1,4 @@
-// 项目转换器：把前端项目 JSON 转成 Bestdori 目标 JSON
+// 把项目数据转成结果 JSON
 const { createLogger } = require("./logger");
 const { buildActiveQuotePairs } = require("./converter/quoteTools");
 const { convertTalkAction } = require("./converter/talkActionConverter");
@@ -8,19 +8,19 @@ const { collectActionStats } = require("./converter/actionStats");
 const logger = createLogger("src.converter");
 
 class ProjectConverter {
-  // 初始化转换器（处理头像映射）
+  // 保存头像映射
   constructor(avatarMapping = {}) {
     this.avatarMapping = avatarMapping || {};
   }
 
-  // 根据头像映射把输入角色 ID 转成输出角色 ID。
+  // 计算角色头像 ID
   mapOutputId(charId) {
     const mapped =
       this.avatarMapping[charId] ?? this.avatarMapping[String(charId)];
     return mapped ?? charId;
   }
 
-  // 把项目动作序列转换为目标 JSON 字符串，并输出关键统计日志。
+  // 转换整个项目
   convert(
     projectFile,
     quoteConfig = null,

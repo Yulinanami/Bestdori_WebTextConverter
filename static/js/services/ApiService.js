@@ -1,15 +1,16 @@
-// 把后端接口封装
+// 前端调用后端接口
 class ApiService {
+  // 创建接口工具
   constructor() {
-    // 初始化：设置接口前缀、超时和默认请求头
+    // 先保存超时和默认请求头
     this.timeout = 30000;
     this.defaultHeaders = {
       "Content-Type": "application/json",
     };
   }
 
-  // 发起 GET 请求，并直接返回后端 JSON 数据
-  async get(url, config = {}) {
+  // 请求 JSON 接口
+  async fetchJson(url, config = {}) {
     try {
       const response = await axios.get(url, {
         timeout: this.timeout,
@@ -23,7 +24,7 @@ class ApiService {
     }
   }
 
-  // 发起 POST 请求：支持 JSON 或 FormData（上传文件时用）
+  // 发 POST 请求
   async post(url, data = {}, config = {}) {
     const isFormData = data instanceof FormData;
     const requestHeaders = isFormData ? {} : this.defaultHeaders;
@@ -31,7 +32,7 @@ class ApiService {
     try {
       const response = await axios.post(url, data, {
         timeout: this.timeout,
-        // 合并请求头，允许 config 中的 headers 覆盖默认值
+        // 合并请求头
         headers: { ...requestHeaders, ...config.headers },
         ...config,
       });
@@ -43,29 +44,19 @@ class ApiService {
     }
   }
 
-  // 获取后端提供的默认配置（角色映射、引号、动作表情等）
-  async getConfig() {
-    return await this.get("/api/config");
-  }
-
-  // 获取后端提供的服装配置（可用服装 + 默认服装）
-  async getCostumes() {
-    return await this.get("/api/costumes");
-  }
-
-  // 导入配置文件（后端解析 JSON）
+  // 导入配置文件
   async importConfigFile(file) {
     const formData = new FormData();
     formData.append("file", file);
     return await this.post("/api/config-import", formData);
   }
 
-  // 导出配置文件（后端组装导出结构）
+  // 导出配置文件
   async exportConfigFile(payload) {
     return await this.post("/api/config-export", payload);
   }
 
-  // 把“项目文件(projectFile)”转换成 Bestdori 可导入的 JSON 字符串
+  // 发送内容开始转换
   async convertText(
     projectFile,
     quoteConfig = [],
@@ -82,39 +73,39 @@ class ApiService {
     });
   }
 
-  // 上传剧本文件（txt/docx/md），让后端解析成纯文本
+  // 上传文本文件
   async uploadFile(file) {
     const formData = new FormData();
     formData.append("file", file);
-    // 不设置Content-Type,让浏览器自动添加boundary
+    // 不手动设置 Content-Type
     return await this.post("/api/upload", formData);
   }
 
-  // 导入单个待合并文件（后端解析 JSON）
+  // 导入一个待合并文件
   async importMergeFile(file) {
     const formData = new FormData();
     formData.append("file", file);
     return await this.post("/api/merge-file-import", formData);
   }
 
-  // 把多个文件数据发送到后端进行合并
+  // 发送文件开始合并
   async mergeFiles(files) {
     return await this.post("/api/merge", { files });
   }
 
-  // 导入项目进度文件（后端解析并校验）
+  // 导入项目进度文件
   async importProjectFile(file) {
     const formData = new FormData();
     formData.append("file", file);
     return await this.post("/api/project-file-import", formData);
   }
 
-  // 导出项目进度文件（后端清理并返回导出内容）
+  // 导出项目进度文件
   async exportProjectFile(projectFile) {
     return await this.post("/api/project-export", { projectFile });
   }
 
-  // 让后端生成一个可下载的 JSON 文件（返回 blob）
+  // 下载结果文件
   async downloadResult(content, filename) {
     try {
       const response = await axios.post(
@@ -136,7 +127,7 @@ class ApiService {
   // 内部方法：把 axios 的报错“翻译”成用户能看懂的提示文字
   _handleError(error) {
     if (error.response) {
-      // 服务器返回错误状态码
+      // 后端返回错误
       const status = error.response.status;
       const message =
         error.response.data?.error || error.response.data?.message;
@@ -158,14 +149,14 @@ class ApiService {
           return message || `请求失败 (${status})`;
       }
     } else if (error.request) {
-      // 请求已发送但未收到响应
+      // 请求已发出 但没有响应
       return "网络连接失败，请检查网络";
     } else {
-      // 请求配置错误
+      // 请求本身有问题
       return error.message || "请求配置错误";
     }
   }
 }
 
-// 导出一个全局单例（全站共用同一套 API 调用）
+// 导出一个全局接口工具
 export const apiService = new ApiService();

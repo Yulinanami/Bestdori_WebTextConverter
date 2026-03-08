@@ -1,10 +1,11 @@
+// 处理动作表情卡片的局部刷新
 import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 
-// 动作/表情编辑器：卡片底部分配区的局部短路刷新。
+// 添加卡片局部刷新
 export function attachExpressionCardLocalRefresh(editor) {
   const debugPrefix = "[PERF][expressionCard]";
-  // 把 detail 入参统一转成字符串，便于日志直出。
+  // 把 detail 转成文字
   const normalizeDetail = (detail) => {
     if (!detail) return "";
     if (typeof detail === "string") return detail;
@@ -18,7 +19,7 @@ export function attachExpressionCardLocalRefresh(editor) {
   Object.assign(editor, {
     pendingExpressionCardRenders: new Map(),
 
-    // 标记“下次渲染优先局部刷新这张卡片的分配区”。
+    // 标记要刷新的卡片
     markExpressionCardRender(actionId, options = {}) {
       if (!actionId) {
         return;
@@ -47,7 +48,7 @@ export function attachExpressionCardLocalRefresh(editor) {
       perfLog(`${debugPrefix}[局部候选] 标记卡片刷新: ${logParts.join(", ")}`);
     },
 
-    // 返回本轮待刷新的简要摘要，供编辑器主日志打印。
+    // 整理本轮刷新摘要
     peekPendingExpressionCardSummary(limit = 2) {
       const entries = Array.from(this.pendingExpressionCardRenders.entries());
       if (!entries.length) {
@@ -69,7 +70,7 @@ export function attachExpressionCardLocalRefresh(editor) {
       return `${summary}; ...+${entries.length - limit}`;
     },
 
-    // 逐张卡片尝试局部刷新分配区；失败才回退全量渲染。
+    // 逐张卡片尝试局部刷新
     applyPendingExpressionCardRender() {
       const pendingRenders = this.pendingExpressionCardRenders;
       if (pendingRenders.size === 0) {

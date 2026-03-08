@@ -1,4 +1,4 @@
-// 负责上传文件→读取文本和下载结果 JSON的整套流程
+// 上传文件→读取文本和下载结果 JSON的整套流程
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { apiService } from "@services/ApiService.js";
@@ -26,10 +26,12 @@ export const fileHandler = {
     if (!fileUpload) {
       return;
     }
+    // 给拖拽事件都加上默认拦截
     ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(eventName, this.preventDefaults, false);
     });
 
+    // 拖进来时高亮上传框
     ["dragenter", "dragover"].forEach((eventName) => {
       fileUpload.addEventListener(
         eventName,
@@ -38,6 +40,7 @@ export const fileHandler = {
       );
     });
 
+    // 拖走或放下后取消高亮
     ["dragleave", "drop"].forEach((eventName) => {
       fileUpload.addEventListener(
         eventName,
@@ -54,7 +57,7 @@ export const fileHandler = {
     dragEvent.stopPropagation();
   },
 
-  // 拖拽松手时：把文件交给统一的上传处理
+// 拖拽松手后交给同一个上传入口
   handleDrop(dropEvent) {
     dropEvent.preventDefault();
     dropEvent.stopPropagation();
@@ -88,8 +91,8 @@ export const fileHandler = {
 
       document.getElementById("inputText").value = uploadResponse.content;
 
-      if (state.get("projectFile")) {
-        state.set("projectFile", null);
+      if (state.projectFile) {
+        state.projectFile = null;
       }
 
       ui.showStatus("文件上传成功！", "success");
@@ -104,13 +107,14 @@ export const fileHandler = {
   // 把当前转换结果下载为 .json 文件
   async downloadResult() {
     const buttonId = "downloadBtn";
-    if (!state.get("currentResult")) {
+    if (!state.currentResult) {
       ui.showStatus("没有可下载的结果！", "error");
       return;
     }
 
     await ui.withButtonLoading(
       buttonId,
+      // 请求下载内容并保存
       async () => {
         const filename = `result_${new Date()
           .toISOString()
@@ -119,7 +123,7 @@ export const fileHandler = {
 
         try {
           const blob = await apiService.downloadResult(
-            state.get("currentResult"),
+            state.currentResult,
             filename,
           );
 

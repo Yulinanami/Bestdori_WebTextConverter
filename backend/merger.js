@@ -1,4 +1,5 @@
-// 文件合并逻辑：bestdori 结果合并 + 项目进度合并
+// 合并文件内容
+// 深拷贝数据
 const cloneDeep = (value) => {
   if (typeof structuredClone === "function") {
     return structuredClone(value);
@@ -6,10 +7,12 @@ const cloneDeep = (value) => {
   return JSON.parse(JSON.stringify(value));
 };
 
+// 生成临时用的时间戳
 const generateTimestamp = () => Date.now() + Math.floor(Math.random() * 10000);
 
+// 合并结果文件
 const mergeBestdori = (files) => {
-  // 严格按 server -> voice -> background -> bgm -> actions 输出
+  // 按固定字段顺序输出
   const base = files[0].data || {};
   const merged = {
     server: base.server ?? 0,
@@ -29,8 +32,9 @@ const mergeBestdori = (files) => {
   return merged;
 };
 
+// 合并项目进度
 const mergeProject = (files) => {
-  // 严格按 version -> actions 输出，并重建 action id 防冲突
+  // 按固定字段顺序输出并重建 action id
   const base = files[0].data || {};
   const merged = {
     version: base.version ?? "1.0",

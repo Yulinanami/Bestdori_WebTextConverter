@@ -1,4 +1,4 @@
-// 配置管理器：读取 config.yaml 并缓存配置对象
+// 读取配置文件
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
@@ -7,7 +7,7 @@ const { createLogger } = require("./logger");
 const logger = createLogger("src.config");
 
 class ConfigManager {
-  // 初始化：确定配置文件路径并加载到内存
+  // 保存配置路径并读取配置
   constructor(configPath = "config.yaml") {
     this.configPath = path.isAbsolute(configPath)
       ? configPath
@@ -16,6 +16,7 @@ class ConfigManager {
     logger.info(`ConfigManager using config file: ${this.configPath}`);
   }
 
+  // 读取配置内容
   loadConfig() {
     if (!fs.existsSync(this.configPath)) {
       logger.error(`配置文件不存在: ${this.configPath}。将使用空配置。`);
