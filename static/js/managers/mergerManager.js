@@ -22,6 +22,7 @@ export const mergerManager = {
     const fileUpload = document.getElementById("mergerFileUpload");
 
     if (fileInput && fileUpload) {
+      // 上传区同时支持文件选择和拖拽
       fileInput.addEventListener("change", (changeEvent) =>
         this.handleFilesUpload(changeEvent.target.files),
       );
@@ -85,6 +86,7 @@ export const mergerManager = {
         animation: 150,
         handle: ".merger-file-drag-handle",
         ghostClass: "sortable-ghost",
+        // 拖完后把内部数组顺序同步回来
         onEnd: (sortableEvent) => {
           // 同步数组顺序
           const movedItem = this.files.splice(sortableEvent.oldIndex, 1)[0];
@@ -130,6 +132,7 @@ export const mergerManager = {
     const mergeButton = document.getElementById("mergeBtn");
 
     if (this.files.length > 0) {
+      // 有文件时重建列表 没文件时收起整个区域
       fileListContainer.classList.remove("hidden");
       mergeButton.disabled = false;
 
@@ -203,6 +206,7 @@ export const mergerManager = {
 
     // 调后端做合并
     try {
+      // 先按当前拖拽顺序整理后端需要的文件列表
       const filesPayload = this.files.map((fileEntry) => ({
         name: fileEntry.name,
         data: fileEntry.data,

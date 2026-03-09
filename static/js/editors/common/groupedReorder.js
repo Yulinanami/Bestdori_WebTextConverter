@@ -3,7 +3,7 @@ import { DragHelper } from "@editors/common/DragHelper.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 
 // 给编辑器添加分组重排优化
-export function attachGroupedReorderOptimization(editor, options = {}) {
+export function attachGroupReorder(editor, options = {}) {
   const {
     cardSelector = ".talk-item, .layout-item",
     containerKey,
@@ -22,22 +22,23 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
   };
 
   Object.assign(editor, {
-    pendingGroupedReorderRender: null,
+    pendingGroupReorder: null,
 
     // 记录一次分组重排
-    markGroupedReorderRender(mode = "meta", trigger = "unknown", detail = "") {
-// 标记分组重排刷新
-      this.pendingGroupedReorderRender = { mode, trigger, detail };
+    markGroupReorder(mode = "meta", trigger = "unknown", detail = "") {
+      // 标记分组重排刷新
+      this.pendingGroupReorder = { mode, trigger, detail };
     },
 
     // 只刷新当前组的顺序
-    applyGroupedReorderRender(mode = "meta") {
+    applyGroupReorder(mode = "meta") {
       const shouldReorderByState = mode === "state";
       let activeGroupActionIds = [];
       if (shouldReorderByState) {
         const groupSize = this.groupSize;
         const actions = this.projectFileState.actions;
         const activeGroupIndex = this.activeGroupIndex;
+        // 撤销重做时先按当前 state 算出这一组该显示哪些卡片
         const shouldGroup =
           this.domCache.groupCheckbox.checked &&
           actions.length > groupSize &&
@@ -53,7 +54,7 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
           activeGroupActionIds = actions.map((actionItem) => actionItem.id);
         }
       }
-      return DragHelper.applyGroupedReorderRender({
+      return DragHelper.applyGroupReorder({
         container: this.domCache?.[containerKey],
         cardSelector,
         groupSize: this.groupSize,
@@ -67,17 +68,18 @@ export function attachGroupedReorderOptimization(editor, options = {}) {
 
     // 处理重排后的刷新
     handleRenderCallback() {
-      if (this.pendingGroupedReorderRender) {
-        const pendingRender = this.pendingGroupedReorderRender;
+      if (this.pendingGroupReorder) {
+        const pendingRender = this.pendingGroupReorder;
         const pendingMode = pendingRender.mode;
         const pendingTrigger = pendingRender.trigger;
         const pendingDetail = pendingRender.detail;
         const triggerLabel = resolveTriggerLabel(pendingTrigger);
-        this.pendingGroupedReorderRender = null;
+        this.pendingGroupReorder = null;
+        // 先尝试只改当前组顺序 失败后再回退全量渲染
         const isGroupingEnabled = this.domCache.groupCheckbox.checked;
         const modeLabel = isGroupingEnabled ? "分组模式" : "非分组模式";
         const detailText = pendingDetail ? `, 详情=${pendingDetail}` : "";
-        if (this.applyGroupedReorderRender(pendingMode)) {
+        if (this.applyGroupReorder(pendingMode)) {
           if (debugPrefix) {
             perfLog(
               `${debugPrefix}[局部短路] 命中排序: 触发=${triggerLabel}, mode=${pendingMode}, 场景=${modeLabel}${detailText}`

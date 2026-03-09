@@ -30,7 +30,7 @@ function buildSpeakerPattern() {
 }
 
 // 把输入文字转成项目数据
-export function createProjectFileFromText(text, characterConfig = {}) {
+export function buildProjectData(text, characterConfig = {}) {
   const segments = text
     .split(/\n\s*\n/)
     .map((segment) => segment.trim())

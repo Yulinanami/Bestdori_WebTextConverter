@@ -44,6 +44,7 @@ export function attachSpeakerDrag(editor) {
               put: true, // 可接收拖回
             },
             sort: false,
+            // 拦掉不该拖回角色列表的卡片
             onMove: (sortableMoveEvent) => {
               if (sortableMoveEvent.dragged.classList.contains("layout-item")) {
                 return false;
@@ -52,9 +53,11 @@ export function attachSpeakerDrag(editor) {
                 "#speakerEditorCharacterList"
               );
             },
+            // 开始拖拽时开启自动滚动监听
             onStart: () => {
               document.addEventListener("dragover", editor.handleDragScrolling);
             },
+            // 结束拖拽时关闭自动滚动监听
             onEnd: () => {
               document.removeEventListener(
                 "dragover",
@@ -62,13 +65,14 @@ export function attachSpeakerDrag(editor) {
               );
               DragHelper.stopAutoScroll(editor);
             },
+            // 把拖回角色列表的对话卡片改成清空说话人
             onAdd: (sortableAddEvent) => {
               const cardItem = sortableAddEvent.item;
               const actionId = cardItem.dataset.id;
 
               // 拖回右侧就清空说话人
               if (actionId && cardItem.classList.contains("dialogue-item")) {
-                editor.removeAllSpeakersFromAction(actionId);
+                editor.clearActionSpeakers(actionId);
               }
 
               cardItem.remove();
@@ -80,9 +84,11 @@ export function attachSpeakerDrag(editor) {
       }
       // 创建重排处理
       const runReorder = DragHelper.createReorderHandler({
+        // 拖拽重排时直接改画布数据
         runCommand: (changeFn) => editor.executeCommand(changeFn),
+        // 重排前先记下这次排序信息
         beforeReorder: (globalOldIndex, globalNewIndex) => {
-          editor.markGroupedReorderRender(
+          editor.markGroupReorder(
             "state",
             "drag",
             `index: ${globalOldIndex} -> ${globalNewIndex}`
@@ -98,6 +104,7 @@ export function attachSpeakerDrag(editor) {
       });
 
       // 角色拖到卡片上时改说话人
+      // 把拖进画布的角色卡片转成说话人变更
       const onAddHandler = (sortableAddEvent) => {
         const characterItem = sortableAddEvent.item;
         characterItem.style.display = "none";
@@ -129,7 +136,7 @@ export function attachSpeakerDrag(editor) {
         const actionId = targetCard.dataset.id;
         const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
         if (actionId && Number.isInteger(characterId)) {
-          editor.updateSpeakerAssignment(
+          editor.assignSpeaker(
             actionId,
             {
               characterId,
@@ -147,6 +154,7 @@ export function attachSpeakerDrag(editor) {
             canvas,
             DragHelper.createSortableConfig({
               group: "shared-speakers",
+              // 结束拖拽时先判断是否真的落进画布
               onEnd: (sortableEvent) => {
                 document.removeEventListener(
                   "dragover",
@@ -155,7 +163,7 @@ export function attachSpeakerDrag(editor) {
                 DragHelper.stopAutoScroll(editor);
                 // 没落在画布里就回滚
                 if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
-                  editor.applyGroupedReorderRender("state");
+                  editor.applyGroupReorder("state");
                   editor.reattachSelection();
                   return;
                 }
@@ -164,6 +172,7 @@ export function attachSpeakerDrag(editor) {
               onAdd: onAddHandler,
               extraConfig: {
                 sort: true,
+                // 开始拖拽时开启自动滚动监听
                 onStart: () => {
                   document.addEventListener(
                     "dragover",

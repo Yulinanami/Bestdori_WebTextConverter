@@ -27,6 +27,7 @@ class ApiService {
   // 发 POST 请求
   async post(url, data = {}, config = {}) {
     const isFormData = data instanceof FormData;
+    // FormData 交给浏览器自己带 boundary
     const requestHeaders = isFormData ? {} : this.defaultHeaders;
 
     try {
@@ -62,14 +63,14 @@ class ApiService {
     quoteConfig = [],
     narratorName = " ",
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0,
+    padBeforeNewline = 0,
   ) {
     return await this.post("/api/convert", {
       projectFile,
       quoteConfig,
       narratorName,
       appendSpaces,
-      appendSpacesBeforeNewline,
+      appendSpacesBeforeNewline: padBeforeNewline,
     });
   }
 
@@ -124,7 +125,7 @@ class ApiService {
     }
   }
 
-  // 内部方法：把 axios 的报错“翻译”成用户能看懂的提示文字
+  // 把 axios 报错整理成页面提示
   _handleError(error) {
     if (error.response) {
       // 后端返回错误
@@ -132,13 +133,10 @@ class ApiService {
       const message =
         error.response.data?.error || error.response.data?.message;
 
+      // 只保留这个项目实际会用到的错误码提示
       switch (status) {
         case 400:
           return `请求错误: ${message || "参数有误"}`;
-        case 401:
-          return "未授权，请重新登录";
-        case 403:
-          return "拒绝访问";
         case 404:
           return "请求的资源不存在";
         case 500:
@@ -148,13 +146,15 @@ class ApiService {
         default:
           return message || `请求失败 (${status})`;
       }
-    } else if (error.request) {
+    }
+
+    if (error.request) {
       // 请求已发出 但没有响应
       return "网络连接失败，请检查网络";
-    } else {
-      // 请求本身有问题
-      return error.message || "请求配置错误";
     }
+
+    // 请求在发出前就出错
+    return error.message || "请求配置错误";
   }
 }
 

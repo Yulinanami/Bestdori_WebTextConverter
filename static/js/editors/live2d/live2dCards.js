@@ -1,19 +1,12 @@
 // Live2D 卡片显示
-import { DOMUtils } from "@utils/DOMUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
-import {
-  createTalkCard,
-  createLayoutCard,
-  updateCardSequenceNumber,
-  updateLayoutCard,
-  updateTalkCard,
-} from "@utils/TimelineCardFactory.js";
+import { createTalkCard, createLayoutCard, updateCardIndex, updateLayoutCard, updateTalkCard } from "@utils/TimelineCardFactory.js";
 
 // 创建 Live2D 卡片方法
-export function createLive2DRenderers(editor, { templates, characterNameMap }) {
+export function buildCards(editor, { templates, characterNameMap }) {
 // 刷新布局卡片上的控件
   const renderLayoutControls = (cardEl, layoutAction, characterName) =>
-    editor.renderLayoutCardControls(cardEl, layoutAction, characterName, {
+    editor.renderLayoutControls(cardEl, layoutAction, characterName, {
       showToggleButton: true,
     });
   // 渲染一张卡片
@@ -46,7 +39,7 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
         : cardElement;
     if (!renderedCard) return null;
 
-    updateCardSequenceNumber(renderedCard, globalIndex);
+    updateCardIndex(renderedCard, globalIndex);
     return renderedCard;
   };
 
@@ -64,7 +57,7 @@ export function createLive2DRenderers(editor, { templates, characterNameMap }) {
       return false;
     }
 
-    updateCardSequenceNumber(cardElement, globalIndex);
+    updateCardIndex(cardElement, globalIndex);
     return true;
   };
 

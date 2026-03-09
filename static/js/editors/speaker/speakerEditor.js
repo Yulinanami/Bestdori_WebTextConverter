@@ -2,30 +2,20 @@
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { attachCharacterList } from "@editors/common/characterList.js";
 import { attachEditorCore } from "@editors/common/editorCore.js";
-import { attachLayoutProperties } from "@editors/common/layoutProperties.js";
-import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
-import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
-import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
+import { attachLayoutUI } from "@editors/common/layoutProperties.js";
+import { attachGroupReorder } from "@editors/common/groupedReorder.js";
+import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
+import { attachUndoRedo } from "@editors/common/undoRedo.js";
 import { perfLog } from "@editors/common/perfLogger.js";
-import {
-  buildLayoutLogParts,
-  buildMutationLogParts,
-  buildSpeakerLogParts,
-  buildTextUpdateLogParts,
-  createSpeakerUndoRedoHandlers,
-  runShortcutSteps,
-} from "@editors/common/localShortcutUtils.js";
+import { layoutLog, mutationLog, speakerLog, textLog, speakerUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
 import { attachSpeakerDrag } from "@editors/speaker/speakerDrag.js";
 import { attachSpeakerCanvas } from "@editors/speaker/speakerCanvas.js";
-import { attachSpeakerBehavior } from "@editors/speaker/speakerBehavior.js";
-import {
-  attachSpeakerCardLocalRefresh,
-  renderSpeakerActionCard,
-} from "@editors/speaker/speakerCardLocalRefresh.js";
+import { attachSpeakerActions } from "@editors/speaker/speakerBehavior.js";
+import { attachSpeakerRefresh, renderSpeakerCard } from "@editors/speaker/speakerRefresh.js";
 
 // 创建对话编辑器用的基础对象
 const baseEditor = new BaseEditor({
-// 需要重新渲染时走同一个调度
+  // 需要重新渲染时都走这一层
   renderCallback: () => {
     speakerEditor.scheduleRender();
   },
@@ -67,8 +57,8 @@ export const speakerEditor = {
       modal: document.getElementById("speakerEditorModal"),
       undoBtn: document.getElementById("undoBtn"),
       redoBtn: document.getElementById("redoBtn"),
-      toggleMultiSelectBtn: document.getElementById("toggleMultiSelectBtn"),
-      toggleTextEditBtn: document.getElementById("toggleTextEditBtn"),
+      multiSelectBtn: document.getElementById("toggleMultiSelectBtn"),
+      textEditBtn: document.getElementById("toggleTextEditBtn"),
     };
 
     this.loadModePreferences();
@@ -81,9 +71,9 @@ export const speakerEditor = {
       document.getElementById(buttonId)?.addEventListener("click", handler);
     });
     // 切换多选模式
-    this.domCache.toggleMultiSelectBtn?.addEventListener("click", () => this.toggleMultiSelectMode());
+    this.domCache.multiSelectBtn?.addEventListener("click", () => this.toggleMultiSelect());
     // 切换文本编辑模式
-    this.domCache.toggleTextEditBtn?.addEventListener("click", () => this.toggleTextEditMode());
+    this.domCache.textEditBtn?.addEventListener("click", () => this.toggleTextEditMode());
 
     // 绑定通用事件
     this.initCommonEvents();
@@ -100,7 +90,7 @@ export const speakerEditor = {
       // 打开后刷新画布和拖拽
       afterOpen: async () => {
         speakerEditor.applyModeUIState();
-        speakerEditor.renderPrimaryViewWithCharacters(() => speakerEditor.renderCanvas());
+        speakerEditor.renderViewAndList(() => speakerEditor.renderCanvas());
         speakerEditor.initDragAndDrop();
         speakerEditor.bindCanvasEvents();
         speakerEditor.domCache.modal?.focus();
@@ -114,81 +104,90 @@ export const speakerEditor = {
       cancelAnimationFrame(this.renderFrameId);
       this.renderFrameId = null;
     }
-    this.closeInlineTextEditor?.();
+    this.closeInlineEditor?.();
     // 清空这次编辑留下的临时标记
     this.resetTransientState({
-      pendingGroupedReorderRender: null,
-      pendingLayoutPropertyRender: null,
-      pendingLayoutMutationRender: null,
-      pendingSpeakerRender: null,
-      pendingTextEditRender: null,
-      pendingCardMutationRender: null,
-      lastSpeakerRenderFailReason: "",
+      pendingGroupReorder: null,
+      pendingLayoutChange: null,
+      pendingLayoutPatch: null,
+      pendingSpeakerChange: null,
+      pendingTextChange: null,
+      pendingCardMutation: null,
+      lastSpeakerError: "",
     });
     this.resetCanvasRenderCache?.();
   },
 };
 
-attachSpeakerCardLocalRefresh(speakerEditor);
-attachLayoutCardLocalRefresh(speakerEditor, {
+attachSpeakerRefresh(speakerEditor);
+attachLayoutRefresh(speakerEditor, {
   containerKey: "canvas",
   showToggleButton: false,
-// 新增布局卡片时直接渲染一张
-  renderActionCard: renderSpeakerActionCard,
+  // 新增布局卡片时直接渲染一张
+  renderActionCard: renderSpeakerCard,
   // 切换分组后重新渲染当前内容
   onGroupToggle: () =>
-    speakerEditor.renderPrimaryViewWithCharacters(() => speakerEditor.renderCanvas()),
+    speakerEditor.renderViewAndList(() => speakerEditor.renderCanvas()),
 });
 
-attachGroupedReorderOptimization(speakerEditor, {
+attachGroupReorder(speakerEditor, {
   debugTag: "speakerReorder",
   cardSelector: ".dialogue-item, .layout-item",
   containerKey: "canvas",
   // 排序失败后继续试别的局部刷新
   onBeforeFullRender: () => {
-    const pendingSpeaker = speakerEditor.pendingSpeakerRender;
-    const pendingText = speakerEditor.pendingTextEditRender;
-    const pendingMutation = speakerEditor.pendingCardMutationRender;
-    const pendingLayout = speakerEditor.pendingLayoutPropertyRender;
+    const pendingSpeaker = speakerEditor.pendingSpeakerChange;
+    const pendingText = speakerEditor.pendingTextChange;
+    const pendingMutation = speakerEditor.pendingCardMutation;
+    const pendingLayout = speakerEditor.pendingLayoutChange;
     return runShortcutSteps(
       [
         {
           pending: pendingSpeaker,
-          apply: () => speakerEditor.applyPendingSpeakerRender(),
+          // 尝试只刷新说话人显示
+          apply: () => speakerEditor.applySpeakerChange(),
+          // 命中后记录说话人日志
           onHit: () => {
-            const logParts = buildSpeakerLogParts(pendingSpeaker);
+            const logParts = speakerLog(pendingSpeaker);
             perfLog(
               `[PERF][speaker][局部短路] 命中说话人更新: ${logParts.join(", ")}`
             );
           },
+          // 生成说话人失败原因
           failReason: () =>
             `说话人更新失败(actions=${pendingSpeaker.actionIds.join("|") || "none"}${
-              speakerEditor.lastSpeakerRenderFailReason
-                ? `, reason=${speakerEditor.lastSpeakerRenderFailReason}`
+              speakerEditor.lastSpeakerError
+                ? `, reason=${speakerEditor.lastSpeakerError}`
                 : ""
             })`,
         },
         {
           pending: pendingText,
-          apply: () => speakerEditor.applyPendingTextEditRender(),
+          // 尝试只刷新文本
+          apply: () => speakerEditor.applyTextChange(),
+          // 命中后记录文本日志
           onHit: () => {
-            const logParts = buildTextUpdateLogParts(pendingText, 72);
+            const logParts = textLog(pendingText, 72);
             perfLog(
               `[PERF][speaker][局部短路] 命中文本更新: ${logParts.join(", ")}`
             );
           },
+          // 生成文本失败原因
           failReason: () =>
             `文本更新失败(action=${pendingText.actionId || "unknown"})`,
         },
         {
           pending: pendingMutation,
-          apply: () => speakerEditor.applyPendingCardMutationRender(),
+          // 尝试只刷新卡片增删
+          apply: () => speakerEditor.applyCardMutation(),
+          // 命中后记录卡片增删日志
           onHit: () => {
-            const logParts = buildMutationLogParts(pendingMutation);
+            const logParts = mutationLog(pendingMutation);
             perfLog(
               `[PERF][speaker][局部短路] 命中卡片增删: ${logParts.join(", ")}`
             );
           },
+          // 生成卡片增删失败原因
           failReason: () =>
             `卡片增删失败(type=${pendingMutation.type || "unknown"}, action=${
               pendingMutation.actionId || "unknown"
@@ -196,13 +195,16 @@ attachGroupedReorderOptimization(speakerEditor, {
         },
         {
           pending: pendingLayout,
-          apply: () => speakerEditor.applyPendingLayoutPropertyRender(),
+          // 尝试只刷新布局字段
+          apply: () => speakerEditor.applyLayoutChange(),
+          // 命中后记录布局字段日志
           onHit: () => {
-            const logParts = buildLayoutLogParts(pendingLayout, 72);
+            const logParts = layoutLog(pendingLayout, 72);
             perfLog(
               `[PERF][speaker][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
             );
           },
+          // 生成布局字段失败原因
           failReason: () =>
             `布局属性更新失败(action=${pendingLayout.actionId || "unknown"})`,
         },
@@ -216,7 +218,7 @@ attachGroupedReorderOptimization(speakerEditor, {
   },
   // 局部刷新成功后补一次选中状态
   onLocalRenderSuccess: () => speakerEditor.reattachSelection(),
-  // 都没命中时重新渲染整页
+  // 都没命中时重画整个编辑器
   onFullRender: () => {
     const usedIds = speakerEditor.renderCanvas();
     speakerEditor.renderCharacterList(usedIds);
@@ -226,15 +228,15 @@ attachGroupedReorderOptimization(speakerEditor, {
 
 attachEditorCore(speakerEditor, baseEditor);
 
-attachUndoRedoLocalShortcut(speakerEditor, {
+attachUndoRedo(speakerEditor, {
   debugTag: "speakerUndoRedo",
-  ...createSpeakerUndoRedoHandlers(speakerEditor, 72),
+  ...speakerUndoHooks(speakerEditor, 72),
 });
 
-attachLayoutProperties(speakerEditor);
+attachLayoutUI(speakerEditor);
 attachCharacterList(speakerEditor);
 
 // 把拆开的功能加回编辑器对象
-attachSpeakerBehavior(speakerEditor);
+attachSpeakerActions(speakerEditor);
 attachSpeakerCanvas(speakerEditor);
 attachSpeakerDrag(speakerEditor);

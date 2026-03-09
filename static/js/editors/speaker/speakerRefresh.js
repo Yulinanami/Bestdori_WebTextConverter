@@ -1,29 +1,26 @@
 // 处理说话人编辑器的局部刷新
 import { DragHelper } from "@editors/common/DragHelper.js";
-import {
-  resolveGroupRange,
-  updateGroupHeader,
-} from "@editors/common/groupHeaderUtils.js";
+import { resolveGroupRange, updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
 // 渲染一张说话人编辑器卡片
-export function renderSpeakerActionCard(editor, action, globalIndex) {
-  const { renderSingleCard } = editor.buildSpeakerRendererSet();
+export function renderSpeakerCard(editor, action, globalIndex) {
+  const { renderSingleCard } = editor.buildRendererSet();
   return renderSingleCard(action, globalIndex);
 }
 
 // 添加卡片局部刷新
-export function attachSpeakerCardLocalRefresh(editor) {
+export function attachSpeakerRefresh(editor) {
   const cardSelector = ".dialogue-item, .layout-item";
 
   Object.assign(editor, {
-    pendingTextEditRender: null,
-    pendingSpeakerRender: null,
-    pendingCardMutationRender: null,
-    lastSpeakerRenderFailReason: "",
+    pendingTextChange: null,
+    pendingSpeakerChange: null,
+    pendingCardMutation: null,
+    lastSpeakerError: "",
 
     // 标记要刷新的说话人卡片
-    markSpeakerRender(actionIds, source = "ui", detail = "") {
-      this.pendingSpeakerRender = {
+    markSpeakerChange(actionIds, source = "ui", detail = "") {
+      this.pendingSpeakerChange = {
         actionIds,
         source,
         detail,
@@ -31,13 +28,13 @@ export function attachSpeakerCardLocalRefresh(editor) {
     },
 
     // 只改卡片文本
-    applyPendingTextEditRender() {
-      const pendingPatch = this.pendingTextEditRender;
+    applyTextChange() {
+      const pendingPatch = this.pendingTextChange;
       if (!pendingPatch) {
         return false;
       }
 
-      this.pendingTextEditRender = null;
+      this.pendingTextChange = null;
       const canvas = this.domCache.canvas;
       if (!canvas) {
         return false;
@@ -59,17 +56,17 @@ export function attachSpeakerCardLocalRefresh(editor) {
     },
 
     // 尝试局部刷新说话人卡片
-    applyPendingSpeakerRender() {
-      const pendingPatch = this.pendingSpeakerRender;
+    applySpeakerChange() {
+      const pendingPatch = this.pendingSpeakerChange;
       if (!pendingPatch) {
         return false;
       }
 
-      this.pendingSpeakerRender = null;
+      this.pendingSpeakerChange = null;
       const canvas = this.domCache.canvas;
       const actions = this.projectFileState.actions;
       if (!canvas || !actions.length) {
-        this.lastSpeakerRenderFailReason = "canvas 或 actions 不可用";
+        this.lastSpeakerError = "canvas 或 actions 不可用";
         return false;
       }
 
@@ -77,9 +74,10 @@ export function attachSpeakerCardLocalRefresh(editor) {
       const groupSize = this.groupSize;
       const shouldGroup = isGroupingEnabled && actions.length > groupSize;
       if (shouldGroup) {
+        // 分组时先判断这次修改有没有打到当前展开组
         // 分组没展开时只刷右侧列表
         if (this.activeGroupIndex === null) {
-          this.renderCharacterListForCurrentProject();
+          this.renderUsedList();
           return true;
         }
 
@@ -93,33 +91,34 @@ export function attachSpeakerCardLocalRefresh(editor) {
           visibleActionIds.has(actionId)
         );
         if (!hasVisibleTarget) {
-          this.renderCharacterListForCurrentProject();
+          this.renderUsedList();
           return true;
         }
 
-        if (!this.applyGroupedMutationRender(actions)) {
-          this.lastSpeakerRenderFailReason = "分组局部重绘失败";
+        if (!this.applyGroupMutation(actions)) {
+          this.lastSpeakerError = "分组局部重绘失败";
           return false;
         }
-        this.renderCharacterListForCurrentProject();
-        this.lastSpeakerRenderFailReason = "";
+        this.renderUsedList();
+        this.lastSpeakerError = "";
         return true;
       }
 
+      // 非分组模式只重建命中的卡片 再补序号
       let startIndex = actions.length;
       for (const actionId of pendingPatch.actionIds) {
         const actionIndex = actions.findIndex(
           (actionItem) => actionItem.id === actionId,
         );
         if (actionIndex < 0) {
-          this.lastSpeakerRenderFailReason = `未找到 action: ${actionId}`;
+          this.lastSpeakerError = `未找到 action: ${actionId}`;
           return false;
         }
 
         const action = actions[actionIndex];
-        const newCard = renderSpeakerActionCard(this, action, actionIndex);
+        const newCard = renderSpeakerCard(this, action, actionIndex);
         if (!newCard) {
-          this.lastSpeakerRenderFailReason = `重建卡片失败: ${actionId}, type=${action.type}`;
+          this.lastSpeakerError = `重建卡片失败: ${actionId}, type=${action.type}`;
           return false;
         }
 
@@ -159,13 +158,13 @@ export function attachSpeakerCardLocalRefresh(editor) {
         startIndex,
         baseIndex: 0,
       });
-      this.renderCharacterListForCurrentProject();
-      this.lastSpeakerRenderFailReason = "";
+      this.renderUsedList();
+      this.lastSpeakerError = "";
       return true;
     },
 
     // 分组模式下重新渲染当前组
-    applyGroupedMutationRender(actions) {
+    applyGroupMutation(actions) {
       const canvas = this.domCache.canvas;
       const preservedScrollTop = canvas?.scrollTop ?? 0;
       const groupSize = this.groupSize;
@@ -186,6 +185,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
         return false;
       }
 
+      // 先重算所有组头 再只重画当前展开组
       headers.forEach((header, groupIndex) => {
         const { startNum, endNum } = resolveGroupRange(
           groupIndex,
@@ -212,7 +212,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
       const end = Math.min(start + groupSize, totalActions);
       const fragment = document.createDocumentFragment();
       for (let index = start; index < end; index++) {
-        const renderedCard = renderSpeakerActionCard(this, actions[index], index);
+        const renderedCard = renderSpeakerCard(this, actions[index], index);
         if (!renderedCard) {
           return false;
         }
@@ -236,13 +236,13 @@ export function attachSpeakerCardLocalRefresh(editor) {
     },
 
     // 尝试局部处理卡片增删
-    applyPendingCardMutationRender() {
-      const pendingPatch = this.pendingCardMutationRender;
+    applyCardMutation() {
+      const pendingPatch = this.pendingCardMutation;
       if (!pendingPatch) {
         return false;
       }
 
-      this.pendingCardMutationRender = null;
+      this.pendingCardMutation = null;
       const canvas = this.domCache.canvas;
       const actions = this.projectFileState.actions;
       if (!canvas || !actions.length) {
@@ -257,6 +257,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
       );
 
       if (shouldGroup) {
+        // 卡片数量跨过分组阈值时 直接切回整组渲染
         // 跨分组阈值时切到目标组
         if (!hasGroupHeader) {
           if (pendingPatch.type === "add") {
@@ -268,20 +269,20 @@ export function attachSpeakerCardLocalRefresh(editor) {
           } else if (this.activeGroupIndex === null) {
             this.activeGroupIndex = 0;
           }
-          this.renderPrimaryViewWithCharacters(() => this.renderCanvas());
+          this.renderViewAndList(() => this.renderCanvas());
           return true;
         }
 
-        if (!this.applyGroupedMutationRender(actions)) {
+        if (!this.applyGroupMutation(actions)) {
           return false;
         }
-        this.renderCharacterListForCurrentProject();
+        this.renderUsedList();
         return true;
       }
 
       // 从分组退回普通模式时立即刷新
       if (hasGroupHeader) {
-        this.renderPrimaryViewWithCharacters(() => this.renderCanvas());
+        this.renderViewAndList(() => this.renderCanvas());
         return true;
       }
 
@@ -294,7 +295,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
           return false;
         }
 
-        const newCard = renderSpeakerActionCard(this, insertedAction, insertIndex);
+        const newCard = renderSpeakerCard(this, insertedAction, insertIndex);
         if (!newCard) {
           return false;
         }
@@ -308,7 +309,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
           startIndex: insertIndex,
           baseIndex: 0,
         });
-        this.renderCharacterListForCurrentProject();
+        this.renderUsedList();
         return true;
       }
 
@@ -328,7 +329,7 @@ export function attachSpeakerCardLocalRefresh(editor) {
           startIndex: pendingPatch.startIndex,
           baseIndex: 0,
         });
-        this.renderCharacterListForCurrentProject();
+        this.renderUsedList();
         return true;
       }
 

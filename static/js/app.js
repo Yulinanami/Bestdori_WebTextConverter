@@ -1,6 +1,6 @@
 // 启动页面并绑定全局事件
 import { state } from "@managers/stateManager.js";
-import { ui, initPerformanceSettingsPersistence } from "@utils/uiUtils.js";
+import { ui, initPerfSettings } from "@utils/uiUtils.js";
 import { viewManager } from "@managers/viewManager.js";
 import { fileHandler } from "@managers/fileHandler.js";
 import { configManager } from "@managers/configManager.js";
@@ -11,7 +11,7 @@ import { positionManager } from "@managers/positionManager.js";
 import { speakerEditor } from "@editors/speaker/speakerEditor.js";
 import { live2dEditor } from "@editors/live2d/live2dEditor.js";
 import { expressionEditor } from "@editors/expression/expressionEditor.js";
-import { motionExpressionManager } from "@managers/motionExpressionManager.js";
+import { motionExprManager } from "@managers/motionExprManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { mergerManager } from "@managers/mergerManager.js";
 import { modalService } from "@services/ModalService.js";
@@ -19,7 +19,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import "@managers/navigationManager.js"; // 初始化导航
 import "@managers/themeManager.js"; // 初始化主题
 
-const persistedNumericInputs = [
+const savedInputs = [
   {
     inputElementId: "appendSpaces",
     storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES,
@@ -30,9 +30,9 @@ const persistedNumericInputs = [
   },
 ];
 
-const appInitializers = [
+const initJobs = [
   // 初始化动作表情设置
-  () => motionExpressionManager.init(),
+  () => motionExprManager.init(),
   // 初始化动作表情编辑器
   () => expressionEditor.init(),
   // 初始化对话编辑器
@@ -60,7 +60,7 @@ const appInitializers = [
 ];
 
 // 初始化会自动保存的数字输入框
-const initializeNumericInput = ({ inputElementId, storageKey }) => {
+const initNumInput = ({ inputElementId, storageKey }) => {
   const numericInput = document.getElementById(inputElementId);
   if (!numericInput) return;
 
@@ -75,7 +75,7 @@ const initializeNumericInput = ({ inputElementId, storageKey }) => {
 };
 
 // 按顺序启动页面功能
-const initializeApp = async () => {
+const initApp = async () => {
   modalService.init();
   // 存满时提醒用户清缓存
   storageService.onQuotaExceeded = (key, size) => {
@@ -87,9 +87,9 @@ const initializeApp = async () => {
   };
 
   bindGlobalEvents();
-  initPerformanceSettingsPersistence();
-  persistedNumericInputs.forEach(initializeNumericInput);
-  appInitializers.forEach((initialize) => initialize());
+  initPerfSettings();
+  savedInputs.forEach(initNumInput);
+  initJobs.forEach((run) => run());
   await configManager.loadConfig();
   await costumeManager.loadConfig();
 };
@@ -143,5 +143,5 @@ const bindGlobalEvents = () => {
 
 // 页面加载完成后启动应用
 document.addEventListener("DOMContentLoaded", () => {
-  void initializeApp();
+  void initApp();
 });

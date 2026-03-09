@@ -1,20 +1,16 @@
 // 对话编辑器左边的卡片列表
-import {
-  createTimelineRenderCache,
-  renderIncrementalTimeline,
-  resetTimelineRenderCache,
-} from "@utils/IncrementalTimelineRenderer.js";
+import { createCache, renderFast, clearCache } from "@utils/timelineRender.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
-import { createSpeakerRenderers } from "@editors/speaker/speakerRenderers.js";
+import { buildSpeakerCards } from "@editors/speaker/speakerRenderers.js";
 
 // 给编辑器添加左侧卡片显示
 export function attachSpeakerCanvas(editor) {
-  const canvasCache = createTimelineRenderCache();
+  const canvasCache = createCache();
 
   Object.assign(editor, {
 // 读取这次要用的方法
-    buildSpeakerRendererSet() {
+    buildRendererSet() {
       const templates =
         this.domCache.templates ||
         (this.domCache.templates = {
@@ -24,7 +20,7 @@ export function attachSpeakerCanvas(editor) {
       const configEntries = state.currentConfig || {};
       return {
         configSignature: DataUtils.shallowSignature(configEntries),
-        ...createSpeakerRenderers(this, {
+        ...buildSpeakerCards(this, {
           templates,
           characterNameMap: new Map(
             Object.entries(configEntries).flatMap(([name, ids]) =>
@@ -36,21 +32,21 @@ export function attachSpeakerCanvas(editor) {
     },
 
     // 清空左侧列表缓存
-    resetCanvasRenderCache: () => resetTimelineRenderCache(canvasCache),
+    resetCanvasRenderCache: () => clearCache(canvasCache),
 
 // 渲染左侧卡片列表
     renderCanvas() {
       const canvas = editor.domCache.canvas;
       if (!canvas) return new Set();
 
-      const usedIds = editor.collectUsedCharacterIds();
+      const usedIds = editor.listUsedIds();
       const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
       const actions = editor.projectFileState.actions || [];
       const { configSignature, renderSingleCard, updateCard } =
-        editor.buildSpeakerRendererSet();
+        editor.buildRendererSet();
 
       // 切换分组时重新渲染列表
-      renderIncrementalTimeline({
+      renderFast({
         container: canvas,
         actions,
         cache: canvasCache,
@@ -61,6 +57,7 @@ export function attachSpeakerCanvas(editor) {
         groupSize: 50,
         activeGroupIndex: editor.activeGroupIndex,
         contextSignature: configSignature,
+        // 切换分组后重画画布并滚到当前组
         onGroupToggle: (index) => {
           const isOpening = editor.activeGroupIndex !== index;
           editor.activeGroupIndex = isOpening ? index : null;

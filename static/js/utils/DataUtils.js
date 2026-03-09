@@ -17,7 +17,7 @@ export const DataUtils = {
     const keyArray = Array.isArray(keys) ? keys : [keys];
     const orderArray = Array.isArray(orders) ? orders : [orders];
 
-    // 按给的规则比较两项谁在前面
+    // 前一个字段相等时 再继续比后一个字段
     return [...sourceList].sort((leftItem, rightItem) => {
       for (const [keyIndex, key] of keyArray.entries()) {
         const order = orderArray[keyIndex] || "asc";
@@ -79,10 +79,8 @@ export const DataUtils = {
   // 给对象生成一个“浅层签名”（用于快速判断配置是否变化）
   shallowSignature(sourceObject) {
     if (!sourceObject || typeof sourceObject !== "object") return "";
-    const sorted = Object.keys(sourceObject)
-      .sort()
-      // 按字段名顺序整理一层数据
-      .map((key) => [key, sourceObject[key]]);
+    // 先按 key 排好 再转字符串 这样同内容不会因为顺序不同误判
+    const sorted = Object.keys(sourceObject).sort().map((key) => [key, sourceObject[key]]);
     return JSON.stringify(sorted);
   },
 };

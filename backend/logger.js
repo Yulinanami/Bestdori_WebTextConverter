@@ -46,6 +46,7 @@ function createLogger(name) {
     }
     const msg = args.map((arg) => stringifyArg(arg)).join(" ");
     const line = `${formatNow()} - [${level}] - ${name} - ${msg}`;
+    // 按级别分到不同输出 方便本地排查时区分严重程度
     if (level === "ERROR") {
       console.error(line);
     } else if (level === "WARNING") {
@@ -56,9 +57,13 @@ function createLogger(name) {
   }
 
   return {
+    // 记录调试日志
     debug: (...args) => write("DEBUG", ...args),
+    // 记录普通日志
     info: (...args) => write("INFO", ...args),
+    // 记录警告日志
     warning: (...args) => write("WARNING", ...args),
+    // 记录错误日志
     error: (...args) => write("ERROR", ...args),
   };
 }

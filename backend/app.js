@@ -4,11 +4,12 @@ const express = require("express");
 const multer = require("multer");
 const { createLogger } = require("./logger");
 const { createConfigRouter } = require("./routes/configRoutes");
-const { createConversionRouter } = require("./routes/conversionRoutes");
+const { createRouter } = require("./routes/conversionRoutes");
 const { createMergeRouter } = require("./routes/mergeRoutes");
 
 const logger = createLogger("src.app");
 
+// 创建并配置后端应用
 function createApp({ projectRoot, configManager, maxContentLength }) {
   // 创建并配置 Express 应用实例
   const app = express();
@@ -24,6 +25,7 @@ function createApp({ projectRoot, configManager, maxContentLength }) {
   app.use((req, res, next) => {
     logger.debug(`收到请求: ${req.method} ${req.path}`);
     const contentType = req.headers["content-type"] || "";
+    // 只打印有内容的 JSON 请求 避免把上传和空请求刷满日志
     if (
       req.method === "POST" &&
       contentType.includes("application/json") &&
@@ -47,11 +49,12 @@ function createApp({ projectRoot, configManager, maxContentLength }) {
 
   // 注册路由
   app.use("/api", createConfigRouter({ configManager }));
-  app.use("/api", createConversionRouter({ configManager, maxContentLength }));
+  app.use("/api", createRouter({ configManager, maxContentLength }));
   app.use("/api", createMergeRouter());
 
   // 处理上传报错
   app.use((error, _req, res, next) => {
+    // 不是 multer 的错误继续交给后面的总错误处理中间件
     if (!(error instanceof multer.MulterError)) {
       next(error);
       return;
@@ -66,6 +69,7 @@ function createApp({ projectRoot, configManager, maxContentLength }) {
   // 处理未捕获的错误
   app.use((error, _req, res, next) => {
     logger.error("未处理异常:", error);
+    // 响应已经发出时只能继续往后传错误
     if (res.headersSent) {
       next(error);
       return;

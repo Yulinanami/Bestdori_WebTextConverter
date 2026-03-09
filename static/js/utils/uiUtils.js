@@ -101,7 +101,7 @@ const uiUtils = {
 };
 
 // 把“卡片分组”开关状态保存到本地（下次打开仍生效）
-export function initPerformanceSettingsPersistence() {
+export function initPerfSettings() {
   const checkbox = document.getElementById("groupCardsCheckbox");
   if (!checkbox) return;
 

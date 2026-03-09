@@ -26,10 +26,10 @@ class ProjectConverter {
     quoteConfig = null,
     narratorName = " ",
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0,
+    padBeforeNewline = 0,
   ) {
     logger.info(
-      `开始转换项目 - 旁白名称: '${narratorName}', 结尾空格: ${appendSpaces}, 换行前补空格: ${appendSpacesBeforeNewline}`,
+      `开始转换项目 - 旁白名称: '${narratorName}', 结尾空格: ${appendSpaces}, 换行前补空格: ${padBeforeNewline}`,
     );
 
     const projectActions = Array.isArray(projectFile.actions)
@@ -39,6 +39,7 @@ class ProjectConverter {
     const mapOutputId = this.mapOutputId.bind(this);
     const actions = [];
 
+    // 按编辑器里的顺序逐条转换 只认 talk 和 layout
     for (const action of projectActions) {
       if (action?.type === "talk") {
         actions.push(
@@ -47,7 +48,7 @@ class ProjectConverter {
             activeQuotePairs,
             narratorName,
             appendSpaces,
-            appendSpacesBeforeNewline,
+            padBeforeNewline,
             mapOutputId,
             logger,
           }),
@@ -67,6 +68,7 @@ class ProjectConverter {
       `全局设置 - 服务器: ${globalSettings.server ?? 0}, 背景: ${globalSettings.background ?? "N/A"}, BGM: ${globalSettings.bgm ?? "N/A"}`,
     );
 
+    // 按固定字段顺序输出 方便结果保持稳定
     const result = {
       server: globalSettings.server ?? 0,
       voice: globalSettings.voice ?? "",

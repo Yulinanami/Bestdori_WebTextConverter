@@ -5,7 +5,7 @@ import { costumeManager } from "@managers/costumeManager.js";
 import { positionManager } from "@managers/positionManager.js";
 
 // 先保存修改前的值
-function captureLayoutFieldSnapshot(action, targetClassName) {
+function readLayoutSnapshot(action, targetClassName) {
   if (!action) {
     return { field: targetClassName, beforeValue: undefined };
   }
@@ -69,8 +69,8 @@ function captureLayoutFieldSnapshot(action, targetClassName) {
   return { field: targetClassName, beforeValue: undefined };
 }
 
-const layoutPropertyMethods = {
-  _layoutPropertyHandlerMap: {
+const layoutMethods = {
+  _layoutHandlers: {
     // 修改布局类型
     "layout-type-select": (action, value) => {
       action.layoutType = value;
@@ -145,7 +145,7 @@ const layoutPropertyMethods = {
   },
 
   // 把一个输入项的变化写回动作数据
-  updateLayoutActionProperty(actionId, targetElement) {
+  updateLayoutField(actionId, targetElement) {
     const targetValue =
       targetElement.type === "number"
         ? parseInt(targetElement.value) || 0
@@ -154,9 +154,9 @@ const layoutPropertyMethods = {
     const currentAction = this.projectFileState?.actions?.find(
       (actionItem) => actionItem.id === actionId
     );
-    const snapshot = captureLayoutFieldSnapshot(currentAction, targetClassName);
+    const snapshot = readLayoutSnapshot(currentAction, targetClassName);
     // 先记录修改前后的值
-    this.markLayoutPropertyRender?.(actionId, {
+    this.markLayoutChange?.(actionId, {
       source: "ui",
       field: snapshot.field,
       beforeValue: snapshot.beforeValue,
@@ -170,18 +170,19 @@ const layoutPropertyMethods = {
       );
       if (!action) return;
 
-      const handlerKey = Object.keys(this._layoutPropertyHandlerMap).find((key) =>
+      // 按控件类名找到对应字段的写回方法
+      const handlerKey = Object.keys(this._layoutHandlers).find((key) =>
         targetClassName.includes(key),
       );
 
       if (handlerKey) {
-        this._layoutPropertyHandlerMap[handlerKey](action, targetValue);
+        this._layoutHandlers[handlerKey](action, targetValue);
       }
     });
   },
 
   // 刷新布局卡片上的控件内容
-  renderLayoutCardControls(card, action, characterName, options = {}) {
+  renderLayoutControls(card, action, characterName, options = {}) {
     const { showToggleButton = false } = options;
 
     const typeSelect = card.querySelector(".layout-type-select");
@@ -211,6 +212,7 @@ const layoutPropertyMethods = {
       const lastHash = costumeSelect.dataset.optionsHash;
       const lastChar = costumeSelect.dataset.characterName;
 
+      // 服装列表跟角色走 角色或候选变了就整组重建
       if (lastHash !== optionsHash || lastChar !== characterName) {
         // 服装列表变了就重新生成选项
         DOMUtils.clearElement(costumeSelect);
@@ -235,6 +237,7 @@ const layoutPropertyMethods = {
     }
 
     if (positionSelect) {
+      // 位置选项只生成一次 后面只改当前值
       if (!positionSelect.dataset.optionsReady) {
         DOMUtils.clearElement(positionSelect);
         Object.entries(positionManager.positionNames).forEach(
@@ -267,6 +270,7 @@ const layoutPropertyMethods = {
       toPositionSelect.dataset.optionsReady = "true";
     }
 
+    // 展开后起点和终点分开显示 没展开时共用主控件
     if (action.customToPosition) {
       if (toPositionContainer) {
         toPositionContainer.style.display = "grid";
@@ -310,6 +314,6 @@ const layoutPropertyMethods = {
 };
 
 // 给编辑器添加布局输入处理方法
-export function attachLayoutProperties(editor) {
-  Object.assign(editor, layoutPropertyMethods);
+export function attachLayoutUI(editor) {
+  Object.assign(editor, layoutMethods);
 }

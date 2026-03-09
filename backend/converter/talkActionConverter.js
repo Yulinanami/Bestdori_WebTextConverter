@@ -9,7 +9,7 @@ function convertTalkAction(options) {
     activeQuotePairs,
     narratorName,
     appendSpaces,
-    appendSpacesBeforeNewline,
+    padBeforeNewline,
     mapOutputId,
     logger,
   } = options;
@@ -17,6 +17,7 @@ function convertTalkAction(options) {
   const speakers = Array.isArray(talkAction?.speakers)
     ? talkAction.speakers
     : [];
+  // 先把说话人 id 清洗成数字 供后面的输出和日志复用
   const characterIds = speakers
     .map((speaker) => {
       if (speaker?.characterId === undefined || speaker?.characterId === null) {
@@ -31,10 +32,11 @@ function convertTalkAction(options) {
       ? talkAction.text
       : String(talkAction?.text ?? "");
 
+  // 先去掉外层引号 再补换行前空格和结尾空格
   let processedBody = removeWrappedQuotes(originalText, activeQuotePairs);
 
-  if (appendSpacesBeforeNewline > 0 && processedBody) {
-    const spacesToAdd = " ".repeat(appendSpacesBeforeNewline);
+  if (padBeforeNewline > 0 && processedBody) {
+    const spacesToAdd = " ".repeat(padBeforeNewline);
     processedBody = processedBody.replace(/\n/g, `${spacesToAdd}\n`);
   }
 
@@ -44,6 +46,7 @@ function convertTalkAction(options) {
 
   const motions = [];
   if (Array.isArray(talkAction?.motions) && talkAction.motions.length > 0) {
+    // 只保留带动作或表情的项 空分配不写进结果
     for (const motionData of talkAction.motions) {
       const motion = motionData?.motion ?? "";
       const expression = motionData?.expression ?? "";
@@ -61,6 +64,7 @@ function convertTalkAction(options) {
 
   const actionName = speakers.length > 0 ? names.join(" & ") : narratorName;
 
+  // 先记主对话 再把附带动作表情逐条打到日志里
   if (speakers.length > 0) {
     logger.info(
       `对话动作 - 说话人: ${actionName} (ID: [${characterIds.join(", ")}]), 内容: ${processedBody}`,

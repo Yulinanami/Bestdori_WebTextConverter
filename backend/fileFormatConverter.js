@@ -10,6 +10,7 @@ class FileFormatConverter {
   static async docxToText(fileContent) {
     try {
       const result = await mammoth.extractRawText({ buffer: fileContent });
+      // 去掉 Word 里拆出来的空行 统一按段落输出
       const lines = result.value
         .split(/\r?\n/)
         .map((line) => line.trim())
@@ -31,6 +32,7 @@ class FileFormatConverter {
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
         .replace(/&amp;/g, "&");
+      // 和 Word 一样把空白行压掉 统一给前端纯文本
       const lines = text
         .split("\n")
         .map((line) => line.trim())
@@ -55,7 +57,7 @@ class FileFormatConverter {
   }
 
   // 按后缀选读取方式
-  static async readFileContentToText(filename, content) {
+  static async readText(filename, content) {
     const lower = filename.toLowerCase();
     if (lower.endsWith(".docx")) {
       return this.docxToText(content);

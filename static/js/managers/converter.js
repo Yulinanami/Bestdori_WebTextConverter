@@ -3,7 +3,7 @@ import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { apiService } from "@services/ApiService.js";
-import { createProjectFileFromText } from "@utils/ConverterCore.js";
+import { buildProjectData } from "@utils/ConverterCore.js";
 
 export const converter = {
   // 初始化：绑定“转换”按钮
@@ -47,36 +47,36 @@ export const converter = {
         ui.showStatus("请输入要转换的文本！", "error");
         return;
       }
-      projectFileToConvert = createProjectFileFromText(
+      projectFileToConvert = buildProjectData(
         inputText,
         state.currentConfig,
       );
     }
 
-    const selectedQuotes = quoteManager.collectSelectedQuotes();
+    const selectedQuotes = quoteManager.listSelectedQuotes();
     // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
     const narratorInput = document.getElementById("narratorName").value;
     const narratorName = narratorInput.trim() ? narratorInput : "";
     const appendSpaces = parseInt(document.getElementById("appendSpaces").value) || 0;
-    const appendSpacesBeforeNewline =
+    const padBeforeNewline =
       parseInt(document.getElementById("appendSpacesBeforeNewline").value) || 0;
 
-    this.convertFromProjectFile(
+    this.convertProject(
       projectFileToConvert,
       selectedQuotes,
       narratorName,
       appendSpaces,
-      appendSpacesBeforeNewline,
+      padBeforeNewline,
     );
   },
 
 // 把项目文件发到后端再把结果放到页面上
-  async convertFromProjectFile(
+  async convertProject(
     projectFile,
     selectedQuotes = [],
     narratorName,
     appendSpaces = 0,
-    appendSpacesBeforeNewline = 0,
+    padBeforeNewline = 0,
   ) {
     try {
       ui.toggleButtonLoading("convertBtn", true, "转换中...");
@@ -88,7 +88,7 @@ export const converter = {
         selectedQuotes,
         narratorName,
         appendSpaces,
-        appendSpacesBeforeNewline,
+        padBeforeNewline,
       );
       const result = convertResponse.result;
 

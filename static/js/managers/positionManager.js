@@ -6,7 +6,7 @@ import { modalService } from "@services/ModalService.js";
 import { FileUtils } from "@utils/FileUtils.js";
 import { state } from "@managers/stateManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 
 const POSITION_NAMES = {
   leftOver: "左外",
@@ -176,8 +176,9 @@ export const positionManager = {
   },
 
   // 读取角色位置
-  resolveCharacterPositionConfig(characterName, appearanceOrder) {
+  findPositionConfig(characterName, appearanceOrder) {
     if (this.autoPositionMode) {
+      // 自动模式按出场顺序轮流分到三个标准位置
       return {
         position:
           this.autoLayoutPositions[
@@ -218,7 +219,7 @@ export const positionManager = {
       class: "config-avatar",
       "data-id": primaryId,
     });
-    renderCharacterAvatar(avatarDiv, primaryId, characterName);
+    renderAvatar(avatarDiv, primaryId, characterName);
     avatarWrapper.appendChild(avatarDiv);
     infoDiv.appendChild(avatarWrapper);
 
@@ -278,6 +279,7 @@ export const positionManager = {
     return positionItem;
   },
 
+  // 刷新位置设置列表
   renderPositionList() {
     const positionList = document.getElementById("positionList");
     if (!positionList) {
@@ -285,6 +287,7 @@ export const positionManager = {
     }
 
     const fragment = document.createDocumentFragment();
+    // 按角色主 id 排序 让位置列表顺序稳定
     const characters = Object.entries(state.currentConfig).sort(
       ([, idsA], [, idsB]) => {
         const idA = idsA?.[0] ?? Infinity;

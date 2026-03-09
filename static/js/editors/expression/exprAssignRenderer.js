@@ -1,10 +1,10 @@
 // 渲染动作表情分配区
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { configManager } from "@managers/configManager.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 
 // 分配区显示
-export const assignmentRenderer = {
+export const assignUI = {
   // 刷新卡片底部
   renderCardFooter(editor, cardElement, options = {}) {
     const { action = null } = options;
@@ -23,8 +23,8 @@ export const assignmentRenderer = {
 
     DOMUtils.clearElement(footer);
 
-    if (editor.actionHasExpressionData(resolvedAction)) {
-      assignmentRenderer.showExpressionSetupUI(editor, cardElement, resolvedAction);
+    if (editor.hasExpressionData(resolvedAction)) {
+      assignUI.showSetupUI(editor, cardElement, resolvedAction);
       return true;
     }
 
@@ -37,7 +37,7 @@ export const assignmentRenderer = {
   },
 
   // 渲染分配区
-  showExpressionSetupUI(editor, cardElement, action = null) {
+  showSetupUI(editor, cardElement, action = null) {
     const actionId = cardElement.dataset.id;
     const resolvedAction =
       action ||
@@ -61,7 +61,7 @@ export const assignmentRenderer = {
         id: resolvedAction.characterId,
         name:
           resolvedAction.characterName ||
-          configManager.findCharacterNameById(resolvedAction.characterId),
+          configManager.findCharName(resolvedAction.characterId),
       };
 
       if (characterInfo.name) {
@@ -73,7 +73,7 @@ export const assignmentRenderer = {
           delay: resolvedAction.delay || 0,
         };
 
-        const assignmentItem = assignmentRenderer.createAssignmentItem(
+        const assignmentItem = assignUI.createAssignmentItem(
           editor,
           resolvedAction,
           motionData,
@@ -94,7 +94,7 @@ export const assignmentRenderer = {
 
     if (resolvedAction.motions && resolvedAction.motions.length > 0) {
       resolvedAction.motions.forEach((motionData, index) => {
-        const assignmentItem = assignmentRenderer.createAssignmentItem(
+        const assignmentItem = assignUI.createAssignmentItem(
           editor,
           resolvedAction,
           motionData,
@@ -104,7 +104,7 @@ export const assignmentRenderer = {
       });
     }
 
-    const characterSelector = assignmentRenderer.createCharacterSelector(
+    const characterSelector = assignUI.buildCharPicker(
       editor,
       resolvedAction
     );
@@ -121,7 +121,7 @@ export const assignmentRenderer = {
   },
 
   // 创建角色选择列表
-  createCharacterSelector(editor, action) {
+  buildCharPicker(editor, action) {
     const template = document.getElementById(
       "motion-character-selector-template"
     );
@@ -135,12 +135,12 @@ export const assignmentRenderer = {
 
     let availableCharacters = [];
     if (action.type === "talk") {
-      availableCharacters = editor.collectStagedCharacters();
+      availableCharacters = editor.listStagedChars();
     } else if (action.type === "layout") {
       const characterInfo = {
         id: action.characterId,
         name:
-          action.characterName || configManager.findCharacterNameById(action.characterId),
+          action.characterName || configManager.findCharName(action.characterId),
       };
       if (characterInfo.name) {
         availableCharacters = [characterInfo];
@@ -158,7 +158,7 @@ export const assignmentRenderer = {
       optionElement.dataset.characterName = characterInfo.name;
 
       const avatarDiv = option.querySelector(".dialogue-avatar");
-      renderCharacterAvatar(avatarDiv, characterInfo.id, characterInfo.name);
+      renderAvatar(avatarDiv, characterInfo.id, characterInfo.name);
 
       option.querySelector(".character-name").textContent = characterInfo.name;
       listContainer.appendChild(option);
@@ -182,7 +182,7 @@ export const assignmentRenderer = {
     itemContainer.appendChild(itemFragment);
     const itemElement = itemContainer.firstElementChild;
 
-    const characterName = configManager.findCharacterNameById(motionData.character);
+    const characterName = configManager.findCharName(motionData.character);
 
     itemElement.dataset.characterId = motionData.character;
     itemElement.dataset.characterName = characterName;
@@ -190,7 +190,7 @@ export const assignmentRenderer = {
     itemElement.dataset.actionId = action.id;
 
     const avatarDiv = itemElement.querySelector(".dialogue-avatar");
-    renderCharacterAvatar(avatarDiv, motionData.character, characterName);
+    renderAvatar(avatarDiv, motionData.character, characterName);
     itemElement.querySelector(".character-name").textContent = characterName;
 
     const motionValue = itemElement.querySelector(
@@ -218,7 +218,7 @@ export const assignmentRenderer = {
     const delayInput = itemElement.querySelector(".assignment-delay-input");
     delayInput.value = motionData.delay || 0;
 
-    editor.initSortableForAssignmentZones(itemElement, isLayoutCard);
+    editor.initAssignSortables(itemElement, isLayoutCard);
 
     return itemElement;
   },

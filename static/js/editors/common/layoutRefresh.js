@@ -2,14 +2,11 @@
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { state } from "@managers/stateManager.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
-import {
-  resolveGroupRange,
-  updateGroupHeader,
-} from "@editors/common/groupHeaderUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
+import { resolveGroupRange, updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
 // 给编辑器添加布局卡片局部刷新
-export function attachLayoutCardLocalRefresh(editor, options = {}) {
+export function attachLayoutRefresh(editor, options = {}) {
   const {
     containerKey,
     showToggleButton = false,
@@ -17,7 +14,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
     renderActionCard,
     onGroupToggle,
   } = options;
-// 把详情转成文字
+  // 把详情转成文字
   const normalizeDetail = (detail) => {
     if (!detail) return "";
     if (typeof detail === "string") return detail;
@@ -30,18 +27,18 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
   };
 
   Object.assign(editor, {
-    pendingLayoutPropertyRender: null,
-    pendingLayoutMutationRender: null,
+    pendingLayoutChange: null,
+    pendingLayoutPatch: null,
 
     // 记录布局字段变化
-    markLayoutPropertyRender(actionId, detail = null) {
-      this.pendingLayoutPropertyRender = { actionId, detail };
+    markLayoutChange(actionId, detail = null) {
+      this.pendingLayoutChange = { actionId, detail };
     },
 
     // 记录布局卡片增删
-    markLayoutMutationRender(actionId, type = "delete", options = {}) {
+    markLayoutMutation(actionId, type = "delete", options = {}) {
       const { startIndex = null, source = null, detail = null } = options;
-      this.pendingLayoutMutationRender = {
+      this.pendingLayoutPatch = {
         actionId,
         type,
         startIndex,
@@ -51,12 +48,12 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
     },
 
     // 尝试只更新一张布局卡片
-    applyPendingLayoutPropertyRender() {
-      const pendingPatch = this.pendingLayoutPropertyRender;
+    applyLayoutChange() {
+      const pendingPatch = this.pendingLayoutChange;
       if (!pendingPatch) {
         return false;
       }
-      this.pendingLayoutPropertyRender = null;
+      this.pendingLayoutChange = null;
 
       const container = this.domCache?.[containerKey];
       if (!container) {
@@ -97,26 +94,26 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
 
       const avatarElement = layoutCard.querySelector(".dialogue-avatar");
       if (avatarElement) {
-        renderCharacterAvatar(avatarElement, action.characterId, characterName);
+        renderAvatar(avatarElement, action.characterId, characterName);
         avatarElement.dataset.characterId = String(action.characterId || "");
       }
 
-      this.renderLayoutCardControls(layoutCard, action, characterName, {
+      this.renderLayoutControls(layoutCard, action, characterName, {
         showToggleButton,
       });
       return true;
     },
 
     // 尝试只处理布局卡片增删
-    applyPendingLayoutMutationRender() {
-      const pendingPatch = this.pendingLayoutMutationRender;
+    applyLayoutMutation() {
+      const pendingPatch = this.pendingLayoutPatch;
       if (
         !pendingPatch ||
         (pendingPatch.type !== "add" && pendingPatch.type !== "delete")
       ) {
         return false;
       }
-      this.pendingLayoutMutationRender = null;
+      this.pendingLayoutPatch = null;
 
       const container = this.domCache?.[containerKey];
       const actions = this.projectFileState.actions;
@@ -133,6 +130,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
       const preservedScrollTop = container.scrollTop;
 
       if (shouldGroup) {
+        // 分组模式下只重建当前展开组
         // 分组模式下只重建当前组
         const totalActions = actions.length;
         const totalGroups = Math.ceil(totalActions / groupSize);
@@ -142,6 +140,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
 
         let activeGroupIndex = this.activeGroupIndex;
         if (pendingPatch.type === "add") {
+          // 新增卡片时优先切到命中的那一组
           const insertIndex = actions.findIndex(
             (actionItem) => actionItem.id === pendingPatch.actionId
           );
@@ -163,6 +162,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
 
         const fragment = document.createDocumentFragment();
 
+        // 先重建所有组头 再只渲染当前展开组
         for (let groupIndex = 0; groupIndex < totalGroups; groupIndex++) {
           const header = headers[groupIndex]
             ? headers[groupIndex].cloneNode(true)
@@ -179,6 +179,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
             isActive,
             startNum,
             endNum,
+            // 切换分组时同步展开状态再重画当前列表
             onToggle: (index) => {
               const isOpening = this.activeGroupIndex !== index;
               this.activeGroupIndex = isOpening ? index : null;
@@ -211,6 +212,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
         return true;
       }
 
+      // 组数掉回普通模式时直接整列表重画
       // 分组数量不够时切回普通列表
       if (hasGroupHeader) {
         const fragment = document.createDocumentFragment();
@@ -226,6 +228,7 @@ export function attachLayoutCardLocalRefresh(editor, options = {}) {
         return true;
       }
 
+      // 普通模式下再按增删类型只改命中的卡片
       if (pendingPatch.type === "add") {
         const insertIndex = actions.findIndex(
           (actionItem) => actionItem.id === pendingPatch.actionId

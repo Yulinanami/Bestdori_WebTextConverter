@@ -1,6 +1,7 @@
 // 管理弹窗开关
 
 class ModalService {
+  // 准备弹窗状态
   constructor() {
     // 初始化：记录已打开的弹窗，并防止重复初始化
     this.openModals = new Set();
@@ -8,6 +9,7 @@ class ModalService {
     this.specialHandlers = {}; // 某些弹窗的自定义关闭方式
   }
 
+  // 只绑定一次弹窗事件
   init() {
     if (this.initialized) return;
 
@@ -69,7 +71,7 @@ class ModalService {
   async confirm(message, _options = {}) {
     // 等用户点确定或取消
     return new Promise((resolve) => {
-      // 使用原生 confirm（后续可以改为自定义模态框时使用 options.title、confirmText、cancelText）
+      // 先直接用浏览器自带确认框
       const result = window.confirm(message);
       resolve(result);
     });
@@ -79,7 +81,7 @@ class ModalService {
   async alert(message, _options = {}) {
     // 等用户关掉提示框
     return new Promise((resolve) => {
-      // 使用原生 alert（后续可以改为自定义模态框时使用 options.title）
+      // 先直接用浏览器自带提示框
       window.alert(message);
       resolve();
     });
@@ -89,13 +91,13 @@ class ModalService {
   async prompt(message, defaultValue = "") {
     // 等用户输完内容
     return new Promise((resolve) => {
-      // 使用原生 prompt（后续可以改为自定义模态框）
+      // 先直接用浏览器自带输入框
       const result = window.prompt(message, defaultValue);
       resolve(result);
     });
   }
 
-  // 内部方法：给所有关闭按钮绑定点击事件（点了就关闭所在弹窗）
+  // 给关闭按钮绑上弹窗关闭事件
   _bindCloseButtons() {
     document
       .querySelectorAll(".modal-close, .btn-modal-close")
@@ -112,7 +114,7 @@ class ModalService {
       });
   }
 
-  // 内部方法：按 Esc 关闭当前最上层的“非编辑器”弹窗
+  // 按 Esc 关闭最上层普通弹窗
   _bindEscClose() {
     // 按 Esc 时关掉最上面的普通弹窗
     document.addEventListener("keydown", (keyboardEvent) => {
@@ -127,7 +129,7 @@ class ModalService {
       }
 
       const topModal = document.getElementById(topModalId);
-// 编辑器弹窗继续走自己的未保存提醒
+      // 编辑器弹窗继续走自己的关闭逻辑
       if (topModal?.classList.contains("modal-fullscreen")) {
         return;
       }

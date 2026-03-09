@@ -6,7 +6,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 
 // 把长文本压短一点
-const SELECTABLE_CARD_SELECTOR = ".dialogue-item, .layout-item";
+const CARD_SELECTOR = ".dialogue-item, .layout-item";
 
 // 把文字缩短后再显示
 function shortText(text, maxLength = 36) {
@@ -45,7 +45,7 @@ function findActionIndex(actions, actionId) {
 }
 
 // 修改一条动作
-function executeActionMutation(editor, actionId, mutate) {
+function runActionChange(editor, actionId, mutate) {
   editor.executeCommand((currentState) => {
     // 找到目标动作后再修改
     const action = findAction(currentState.actions, actionId);
@@ -54,8 +54,8 @@ function executeActionMutation(editor, actionId, mutate) {
 }
 
 // 记录卡片增删的局部刷新信息
-function markPendingCardMutation(editor, mutation) {
-  editor.pendingCardMutationRender = { source: "ui", ...mutation };
+function markCardMutation(editor, mutation) {
+  editor.pendingCardMutation = { source: "ui", ...mutation };
 }
 
 // 找到最近的动作 id
@@ -71,7 +71,7 @@ function updateCardSelection(editor, clickEvent, itemId) {
     selectionManager.selectRange(
       itemId,
       editor.domCache.canvas,
-      SELECTABLE_CARD_SELECTOR
+      CARD_SELECTOR
     );
   } else if (
     selectionManager.selectedIds.has(itemId) &&
@@ -89,7 +89,7 @@ function updateCardSelection(editor, clickEvent, itemId) {
 }
 
 // 处理对话卡片上的按钮点击
-function handleDialogueActionClick(editor, clickEvent) {
+function handleDialogueClick(editor, clickEvent) {
   const actions = [
     [".edit-text-btn", (actionId) => editor.handleTextEdit(actionId)],
     [
@@ -122,7 +122,7 @@ function handleLayoutDelete(editor, actionId) {
   const layoutAction = findAction(editor.projectFileState.actions, actionId);
   const deleteIndex = findActionIndex(editor.projectFileState.actions, actionId);
   if (deleteIndex > -1) {
-    markPendingCardMutation(editor, {
+    markCardMutation(editor, {
       type: "delete",
       actionId,
       startIndex: deleteIndex,
@@ -135,7 +135,7 @@ function handleLayoutDelete(editor, actionId) {
 }
 
 // 创建行内文本编辑框
-function createInlineTextEditorElements(initialText = "") {
+function createInlineEditor(initialText = "") {
   const inputElement = DOMUtils.createElement("textarea", { className: "form-input dialogue-inline-input" });
   inputElement.value = initialText;
   const cancelButton = DOMUtils.createButton("取消", "btn btn-secondary btn-sm"), saveButton = DOMUtils.createButton("保存", "btn btn-primary btn-sm");
@@ -147,12 +147,13 @@ function createInlineTextEditorElements(initialText = "") {
   return { editorElement, inputElement, cancelButton, saveButton };
 }
 
-export function attachSpeakerBehavior(editor) {
+// 给编辑器加上对话交互
+export function attachSpeakerActions(editor) {
   Object.assign(editor, {
     inlineTextEditor: null,
 
     // 给一条或多条对话加说话人
-    updateSpeakerAssignment(actionId, newSpeaker, actionIndex) {
+    assignSpeaker(actionId, newSpeaker, actionIndex) {
       const selectedIds = Array.from(selectionManager.selectedIds);
       const selectedTalkIds = selectedIds.filter((selectedId) =>
         Boolean(
@@ -190,7 +191,7 @@ export function attachSpeakerBehavior(editor) {
         // 有变化时记录局部刷新信息
         const flushSpeakerRender = () => {
           if (updatedActionIds.length > 0) {
-            this.markSpeakerRender(updatedActionIds, "ui", renderDetail);
+            this.markSpeakerChange(updatedActionIds, "ui", renderDetail);
           }
         };
         // 需要时把说话人加进去
@@ -210,6 +211,7 @@ export function attachSpeakerBehavior(editor) {
           }
         };
 
+        // 先优先处理当前卡片和当前已选卡片 再回退到按 id 补找
         if (selectedTalkIds.length === 0 && Number.isInteger(actionIndex)) {
           // 只改当前这一条
           const actionToUpdate = currentState.actions[actionIndex];
@@ -255,14 +257,14 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 从一条对话里删掉一个说话人
-    removeSpeakerFromAction(actionId, characterIdToRemove) {
-      executeActionMutation(this, actionId, (action) => {
+    removeSpeaker(actionId, characterIdToRemove) {
+      runActionChange(this, actionId, (action) => {
         const nextSpeakers = action.speakers.filter(
           (speaker) => speaker.characterId !== characterIdToRemove
         );
         if (nextSpeakers.length !== action.speakers.length) {
           action.speakers = nextSpeakers;
-          this.markSpeakerRender(
+          this.markSpeakerChange(
             [actionId],
             "ui",
             `remove speakerId=${characterIdToRemove}`
@@ -272,11 +274,11 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 清空一条对话里的所有说话人
-    removeAllSpeakersFromAction(actionId) {
-      executeActionMutation(this, actionId, (action) => {
+    clearActionSpeakers(actionId) {
+      runActionChange(this, actionId, (action) => {
         if (action && action.speakers.length > 0) {
           action.speakers = [];
-          this.markSpeakerRender([actionId], "ui", "clear speakers");
+          this.markSpeakerChange([actionId], "ui", "clear speakers");
         }
       });
     },
@@ -290,7 +292,7 @@ export function attachSpeakerBehavior(editor) {
           "resetSpeakersBtn",
           async () => {
             const rawText = document.getElementById("inputText").value;
-            const defaultState = this.createProjectFile(rawText);
+            const defaultState = this.buildProjectState(rawText);
             // 用默认内容覆盖当前项目
             this.executeCommand((currentState) => {
               Object.assign(currentState, defaultState);
@@ -305,7 +307,7 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 读取当前项目里用到的角色
-    collectUsedCharacterIds() {
+    listUsedIds() {
       const usedNames = new Set();
       this.projectFileState?.actions?.forEach((action) => {
         if (action?.type !== "talk" || !action.speakers) return;
@@ -330,8 +332,8 @@ export function attachSpeakerBehavior(editor) {
 
     // 按当前模式刷新按钮和样式
     applyModeUIState() {
-      this.updateMultiSelectButtonUI();
-      this.updateTextEditButtonUI();
+      this.syncMultiSelectBtn();
+      this.syncTextEditBtn();
       this.domCache.canvas?.classList.toggle(
         "text-edit-mode-active",
         this.isTextEditMode
@@ -339,8 +341,8 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 刷新多选按钮文字
-    updateMultiSelectButtonUI() {
-      const toggleButton = this.domCache.toggleMultiSelectBtn;
+    syncMultiSelectBtn() {
+      const toggleButton = this.domCache.multiSelectBtn;
       if (toggleButton) {
         toggleButton.textContent = this.isMultiSelectMode
           ? "多选: 开"
@@ -349,21 +351,21 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 刷新文本编辑按钮文字
-    updateTextEditButtonUI() {
-      const toggleButton = this.domCache.toggleTextEditBtn;
+    syncTextEditBtn() {
+      const toggleButton = this.domCache.textEditBtn;
       if (toggleButton) {
         toggleButton.textContent = this.isTextEditMode ? "编辑: 开" : "编辑: 关";
       }
     },
 
     // 切换多选模式
-    toggleMultiSelectMode() {
+    toggleMultiSelect() {
       this.isMultiSelectMode = !this.isMultiSelectMode;
       storageService.save(
         STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE,
         this.isMultiSelectMode
       );
-      this.updateMultiSelectButtonUI();
+      this.syncMultiSelectBtn();
       clearSelection(this);
     },
 
@@ -376,12 +378,12 @@ export function attachSpeakerBehavior(editor) {
       );
       this.applyModeUIState();
       if (!this.isTextEditMode) {
-        this.closeInlineTextEditor();
+        this.closeInlineEditor();
       }
     },
 
     // 关掉行内编辑框
-    closeInlineTextEditor() {
+    closeInlineEditor() {
       const inlineEditor = this.inlineTextEditor;
       if (!inlineEditor) {
         return;
@@ -404,21 +406,21 @@ export function attachSpeakerBehavior(editor) {
 
       const oldText = targetAction.text || "";
       const trimmedText = editedText.trim();
-      this.closeInlineTextEditor();
+      this.closeInlineEditor();
 
       // 没变就不用保存
       if (trimmedText === oldText.trim()) {
         return;
       }
 
-      this.pendingTextEditRender = {
+      this.pendingTextChange = {
         actionId,
         text: trimmedText,
         oldText,
         detail: `text: "${shortText(oldText)}" -> "${shortText(trimmedText)}"`,
         source: "ui",
       };
-      executeActionMutation(this, actionId, (action) => {
+      runActionChange(this, actionId, (action) => {
         action.text = trimmedText;
       });
     },
@@ -426,7 +428,7 @@ export function attachSpeakerBehavior(editor) {
     // 保存新增的行内文字
     commitInlineTextAdd(actionId, editedText) {
       const trimmedText = editedText.trim();
-      this.closeInlineTextEditor();
+      this.closeInlineEditor();
       if (!trimmedText) {
         return;
       }
@@ -438,7 +440,7 @@ export function attachSpeakerBehavior(editor) {
         speakers: [],
       };
       // 先标记局部新增
-      markPendingCardMutation(this, {
+      markCardMutation(this, {
         type: "add",
         actionId: newAction.id,
         detail: `type=talk, text="${shortText(trimmedText)}", speakers=0`,
@@ -467,7 +469,7 @@ export function attachSpeakerBehavior(editor) {
       }
 
       // 打开前先关掉旧的
-      this.closeInlineTextEditor();
+      this.closeInlineEditor();
 
       const dialogueContent = dialogueCard.querySelector(".dialogue-content");
       const dialogueText = dialogueCard.querySelector(".dialogue-text");
@@ -476,7 +478,7 @@ export function attachSpeakerBehavior(editor) {
       }
 
       const { editorElement, inputElement, saveButton, cancelButton } =
-        createInlineTextEditorElements(initialText || "");
+        createInlineEditor(initialText || "");
 
       dialogueCard.classList.add("is-inline-editing");
       dialogueText.style.display = "none";
@@ -492,13 +494,14 @@ export function attachSpeakerBehavior(editor) {
       };
       this.toggleSpeakerDrag?.(false);
 
+      // 把编辑框自己的点击和快捷键都拦在内部
       // 点编辑框时不要触发卡片点击
       editorElement.addEventListener("click", (clickEvent) => {
         clickEvent.stopPropagation();
       });
       // 点取消时直接关闭
       cancelButton.addEventListener("click", () => {
-        this.closeInlineTextEditor();
+        this.closeInlineEditor();
       });
       // 点保存时提交内容
       saveButton.addEventListener("click", () => {
@@ -508,7 +511,7 @@ export function attachSpeakerBehavior(editor) {
       inputElement.addEventListener("keydown", (keyboardEvent) => {
         if (keyboardEvent.key === "Escape") {
           keyboardEvent.preventDefault();
-          this.closeInlineTextEditor();
+          this.closeInlineEditor();
           return;
         }
         if (
@@ -543,7 +546,7 @@ export function attachSpeakerBehavior(editor) {
 
     // 处理卡片点击
     handleCardClick(clickEvent) {
-      if (handleDialogueActionClick(this, clickEvent)) {
+      if (handleDialogueClick(this, clickEvent)) {
         return;
       }
 
@@ -556,17 +559,18 @@ export function attachSpeakerBehavior(editor) {
         return;
       }
 
-      const itemId = findClosestActionId(clickEvent.target, SELECTABLE_CARD_SELECTOR);
+      const itemId = findClosestActionId(clickEvent.target, CARD_SELECTOR);
       if (!itemId) {
         return;
       }
 
+      // 卡片点击要同时兼顾单选 多选和范围选
       updateCardSelection(this, clickEvent, itemId);
     },
 
     // 删除一条对话卡片
     async handleCardDelete(actionId) {
-      this.closeInlineTextEditor();
+      this.closeInlineEditor();
       const targetAction = findAction(this.projectFileState.actions, actionId);
       if (!targetAction) {
         return;
@@ -584,7 +588,7 @@ export function attachSpeakerBehavior(editor) {
         return;
       }
 
-      markPendingCardMutation(this, {
+      markCardMutation(this, {
         type: "delete",
         actionId,
         startIndex: deleteIndex,
@@ -607,7 +611,7 @@ export function attachSpeakerBehavior(editor) {
         return;
       }
 
-      this.closeInlineTextEditor();
+      this.closeInlineEditor();
       if (this._onCardClick) {
         canvas.removeEventListener("click", this._onCardClick);
       }
@@ -630,6 +634,7 @@ export function attachSpeakerBehavior(editor) {
       if (this._onSelectionChange) {
         canvas.removeEventListener("selectionchange", this._onSelectionChange);
       }
+      // 统一从 selectionchange 刷新所有卡片高亮
       // 选中变化时刷新卡片高亮
       this._onSelectionChange = (selectionChangeEvent) => {
         if (!selectionChangeEvent.detail) {
@@ -637,7 +642,7 @@ export function attachSpeakerBehavior(editor) {
         }
 
         const selectedIds = new Set(selectionChangeEvent.detail.selectedIds);
-        const allCards = canvas.querySelectorAll(SELECTABLE_CARD_SELECTOR);
+        const allCards = canvas.querySelectorAll(CARD_SELECTOR);
         allCards.forEach((cardElement) => {
           cardElement.classList.toggle(
             "is-selected",
@@ -654,7 +659,7 @@ export function attachSpeakerBehavior(editor) {
       this._onLayoutChange = (layoutChangeEvent) => {
         const layoutCard = layoutChangeEvent.target.closest(".layout-item");
         if (layoutCard && layoutChangeEvent.target.matches("select, input")) {
-          this.updateLayoutActionProperty(
+          this.updateLayoutField(
             layoutCard.dataset.id,
             layoutChangeEvent.target
           );
@@ -664,7 +669,7 @@ export function attachSpeakerBehavior(editor) {
     },
 
     // 打开多说话人弹出框
-    showMultiSpeakerPopover(actionId, targetElement) {
+    openSpeakerPopover(actionId, targetElement) {
       document.querySelectorAll("#speaker-popover").forEach((popoverElement) =>
         popoverElement.remove()
       );
@@ -687,6 +692,7 @@ export function attachSpeakerBehavior(editor) {
         },
       });
 
+      // 弹出框里的每一项都对应当前对话里的一个说话人
       const items = action.speakers.map((speaker) => {
         const nameSpan = DOMUtils.createElement(
           "span",
@@ -709,9 +715,10 @@ export function attachSpeakerBehavior(editor) {
               fontSize: "16px",
               lineHeight: "1",
             },
+            // 点删除时移除当前说话人
             onClick: (clickEvent) => {
               clickEvent.stopPropagation();
-              editor.removeSpeakerFromAction(actionId, speaker.characterId);
+              editor.removeSpeaker(actionId, speaker.characterId);
               popover.remove();
             },
           },
@@ -743,6 +750,7 @@ export function attachSpeakerBehavior(editor) {
       setTimeout(() => {
         document.addEventListener(
           "click",
+          // 点到弹出框外面时直接关闭
           function onClickOutside(clickEvent) {
             if (!popover.contains(clickEvent.target)) {
               popover.remove();

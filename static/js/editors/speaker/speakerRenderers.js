@@ -1,6 +1,6 @@
 // 对话卡片显示
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 
 // 把说话人整理成一个 key
 function buildSpeakerKey(speakers = []) {
@@ -15,7 +15,7 @@ function applySpeakerKey(card, speakers = []) {
 }
 
 // 刷新卡片序号
-function updateCardSequenceNumber(cardElement, globalIndex) {
+function updateCardIndex(cardElement, globalIndex) {
   const numberDiv = cardElement.querySelector(".card-sequence-number");
   if (numberDiv && globalIndex !== -1) {
     numberDiv.textContent = `#${globalIndex + 1}`;
@@ -41,7 +41,7 @@ function renderTalkCard(dialogueItem, action, editor) {
     avatarContainer.style.display = "flex";
     speakerNameDiv.classList.remove("hidden");
     dialogueItem.classList.remove("narrator");
-    renderCharacterAvatar(avatarDiv, firstSpeaker.characterId, firstSpeaker.name);
+    renderAvatar(avatarDiv, firstSpeaker.characterId, firstSpeaker.name);
     speakerNameDiv.textContent = speakers.map((speaker) => speaker.name).join(" & ");
 
     if (speakers.length > 1) {
@@ -52,7 +52,7 @@ function renderTalkCard(dialogueItem, action, editor) {
       // 多说话人时点头像打开弹窗
       avatarContainer.addEventListener("click", (clickEvent) => {
         clickEvent.stopPropagation();
-        editor.showMultiSpeakerPopover(action.id, avatarContainer);
+        editor.openSpeakerPopover(action.id, avatarContainer);
       });
     } else {
       multiSpeakerBadge.classList.add("hidden");
@@ -80,18 +80,18 @@ function renderLayoutCard(cardElement, action, characterNameMap, editor) {
   const characterName = resolveCharacterName(action, characterNameMap);
   layoutItem.querySelector(".speaker-name").textContent =
     characterName || `未知角色 (ID: ${action.characterId})`;
-  renderCharacterAvatar(
+  renderAvatar(
     layoutItem.querySelector(".dialogue-avatar"),
     action.characterId,
     characterName,
   );
-  editor.renderLayoutCardControls(cardElement, action, characterName, {
+  editor.renderLayoutControls(cardElement, action, characterName, {
     showToggleButton: false,
   });
 }
 
 // 建对话卡片方法
-export function createSpeakerRenderers(
+export function buildSpeakerCards(
   editor,
   { templates, characterNameMap },
 ) {
@@ -117,7 +117,7 @@ export function createSpeakerRenderers(
         : cardElement;
     if (!renderedCard) return null;
 
-    updateCardSequenceNumber(renderedCard, globalIndex);
+    updateCardIndex(renderedCard, globalIndex);
 
     if (renderedCard.classList.contains("dialogue-item")) {
       applySpeakerKey(renderedCard, action.speakers || []);
@@ -156,17 +156,17 @@ export function createSpeakerRenderers(
       }
       const avatarDiv = cardElement.querySelector(".dialogue-avatar");
       if (avatarDiv && avatarDiv.dataset.characterId !== String(action.characterId || "")) {
-        renderCharacterAvatar(avatarDiv, action.characterId, characterName);
+        renderAvatar(avatarDiv, action.characterId, characterName);
         avatarDiv.dataset.characterId = String(action.characterId || "");
       }
-      editor.renderLayoutCardControls(cardElement, action, characterName, {
+      editor.renderLayoutControls(cardElement, action, characterName, {
         showToggleButton: false,
       });
     } else {
       return false;
     }
 
-    updateCardSequenceNumber(cardElement, globalIndex);
+    updateCardIndex(cardElement, globalIndex);
     return true;
   };
 

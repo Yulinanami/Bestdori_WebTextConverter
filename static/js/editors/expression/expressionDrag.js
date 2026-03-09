@@ -29,9 +29,11 @@ export function attachExpressionDrag(editor) {
 
       // 创建重排处理
       const runReorder = DragHelper.createReorderHandler({
+        // 拖拽重排时直接改时间线数据
         runCommand: (changeFn) => editor.executeCommand(changeFn),
+        // 重排前先记下这次排序信息
         beforeReorder: (globalOldIndex, globalNewIndex) => {
-          editor.markGroupedReorderRender(
+          editor.markGroupReorder(
             "state",
             "drag",
             `index: ${globalOldIndex} -> ${globalNewIndex}`
@@ -51,6 +53,7 @@ export function attachExpressionDrag(editor) {
           timeline,
           DragHelper.createSortableConfig({
             group: "timeline-cards",
+            // 结束拖拽时先判断是否真的落进时间线
             onEnd: (sortableEvent) => {
               document.removeEventListener(
                 "dragover",
@@ -58,13 +61,14 @@ export function attachExpressionDrag(editor) {
               );
               DragHelper.stopAutoScroll(editor);
               if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
-                editor.applyGroupedReorderRender("state");
+                editor.applyGroupReorder("state");
                 return;
               }
               onEndHandler(sortableEvent);
             },
             extraConfig: {
               sort: true,
+              // 开始拖拽时开启自动滚动监听
               onStart: () => {
                 document.addEventListener(
                   "dragover",

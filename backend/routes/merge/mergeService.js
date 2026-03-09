@@ -16,8 +16,8 @@ function mergeFiles(files, logger) {
     throw error;
   }
 
+  // 先用第一个文件锁定模式 后面的文件必须跟它同类
   const isProject = !!firstData.version;
-  // 同一批文件类型要一致
   const allSameType = files.every((fileEntry) => {
     const fileData = fileEntry?.data;
     return (
@@ -34,7 +34,7 @@ function mergeFiles(files, logger) {
     throw error;
   }
 
-  // 按第一个文件判断模式
+  // 同类检查通过后再决定走哪套合并逻辑
   const mode = isProject ? "project" : "bestdori";
   logger.info(`开始合并文件 - 模式: ${mode}, 文件数量: ${files.length}`);
   const result =

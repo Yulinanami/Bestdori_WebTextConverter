@@ -3,16 +3,17 @@
 const SUPPORTED_UPLOAD_EXTENSIONS = [".txt", ".docx", ".md"];
 
 // 修正上传文件名
-function decodeMultipartFilename(rawFilename) {
+function decodeFilename(rawFilename) {
   if (!rawFilename) {
     return "";
   }
+  // 浏览器上传名有时会按 latin1 传进来 先尝试转回 utf8
   const decoded = Buffer.from(rawFilename, "latin1").toString("utf8");
   return decoded.includes("\uFFFD") ? rawFilename : decoded;
 }
 
 // 判断后缀支不支持
-function isSupportedUploadFilename(filename) {
+function isUploadFile(filename) {
   const lower = filename.toLowerCase();
   return SUPPORTED_UPLOAD_EXTENSIONS.some((ext) => lower.endsWith(ext));
 }
@@ -22,6 +23,7 @@ function formatFileSize(byteLength) {
   if (!Number.isFinite(byteLength) || byteLength < 0) {
     return "0 B";
   }
+  // 小于 1MB 统一按 KB 显示 其它按 MB 显示
   if (byteLength < 1024) {
     return `${byteLength} B`;
   }
@@ -32,7 +34,7 @@ function formatFileSize(byteLength) {
 }
 
 module.exports = {
-  decodeMultipartFilename,
-  isSupportedUploadFilename,
+  decodeFilename,
+  isUploadFile,
   formatFileSize,
 };

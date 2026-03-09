@@ -3,7 +3,7 @@ import { state } from "@managers/stateManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 
 // 找头像节点
-function resolveAvatarElement(target) {
+function findAvatarEl(target) {
   if (!target) {
     return null;
   }
@@ -19,7 +19,7 @@ function resolveAvatarElement(target) {
 }
 
 // 取映射后的头像 id
-export function resolveMappedAvatarId(characterId) {
+export function mapAvatarId(characterId) {
   const avatarMapping = state.avatarMapping || {};
   return (
     avatarMapping[characterId] ??
@@ -29,13 +29,13 @@ export function resolveMappedAvatarId(characterId) {
 }
 
 // 渲染角色头像
-export function renderCharacterAvatar(target, characterId, name = "") {
-  const avatarElement = resolveAvatarElement(target);
+export function renderAvatar(target, characterId, name = "") {
+  const avatarElement = findAvatarEl(target);
   if (!avatarElement) {
     return;
   }
 
-  const avatarId = resolveMappedAvatarId(characterId);
+  const avatarId = mapAvatarId(characterId);
   const fallbackText = String(name || "?").charAt(0) || "?";
 
   avatarElement.className = "config-avatar";

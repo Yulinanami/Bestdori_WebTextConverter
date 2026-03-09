@@ -4,6 +4,7 @@
 function buildActiveQuotePairs(quoteConfig) {
   const activeQuotePairs = {};
   if (Array.isArray(quoteConfig)) {
+    // 只收成对的开闭引号 其它数据跳过
     for (const pair of quoteConfig) {
       if (Array.isArray(pair) && pair.length >= 2) {
         activeQuotePairs[pair[0]] = pair[1];
@@ -26,6 +27,7 @@ function removeWrappedQuotes(text, activeQuotePairs) {
 
   const firstChar = stripped[0];
   const expectedClosing = activeQuotePairs[firstChar];
+  // 只有开头和结尾刚好配成一对时 才去掉外层引号
   if (expectedClosing && stripped.endsWith(expectedClosing)) {
     return stripped.slice(1, -1).trim();
   }
