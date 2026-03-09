@@ -176,8 +176,9 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
       }
 
       if (pendingPatch.type === "delete") {
-        const cardSelector = ".talk-item, .layout-item";
-        const cards = Array.from(timeline.querySelectorAll(cardSelector));
+        const cards = Array.from(
+          timeline.querySelectorAll(".talk-item, .layout-item"),
+        );
         const targetIndex = cards.findIndex(
           (cardElement) => cardElement.dataset.id === pendingPatch.actionId,
         );
@@ -188,7 +189,7 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
         cards[targetIndex].remove();
         DragHelper.syncCardOrderMeta({
           container: timeline,
-          cardSelector,
+          cardSelector: ".talk-item, .layout-item",
           startIndex: targetIndex,
           baseIndex: 0,
         });
@@ -213,13 +214,12 @@ export function attachLive2DLayoutMutationLocalRefresh(editor) {
         return false;
       }
 
-      const cardSelector = ".talk-item, .layout-item";
-      const cards = timeline.querySelectorAll(cardSelector);
+      const cards = timeline.querySelectorAll(".talk-item, .layout-item");
       const referenceNode = cards[insertIndex] || null;
       timeline.insertBefore(newCard, referenceNode);
       DragHelper.syncCardOrderMeta({
         container: timeline,
-        cardSelector,
+        cardSelector: ".talk-item, .layout-item",
         startIndex: insertIndex,
         baseIndex: 0,
       });

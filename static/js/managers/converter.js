@@ -78,9 +78,8 @@ export const converter = {
     appendSpaces = 0,
     appendSpacesBeforeNewline = 0,
   ) {
-    const buttonId = "convertBtn";
     try {
-      ui.toggleButtonLoading(buttonId, true, "转换中...");
+      ui.toggleButtonLoading("convertBtn", true, "转换中...");
       ui.showStatus("正在发送项目数据...", "info");
 
       // 把当前内容发给后端转换
@@ -103,7 +102,7 @@ export const converter = {
     } catch (error) {
       ui.showStatus(error.message, "error");
     } finally {
-      ui.toggleButtonLoading(buttonId, false);
+      ui.toggleButtonLoading("convertBtn", false);
     }
   },
 };

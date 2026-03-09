@@ -72,7 +72,11 @@ export const quoteManager = {
       fragment.appendChild(optionElement);
     });
     quoteOptionsContainer.appendChild(fragment);
-    this.attachCheckboxListeners();
+    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        this.handleCheckboxChange(checkbox);
+      });
+    });
   },
 
   // 创建一行引号选项
@@ -126,15 +130,6 @@ export const quoteManager = {
     }
 
     return wrapper;
-  },
-
-  // 给所有复选框绑定 change 事件（勾选变化就保存）
-  attachCheckboxListeners() {
-    document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
-        this.handleCheckboxChange(checkbox);
-      });
-    });
   },
 
   // 当某个复选框勾选变化时：更新本地存储
