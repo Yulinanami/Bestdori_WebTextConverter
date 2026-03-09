@@ -106,14 +106,13 @@ export const fileHandler = {
 
   // 把当前转换结果下载为 .json 文件
   async downloadResult() {
-    const buttonId = "downloadBtn";
     if (!state.currentResult) {
       ui.showStatus("没有可下载的结果！", "error");
       return;
     }
 
     await ui.withButtonLoading(
-      buttonId,
+      "downloadBtn",
       // 请求下载内容并保存
       async () => {
         const filename = `result_${new Date()

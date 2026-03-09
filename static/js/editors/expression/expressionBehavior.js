@@ -51,11 +51,6 @@ function findAction(actions, actionId) {
   return actions.find((actionItem) => actionItem.id === actionId);
 }
 
-// 从当前项目里找动作
-function findProjectAction(editor, actionId) {
-  return findAction(editor.projectFileState.actions, actionId);
-}
-
 // 修改一条动作
 function executeActionMutation(editor, actionId, mutate) {
   editor.executeCommand((currentState) => {
@@ -80,11 +75,6 @@ function summarizeUpdates(beforeValue, updates) {
 function markExpressionMutation(editor, actionId, operation, detail, mutate) {
   editor.markExpressionCardRender(actionId, { operation, detail });
   executeActionMutation(editor, actionId, mutate);
-}
-
-// 读取某种库的配置
-function resolveLibraryConfig(type) {
-  return LIBRARY_CONFIG[type];
 }
 
 // 读取一条分配项的上下文
@@ -168,7 +158,7 @@ export function attachExpressionBehavior(editor) {
 
     // 更新布局的初始动作表情
     updateLayoutInitialState(actionId, updates) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       markExpressionMutation(
         this,
         actionId,
@@ -187,7 +177,7 @@ export function attachExpressionBehavior(editor) {
 
     // 更新一条动作分配
     updateMotionAssignment(actionId, assignmentIndex, updates) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       markExpressionMutation(
         this,
         actionId,
@@ -203,7 +193,7 @@ export function attachExpressionBehavior(editor) {
 
     // 删除一条动作分配
     removeMotionAssignment(actionId, assignmentIndex) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       const removedItem = action?.motions?.[assignmentIndex];
       markExpressionMutation(
         this,
@@ -220,7 +210,7 @@ export function attachExpressionBehavior(editor) {
 
     // 给布局补一份默认分配
     ensureLayoutAssignment(actionId) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       if (!action || action.type !== "layout" || this.actionHasExpressionData(action)) {
         return false;
       }
@@ -245,7 +235,7 @@ export function attachExpressionBehavior(editor) {
 
     // 删除布局分配
     removeLayoutAssignment(actionId) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       markExpressionMutation(
         this,
         actionId,
@@ -264,7 +254,7 @@ export function attachExpressionBehavior(editor) {
 
     // 更新布局延迟
     updateLayoutDelay(actionId, delay) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       markExpressionMutation(
         this,
         actionId,
@@ -280,7 +270,7 @@ export function attachExpressionBehavior(editor) {
 
     // 更新一条分配
     updateAssignment(actionId, assignmentIndex, updates) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       if (action?.type === "layout") {
         this.updateLayoutInitialState(actionId, updates);
         return;
@@ -290,7 +280,7 @@ export function attachExpressionBehavior(editor) {
 
     // 删除一条分配
     removeAssignment(actionId, assignmentIndex) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       if (action?.type === "layout") {
         this.removeLayoutAssignment(actionId);
         return;
@@ -300,7 +290,7 @@ export function attachExpressionBehavior(editor) {
 
     // 更新分配里的延迟
     updateAssignmentDelay(actionId, assignmentIndex, delayValue) {
-      const action = findProjectAction(this, actionId);
+      const action = findAction(this.projectFileState.actions, actionId);
       if (action?.type === "layout") {
         this.updateLayoutDelay(actionId, delayValue);
         return;
@@ -361,7 +351,7 @@ export function attachExpressionBehavior(editor) {
 
         // 点设置按钮时打开设置区
         if (target.matches(".setup-expressions-btn")) {
-          const action = findProjectAction(this, actionId);
+          const action = findAction(this.projectFileState.actions, actionId);
           const footer = timelineCard.querySelector(".timeline-item-footer");
 
           // 布局卡片没有分配时先补一个
@@ -505,7 +495,7 @@ export function attachExpressionBehavior(editor) {
 
       // 重新绑定两种库的拖拽
       LIBRARY_TYPES.forEach((type) => {
-        const libraryList = this.domCache[resolveLibraryConfig(type).domKey];
+        const libraryList = this.domCache[LIBRARY_CONFIG[type].domKey];
         if (!libraryList) {
           return;
         }
@@ -550,7 +540,7 @@ export function attachExpressionBehavior(editor) {
         this.collectStagedCharacters().map((character) => character.id)
       );
       LIBRARY_TYPES.forEach((type) => {
-        const manager = resolveLibraryConfig(type).manager;
+        const manager = LIBRARY_CONFIG[type].manager;
         const items = new Set(this.tempLibraryItems[type]);
         stagedCharacterIds.forEach((characterId) => {
           manager
@@ -568,7 +558,7 @@ export function attachExpressionBehavior(editor) {
     // 按搜索词过滤库列表
     filterLibraryList(type, inputEvent) {
       const searchTerm = inputEvent.target.value.toLowerCase().trim();
-      const listContainer = document.getElementById(resolveLibraryConfig(type).listId);
+      const listContainer = document.getElementById(LIBRARY_CONFIG[type].listId);
       if (!listContainer) {
         return;
       }
@@ -582,7 +572,7 @@ export function attachExpressionBehavior(editor) {
 
     // 添加一个临时动作或表情
     addTempItem(type) {
-      const { inputId, manager: targetConfigManager } = resolveLibraryConfig(type);
+      const { inputId, manager: targetConfigManager } = LIBRARY_CONFIG[type];
       const idInput = document.getElementById(inputId);
       const tempList = this.tempLibraryItems[type];
       const trimmedId = idInput.value.trim();
@@ -664,7 +654,7 @@ export function attachExpressionBehavior(editor) {
 
 // 渲染一个快速填充下拉框
     renderQuickFillDropdown(type) {
-      const dropdown = document.getElementById(resolveLibraryConfig(type).dropdownId);
+      const dropdown = document.getElementById(LIBRARY_CONFIG[type].dropdownId);
       if (!dropdown) {
         return;
       }
@@ -723,7 +713,7 @@ export function attachExpressionBehavior(editor) {
 
     // 打开或关闭快速填充下拉框
     toggleQuickFillDropdown(type) {
-      const dropdown = document.getElementById(resolveLibraryConfig(type).dropdownId);
+      const dropdown = document.getElementById(LIBRARY_CONFIG[type].dropdownId);
       if (!dropdown) {
         return;
       }
@@ -754,7 +744,7 @@ export function attachExpressionBehavior(editor) {
     // 选中一个快速填充值
     handleQuickFillSelect(type, value) {
       const searchInput = document.getElementById(
-        resolveLibraryConfig(type).searchInputId
+        LIBRARY_CONFIG[type].searchInputId
       );
       if (searchInput) {
         searchInput.value = value;

@@ -44,11 +44,6 @@ function findActionIndex(actions, actionId) {
   return actions.findIndex((actionItem) => actionItem.id === actionId);
 }
 
-// 从当前项目里找动作
-function findProjectAction(editor, actionId) {
-  return findAction(editor.projectFileState.actions, actionId);
-}
-
 // 修改一条动作
 function executeActionMutation(editor, actionId, mutate) {
   editor.executeCommand((currentState) => {
@@ -96,7 +91,17 @@ function updateCardSelection(editor, clickEvent, itemId) {
 // 处理对话卡片上的按钮点击
 function handleDialogueActionClick(editor, clickEvent) {
   const actions = [
-    [".edit-text-btn", (actionId) => editor.handleTextEdit(actionId)], [".add-text-btn", (actionId) => editor.handleCardAdd(actionId)],
+    [".edit-text-btn", (actionId) => editor.handleTextEdit(actionId)],
+    [
+      ".add-text-btn",
+      (actionId) =>
+        editor.openInlineTextEditor(
+          actionId,
+          "",
+          (editedText) => editor.commitInlineTextAdd(actionId, editedText),
+          "add"
+        ),
+    ],
     [".delete-text-btn", (actionId) => editor.handleCardDelete(actionId)],
   ];
 
@@ -114,7 +119,7 @@ function handleDialogueActionClick(editor, clickEvent) {
 
 // 处理布局卡片删除
 function handleLayoutDelete(editor, actionId) {
-  const layoutAction = findProjectAction(editor, actionId);
+  const layoutAction = findAction(editor.projectFileState.actions, actionId);
   const deleteIndex = findActionIndex(editor.projectFileState.actions, actionId);
   if (deleteIndex > -1) {
     markPendingCardMutation(editor, {
@@ -392,7 +397,7 @@ export function attachSpeakerBehavior(editor) {
 
     // 保存行内文字修改
     commitInlineTextEdit(actionId, editedText) {
-      const targetAction = findProjectAction(this, actionId);
+      const targetAction = findAction(this.projectFileState.actions, actionId);
       if (!targetAction) {
         return;
       }
@@ -524,7 +529,7 @@ export function attachSpeakerBehavior(editor) {
 
     // 打开当前卡片的文字编辑
     handleTextEdit(actionId) {
-      const targetAction = findProjectAction(this, actionId);
+      const targetAction = findAction(this.projectFileState.actions, actionId);
       if (!targetAction) {
         return;
       }
@@ -562,7 +567,7 @@ export function attachSpeakerBehavior(editor) {
     // 删除一条对话卡片
     async handleCardDelete(actionId) {
       this.closeInlineTextEditor();
-      const targetAction = findProjectAction(this, actionId);
+      const targetAction = findAction(this.projectFileState.actions, actionId);
       if (!targetAction) {
         return;
       }
@@ -593,16 +598,6 @@ export function attachSpeakerBehavior(editor) {
           currentState.actions.splice(index, 1);
         }
       });
-    },
-
-    // 在当前卡片后面新增一条对话
-    handleCardAdd(actionId) {
-      this.openInlineTextEditor(
-        actionId,
-        "",
-        (editedText) => this.commitInlineTextAdd(actionId, editedText),
-        "add"
-      );
     },
 
     // 重新绑定选中相关事件
@@ -674,7 +669,7 @@ export function attachSpeakerBehavior(editor) {
         popoverElement.remove()
       );
 
-      const action = findProjectAction(editor, actionId);
+      const action = findAction(editor.projectFileState.actions, actionId);
       if (!action) {
         return;
       }
