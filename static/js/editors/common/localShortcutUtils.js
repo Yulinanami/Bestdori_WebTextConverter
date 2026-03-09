@@ -4,6 +4,7 @@ import { shortValue, summarizeChanges } from "@editors/common/changeSummaryUtils
 // 按顺序试每一种局部刷新
 export function runShortcutSteps(steps, onFallback) {
   const failedReasons = [];
+  // 只要命中一条局部短路就直接停
   for (const step of steps) {
     if (!step.pending) {
       continue;
@@ -21,7 +22,7 @@ export function runShortcutSteps(steps, onFallback) {
 }
 
 // 拼布局属性日志
-export function buildLayoutLogParts(pendingLayout, maxLength = 84) {
+export function layoutLog(pendingLayout, maxLength = 84) {
   const detail = pendingLayout.detail || {};
   const logParts = [`action=${pendingLayout.actionId || "unknown"}`];
   if (detail.source) {
@@ -48,7 +49,7 @@ export function buildLayoutLogParts(pendingLayout, maxLength = 84) {
 }
 
 // 拼带来源的日志片段
-export function buildSourceDetailLogParts(baseParts, pendingItem, detail) {
+export function buildDetailLogParts(baseParts, pendingItem, detail) {
   const logParts = [...baseParts];
   if (pendingItem.source) logParts.push(`source=${pendingItem.source}`);
   if (detail) logParts.push(detail);
@@ -56,8 +57,8 @@ export function buildSourceDetailLogParts(baseParts, pendingItem, detail) {
 }
 
 // 拼说话人变化日志
-export function buildSpeakerLogParts(pendingSpeaker) {
-  return buildSourceDetailLogParts(
+export function speakerLog(pendingSpeaker) {
+  return buildDetailLogParts(
     [`actions=${pendingSpeaker.actionIds.join("|")}`],
     pendingSpeaker,
     pendingSpeaker.detail,
@@ -65,8 +66,8 @@ export function buildSpeakerLogParts(pendingSpeaker) {
 }
 
 // 拼文本变化日志
-export function buildTextUpdateLogParts(pendingText, maxLength = 84) {
-  return buildSourceDetailLogParts(
+export function textLog(pendingText, maxLength = 84) {
+  return buildDetailLogParts(
     [`action=${pendingText.actionId || "unknown"}`],
     pendingText,
     pendingText.detail ||
@@ -78,7 +79,7 @@ export function buildTextUpdateLogParts(pendingText, maxLength = 84) {
 }
 
 // 拼卡片增删日志
-export function buildMutationLogParts(pendingMutation) {
+export function mutationLog(pendingMutation) {
   const logParts = [`type=${pendingMutation.type || "unknown"}`, `action=${pendingMutation.actionId || "unknown"}`];
   if (pendingMutation.source) logParts.push(`source=${pendingMutation.source}`);
   if (pendingMutation.detail) logParts.push(`详情=${pendingMutation.detail}`);
@@ -86,48 +87,56 @@ export function buildMutationLogParts(pendingMutation) {
 }
 
 // 生成布局编辑器要用的撤销重做标记
-export function createLayoutUndoRedoHandlers(editor) {
+export function buildLayoutUndoHooks(editor) {
+  // 把撤销重做里的结构变化映射成布局局部刷新标记
   return {
+    // 标记新增的布局卡片
     onActionAdded: ({ actionAfter, summary, phase }) => {
       if (actionAfter?.type === "layout") {
-        editor.markLayoutMutationRender(actionAfter.id, "add", {
+        editor.markLayoutMutation(actionAfter.id, "add", {
           source: phase,
           detail: summary,
         });
       }
     },
+    // 标记删除的布局卡片
     onActionRemoved: ({ actionBefore, summary, phase }) => {
       if (actionBefore?.type === "layout") {
-        editor.markLayoutMutationRender(actionBefore.id, "delete", {
+        editor.markLayoutMutation(actionBefore.id, "delete", {
           source: phase,
           detail: summary,
         });
       }
     },
+    // 标记布局排序变化
     onActionOrderChanged: ({ phase, orderSummary }) => {
-      editor.markGroupedReorderRender("state", phase, orderSummary);
+      editor.markGroupReorder("state", phase, orderSummary);
     },
+    // 标记布局字段变化
     onLayoutFieldChanged: ({ actionId, actionAfter, changes, phase }) => {
       if (actionAfter?.type === "layout") {
-        editor.markLayoutPropertyRender(actionId, { source: phase, changes });
+        editor.markLayoutChange(actionId, { source: phase, changes });
       }
     },
   };
 }
 
 // 生成对话编辑器要用的撤销重做标记
-export function createSpeakerUndoRedoHandlers(editor, maxLength = 84) {
+export function speakerUndoHooks(editor, maxLength = 84) {
+  // 把撤销重做里的不同变化映射成对话局部刷新标记
   return {
+    // 标记新增的对话卡片
     onActionAdded: ({ actionAfter, summary, phase }) => {
-      editor.pendingCardMutationRender = {
+      editor.pendingCardMutation = {
         type: "add",
         actionId: actionAfter.id,
         source: phase,
         detail: summary,
       };
     },
+    // 标记删除的对话卡片
     onActionRemoved: ({ actionBefore, indexBefore, summary, phase }) => {
-      editor.pendingCardMutationRender = {
+      editor.pendingCardMutation = {
         type: "delete",
         actionId: actionBefore.id,
         startIndex: indexBefore,
@@ -135,11 +144,13 @@ export function createSpeakerUndoRedoHandlers(editor, maxLength = 84) {
         detail: summary,
       };
     },
+    // 标记对话排序变化
     onActionOrderChanged: ({ phase, orderSummary }) => {
-      editor.markGroupedReorderRender("state", phase, orderSummary);
+      editor.markGroupReorder("state", phase, orderSummary);
     },
+    // 标记文本变化
     onTextChanged: ({ actionId, actionBefore, actionAfter, changes, phase }) => {
-      editor.pendingTextEditRender = {
+      editor.pendingTextChange = {
         actionId,
         text: actionAfter?.text || "",
         oldText: actionBefore?.text || "",
@@ -147,15 +158,17 @@ export function createSpeakerUndoRedoHandlers(editor, maxLength = 84) {
         detail: summarizeChanges(changes, maxLength),
       };
     },
-    onSpeakerFieldChanged: ({ actionId, actionIds, changes, phase }) => {
-      editor.markSpeakerRender(
+    // 标记说话人变化
+    onSpeakerChange: ({ actionId, actionIds, changes, phase }) => {
+      editor.markSpeakerChange(
         Array.isArray(actionIds) && actionIds.length > 0 ? actionIds : [actionId],
         phase,
         `changes=${summarizeChanges(changes, maxLength) || "none"}`
       );
     },
+    // 标记布局字段变化
     onLayoutFieldChanged: ({ actionId, changes, phase }) => {
-      editor.markLayoutPropertyRender(actionId, { source: phase, changes });
+      editor.markLayoutChange(actionId, { source: phase, changes });
     },
   };
 }

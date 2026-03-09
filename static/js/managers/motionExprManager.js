@@ -5,12 +5,12 @@ import { DataUtils } from "@utils/DataUtils.js";
 import { FileUtils } from "@utils/FileUtils.js";
 import { state } from "@managers/stateManager.js";
 
-class GenericConfigManager {
+class ItemConfig {
   // 创建动作或表情管理器
-  constructor(name, configKey, localStorageKey) {
+  constructor(name, configKey, storeKey) {
     this.name = name;
     this.configKey = configKey;
-    this.localStorageKey = localStorageKey;
+    this.storeKey = storeKey;
     this.characterItems = {};
     this.customItems = this.loadCustomItems();
   }
@@ -28,7 +28,7 @@ class GenericConfigManager {
   // 读取自定义项
   loadCustomItems() {
     try {
-      const saved = localStorage.getItem(this.localStorageKey);
+      const saved = localStorage.getItem(this.storeKey);
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
       console.error(`加载自定义 ${this.name} 失败:`, error);
@@ -40,7 +40,7 @@ class GenericConfigManager {
   saveCustomItems() {
     try {
       localStorage.setItem(
-        this.localStorageKey,
+        this.storeKey,
         JSON.stringify(this.customItems),
       );
     } catch {
@@ -58,8 +58,9 @@ class GenericConfigManager {
   }
 
   // 读取某个角色可用的项
-  listAvailableItemsForCharacter(characterId) {
+  listCharacterItems(characterId) {
     const defaultItems = this.characterItems[characterId] || [];
+    // 默认项和自定义项合并后统一排序
     return Array.from(new Set([...defaultItems, ...this.customItems])).sort();
   }
 
@@ -69,26 +70,27 @@ class GenericConfigManager {
     Object.values(this.characterItems).forEach((itemList) => {
       itemList.forEach((itemId) => allItems.add(itemId));
     });
+    // 把全部来源的项合成一个有序列表
     return Array.from(allItems).sort();
   }
 }
 
-export const motionManager = new GenericConfigManager(
+export const motionManager = new ItemConfig(
   "动作",
   "character_motions",
   "bestdori_custom_motions",
 );
 
-export const expressionManager = new GenericConfigManager(
+export const expressionManager = new ItemConfig(
   "表情",
   "character_expressions",
   "bestdori_custom_expressions",
 );
 
 // 动作表情设置页
-export const motionExpressionManager = {
-  tempCustomMotions: [], // 临时动作
-  tempCustomExpressions: [], // 临时表情
+export const motionExprManager = {
+  tempMotions: [], // 临时动作
+  tempExpressions: [], // 临时表情
 
   // 初始化设置页
   init() {
@@ -124,8 +126,8 @@ export const motionExpressionManager = {
 
   // 进入页面前准备临时数据
   prepareStep() {
-    this.tempCustomMotions = DataUtils.deepClone(motionManager.customItems);
-    this.tempCustomExpressions = DataUtils.deepClone(
+    this.tempMotions = DataUtils.deepClone(motionManager.customItems);
+    this.tempExpressions = DataUtils.deepClone(
       expressionManager.customItems,
     );
     this.renderLists();
@@ -137,13 +139,12 @@ export const motionExpressionManager = {
     const targetConfigManager = isMotion ? motionManager : expressionManager;
     const listContainer = document.getElementById(`${type}List`);
     const tempCustomItems = isMotion
-      ? this.tempCustomMotions
-      : this.tempCustomExpressions;
+      ? this.tempMotions
+      : this.tempExpressions;
     DOMUtils.clearElement(listContainer);
     const allDefaultItems = targetConfigManager.listDefaultItems();
-    const allItems = Array.from(
-      new Set([...allDefaultItems, ...tempCustomItems]),
-    ).sort();
+    // 默认项和临时项合并后统一排序
+    const allItems = Array.from(new Set([...allDefaultItems, ...tempCustomItems])).sort();
     const fragment = document.createDocumentFragment();
     allItems.forEach((itemId) => {
       const isCustom =
@@ -192,8 +193,8 @@ export const motionExpressionManager = {
     );
     const targetConfigManager = isMotion ? motionManager : expressionManager;
     const tempList = isMotion
-      ? this.tempCustomMotions
-      : this.tempCustomExpressions;
+      ? this.tempMotions
+      : this.tempExpressions;
     const trimmedId = idInput.value.trim();
 
     if (!trimmedId) {
@@ -218,11 +219,11 @@ export const motionExpressionManager = {
     if (removeButton) {
       const idToDelete = removeButton.dataset.id;
       if (type === "motion") {
-        this.tempCustomMotions = this.tempCustomMotions.filter(
+        this.tempMotions = this.tempMotions.filter(
           (id) => id !== idToDelete,
         );
       } else {
-        this.tempCustomExpressions = this.tempCustomExpressions.filter(
+        this.tempExpressions = this.tempExpressions.filter(
           (id) => id !== idToDelete,
         );
       }
@@ -235,8 +236,8 @@ export const motionExpressionManager = {
     await ui.withButtonLoading(
       "saveMotionExpressionBtn",
       async () => {
-        motionManager.customItems = [...this.tempCustomMotions];
-        expressionManager.customItems = [...this.tempCustomExpressions];
+        motionManager.customItems = [...this.tempMotions];
+        expressionManager.customItems = [...this.tempExpressions];
         motionManager.saveCustomItems();
         expressionManager.saveCustomItems();
         await FileUtils.delay(300);
@@ -257,8 +258,8 @@ export const motionExpressionManager = {
         "resetMotionExpressionBtn",
         async () => {
           await FileUtils.delay(300);
-          this.tempCustomMotions = [];
-          this.tempCustomExpressions = [];
+          this.tempMotions = [];
+          this.tempExpressions = [];
           this.renderLists();
           ui.showStatus("已在编辑器中恢复默认，请点击保存以生效。", "info");
         },

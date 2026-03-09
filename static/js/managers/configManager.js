@@ -1,21 +1,18 @@
 // 角色配置
 import { DataUtils } from "@utils/DataUtils.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { costumeManager } from "@managers/costumeManager.js";
 import { positionManager } from "@managers/positionManager.js";
-import {
-  motionManager,
-  expressionManager,
-} from "@managers/motionExpressionManager.js";
+import { motionManager, expressionManager } from "@managers/motionExprManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 import { apiService } from "@services/ApiService.js";
 import { FileUtils } from "@utils/FileUtils.js";
 
-const CLEARABLE_STORAGE_KEYS = [
+const CLEAR_KEYS = [
   STORAGE_KEYS.CHARACTER_MAPPING, STORAGE_KEYS.CUSTOM_QUOTES, STORAGE_KEYS.PRESET_QUOTES_STATE,
   STORAGE_KEYS.COSTUME_MAPPING_V2, STORAGE_KEYS.AVAILABLE_COSTUMES_V2, STORAGE_KEYS.POSITION_CONFIG,
   STORAGE_KEYS.CARD_GROUPING, STORAGE_KEYS.PINNED_CHARACTERS, STORAGE_KEYS.CUSTOM_MOTIONS,
@@ -30,12 +27,12 @@ export const configManager = {
 
   // 初始化配置页
   init() {
-    this.bindConfigListInteractions();
+    this.bindConfigListEvents();
     this.bindActionButtons();
   },
 
   // 绑定配置列表里的事件
-  bindConfigListInteractions() {
+  bindConfigListEvents() {
     const configList = document.getElementById("configList");
 
     // 点删除按钮时删掉一项
@@ -52,7 +49,7 @@ export const configManager = {
       if (!configItem) {
         return;
       }
-      this.updateConfigItemAvatar(configItem);
+      this.updateConfigAvatar(configItem);
     });
   },
 
@@ -83,6 +80,7 @@ export const configManager = {
 // 渲染角色列表
   renderConfigList() {
     const configList = document.getElementById("configList");
+    // 按每组的第一个角色 id 排序 让列表顺序稳定
     const sortedEntries = DataUtils.sortBy(
       Object.entries(state.currentConfig),
       ([, ids]) => ids?.[0] ?? Number.POSITIVE_INFINITY,
@@ -108,7 +106,7 @@ export const configManager = {
     const configItem = clone.querySelector(".config-item");
     configItem.querySelector(".config-name").value = characterName;
     configItem.querySelector(".config-ids").value = characterIds.join(",");
-    this.updateConfigItemAvatar(configItem);
+    this.updateConfigAvatar(configItem);
     return configItem;
   },
 
@@ -121,7 +119,7 @@ export const configManager = {
   },
 
   // 刷新一项里的头像
-  updateConfigItemAvatar(configItem) {
+  updateConfigAvatar(configItem) {
     const avatarWrapper = configItem.querySelector(".config-avatar-wrapper");
     const characterName = configItem.querySelector(".config-name").value || "?";
     const characterIds = this.parseCharacterIds(
@@ -129,7 +127,7 @@ export const configManager = {
     );
     const primaryId = characterIds[0] || 0;
 
-    renderCharacterAvatar(avatarWrapper, primaryId, characterName);
+    renderAvatar(avatarWrapper, primaryId, characterName);
     const avatar = avatarWrapper.querySelector(".config-avatar");
     if (avatar.classList.contains("fallback")) {
       avatar.textContent = characterName.charAt(0) || "?";
@@ -206,8 +204,8 @@ export const configManager = {
     await ui.withButtonLoading(
       "resetConfigBtn",
       async () => {
-        const previousSelectedCostumes = { ...state.currentCostumes };
-        const previousAvailableCostumeMap = {
+        const prevSelectedCostumes = { ...state.currentCostumes };
+        const prevCostumeMap = {
           ...costumeManager.availableCostumes,
         };
 
@@ -216,9 +214,9 @@ export const configManager = {
         storageService.remove(STORAGE_KEYS.CUSTOM_QUOTES);
         state.customQuotes = [];
 
-        await this.updateCostumesAfterConfigReset(
-          previousSelectedCostumes,
-          previousAvailableCostumeMap,
+        await this.syncCostumes(
+          prevSelectedCostumes,
+          prevCostumeMap,
         );
 
         await FileUtils.delay(300);
@@ -231,35 +229,36 @@ export const configManager = {
   },
 
   // 重置配置后同步更新服装
-  async updateCostumesAfterConfigReset(
-    previousSelectedCostumes,
-    previousAvailableCostumeMap,
+  async syncCostumes(
+    prevSelectedCostumes,
+    prevCostumeMap,
   ) {
-    const updatedSelectedCostumes = {};
-    const updatedAvailableCostumes = {};
+    const nextSelectedCostumes = {};
+    const nextCostumes = {};
 
+    // 默认角色重置后 旧服装配置里还能对上的部分继续保留
     Object.entries(this.defaultConfig).forEach(([characterName, characterIds]) => {
       const primaryCharacterId = characterIds[0];
 
-      if (Object.hasOwn(previousSelectedCostumes, characterName)) {
-        updatedSelectedCostumes[characterName] =
-          previousSelectedCostumes[characterName];
-        updatedAvailableCostumes[characterName] =
-          previousAvailableCostumeMap[characterName] || [];
+      if (Object.hasOwn(prevSelectedCostumes, characterName)) {
+        nextSelectedCostumes[characterName] =
+          prevSelectedCostumes[characterName];
+        nextCostumes[characterName] =
+          prevCostumeMap[characterName] || [];
         return;
       }
 
-      updatedSelectedCostumes[characterName] =
+      nextSelectedCostumes[characterName] =
         costumeManager.defaultCostumes[primaryCharacterId] || "";
-      updatedAvailableCostumes[characterName] =
-        costumeManager.defaultAvailableCostumes[primaryCharacterId] || [];
+      nextCostumes[characterName] =
+        costumeManager.baseCostumes[primaryCharacterId] || [];
     });
 
-    state.currentCostumes = updatedSelectedCostumes;
-    costumeManager.availableCostumes = updatedAvailableCostumes;
+    state.currentCostumes = nextSelectedCostumes;
+    costumeManager.availableCostumes = nextCostumes;
     storageService.save(
       STORAGE_KEYS.COSTUME_MAPPING_V2,
-      updatedSelectedCostumes,
+      nextSelectedCostumes,
     );
     storageService.save(
       STORAGE_KEYS.AVAILABLE_COSTUMES_V2,
@@ -267,7 +266,8 @@ export const configManager = {
     );
   },
 
-  findCharacterNameById(characterId) {
+  // 按角色 id 找角色名
+  findCharName(characterId) {
     for (const [characterName, characterIds] of Object.entries(
       state.currentConfig,
     )) {
@@ -278,6 +278,7 @@ export const configManager = {
     return null;
   },
 
+  // 写入一个数字设置
   applyNumericSetting(storageKey, inputId, value) {
     if (typeof value !== "number") return;
 
@@ -286,6 +287,7 @@ export const configManager = {
     document.getElementById(inputId).value = normalizedValue;
   },
 
+  // 导出整份本地配置
   async exportConfig() {
     await ui.withButtonLoading(
       "exportConfigBtn",
@@ -324,6 +326,7 @@ export const configManager = {
     );
   },
 
+  // 读取并导入配置文件
   async importConfig(file) {
     try {
       const response = await apiService.importConfigFile(file);
@@ -335,6 +338,7 @@ export const configManager = {
     }
   },
 
+  // 把导入结果写回页面和本地存储
   applyImportedConfig(config) {
     state.currentConfig = config.character_mapping;
     storageService.save(
@@ -354,6 +358,7 @@ export const configManager = {
       positionManager.importPositions(config.position_config);
     }
 
+    // 动作和表情共用同一套导入逻辑
     [["custom_motions", motionManager], ["custom_expressions", expressionManager]]
       .forEach(([configKey, manager]) => {
         if (!Array.isArray(config[configKey])) return;
@@ -370,6 +375,7 @@ export const configManager = {
 
     this.renderConfigList();
     quoteManager.renderQuoteOptions();
+    // 只有导入文件里带了数字设置时才回写输入框
     [
       [STORAGE_KEYS.AUTO_APPEND_SPACES, "appendSpaces", config.auto_append_spaces],
       [
@@ -382,6 +388,7 @@ export const configManager = {
     );
   },
 
+  // 清空本地缓存
   async clearLocalStorage() {
     const confirmed = await modalService.confirm(
       "【警告】此操作将删除所有本地保存的用户数据，包括：\n\n" +
@@ -401,7 +408,7 @@ export const configManager = {
     await ui.withButtonLoading(
       "clearCacheBtn",
       async () => {
-        storageService.removeMultiple(CLEARABLE_STORAGE_KEYS);
+        storageService.removeMultiple(CLEAR_KEYS);
 
         await FileUtils.delay(500);
         await modalService.alert("缓存已成功清除！网页即将重新加载。");

@@ -3,21 +3,16 @@ import { BaseEditor } from "@utils/BaseEditor.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { attachCharacterList } from "@editors/common/characterList.js";
 import { attachEditorCore } from "@editors/common/editorCore.js";
-import { attachLayoutProperties } from "@editors/common/layoutProperties.js";
-import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
-import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
-import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
+import { attachLayoutUI } from "@editors/common/layoutProperties.js";
+import { attachGroupReorder } from "@editors/common/groupedReorder.js";
+import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
+import { attachUndoRedo } from "@editors/common/undoRedo.js";
 import { perfLog } from "@editors/common/perfLogger.js";
-import {
-  buildLayoutLogParts,
-  buildMutationLogParts,
-  createLayoutUndoRedoHandlers,
-  runShortcutSteps,
-} from "@editors/common/localShortcutUtils.js";
+import { layoutLog, mutationLog, buildLayoutUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
 import { attachLive2DBehavior } from "@editors/live2d/live2dBehavior.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
-import { attachLive2DLayoutMutationLocalRefresh } from "@editors/live2d/live2dLayoutMutationLocalRefresh.js";
+import { attachLive2DRefresh } from "@editors/live2d/live2dRefresh.js";
 
 // 创建 Live2D 编辑器基础对象
 const baseEditor = new BaseEditor({
@@ -39,7 +34,7 @@ export const live2dEditor = {
   // 常用节点
   domCache: {},
   // 后续布局模式
-  subsequentLayoutMode: "move",
+  nextMode: "move",
 
   // 初始化编辑器
   init() {
@@ -51,15 +46,15 @@ export const live2dEditor = {
       modal: document.getElementById("live2dEditorModal"),
       undoBtn: document.getElementById("live2dUndoBtn"),
       redoBtn: document.getElementById("live2dRedoBtn"),
-      toggleSubsequentModeBtn: document.getElementById(
+      modeBtn: document.getElementById(
         "toggleSubsequentLayoutModeBtn"
       ),
-      subsequentModeText: document.getElementById("subsequentLayoutModeText"),
+      modeText: document.getElementById("subsequentLayoutModeText"),
     };
 
     const savedMode = storageService.load(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE);
     if (savedMode === "hide" || savedMode === "move") {
-      this.subsequentLayoutMode = savedMode;
+      this.nextMode = savedMode;
     }
 
     [
@@ -71,7 +66,7 @@ export const live2dEditor = {
       document.getElementById(buttonId)?.addEventListener("click", handler);
     });
     // 切换后续布局模式
-    this.domCache.toggleSubsequentModeBtn?.addEventListener("click", () => this.toggleSubsequentLayoutMode());
+    this.domCache.modeBtn?.addEventListener("click", () => this.toggleSubsequentMode());
 
     // 绑定通用事件
     this.initCommonEvents();
@@ -87,9 +82,9 @@ export const live2dEditor = {
       afterOpen: async () => {
         // 先清空旧缓存 再重新渲染
         live2dEditor.resetTimelineCache?.();
-        live2dEditor.renderPrimaryViewWithCharacters(() => live2dEditor.renderTimeline());
+        live2dEditor.renderViewAndList(() => live2dEditor.renderTimeline());
         live2dEditor.initDragAndDrop();
-        live2dEditor.updateSubsequentModeButton();
+        live2dEditor.updateSubsequentMode();
         live2dEditor.bindTimelineEvents();
         live2dEditor.domCache.modal?.focus();
       },
@@ -99,51 +94,57 @@ export const live2dEditor = {
   // 关闭前清理状态
   onBeforeClose() {
     this.resetTransientState({
-      pendingGroupedReorderRender: null,
-      pendingLayoutPropertyRender: null,
-      pendingLayoutMutationRender: null,
+      pendingGroupReorder: null,
+      pendingLayoutChange: null,
+      pendingLayoutPatch: null,
     });
     this.resetTimelineCache?.();
   },
 };
 
-attachLayoutCardLocalRefresh(live2dEditor, {
+attachLayoutRefresh(live2dEditor, {
   containerKey: "timeline",
   showToggleButton: true,
 });
-attachLive2DLayoutMutationLocalRefresh(live2dEditor);
+attachLive2DRefresh(live2dEditor);
 
-attachGroupedReorderOptimization(live2dEditor, {
+attachGroupReorder(live2dEditor, {
   debugTag: "live2dReorder",
   cardSelector: ".talk-item, .layout-item",
   containerKey: "timeline",
   // 排序失败后继续试别的局部刷新
   onBeforeFullRender: () => {
-    const pendingLayout = live2dEditor.pendingLayoutPropertyRender;
-    const pendingMutation = live2dEditor.pendingLayoutMutationRender;
+    const pendingLayout = live2dEditor.pendingLayoutChange;
+    const pendingMutation = live2dEditor.pendingLayoutPatch;
     return runShortcutSteps(
       [
         {
           pending: pendingLayout,
-          apply: () => live2dEditor.applyPendingLayoutPropertyRender(),
+          // 尝试只刷新布局字段
+          apply: () => live2dEditor.applyLayoutChange(),
+          // 命中后记录布局字段日志
           onHit: () => {
-            const logParts = buildLayoutLogParts(pendingLayout);
+            const logParts = layoutLog(pendingLayout);
             perfLog(
               `[PERF][live2d][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
             );
           },
+          // 生成布局字段失败原因
           failReason: () =>
             `布局属性更新失败(action=${pendingLayout.actionId || "unknown"})`,
         },
         {
           pending: pendingMutation,
-          apply: () => live2dEditor.applyPendingLayoutMutationRender(),
+          // 尝试只刷新布局卡片增删
+          apply: () => live2dEditor.applyLayoutMutation(),
+          // 命中后记录布局卡片日志
           onHit: () => {
-            const logParts = buildMutationLogParts(pendingMutation);
+            const logParts = mutationLog(pendingMutation);
             perfLog(
               `[PERF][live2d][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
             );
           },
+          // 生成布局卡片失败原因
           failReason: () =>
             `布局卡片增删失败(type=${pendingMutation.type || "unknown"}, action=${
               pendingMutation.actionId || "unknown"
@@ -157,21 +158,21 @@ attachGroupedReorderOptimization(live2dEditor, {
       }
     );
   },
-  // 都没命中时重新渲染整页
+  // 都没命中时重画整个时间线
   onFullRender: () => {
     live2dEditor.renderTimeline();
-    live2dEditor.renderCharacterListForCurrentProject();
+    live2dEditor.renderUsedList();
   },
 });
 
 attachEditorCore(live2dEditor, baseEditor);
 
-attachUndoRedoLocalShortcut(live2dEditor, {
+attachUndoRedo(live2dEditor, {
   debugTag: "live2dUndoRedo",
-  ...createLayoutUndoRedoHandlers(live2dEditor),
+  ...buildLayoutUndoHooks(live2dEditor),
 });
 
-attachLayoutProperties(live2dEditor);
+attachLayoutUI(live2dEditor);
 attachCharacterList(live2dEditor);
 
 // 把拆开的功能加回编辑器对象

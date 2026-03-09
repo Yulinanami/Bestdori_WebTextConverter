@@ -22,6 +22,7 @@ const mergeBestdori = (files) => {
     actions: [],
   };
 
+  // 按当前顺序直接拼接所有 actions
   for (const entry of files) {
     const actions = Array.isArray(entry?.data?.actions)
       ? entry.data.actions
@@ -41,6 +42,7 @@ const mergeProject = (files) => {
     actions: [],
   };
 
+  // 进度文件要先深拷贝 再重建每条 action 的 id
   for (const entry of files) {
     const clonedActions = cloneDeep(
       Array.isArray(entry?.data?.actions) ? entry.data.actions : [],
@@ -48,6 +50,7 @@ const mergeProject = (files) => {
     clonedActions.forEach((action, index) => {
       const timestamp = generateTimestamp() + index;
       const actionType = action?.type ?? "";
+      // 不同类型沿用原来的 id 风格 这样导入编辑器时更好分辨
       if (actionType === "talk") {
         action.id = `action-id-${timestamp}-${index}`;
       } else if (actionType === "layout") {

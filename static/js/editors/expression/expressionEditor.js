@@ -2,31 +2,22 @@
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { ui } from "@utils/uiUtils.js";
 import { attachEditorCore } from "@editors/common/editorCore.js";
-import { attachGroupedReorderOptimization } from "@editors/common/groupedReorderOptimization.js";
-import { attachLayoutProperties } from "@editors/common/layoutProperties.js";
-import { attachLayoutCardLocalRefresh } from "@editors/common/layoutCardLocalRefresh.js";
-import { attachUndoRedoLocalShortcut } from "@editors/common/undoRedoLocalShortcut.js";
+import { attachGroupReorder } from "@editors/common/groupedReorder.js";
+import { attachLayoutUI } from "@editors/common/layoutProperties.js";
+import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
+import { attachUndoRedo } from "@editors/common/undoRedo.js";
 import { perfLog } from "@editors/common/perfLogger.js";
-import {
-  buildLayoutLogParts,
-  buildMutationLogParts,
-  createLayoutUndoRedoHandlers,
-  runShortcutSteps,
-} from "@editors/common/localShortcutUtils.js";
+import { layoutLog, mutationLog, buildLayoutUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
 import { summarizeChanges } from "@editors/common/changeSummaryUtils.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
-import { attachExpressionCardLocalRefresh } from "@editors/expression/expressionCardLocalRefresh.js";
-import { attachExpressionBehavior } from "@editors/expression/expressionBehavior.js";
-import {
-  renderExpressionActionCard,
-  resetExpressionTimelineCache,
-  renderTimeline,
-} from "@editors/expression/expressionTimelineRenderer.js";
+import { attachExprRefresh } from "@editors/expression/exprRefresh.js";
+import { attachExprActions } from "@editors/expression/expressionBehavior.js";
+import { clearExprCache, renderExprCard, renderTimeline } from "@editors/expression/exprTimeline.js";
 import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
 // 创建动作表情编辑器基础对象
 const baseEditor = new BaseEditor({
-// 需要重新渲染时走同一个回调
+  // 需要重新渲染时都走这一层
   renderCallback: () => {
     expressionEditor.handleRenderCallback();
   },
@@ -42,12 +33,12 @@ export const expressionEditor = {
 
   // 常用节点
   domCache: {},
-  tempLibraryItems: { motion: [], expression: [] },
-  quickFillOptions: {
+  tempItems: { motion: [], expression: [] },
+  quickFill: {
     default: [],
     custom: [],
   },
-  // 标记下次必须整页刷新
+  // 标记下次要整页刷新
   forceFullRenderOnce: false,
 
   // 初始化编辑器
@@ -108,12 +99,12 @@ export const expressionEditor = {
         if (deleteButton) {
           // 先处理删除
           clickEvent.stopPropagation();
-          this.deleteCustomQuickFillOption(deleteButton.dataset.value);
+          this.removeQuickFill(deleteButton.dataset.value);
           return;
         }
 
         if (quickFillButton) {
-          this.toggleQuickFillDropdown(quickFillButton.dataset.type);
+          this.toggleQuickFill(quickFillButton.dataset.type);
         }
 
         if (quickFillItem) {
@@ -121,9 +112,9 @@ export const expressionEditor = {
           const type = quickFillItem.dataset.type;
           const selectedValue = quickFillItem.dataset.value;
           if (type === "add-custom") {
-            this.addCustomQuickFillOption();
+            this.addQuickFillOption();
           } else {
-            this.handleQuickFillSelect(type, selectedValue);
+            this.applyQuickFill(type, selectedValue);
           }
         }
       });
@@ -144,10 +135,10 @@ export const expressionEditor = {
       async () => {
         // 先清空局部刷新标记
         this.resetTransientState({
-          pendingGroupedReorderRender: null,
-          pendingLayoutPropertyRender: null,
-          pendingLayoutMutationRender: null,
-          pendingExpressionCardRenders: () => new Map(),
+          pendingGroupReorder: null,
+          pendingLayoutChange: null,
+          pendingLayoutPatch: null,
+          pendingCardRenders: () => new Map(),
           forceFullRenderOnce: true,
         });
         this.executeCommand((currentState) => {
@@ -162,10 +153,10 @@ export const expressionEditor = {
             }
           });
         });
-        // 这次刷新后取消强制整页刷新
+        // 这次刷新后取消强制整页刷新标记
         this.forceFullRenderOnce = false;
         ui.showStatus("已恢复默认表情动作。", "success");
-        resetExpressionTimelineCache();
+        clearExprCache();
         renderTimeline(this);
       },
       "恢复中..."
@@ -176,14 +167,14 @@ export const expressionEditor = {
   async open() {
     await this.openProjectEditor({
       // 打开前先清空临时库
-      beforePrepareProjectState: () => {
-        expressionEditor.tempLibraryItems = { motion: [], expression: [] };
+      beforePrepareProject: () => {
+        expressionEditor.tempItems = { motion: [], expression: [] };
       },
       // 打开后刷新时间线和右侧列表
       afterOpen: async () => {
         expressionEditor.loadQuickFillOptions();
         ["motion", "expression"].forEach((type) =>
-          expressionEditor.renderQuickFillDropdown(type),
+          expressionEditor.renderQuickFill(type),
         );
         const motionSearch = document.getElementById("motionSearchInput");
         const expressionSearch = document.getElementById(
@@ -204,13 +195,13 @@ export const expressionEditor = {
   // 导入项目后立刻重画当前编辑器
   afterImport() {
     this.resetTransientState({
-      pendingGroupedReorderRender: null,
-      pendingLayoutPropertyRender: null,
-      pendingLayoutMutationRender: null,
-      pendingExpressionCardRenders: () => new Map(),
+      pendingGroupReorder: null,
+      pendingLayoutChange: null,
+      pendingLayoutPatch: null,
+      pendingCardRenders: () => new Map(),
       forceFullRenderOnce: false,
     });
-    resetExpressionTimelineCache();
+    clearExprCache();
     renderTimeline(this);
     this.initTimelineDrag();
     this.renderLibraries();
@@ -220,24 +211,24 @@ export const expressionEditor = {
   // 关闭前清理状态
   onBeforeClose() {
     this.resetTransientState({
-      pendingGroupedReorderRender: null,
-      pendingLayoutPropertyRender: null,
-      pendingLayoutMutationRender: null,
-      pendingExpressionCardRenders: () => new Map(),
+      pendingGroupReorder: null,
+      pendingLayoutChange: null,
+      pendingLayoutPatch: null,
+      pendingCardRenders: () => new Map(),
     });
-    resetExpressionTimelineCache();
+    clearExprCache();
   },
 
 };
 
-attachExpressionCardLocalRefresh(expressionEditor);
+attachExprRefresh(expressionEditor);
 
-attachLayoutCardLocalRefresh(expressionEditor, {
+attachLayoutRefresh(expressionEditor, {
   containerKey: "timeline",
   cardSelector: ".talk-item, .layout-item",
   showToggleButton: false,
-// 新增布局卡片时直接渲染一张
-  renderActionCard: renderExpressionActionCard,
+  // 新增布局卡片时直接渲染一张
+  renderActionCard: renderExprCard,
   // 切换分组后重新渲染并滚到组头
   onGroupToggle: (groupIndex, isOpening) => {
     renderTimeline(expressionEditor);
@@ -248,57 +239,66 @@ attachLayoutCardLocalRefresh(expressionEditor, {
   },
 });
 
-attachGroupedReorderOptimization(expressionEditor, {
+attachGroupReorder(expressionEditor, {
   debugTag: "expressionReorder",
   cardSelector: ".talk-item, .layout-item",
   containerKey: "timeline",
   // 排序失败后继续试别的局部刷新
   onBeforeFullRender: () => {
-    // 批量操作时这一轮直接整页刷新
+    // 批量操作时这一轮改走整页刷新
     if (expressionEditor.forceFullRenderOnce) {
       expressionEditor.forceFullRenderOnce = false;
       return false;
     }
-    const pendingLayoutMutation = expressionEditor.pendingLayoutMutationRender;
-    const pendingCardSummary = expressionEditor.peekPendingExpressionCardSummary();
-    const pendingLayoutProperty = expressionEditor.pendingLayoutPropertyRender;
+    const pendingLayoutPatch = expressionEditor.pendingLayoutPatch;
+    const pendingCardSummary = expressionEditor.peekCardSummary();
+    const pendingLayoutField = expressionEditor.pendingLayoutChange;
     return runShortcutSteps(
       [
         {
-          pending: pendingLayoutMutation,
-          apply: () => expressionEditor.applyPendingLayoutMutationRender(),
+          pending: pendingLayoutPatch,
+          // 尝试只刷新布局卡片增删
+          apply: () => expressionEditor.applyLayoutMutation(),
+          // 命中后记录布局卡片日志
           onHit: () => {
-            const logParts = buildMutationLogParts(pendingLayoutMutation);
+            const logParts = mutationLog(pendingLayoutPatch);
             perfLog(
               `[PERF][expression][局部短路] 命中布局卡片增删: ${logParts.join(", ")}`
             );
           },
+          // 生成布局卡片失败原因
           failReason: () =>
-            `布局卡片增删失败(type=${pendingLayoutMutation.type || "unknown"}, action=${
-              pendingLayoutMutation.actionId || "unknown"
+            `布局卡片增删失败(type=${pendingLayoutPatch.type || "unknown"}, action=${
+              pendingLayoutPatch.actionId || "unknown"
             })`,
         },
         {
           pending: pendingCardSummary,
-          apply: () => expressionEditor.applyPendingExpressionCardRender(),
+          // 尝试只刷新动作表情卡片
+          apply: () => expressionEditor.applyCardRender(),
+          // 命中后记录动作表情日志
           onHit: () => {
             perfLog(
               `[PERF][expression][局部短路] 命中动作/表情卡片更新: ${pendingCardSummary}`
             );
           },
+          // 生成动作表情失败原因
           failReason: () => "动作/表情卡片更新失败",
         },
         {
-          pending: pendingLayoutProperty,
-          apply: () => expressionEditor.applyPendingLayoutPropertyRender(),
+          pending: pendingLayoutField,
+          // 尝试只刷新布局字段
+          apply: () => expressionEditor.applyLayoutChange(),
+          // 命中后记录布局字段日志
           onHit: () => {
-            const logParts = buildLayoutLogParts(pendingLayoutProperty);
+            const logParts = layoutLog(pendingLayoutField);
             perfLog(
               `[PERF][expression][局部短路] 命中布局属性更新: ${logParts.join(", ")}`
             );
           },
+          // 生成布局字段失败原因
           failReason: () =>
-            `布局属性更新失败(action=${pendingLayoutProperty.actionId || "unknown"})`,
+            `布局属性更新失败(action=${pendingLayoutField.actionId || "unknown"})`,
         },
       ],
       (failedReasons) => {
@@ -308,27 +308,27 @@ attachGroupedReorderOptimization(expressionEditor, {
       }
     );
   },
-  // 都没命中时重新渲染整页
+  // 都没命中时重画整个时间线
   onFullRender: () => renderTimeline(expressionEditor),
 });
 
 attachEditorCore(expressionEditor, baseEditor);
 
-attachUndoRedoLocalShortcut(expressionEditor, {
+attachUndoRedo(expressionEditor, {
   debugTag: "expressionUndoRedo",
-  ...createLayoutUndoRedoHandlers(expressionEditor),
+  ...buildLayoutUndoHooks(expressionEditor),
   // 撤销重做时标记卡片局部刷新
-  onExpressionFieldChanged: ({ actionId, changes, phase }) => {
+  onFieldChanged: ({ actionId, changes, phase }) => {
     const changeSummary = summarizeChanges(changes) || "none";
-    expressionEditor.markExpressionCardRender(actionId, {
+    expressionEditor.markCardRender(actionId, {
       operation: "undo-redo",
       detail: `source=${phase}, changes=${changeSummary}`,
     });
   },
 });
 
-attachLayoutProperties(expressionEditor);
-attachExpressionBehavior(expressionEditor);
+attachLayoutUI(expressionEditor);
+attachExprActions(expressionEditor);
 
 // 添加拖拽功能
 attachExpressionDrag(expressionEditor);

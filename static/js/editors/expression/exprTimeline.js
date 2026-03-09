@@ -1,33 +1,21 @@
 // 动作表情时间线显示
-import {
-  createTimelineRenderCache,
-  renderIncrementalTimeline,
-  resetTimelineRenderCache,
-} from "@utils/IncrementalTimelineRenderer.js";
+import { createCache, renderFast, clearCache } from "@utils/timelineRender.js";
 import { DataUtils } from "@utils/DataUtils.js";
-import { DOMUtils } from "@utils/DOMUtils.js";
 import { state } from "@managers/stateManager.js";
-import {
-  createTalkCard,
-  createLayoutCard,
-  createCharacterNameMap,
-  updateCardSequenceNumber,
-  updateLayoutCard,
-  updateTalkCard,
-} from "@utils/TimelineCardFactory.js";
-import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { createTalkCard, createLayoutCard, buildNameMap, updateCardIndex, updateLayoutCard, updateTalkCard } from "@utils/TimelineCardFactory.js";
+import { assignUI } from "@editors/expression/exprAssignRenderer.js";
 import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
 // 时间线缓存
-const timelineCache = createTimelineRenderCache();
+const timelineCache = createCache();
 
 // 清空时间线缓存
-export function resetExpressionTimelineCache() {
-  resetTimelineRenderCache(timelineCache);
+export function clearExprCache() {
+  clearCache(timelineCache);
 }
 
 // 建动作表情卡片方法
-export function createExpressionRenderers(editor) {
+function buildRenderers(editor) {
   const templates =
     editor.domCache.templates ||
     (editor.domCache.templates = {
@@ -35,10 +23,11 @@ export function createExpressionRenderers(editor) {
       layout: document.getElementById("timeline-layout-card-template"),
     });
   const configEntries = state.currentConfig || {};
-  const characterNameMap = createCharacterNameMap(configEntries);
+  const characterNameMap = buildNameMap(configEntries);
   const configSignature = DataUtils.shallowSignature(configEntries);
+  // 渲染布局卡片里的设置区
   const renderLayoutControls = (cardEl, layoutAction, characterName) =>
-    editor.renderLayoutCardControls(cardEl, layoutAction, characterName, {
+    editor.renderLayoutControls(cardEl, layoutAction, characterName, {
       showToggleButton: false,
     });
 
@@ -72,8 +61,8 @@ export function createExpressionRenderers(editor) {
         : cardElement;
     if (!renderedCard) return null;
 
-    updateCardSequenceNumber(renderedCard, globalIndex);
-    assignmentRenderer.renderCardFooter(editor, renderedCard, { action });
+    updateCardIndex(renderedCard, globalIndex);
+    assignUI.renderCardFooter(editor, renderedCard, { action });
 
     return renderedCard;
   };
@@ -92,8 +81,8 @@ export function createExpressionRenderers(editor) {
       return false;
     }
 
-    updateCardSequenceNumber(cardElement, globalIndex);
-    assignmentRenderer.renderCardFooter(editor, cardElement, { action });
+    updateCardIndex(cardElement, globalIndex);
+    assignUI.renderCardFooter(editor, cardElement, { action });
     return true;
   };
 
@@ -101,8 +90,8 @@ export function createExpressionRenderers(editor) {
 }
 
 // 渲染一张动作表情编辑器卡片
-export function renderExpressionActionCard(editor, action, globalIndex = -1) {
-  return createExpressionRenderers(editor).renderSingleCard(action, globalIndex);
+export function renderExprCard(editor, action, globalIndex = -1) {
+  return buildRenderers(editor).renderSingleCard(action, globalIndex);
 }
 
 // 渲染动作表情时间线
@@ -113,10 +102,10 @@ export function renderTimeline(editor) {
   const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
   const actions = editor.projectFileState.actions || [];
   const { renderSingleCard, updateCard, configSignature } =
-    createExpressionRenderers(editor);
+    buildRenderers(editor);
 
   // 切换分组时重新渲染时间线
-  renderIncrementalTimeline({
+  renderFast({
     container: timeline,
     actions,
     cache: timelineCache,
@@ -127,6 +116,7 @@ export function renderTimeline(editor) {
     groupSize: 50,
     activeGroupIndex: editor.activeGroupIndex,
     contextSignature: configSignature,
+    // 切换分组后重画时间线并滚到当前组
     onGroupToggle: (index) => {
       const isOpening = editor.activeGroupIndex !== index;
       editor.activeGroupIndex = isOpening ? index : null;

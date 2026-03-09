@@ -1,14 +1,11 @@
 // 处理编辑器右侧角色列表
 import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
-import {
-  pinnedCharacterManager,
-  pinnedCharacters,
-} from "@managers/pinnedCharacterManager.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { pinnedCharacterManager, pinnedCharacters } from "@managers/pinnedCharacterManager.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 
 // 创建角色列表缓存
-function createCharacterListCache() {
+function buildListCache() {
   return {
     nodesByName: new Map(),
     signatures: new Map(),
@@ -31,7 +28,7 @@ const characterListMethods = {
 
     const cache =
       this._characterListCache ||
-      (this._characterListCache = createCharacterListCache());
+      (this._characterListCache = buildListCache());
     const fragment = document.createDocumentFragment();
     const characters = Object.entries(state.currentConfig || {});
     const pinned = pinnedCharacters;
@@ -42,6 +39,7 @@ const characterListMethods = {
         return acc;
       }, {})
     );
+    // 配置和置顶状态一起决定列表缓存是否失效
     const pinnedSignature = JSON.stringify(Array.from(pinned).sort());
     const contextSignature = `${configSignature}|${pinnedSignature}`;
     if (cache.contextSignature !== contextSignature) {
@@ -49,6 +47,7 @@ const characterListMethods = {
       cache.contextSignature = contextSignature;
     }
 
+    // 置顶角色永远排前面 其余角色再按主 id 排
     characters.sort(([nameA, idsA], [nameB, idsB]) => {
       const isAPinned = pinned.has(nameA);
       const isBPinned = pinned.has(nameB);
@@ -73,6 +72,7 @@ const characterListMethods = {
       let characterCard = cache.nodesByName.get(name);
       const needsUpdate = !characterCard || cachedSignature !== signature;
 
+      // 先复用旧卡片 只有没有缓存时才重新克隆模板
       if (!characterCard) {
         const instance = template.content.cloneNode(true);
         characterCard =
@@ -99,7 +99,7 @@ const characterListMethods = {
           pinButton.classList.toggle("is-pinned", isPinned);
         }
 
-        renderCharacterAvatar(characterCard, characterId, name);
+        renderAvatar(characterCard, characterId, name);
         const nameElement = characterCard.querySelector(".character-name");
         if (nameElement) {
           nameElement.textContent = name;
@@ -114,6 +114,7 @@ const characterListMethods = {
       }
     });
 
+    // 配置里已经删掉的角色 要从缓存里一起清掉
     for (const cachedName of Array.from(cache.nodesByName.keys())) {
       if (!validNames.has(cachedName)) {
         cache.nodesByName.delete(cachedName);
@@ -147,8 +148,8 @@ const characterListMethods = {
       }
 
       pinnedCharacterManager.toggle(characterName);
-      if (typeof this.renderCharacterListForCurrentProject === "function") {
-        this.renderCharacterListForCurrentProject();
+      if (typeof this.renderUsedList === "function") {
+        this.renderUsedList();
       }
     });
   },

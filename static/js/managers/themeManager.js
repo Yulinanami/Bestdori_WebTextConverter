@@ -1,13 +1,14 @@
 // 切换浅色和深色主题
 export class ThemeManager {
+  // 构造时初始化主题
   constructor() {
-    // 保存存储 key 并立即初始化
+    // 先记住主题存储 key
     this.STORAGE_KEY = "theme-preference";
     this.themeSelector = null;
     this.init();
   }
 
-  // 初始化：等 DOM 就绪后再去找下拉框并绑定事件
+  // 初始化主题选择器
   init() {
     // 等待 DOM 加载完成
     if (document.readyState === "loading") {

@@ -36,8 +36,10 @@ export function attachLive2DDrag(editor) {
               put: false,
             },
             sort: false,
+            // 开始拖拽时开启自动滚动监听
             onStart: () =>
               document.addEventListener("dragover", editor.handleDragScrolling),
+            // 结束拖拽时关闭自动滚动监听
             onEnd: () => {
               document.removeEventListener(
                 "dragover",
@@ -51,9 +53,11 @@ export function attachLive2DDrag(editor) {
 
       // 创建重排处理
       const runReorder = DragHelper.createReorderHandler({
+        // 拖拽重排时直接改时间线数据
         runCommand: (changeFn) => editor.executeCommand(changeFn),
+        // 重排前先记下这次排序信息
         beforeReorder: (globalOldIndex, globalNewIndex) => {
-          editor.markGroupedReorderRender(
+          editor.markGroupReorder(
             "state",
             "drag",
             `index: ${globalOldIndex} -> ${globalNewIndex}`
@@ -72,11 +76,14 @@ export function attachLive2DDrag(editor) {
       const onAddHandler = DragHelper.createOnAddHandler({
         editor,
         groupSize: 50,
+        // 只允许角色卡片拖进时间线
         validateItem: (item) => item.classList.contains("character-item"),
+        // 从拖进来的角色卡片上取出角色信息
         extractData: (item) => ({
           characterId: parseInt(item.dataset.characterId),
           characterName: item.dataset.characterName,
         }),
+        // 把角色信息转成一条布局动作
         executeFn: (data, globalInsertIndex) => {
           if (data.characterName) {
             editor.insertLayoutAction(
@@ -95,6 +102,7 @@ export function attachLive2DDrag(editor) {
             timeline,
             DragHelper.createSortableConfig({
               group: "live2d-shared",
+              // 结束拖拽时先判断是否真的落进时间线
               onEnd: (sortableEvent) => {
                 document.removeEventListener(
                   "dragover",
@@ -102,7 +110,7 @@ export function attachLive2DDrag(editor) {
                 );
                 DragHelper.stopAutoScroll(editor);
                 if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
-                  editor.applyGroupedReorderRender("state");
+                  editor.applyGroupReorder("state");
                   return;
                 }
                 onEndHandler(sortableEvent);
@@ -111,6 +119,7 @@ export function attachLive2DDrag(editor) {
               extraConfig: {
                 sort: true,
                 filter: ".timeline-group-header",
+                // 开始拖拽时开启自动滚动监听
                 onStart: () =>
                   document.addEventListener(
                     "dragover",

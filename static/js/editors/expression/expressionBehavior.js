@@ -5,18 +5,15 @@ import { configManager } from "@managers/configManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 import { state } from "@managers/stateManager.js";
-import {
-  motionManager,
-  expressionManager,
-} from "@managers/motionExpressionManager.js";
-import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { motionManager, expressionManager } from "@managers/motionExprManager.js";
+import { assignUI } from "@editors/expression/exprAssignRenderer.js";
 import { shortValue } from "@editors/common/changeSummaryUtils.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
 
 // 库的类型
-const LIBRARY_TYPES = ["motion", "expression"];
+const LIB_TYPES = ["motion", "expression"];
 // 每种库对应的配置
-const LIBRARY_CONFIG = {
+const LIB_CFG = {
   motion: {
     manager: motionManager,
     domKey: "motionList",
@@ -34,10 +31,10 @@ const LIBRARY_CONFIG = {
     dropdownId: "expressionQuickFill",
   },
 };
-const LIVE2D_VIEWER_HOME_URL = "https://bestdori.com/tool/live2d";
+const VIEWER_URL = "https://bestdori.com/tool/live2d";
 
 // 把一条分配内容压成短文字
-function summarizeAssignmentItem(item) {
+function summarizeAssignItem(item) {
   if (!item) {
     return "none";
   }
@@ -52,7 +49,7 @@ function findAction(actions, actionId) {
 }
 
 // 修改一条动作
-function executeActionMutation(editor, actionId, mutate) {
+function runActionChange(editor, actionId, mutate) {
   editor.executeCommand((currentState) => {
     const action = findAction(currentState.actions, actionId);
     if (action) {
@@ -72,13 +69,13 @@ function summarizeUpdates(beforeValue, updates) {
 }
 
 // 记录局部刷新再执行修改
-function markExpressionMutation(editor, actionId, operation, detail, mutate) {
-  editor.markExpressionCardRender(actionId, { operation, detail });
-  executeActionMutation(editor, actionId, mutate);
+function markExprChange(editor, actionId, operation, detail, mutate) {
+  editor.markCardRender(actionId, { operation, detail });
+  runActionChange(editor, actionId, mutate);
 }
 
 // 读取一条分配项的上下文
-function resolveAssignmentContext(target) {
+function readAssignCtx(target) {
   const assignmentItem = target.closest(".motion-assignment-item");
   if (!assignmentItem) {
     return null;
@@ -95,10 +92,11 @@ function updateDropZoneValue(dropZone, value, showClearButton) {
   DOMUtils.toggleDisplay(dropZone.querySelector(".clear-state-btn"), showClearButton);
 }
 
-export function attachExpressionBehavior(editor) {
+// 给编辑器加上动作表情交互
+export function attachExprActions(editor) {
   Object.assign(editor, {
     // 看这条动作有没有动作表情数据
-    actionHasExpressionData(action) {
+    hasExpressionData(action) {
       if (action.type === "talk") {
         return action.motions && action.motions.length > 0;
       }
@@ -112,19 +110,20 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 读取已经登场的角色
-    collectStagedCharacters() {
-      const appearedCharacterNames = new Set();
+    listStagedChars() {
+      const seenChars = new Set();
       const characters = [];
 
       if (this.projectFileState?.actions) {
+        // 只收集已经通过 appear 登场过的角色
         this.projectFileState.actions.forEach((action) => {
           if (action.type !== "layout" || action.layoutType !== "appear") {
             return;
           }
           const characterName =
-            action.characterName || configManager.findCharacterNameById(action.characterId);
-          if (characterName && !appearedCharacterNames.has(characterName)) {
-            appearedCharacterNames.add(characterName);
+            action.characterName || configManager.findCharName(action.characterId);
+          if (characterName && !seenChars.has(characterName)) {
+            seenChars.add(characterName);
             characters.push({
               id: action.characterId,
               name: characterName,
@@ -138,7 +137,7 @@ export function attachExpressionBehavior(editor) {
 
     // 给对话加一条动作分配
     addMotionAssignment(actionId, character) {
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "talk:add-character",
@@ -157,9 +156,9 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 更新布局的初始动作表情
-    updateLayoutInitialState(actionId, updates) {
+    updateInitialState(actionId, updates) {
       const action = findAction(this.projectFileState.actions, actionId);
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "layout:update-initial-state",
@@ -178,7 +177,7 @@ export function attachExpressionBehavior(editor) {
     // 更新一条动作分配
     updateMotionAssignment(actionId, assignmentIndex, updates) {
       const action = findAction(this.projectFileState.actions, actionId);
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "talk:update-motion-assignment",
@@ -195,11 +194,11 @@ export function attachExpressionBehavior(editor) {
     removeMotionAssignment(actionId, assignmentIndex) {
       const action = findAction(this.projectFileState.actions, actionId);
       const removedItem = action?.motions?.[assignmentIndex];
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "talk:remove-motion-assignment",
-        `removed=${summarizeAssignmentItem(removedItem)}`,
+        `removed=${summarizeAssignItem(removedItem)}`,
         (actionToUpdate) => {
         if (!actionToUpdate.motions) {
           return;
@@ -209,13 +208,13 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 给布局补一份默认分配
-    ensureLayoutAssignment(actionId) {
+    ensureLayoutData(actionId) {
       const action = findAction(this.projectFileState.actions, actionId);
-      if (!action || action.type !== "layout" || this.actionHasExpressionData(action)) {
+      if (!action || action.type !== "layout" || this.hasExpressionData(action)) {
         return false;
       }
 
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "layout:ensure-assignment",
@@ -236,7 +235,7 @@ export function attachExpressionBehavior(editor) {
     // 删除布局分配
     removeLayoutAssignment(actionId) {
       const action = findAction(this.projectFileState.actions, actionId);
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "layout:remove-assignment",
@@ -255,7 +254,7 @@ export function attachExpressionBehavior(editor) {
     // 更新布局延迟
     updateLayoutDelay(actionId, delay) {
       const action = findAction(this.projectFileState.actions, actionId);
-      markExpressionMutation(
+      markExprChange(
         this,
         actionId,
         "layout:update-delay",
@@ -272,7 +271,7 @@ export function attachExpressionBehavior(editor) {
     updateAssignment(actionId, assignmentIndex, updates) {
       const action = findAction(this.projectFileState.actions, actionId);
       if (action?.type === "layout") {
-        this.updateLayoutInitialState(actionId, updates);
+        this.updateInitialState(actionId, updates);
         return;
       }
       this.updateMotionAssignment(actionId, assignmentIndex, updates);
@@ -289,27 +288,29 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 更新分配里的延迟
-    updateAssignmentDelay(actionId, assignmentIndex, delayValue) {
+    setAssignmentDelay(actionId, assignmentIndex, delayValue) {
       const action = findAction(this.projectFileState.actions, actionId);
       if (action?.type === "layout") {
         this.updateLayoutDelay(actionId, delayValue);
         return;
       }
-      this.updateMotionAssignment(actionId, assignmentIndex, {
+      this.updateAssignment(actionId, assignmentIndex, {
         delay: delayValue,
       });
     },
 
     // 给分配区绑定拖放
-    initSortableForAssignmentZones(assignmentElement) {
+    initAssignSortables(assignmentElement) {
       assignmentElement.querySelectorAll(".drop-zone").forEach((zone) => {
         new Sortable(zone, {
           group: {
             name: zone.dataset.type,
+            // 只接收资源库里拖出来的条目
             put: (...sortableArgs) =>
               sortableArgs[2].classList.contains("draggable-item"),
           },
           animation: 150,
+          // 放下后把拖入值写回当前分配区
           onAdd: (sortableEvent) => {
             const droppedValue = sortableEvent.item?.textContent.trim();
             const dropZone = sortableEvent.to;
@@ -321,7 +322,7 @@ export function attachExpressionBehavior(editor) {
               return;
             }
 
-            const { actionId, assignmentIndex } = resolveAssignmentContext(
+            const { actionId, assignmentIndex } = readAssignCtx(
               assignmentItem
             );
             const type = dropZone.dataset.type;
@@ -349,6 +350,7 @@ export function attachExpressionBehavior(editor) {
         }
         const actionId = timelineCard.dataset.id;
 
+        // 点击事件统一从这一层分发 先处理按钮 再处理卡片里的区域
         // 点设置按钮时打开设置区
         if (target.matches(".setup-expressions-btn")) {
           const action = findAction(this.projectFileState.actions, actionId);
@@ -356,14 +358,14 @@ export function attachExpressionBehavior(editor) {
 
           // 布局卡片没有分配时先补一个
           if (action?.type === "layout") {
-            const created = this.ensureLayoutAssignment(actionId);
+            const created = this.ensureLayoutData(actionId);
             const freshCard =
               (created &&
                 this.domCache.timeline?.querySelector(
                   `.layout-item[data-id="${actionId}"]`
                 )) ||
               timelineCard;
-            assignmentRenderer.showExpressionSetupUI(this, freshCard);
+            assignUI.showSetupUI(this, freshCard);
             return;
           }
 
@@ -371,12 +373,12 @@ export function attachExpressionBehavior(editor) {
           const previousSelector = footer?.querySelector(
             ".motion-character-selector"
           );
-          const shouldOpenAfterRefresh =
+          const shouldOpen =
             !previousSelector || previousSelector.style.display === "none";
-          assignmentRenderer.showExpressionSetupUI(this, timelineCard);
+          assignUI.showSetupUI(this, timelineCard);
           const newSelector = footer?.querySelector(".motion-character-selector");
           if (newSelector) {
-            newSelector.style.display = shouldOpenAfterRefresh ? "block" : "none";
+            newSelector.style.display = shouldOpen ? "block" : "none";
           }
           return;
         }
@@ -403,7 +405,7 @@ export function attachExpressionBehavior(editor) {
 
         // 点删除按钮时删掉分配
         if (target.matches(".assignment-remove-btn")) {
-          const assignmentContext = resolveAssignmentContext(target);
+          const assignmentContext = readAssignCtx(target);
           if (!assignmentContext) {
             return;
           }
@@ -417,7 +419,7 @@ export function attachExpressionBehavior(editor) {
         // 点清空按钮时清空当前值
         if (target.matches(".clear-state-btn")) {
           const dropZone = target.closest(".drop-zone");
-          const assignmentContext = resolveAssignmentContext(target);
+          const assignmentContext = readAssignCtx(target);
           if (!assignmentContext || !dropZone) {
             return;
           }
@@ -438,7 +440,7 @@ export function attachExpressionBehavior(editor) {
             (actionItem) => actionItem.id === actionId
           );
           if (deleteIndex > -1) {
-            this.markLayoutMutationRender(actionId, "delete", {
+            this.markLayoutMutation(actionId, "delete", {
               startIndex: deleteIndex,
             });
           }
@@ -447,11 +449,11 @@ export function attachExpressionBehavior(editor) {
       };
 
       timeline.onchange = (changeEvent) => {
-        const assignmentContext = resolveAssignmentContext(changeEvent.target);
+        const assignmentContext = readAssignCtx(changeEvent.target);
         // 改分配延迟时写回数据
         if (assignmentContext && changeEvent.target.matches(".assignment-delay-input")) {
           const delayValue = Number.parseFloat(changeEvent.target.value) || 0;
-          this.updateAssignmentDelay(
+          this.setAssignmentDelay(
             assignmentContext.actionId,
             assignmentContext.assignmentIndex,
             delayValue
@@ -470,13 +472,13 @@ export function attachExpressionBehavior(editor) {
         // 改布局输入时写回布局数据
         const layoutCard = changeEvent.target.closest(".layout-item");
         if (layoutCard && changeEvent.target.matches("select, input")) {
-          this.updateLayoutActionProperty(layoutCard.dataset.id, changeEvent.target);
+          this.updateLayoutField(layoutCard.dataset.id, changeEvent.target);
         }
       };
     },
 
     // 重新绑定右侧库的拖拽
-    initLibraryDragAndDrop() {
+    initLibraryDnD() {
       const sortables = (this.sortableInstances || []).filter(
         (sortableInstance) => sortableInstance?.el
       );
@@ -487,6 +489,7 @@ export function attachExpressionBehavior(editor) {
           sortableInstance.el?.id === "expressionEditorTimeline"
       );
 
+      // 时间线拖拽保留 右侧资源库拖拽每次重建
       // 先清空旧的右侧拖拽实例
       sortables
         .filter((sortableInstance) => sortableInstance !== timelineSortable)
@@ -494,8 +497,8 @@ export function attachExpressionBehavior(editor) {
       this.sortableInstances = timelineSortable ? [timelineSortable] : [];
 
       // 重新绑定两种库的拖拽
-      LIBRARY_TYPES.forEach((type) => {
-        const libraryList = this.domCache[LIBRARY_CONFIG[type].domKey];
+      LIB_TYPES.forEach((type) => {
+        const libraryList = this.domCache[LIB_CFG[type].domKey];
         if (!libraryList) {
           return;
         }
@@ -503,9 +506,11 @@ export function attachExpressionBehavior(editor) {
           new Sortable(libraryList, {
             group: { name: type, pull: "clone", put: false },
             sort: false,
+            // 开始拖动时打开自动滚动
             onStart: () => {
               document.addEventListener("dragover", this.handleDragScrolling);
             },
+            // 结束拖动时关掉自动滚动
             onEnd: () => {
               document.removeEventListener("dragover", this.handleDragScrolling);
               DragHelper.stopAutoScroll(this);
@@ -515,7 +520,7 @@ export function attachExpressionBehavior(editor) {
       });
     },
 
-// 渲染一类库
+    // 渲染一类库
     renderLibrary(type, items) {
       const libraryListContainer = document.getElementById(`${type}LibraryList`);
       DOMUtils.clearElement(libraryListContainer);
@@ -537,28 +542,30 @@ export function attachExpressionBehavior(editor) {
 // 渲染左右两边的库
     renderLibraries() {
       const stagedCharacterIds = new Set(
-        this.collectStagedCharacters().map((character) => character.id)
+        this.listStagedChars().map((character) => character.id)
       );
-      LIBRARY_TYPES.forEach((type) => {
-        const manager = LIBRARY_CONFIG[type].manager;
-        const items = new Set(this.tempLibraryItems[type]);
+      LIB_TYPES.forEach((type) => {
+        const manager = LIB_CFG[type].manager;
+        const items = new Set(this.tempItems[type]);
+        // 先合并临时项和已登场角色可用项 空项目时再退回全部已知项
         stagedCharacterIds.forEach((characterId) => {
           manager
-            .listAvailableItemsForCharacter(characterId)
+            .listCharacterItems(characterId)
             .forEach((itemId) => items.add(itemId));
         });
         if (stagedCharacterIds.size === 0 || items.size === 0) {
           manager.listKnownItems().forEach((itemId) => items.add(itemId));
         }
+        // 最后再统一排序 让左右库顺序稳定
         this.renderLibrary(type, Array.from(items).sort());
       });
-      this.initLibraryDragAndDrop();
+      this.initLibraryDnD();
     },
 
     // 按搜索词过滤库列表
     filterLibraryList(type, inputEvent) {
       const searchTerm = inputEvent.target.value.toLowerCase().trim();
-      const listContainer = document.getElementById(LIBRARY_CONFIG[type].listId);
+      const listContainer = document.getElementById(LIB_CFG[type].listId);
       if (!listContainer) {
         return;
       }
@@ -572,9 +579,9 @@ export function attachExpressionBehavior(editor) {
 
     // 添加一个临时动作或表情
     addTempItem(type) {
-      const { inputId, manager: targetConfigManager } = LIBRARY_CONFIG[type];
+      const { inputId, manager: targetConfigManager } = LIB_CFG[type];
       const idInput = document.getElementById(inputId);
-      const tempList = this.tempLibraryItems[type];
+      const tempList = this.tempItems[type];
       const trimmedId = idInput.value.trim();
 
       if (!trimmedId) {
@@ -601,11 +608,12 @@ export function attachExpressionBehavior(editor) {
     openLive2DViewers() {
       if (!this.projectFileState?.actions) {
         ui.showStatus("没有可分析的剧情内容。", "error");
-        window.open(LIVE2D_VIEWER_HOME_URL, "_blank");
+        window.open(VIEWER_URL, "_blank");
         return;
       }
 
       const costumeIds = new Set();
+      // 先从当前时间线里收集实际出现过的服装
       this.projectFileState.actions.forEach((action) => {
         if (action.type === "layout" && action.costume) {
           costumeIds.add(action.costume);
@@ -617,7 +625,7 @@ export function attachExpressionBehavior(editor) {
           "当前时间线中未找到任何服装配置，将打开 Live2D 浏览器首页。",
           "info"
         );
-        window.open(LIVE2D_VIEWER_HOME_URL, "_blank");
+        window.open(VIEWER_URL, "_blank");
         return;
       }
 
@@ -647,25 +655,26 @@ export function attachExpressionBehavior(editor) {
     // 读取快速填充选项
     loadQuickFillOptions() {
       const configData = state.configData;
-      this.quickFillOptions.default = configData?.quick_fill_options || [];
-      this.quickFillOptions.custom =
+      this.quickFill.default = configData?.quick_fill_options || [];
+      this.quickFill.custom =
         storageService.load(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
     },
 
-    // 渲染一个快速填充下拉框
-    renderQuickFillDropdown(type) {
-      const dropdown = document.getElementById(LIBRARY_CONFIG[type].dropdownId);
+// 渲染一个快速填充下拉框
+    renderQuickFill(type) {
+      const dropdown = document.getElementById(LIB_CFG[type].dropdownId);
       if (!dropdown) {
         return;
       }
 
       DOMUtils.clearElement(dropdown);
 
-      const defaultOptions = new Set(this.quickFillOptions.default);
+      const defaultOptions = new Set(this.quickFill.default);
+      // 默认项和自定义项合并后统一排序
       const allOptions = [
         ...new Set([
-          ...this.quickFillOptions.default,
-          ...this.quickFillOptions.custom,
+          ...this.quickFill.default,
+          ...this.quickFill.custom,
         ]),
       ].sort();
 
@@ -675,7 +684,7 @@ export function attachExpressionBehavior(editor) {
         optionButton.dataset.value = option;
 
         if (
-          this.quickFillOptions.custom.includes(option) &&
+          this.quickFill.custom.includes(option) &&
           !defaultOptions.has(option)
         ) {
           // 自定义项可以删掉
@@ -712,8 +721,8 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 打开或关闭快速填充下拉框
-    toggleQuickFillDropdown(type) {
-      const dropdown = document.getElementById(LIBRARY_CONFIG[type].dropdownId);
+    toggleQuickFill(type) {
+      const dropdown = document.getElementById(LIB_CFG[type].dropdownId);
       if (!dropdown) {
         return;
       }
@@ -724,10 +733,12 @@ export function attachExpressionBehavior(editor) {
       dropdown.classList.toggle("hidden");
 
       if (!dropdown.classList.contains("hidden")) {
+        // 展开后只监听一次外部点击 用来收起当前下拉框
         // 点外面时关掉下拉框
         setTimeout(() => {
           document.addEventListener(
             "click",
+            // 点到下拉框外面时收起当前菜单
             function onClickOutside(clickEvent) {
               if (!dropdown.parentElement.contains(clickEvent.target)) {
                 dropdown.classList.add("hidden");
@@ -742,20 +753,20 @@ export function attachExpressionBehavior(editor) {
     },
 
     // 选中一个快速填充值
-    handleQuickFillSelect(type, value) {
+    applyQuickFill(type, value) {
       const searchInput = document.getElementById(
-        LIBRARY_CONFIG[type].searchInputId
+        LIB_CFG[type].searchInputId
       );
       if (searchInput) {
         searchInput.value = value;
         searchInput.dispatchEvent(new Event("input", { bubbles: true }));
         searchInput.focus();
       }
-      this.toggleQuickFillDropdown(type);
+      this.toggleQuickFill(type);
     },
 
     // 新增一个自定义快速填充值
-    async addCustomQuickFillOption() {
+    async addQuickFillOption() {
       const newValue = await modalService.prompt(
         "请输入要添加的自定义快速填充关键词："
       );
@@ -764,22 +775,22 @@ export function attachExpressionBehavior(editor) {
       }
 
       const trimmedValue = newValue.trim().toLowerCase();
-      if (this.quickFillOptions.custom.includes(trimmedValue)) {
+      if (this.quickFill.custom.includes(trimmedValue)) {
         ui.showStatus("该填充项已存在！", "error");
         return;
       }
 
-      this.quickFillOptions.custom.push(trimmedValue);
+      this.quickFill.custom.push(trimmedValue);
       storageService.save(
         STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-        this.quickFillOptions.custom
+        this.quickFill.custom
       );
-      LIBRARY_TYPES.forEach((type) => this.renderQuickFillDropdown(type));
+      LIB_TYPES.forEach((type) => this.renderQuickFill(type));
       ui.showStatus(`已添加自定义填充项: ${trimmedValue}`, "success");
     },
 
     // 删除一个自定义快速填充值
-    async deleteCustomQuickFillOption(valueToDelete) {
+    async removeQuickFill(valueToDelete) {
       const confirmed = await modalService.confirm(
         `确定要删除自定义填充项 "${valueToDelete}" 吗？`
       );
@@ -787,14 +798,14 @@ export function attachExpressionBehavior(editor) {
         return;
       }
 
-      this.quickFillOptions.custom = this.quickFillOptions.custom.filter(
+      this.quickFill.custom = this.quickFill.custom.filter(
         (option) => option !== valueToDelete
       );
       storageService.save(
         STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-        this.quickFillOptions.custom
+        this.quickFill.custom
       );
-      LIBRARY_TYPES.forEach((type) => this.renderQuickFillDropdown(type));
+      LIB_TYPES.forEach((type) => this.renderQuickFill(type));
       ui.showStatus(`已删除填充项: ${valueToDelete}`, "success");
     },
   });

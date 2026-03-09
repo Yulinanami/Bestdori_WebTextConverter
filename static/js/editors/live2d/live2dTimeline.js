@@ -1,22 +1,18 @@
 // Live2D 时间线显示和事件
-import {
-  createTimelineRenderCache,
-  renderIncrementalTimeline,
-  resetTimelineRenderCache,
-} from "@utils/IncrementalTimelineRenderer.js";
+import { createCache, renderFast, clearCache } from "@utils/timelineRender.js";
 import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
 import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
-import { createLive2DRenderers } from "@editors/live2d/live2dTimelineRenderers.js";
-import { createCharacterNameMap } from "@utils/TimelineCardFactory.js";
+import { buildCards } from "@editors/live2d/live2dCards.js";
+import { buildNameMap } from "@utils/TimelineCardFactory.js";
 
 // 给编辑器添加时间线方法
 export function attachLive2DTimeline(editor) {
-  const timelineCache = createTimelineRenderCache();
+  const timelineCache = createCache();
 
   Object.assign(editor, {
     // 清空时间线缓存
-    resetTimelineCache: () => resetTimelineRenderCache(timelineCache),
+    resetTimelineCache: () => clearCache(timelineCache),
 
     // 绑定时间线事件
     bindTimelineEvents() {
@@ -33,7 +29,7 @@ export function attachLive2DTimeline(editor) {
           const action = editor.projectFileState.actions.find(
             (actionItem) => actionItem.id === actionId
           );
-          editor.markLayoutMutationRender(actionId, "delete", {
+          editor.markLayoutMutation(actionId, "delete", {
             source: "ui",
             detail: `type=layout, character=${
               action?.characterName || action?.characterId || "?"
@@ -48,7 +44,7 @@ export function attachLive2DTimeline(editor) {
           const toggleButton = layoutCard.querySelector(".toggle-position-btn");
           const isExpanded = toggleButton.classList.contains("expanded");
           const actionId = layoutCard.dataset.id;
-          editor.markLayoutPropertyRender(actionId, {
+          editor.markLayoutChange(actionId, {
             source: "ui",
             field: "customToPosition",
             beforeValue: isExpanded,
@@ -91,7 +87,7 @@ export function attachLive2DTimeline(editor) {
       timeline.onchange = (changeEvent) => {
         const layoutCard = changeEvent.target.closest(".layout-item");
         if (!layoutCard || !changeEvent.target.matches("select, input")) return;
-        editor.updateLayoutActionProperty(
+        editor.updateLayoutField(
           layoutCard.dataset.id,
           changeEvent.target,
         );
@@ -112,13 +108,13 @@ export function attachLive2DTimeline(editor) {
           layout: document.getElementById("timeline-layout-card-template"),
         });
       const configEntries = state.currentConfig || {};
-      const characterNameMap = createCharacterNameMap(configEntries);
+      const characterNameMap = buildNameMap(configEntries);
       const { renderSingleCard, updateCard, contextSignature } =
-        createLive2DRenderers(editor, { templates, characterNameMap });
+        buildCards(editor, { templates, characterNameMap });
       const configSignature = contextSignature(configEntries);
 
       // 切换分组时重新渲染时间线
-      renderIncrementalTimeline({
+      renderFast({
         container: timeline,
         actions,
         cache: timelineCache,
@@ -129,6 +125,7 @@ export function attachLive2DTimeline(editor) {
         groupSize: 50,
         activeGroupIndex: editor.activeGroupIndex,
         contextSignature: configSignature,
+        // 切换分组后重画时间线并滚到当前组
         onGroupToggle: (index) => {
           const isOpening = editor.activeGroupIndex !== index;
           editor.activeGroupIndex = isOpening ? index : null;

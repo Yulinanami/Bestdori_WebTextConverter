@@ -8,6 +8,7 @@ export const DragHelper = {
     }
 
     let scrollTarget = null;
+    // 先找鼠标当前落在哪个可滚动区域里
     for (const scrollContainer of scrollContainers) {
       if (scrollContainer && scrollContainer.contains(dragEvent.target)) {
         scrollTarget = scrollContainer;
@@ -82,6 +83,7 @@ export const DragHelper = {
 
     const from = Math.max(0, Number(startIndex) || 0);
     const base = Number(baseIndex) || 0;
+    // 只从受影响的位置开始补后面的序号
     for (let localIndex = from; localIndex < cards.length; localIndex++) {
       const globalIndex = base + localIndex;
       const cardElement = cards[localIndex];
@@ -95,7 +97,7 @@ export const DragHelper = {
   },
 
   // 从拖拽事件里拿到指针位置
-  extractPointerFromSortableEvent(sortableEvent) {
+  readPointer(sortableEvent) {
     const pointerEvent = sortableEvent?.originalEvent;
     const point =
       pointerEvent?.changedTouches?.[0] ||
@@ -114,7 +116,7 @@ export const DragHelper = {
     if (!container) {
       return false;
     }
-    const pointer = DragHelper.extractPointerFromSortableEvent(sortableEvent);
+    const pointer = DragHelper.readPointer(sortableEvent);
     if (!pointer) {
       return false;
     }
@@ -152,7 +154,7 @@ export const DragHelper = {
   },
 
   // 分组拖拽后刷新当前组序号
-  applyGroupedReorderRender(params = {}) {
+  applyGroupReorder(params = {}) {
     const {
       container,
       cardSelector,
@@ -173,6 +175,7 @@ export const DragHelper = {
         return false;
       }
 
+      // 按 state 顺序重排时 先算出当前应该保留哪一组卡片
       const shouldGroup =
         isGroupingEnabled &&
         totalActions > groupSize &&
@@ -205,6 +208,7 @@ export const DragHelper = {
 
         // 检查完后再改 DOM
         const fragment = document.createDocumentFragment();
+        // 当前组里的卡片按 state 顺序重新塞回去
         for (const actionId of expectedIds) {
           fragment.appendChild(cardById.get(actionId));
         }
@@ -226,6 +230,7 @@ export const DragHelper = {
       } else {
         // 检查完后再改 DOM
         const fragment = document.createDocumentFragment();
+        // 非分组时直接按 state 顺序整体排回容器尾部
         for (const actionId of expectedIds) {
           fragment.appendChild(cardById.get(actionId));
         }

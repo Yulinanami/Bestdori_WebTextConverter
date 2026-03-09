@@ -1,9 +1,10 @@
 // 创建时间线卡片
 import { configManager } from "@managers/configManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
-import { renderCharacterAvatar } from "@utils/avatarUtils.js";
+import { renderAvatar } from "@utils/avatarUtils.js";
 
-export function createCharacterNameMap(configEntries = {}) {
+// 建一份角色 id 到名字的映射
+export function buildNameMap(configEntries = {}) {
   return new Map(
     Object.entries(configEntries).flatMap(([name, ids]) =>
       ids.map((id) => [id, name]),
@@ -11,13 +12,15 @@ export function createCharacterNameMap(configEntries = {}) {
   );
 }
 
-export function updateCardSequenceNumber(cardElement, globalIndex) {
+// 刷新卡片序号
+export function updateCardIndex(cardElement, globalIndex) {
   const numberDiv = cardElement.querySelector(".card-sequence-number");
   if (numberDiv && globalIndex !== -1) {
     numberDiv.textContent = `#${globalIndex + 1}`;
   }
 }
 
+// 刷新对话卡片内容
 export function updateTalkCard(cardElement, action) {
   if (!cardElement?.classList.contains("talk-item")) {
     return false;
@@ -34,11 +37,12 @@ export function updateTalkCard(cardElement, action) {
         .map((speaker) => speaker.name)
         .join(" & ");
     }
+    // 说话人没变时不重画头像
     if (
       avatarDiv &&
       avatarDiv.dataset.characterId !== String(firstSpeaker.characterId || "")
     ) {
-      renderCharacterAvatar(
+      renderAvatar(
         avatarDiv,
         firstSpeaker.characterId,
         firstSpeaker.name,
@@ -62,6 +66,7 @@ export function updateTalkCard(cardElement, action) {
   return true;
 }
 
+// 刷新布局卡片内容
 export function updateLayoutCard(
   cardElement,
   action,
@@ -71,8 +76,9 @@ export function updateLayoutCard(
     return false;
   }
 
+  // 角色名优先用动作自带值 再回退到配置映射
   const resolvedName =
-    characterName || action.characterName || configManager.findCharacterNameById(action.characterId);
+    characterName || action.characterName || configManager.findCharName(action.characterId);
   cardElement.dataset.id = action.id;
   cardElement.dataset.layoutType = action.layoutType;
   DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
@@ -88,7 +94,7 @@ export function updateLayoutCard(
     avatarDiv &&
     avatarDiv.dataset.characterId !== String(action.characterId || "")
   ) {
-    renderCharacterAvatar(avatarDiv, action.characterId, resolvedName);
+    renderAvatar(avatarDiv, action.characterId, resolvedName);
     avatarDiv.dataset.characterId = String(action.characterId || "");
   }
 
@@ -127,7 +133,7 @@ export function createTalkCard(
         .join(" & ");
     }
     if (avatarDiv) {
-      renderCharacterAvatar(avatarDiv, firstSpeaker.characterId, firstSpeaker.name);
+      renderAvatar(avatarDiv, firstSpeaker.characterId, firstSpeaker.name);
     }
   } else {
     if (nameDiv) nameDiv.textContent = "旁白";
@@ -166,13 +172,14 @@ export function createLayoutCard(
     return cardFragment;
   }
 
+  // 先把布局类型和角色信息写进模板 再交给控件渲染
   timelineItem.dataset.id = action.id;
   timelineItem.dataset.layoutType = action.layoutType;
   DOMUtils.applyLayoutTypeClass(timelineItem, action.layoutType);
 
   const characterId = action.characterId;
   const characterName =
-    action.characterName || configManager.findCharacterNameById(characterId);
+    action.characterName || configManager.findCharName(characterId);
 
   const nameDiv = cardFragment.querySelector(".speaker-name");
   if (nameDiv) {
@@ -182,7 +189,7 @@ export function createLayoutCard(
 
   const avatarDiv = cardFragment.querySelector(".dialogue-avatar");
   if (avatarDiv) {
-    renderCharacterAvatar(avatarDiv, characterId, characterName);
+    renderAvatar(avatarDiv, characterId, characterName);
   }
 
   if (typeof renderLayoutControls === "function") {

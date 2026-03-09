@@ -2,7 +2,7 @@
 import { DataUtils } from "@utils/DataUtils.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
 import { BaseEditor } from "@utils/BaseEditor.js";
-import { createProjectFileFromText } from "@utils/ConverterCore.js";
+import { buildProjectData } from "@utils/ConverterCore.js";
 import { ui } from "@utils/uiUtils.js";
 import { state } from "@managers/stateManager.js";
 import { historyManager } from "@managers/historyManager.js";
@@ -14,20 +14,20 @@ const editorCoreMethods = {
   scrollSpeed: 0,
 
   // 刷新当前项目用到的角色列表
-  renderCharacterListForCurrentProject() {
+  renderUsedList() {
     if (
       typeof this.renderCharacterList === "function" &&
-      typeof this.collectUsedCharacterIds === "function"
+      typeof this.listUsedIds === "function"
     ) {
-      this.renderCharacterList(this.collectUsedCharacterIds());
+      this.renderCharacterList(this.listUsedIds());
     }
   },
 
   // 先渲染主区域 再渲染角色列表
-  renderPrimaryViewWithCharacters(renderView) {
+  renderViewAndList(renderView) {
     const usedCharacterIds = renderView.call(this);
     if (typeof this.renderCharacterList === "function") {
-      this.renderCharacterList(usedCharacterIds ?? this.collectUsedCharacterIds?.());
+      this.renderCharacterList(usedCharacterIds ?? this.listUsedIds?.());
     }
   },
 
@@ -72,19 +72,20 @@ const editorCoreMethods = {
       return;
     }
 
+    // 不同编辑器主区域不一样 按已挂好的渲染方法选入口
     if (
-      typeof this.renderPrimaryViewWithCharacters === "function" &&
+      typeof this.renderViewAndList === "function" &&
       typeof this.renderCanvas === "function"
     ) {
-      this.renderPrimaryViewWithCharacters(() => this.renderCanvas());
+      this.renderViewAndList(() => this.renderCanvas());
       return;
     }
 
     if (
-      typeof this.renderPrimaryViewWithCharacters === "function" &&
+      typeof this.renderViewAndList === "function" &&
       typeof this.renderTimeline === "function"
     ) {
-      this.renderPrimaryViewWithCharacters(() => this.renderTimeline());
+      this.renderViewAndList(() => this.renderTimeline());
       if (typeof this.renderLibraries === "function") {
         this.renderLibraries();
       }
@@ -137,14 +138,14 @@ const editorCoreMethods = {
   },
 
   // 按输入文字创建项目数据
-  createProjectFile(rawText) {
-    const baseProject = createProjectFileFromText(
+  buildProjectState(rawText) {
+    const baseProject = buildProjectData(
       rawText,
       state.currentConfig,
     );
     const createAction =
-      typeof this.createActionFromSegment === "function"
-        ? this.createActionFromSegment.bind(this)
+      typeof this.actionFromSegment === "function"
+        ? this.actionFromSegment.bind(this)
         // 默认按对话动作来创建
         : (index, text, speakers) => ({
             id: `action-id-${Date.now()}-${index}`,
@@ -169,17 +170,18 @@ const editorCoreMethods = {
     const projectState = state.projectFile;
     let initialState;
 
+    // 先判断是继续现有进度 还是按当前文字新建项目
     if (projectState) {
       initialState = projectState;
       // 有现成进度时直接使用
-      if (typeof options.onExistingProjectLoaded === "function") {
-        options.onExistingProjectLoaded(initialState, { rawText });
+      if (typeof options.onProjectLoad === "function") {
+        options.onProjectLoad(initialState, { rawText });
       }
     } else {
-      initialState = this.createProjectFile(trimmedText ? rawText : "");
+      initialState = this.buildProjectState(trimmedText ? rawText : "");
       // 没有进度时按当前文字新建
-      if (typeof options.onNewProjectCreated === "function") {
-        options.onNewProjectCreated({ rawText });
+      if (typeof options.onProjectCreate === "function") {
+        options.onProjectCreate({ rawText });
       }
     }
 
@@ -193,7 +195,7 @@ const editorCoreMethods = {
     const {
       buttonId = this.openButtonId,
       loadingText = "加载中...",
-      beforePrepareProjectState,
+      beforePrepareProject,
       afterOpen,
     } = options;
 
@@ -204,17 +206,17 @@ const editorCoreMethods = {
       loadingText,
       // 打开前先准备项目数据
       beforeOpen: async () => {
-        if (typeof beforePrepareProjectState === "function") {
-          await beforePrepareProjectState.call(this);
+        if (typeof beforePrepareProject === "function") {
+          await beforePrepareProject.call(this);
         }
 
         try {
           await this.prepareProjectState({
             // 读到已有进度时给个提示
-            onExistingProjectLoaded: () =>
+            onProjectLoad: () =>
               ui.showStatus("已加载现有项目进度。", "info"),
             // 新建项目时只在有文字时提示
-            onNewProjectCreated: ({ rawText }) => {
+            onProjectCreate: ({ rawText }) => {
               if (rawText?.trim()) {
                 ui.showStatus("已根据当前文本创建新项目。", "info");
               }
@@ -228,7 +230,7 @@ const editorCoreMethods = {
           throw error;
         }
       },
-// 打开后再跑编辑器自己的事
+      // 打开后再跑编辑器自己的事
       afterOpen: async () => {
         if (typeof afterOpen === "function") {
           await afterOpen.call(this);
@@ -308,6 +310,7 @@ const editorCoreMethods = {
         return;
       }
 
+      // 输入控件里保留原生按键 不拦截撤销重做
       if (
         keyboardEvent.target.tagName === "INPUT" ||
         keyboardEvent.target.tagName === "SELECT" ||
@@ -340,12 +343,13 @@ const editorCoreMethods = {
 
 // 给编辑器添加通用方法
 export function attachEditorCore(editor, baseEditor) {
+  // 先把基础编辑器上的公共状态挂到具体编辑器实例上
   Object.assign(editor, {
     projectFileState: baseEditor.projectFileState,
     originalStateOnOpen: baseEditor.originalStateOnOpen,
     activeGroupIndex: baseEditor.activeGroupIndex,
     renderCallback: baseEditor.renderCallback,
-    commandRenderHintResolver: baseEditor.commandRenderHintResolver,
+    renderHintResolver: baseEditor.renderHintResolver,
     groupSize: baseEditor.groupSize,
   });
   editor.executeCommand = BaseEditor.prototype.executeCommand;

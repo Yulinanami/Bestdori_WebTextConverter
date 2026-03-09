@@ -65,7 +65,7 @@ function summarizeSpeakers(speakers = []) {
     .join("|");
 }
 
-// 生 action 摘要
+// 整理 action 摘要
 function summarizeAction(action) {
   if (!action) {
     return "action=unknown";
@@ -100,6 +100,7 @@ function analyzeActionDiff(beforeActions, afterActions) {
     .map((action) => action.id)
     .filter((id) => !afterIdSet.has(id));
 
+  // 只有没有增删时 才把同长度不同顺序算成重排
   const orderChanged =
     addedIds.length === 0 &&
     removedIds.length === 0 &&
@@ -110,7 +111,7 @@ function analyzeActionDiff(beforeActions, afterActions) {
 }
 
 // 收集受影响的 action id
-function collectTouchedActionIds(actionPaths, beforeActions, afterActions) {
+function collectTouchedIds(actionPaths, beforeActions, afterActions) {
   const touchedActionIds = new Set();
   actionPaths.forEach((patch) => {
     const actionIndex = patch.path[1];
@@ -123,7 +124,7 @@ function collectTouchedActionIds(actionPaths, beforeActions, afterActions) {
 }
 
 // 收集 action 字段变化
-function collectActionChangeDetails(actionPaths, beforeAction, afterAction) {
+function collectActionChanges(actionPaths, beforeAction, afterAction) {
   const details = [];
   const seenPath = new Set();
   actionPaths.forEach((patch) => {
@@ -135,6 +136,7 @@ function collectActionChangeDetails(actionPaths, beforeAction, afterAction) {
     if (seenPath.has(pathText)) {
       return;
     }
+    // 同一路径只记一次 避免日志重复
     seenPath.add(pathText);
     details.push({
       path: pathText,
@@ -192,16 +194,16 @@ function summarizeOrderChange(beforeIndexById, afterIndexById) {
 }
 
 // 挂撤销重做局部刷新
-export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
+export function attachUndoRedo(editor, handlers = {}) {
   const {
     debugTag = "undoRedo",
     onActionAdded,
     onActionRemoved,
     onActionOrderChanged,
     onTextChanged,
-    onSpeakerFieldChanged,
+    onSpeakerChange,
     onLayoutFieldChanged,
-    onExpressionFieldChanged,
+    onFieldChanged,
   } = handlers;
   const debugPrefix = `[PERF][${debugTag}]`;
 
@@ -219,8 +221,8 @@ export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
   const speakerKeyList = Array.from(speakerKeys);
   const expressionKeyList = Array.from(expressionKeys);
 
-  const previousResolver = editor.commandRenderHintResolver;
-  editor.commandRenderHintResolver = (context) => {
+  const previousResolver = editor.renderHintResolver;
+  editor.renderHintResolver = (context) => {
     previousResolver?.(context);
 
     const { phase, stateBefore, stateAfter, patchesApplied } = context;
@@ -305,27 +307,27 @@ export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
     const actionPaths = patchesApplied.filter(
       (patch) => patch.path[0] === "actions" && Number.isInteger(patch.path[1]),
     );
-    const touchedActionIds = collectTouchedActionIds(
+    const touchedActionIds = collectTouchedIds(
       actionPaths,
       beforeActions,
       afterActions,
     );
 
-    const hasSpeakerFieldChange = actionPaths.some((patch) =>
+    const hasSpeakerChange = actionPaths.some((patch) =>
       speakerKeys.has(String(patch.path[2]))
     );
-    const hasOnlySpeakerFieldChange =
+    const onlySpeakerChange =
       actionPaths.length > 0 &&
       actionPaths.every((patch) => speakerKeys.has(String(patch.path[2])));
 
     // 第三步：多 action 的撤销/恢复里，若仅改了 speakers 字段，走批量说话人局部短路
     if (touchedActionIds.size > 1) {
-      if (hasOnlySpeakerFieldChange && onSpeakerFieldChanged) {
+      if (onlySpeakerChange && onSpeakerChange) {
         const actionIds = Array.from(touchedActionIds);
         perfLog(
           `${debugPrefix}[撤销恢复] 命中说话人字段(批量): 操作=${phaseLabel}, actions=${actionIds.join("|")}`,
         );
-        onSpeakerFieldChanged({
+        onSpeakerChange({
           phase,
           actionIds,
           changes: [],
@@ -355,7 +357,8 @@ export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
       );
       return;
     }
-    const changeDetails = collectActionChangeDetails(
+    // 第四步 再按字段类型把变化分发给对应的局部刷新
+    const changeDetails = collectActionChanges(
       actionPaths,
       actionBefore,
       actionAfter,
@@ -378,12 +381,12 @@ export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
       });
     }
 
-    if (hasSpeakerFieldChange && onSpeakerFieldChanged) {
+    if (hasSpeakerChange && onSpeakerChange) {
       const detailText = formatChangeDetails(changeDetails, speakerKeyList);
       perfLog(
         `${debugPrefix}[撤销恢复] 命中说话人字段: 操作=${phaseLabel}, action=${actionId}, 变更=${detailText || "无"}`,
       );
-      onSpeakerFieldChanged({
+      onSpeakerChange({
         phase,
         actionId,
         actionBefore,
@@ -411,13 +414,13 @@ export function attachUndoRedoLocalShortcut(editor, handlers = {}) {
 
     if (
       actionPaths.some((patch) => expressionKeys.has(String(patch.path[2]))) &&
-      onExpressionFieldChanged
+      onFieldChanged
     ) {
       const detailText = formatChangeDetails(changeDetails, expressionKeyList);
       perfLog(
         `${debugPrefix}[撤销恢复] 命中动作/表情字段: 操作=${phaseLabel}, action=${actionId}, 变更=${detailText || "无"}`,
       );
-      onExpressionFieldChanged({
+      onFieldChanged({
         phase,
         actionId,
         actionBefore,

@@ -29,9 +29,9 @@ export const quoteManager = {
 
 // 渲染预设和自定义引号
   renderQuoteOptions() {
-    const quoteOptionsContainer = document.getElementById("quoteOptionsContainer");
-    if (!quoteOptionsContainer) return;
-    DOMUtils.clearElement(quoteOptionsContainer);
+    const optionsBox = document.getElementById("quoteOptionsContainer");
+    if (!optionsBox) return;
+    DOMUtils.clearElement(optionsBox);
     state.customQuotes = storageService.load(STORAGE_KEYS.CUSTOM_QUOTES, []);
 
     // 加载预设引号的保存状态
@@ -49,7 +49,7 @@ export const quoteManager = {
             this.presetStates[stateKey] !== undefined
               ? this.presetStates[stateKey]
               : true;
-          const optionElement = this.createQuoteOptionElement(
+          const optionElement = this.createQuoteOption(
             checkboxId,
             categoryName,
             quoteCharacters[0],
@@ -62,7 +62,7 @@ export const quoteManager = {
     }
     (state.customQuotes || []).forEach((quote, index) => {
       const checkboxId = `quote-check-custom-saved-${index}`;
-      const optionElement = this.createQuoteOptionElement(
+      const optionElement = this.createQuoteOption(
         checkboxId,
         quote.name,
         quote.open,
@@ -71,7 +71,7 @@ export const quoteManager = {
       );
       fragment.appendChild(optionElement);
     });
-    quoteOptionsContainer.appendChild(fragment);
+    optionsBox.appendChild(fragment);
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
       checkbox.addEventListener("change", () => {
         this.handleCheckboxChange(checkbox);
@@ -80,7 +80,7 @@ export const quoteManager = {
   },
 
   // 创建一行引号选项
-  createQuoteOptionElement(
+  createQuoteOption(
     checkboxId,
     categoryName,
     openChar,
@@ -162,7 +162,7 @@ export const quoteManager = {
   },
 
   // 收集当前勾选的引号对（交给后端做“去引号”）
-  collectSelectedQuotes() {
+  listSelectedQuotes() {
     const selectedPairs = [];
 
     document.querySelectorAll(".quote-option-checkbox").forEach((checkbox) => {
@@ -177,7 +177,7 @@ export const quoteManager = {
     return selectedPairs;
   },
 
-  // 内部方法：新增一个自定义引号对（并刷新 UI）
+  // 新增一个自定义引号对
   _addCustomQuote(options) {
     const { openInputId, closeInputId, onComplete } = options;
     const openChar = document.getElementById(openInputId).value;

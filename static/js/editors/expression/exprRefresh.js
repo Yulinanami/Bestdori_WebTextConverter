@@ -1,9 +1,9 @@
 // 处理动作表情卡片的局部刷新
-import { assignmentRenderer } from "@editors/expression/expressionAssignmentRenderer.js";
+import { assignUI } from "@editors/expression/exprAssignRenderer.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 
 // 添加卡片局部刷新
-export function attachExpressionCardLocalRefresh(editor) {
+export function attachExprRefresh(editor) {
   const debugPrefix = "[PERF][expressionCard]";
   // 把 detail 转成文字
   const normalizeDetail = (detail) => {
@@ -17,14 +17,14 @@ export function attachExpressionCardLocalRefresh(editor) {
   };
 
   Object.assign(editor, {
-    pendingExpressionCardRenders: new Map(),
+    pendingCardRenders: new Map(),
 
     // 标记要刷新的卡片
-    markExpressionCardRender(actionId, options = {}) {
+    markCardRender(actionId, options = {}) {
       if (!actionId) {
         return;
       }
-      const existing = this.pendingExpressionCardRenders.get(actionId) || {};
+      const existing = this.pendingCardRenders.get(actionId) || {};
       const nextOperations = (existing.operations || []).slice();
       const nextDetails = (existing.details || []).slice();
       if (options.operation && !nextOperations.includes(options.operation)) {
@@ -34,7 +34,7 @@ export function attachExpressionCardLocalRefresh(editor) {
       if (detailText && !nextDetails.includes(detailText)) {
         nextDetails.push(detailText);
       }
-      this.pendingExpressionCardRenders.set(actionId, {
+      this.pendingCardRenders.set(actionId, {
         operations: nextOperations,
         details: nextDetails,
       });
@@ -49,8 +49,8 @@ export function attachExpressionCardLocalRefresh(editor) {
     },
 
     // 整理本轮刷新摘要
-    peekPendingExpressionCardSummary(limit = 2) {
-      const entries = Array.from(this.pendingExpressionCardRenders.entries());
+    peekCardSummary(limit = 2) {
+      const entries = Array.from(this.pendingCardRenders.entries());
       if (!entries.length) {
         return "";
       }
@@ -71,12 +71,12 @@ export function attachExpressionCardLocalRefresh(editor) {
     },
 
     // 逐张卡片尝试局部刷新
-    applyPendingExpressionCardRender() {
-      const pendingRenders = this.pendingExpressionCardRenders;
+    applyCardRender() {
+      const pendingRenders = this.pendingCardRenders;
       if (pendingRenders.size === 0) {
         return false;
       }
-      this.pendingExpressionCardRenders = new Map();
+      this.pendingCardRenders = new Map();
 
       const timeline = this.domCache.timeline;
       const actions = this.projectFileState.actions;
@@ -85,6 +85,7 @@ export function attachExpressionCardLocalRefresh(editor) {
         return false;
       }
 
+      // 逐张卡片确认 action 和 DOM 都还在 再重画 footer
       for (const [actionId, options] of pendingRenders.entries()) {
         const action = actions.find((actionItem) => actionItem.id === actionId);
         if (!action) {
@@ -102,7 +103,7 @@ export function attachExpressionCardLocalRefresh(editor) {
           );
           return false;
         }
-        const applied = assignmentRenderer.renderCardFooter(
+        const applied = assignUI.renderCardFooter(
           this,
           cardElement,
           { ...options, action }

@@ -5,6 +5,7 @@ function isProjectFile(projectFile) {
   if (!projectFile || !Array.isArray(projectFile.actions)) {
     return false;
   }
+  // 只认编辑器产出的 talk 和 layout 两种动作
   return projectFile.actions.every((action) => {
     if (!action || typeof action !== "object") {
       return false;
@@ -28,6 +29,7 @@ function isProjectFile(projectFile) {
 // 生成导出内容
 function buildProjectExport(projectFile) {
   const copy = JSON.parse(JSON.stringify(projectFile));
+  // characterStates 只是编辑时的临时缓存 不需要跟着导出
   copy.actions.forEach((action) => {
     delete action.characterStates;
   });

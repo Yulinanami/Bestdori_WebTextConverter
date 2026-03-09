@@ -4,24 +4,14 @@ const multer = require("multer");
 const { ProjectConverter } = require("../projectConverter");
 const { FileFormatConverter } = require("../fileFormatConverter");
 const { createLogger } = require("../logger");
-const {
-  decodeMultipartFilename,
-  isSupportedUploadFilename,
-  formatFileSize,
-} = require("./conversion/uploadHelpers");
-const {
-  sanitizeFilename,
-  buildDownloadFilename,
-} = require("./conversion/downloadHelpers");
-const {
-  isProjectFile,
-  buildProjectExport,
-} = require("./conversion/projectFileHelpers");
+const { decodeFilename, isUploadFile, formatFileSize } = require("./conversion/uploadHelpers");
+const { sanitizeFilename, buildDownloadFilename } = require("./conversion/downloadHelpers");
+const { isProjectFile, buildProjectExport } = require("./conversion/projectFileHelpers");
 
 const logger = createLogger("src.routes.conversion");
 
 // 创建转换路由
-function createConversionRouter({ configManager, maxContentLength }) {
+function createRouter({ configManager, maxContentLength }) {
   const router = express.Router();
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -39,9 +29,10 @@ function createConversionRouter({ configManager, maxContentLength }) {
       const defaultNarrator = parsingConfig.default_narrator_name ?? " ";
       const narratorName = data.narratorName || defaultNarrator;
       const appendSpaces = Number(data.appendSpaces) || 0;
-      const appendSpacesBeforeNewline =
+      const padBeforeNewline =
         Number(data.appendSpacesBeforeNewline) || 0;
 
+      // 只接受项目文件 旧版 text 字段会被拦下
       if (
         !projectFile ||
         typeof projectFile !== "object" ||
@@ -65,7 +56,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
         quoteConfig,
         narratorName,
         appendSpaces,
-        appendSpacesBeforeNewline,
+        padBeforeNewline,
       );
       res.json({ result });
     } catch (error) {
@@ -84,13 +75,15 @@ function createConversionRouter({ configManager, maxContentLength }) {
         return;
       }
 
-      const filename = decodeMultipartFilename(req.file.originalname || "");
+      const filename = decodeFilename(req.file.originalname || "");
       if (!filename) {
         logger.warning("文件名为空");
         res.status(400).json({ error: "没有选择文件" });
         return;
       }
-      if (!isSupportedUploadFilename(filename)) {
+
+      // 先按文件名拦一遍 才能避免把不支持的文件喂给解析器
+      if (!isUploadFile(filename)) {
         logger.warning(`不支持的文件类型: ${filename}`);
         res.status(400).json({ error: "只支持 .txt, .docx, .md 文件" });
         return;
@@ -99,7 +92,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
       logger.info(
         `正在处理文件: ${filename} (大小: ${formatFileSize(req.file.buffer.length)})`,
       );
-      const content = await FileFormatConverter.readFileContentToText(
+      const content = await FileFormatConverter.readText(
         filename,
         req.file.buffer,
       );
@@ -143,7 +136,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
     try {
       logger.info("收到项目文件导入请求");
       filename = req.file
-        ? decodeMultipartFilename(req.file.originalname || "")
+        ? decodeFilename(req.file.originalname || "")
         : "inline_text";
       if (req.file) {
         logger.info(
@@ -151,6 +144,7 @@ function createConversionRouter({ configManager, maxContentLength }) {
         );
       }
 
+      // 同时兼容上传文件和直接贴文本
       const text = req.file
         ? req.file.buffer.toString("utf8")
         : String(req.body.text || "");
@@ -195,4 +189,4 @@ function createConversionRouter({ configManager, maxContentLength }) {
   return router;
 }
 
-module.exports = { createConversionRouter };
+module.exports = { createRouter };

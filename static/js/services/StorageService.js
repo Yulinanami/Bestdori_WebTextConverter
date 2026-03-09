@@ -22,6 +22,7 @@ export const STORAGE_KEYS = {
 };
 
 class StorageService {
+  // 准备存储状态
   constructor() {
     // 存储空间满了时用这个回调通知页面
     this.onQuotaExceeded = null;

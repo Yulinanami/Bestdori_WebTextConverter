@@ -1,3 +1,5 @@
+import { updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
+
 // 时间线列表的增量刷新
 
 // 把节点转成卡片元素
@@ -47,6 +49,7 @@ function ensureCard({
   const cachedSignature = cache.signatures.get(action.id);
   let cardEl = cache.nodesById.get(action.id);
 
+  // 签名变了才更新或重建卡片
   if (!cardEl || cachedSignature !== signature) {
     let updated = false;
     if (cardEl && typeof updateCard === "function") {
@@ -84,7 +87,7 @@ function createGroupHeader({ start, end, index, isActive, onClick }) {
 }
 
 // 创建时间线缓存
-export function createTimelineRenderCache() {
+export function createCache() {
   return {
     nodesById: new Map(),
     signatures: new Map(),
@@ -93,7 +96,7 @@ export function createTimelineRenderCache() {
 }
 
 // 清空时间线缓存
-export function resetTimelineRenderCache(cache) {
+export function clearCache(cache) {
   if (!cache) return;
   cache.nodesById.clear();
   cache.signatures.clear();
@@ -101,7 +104,7 @@ export function resetTimelineRenderCache(cache) {
 }
 
 // 按变化刷新时间线
-export function renderIncrementalTimeline({
+export function renderFast({
   container,
   actions = [],
   renderCard,
@@ -128,6 +131,7 @@ export function renderIncrementalTimeline({
   const preserveScrollTop = container.scrollTop;
   const shouldGroup = groupingEnabled && actions.length > groupSize;
 
+  // 非分组时直接平铺所有卡片
   if (!shouldGroup) {
     const nodes = actions
       .map((action, actionIndex) =>
@@ -151,6 +155,7 @@ export function renderIncrementalTimeline({
   const total = actions.length;
   const numGroups = Math.ceil(total / groupSize);
 
+  // 分组时先建组头 只给当前展开组放卡片
   for (let groupIndex = 0; groupIndex < numGroups; groupIndex++) {
     const startNum = groupIndex * groupSize + 1;
     const endNum = Math.min((groupIndex + 1) * groupSize, total);
@@ -187,4 +192,3 @@ export function renderIncrementalTimeline({
   container.replaceChildren(fragment);
   container.scrollTop = preserveScrollTop;
 }
-import { updateGroupHeader } from "@editors/common/groupHeaderUtils.js";

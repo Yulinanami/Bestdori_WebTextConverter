@@ -1,5 +1,5 @@
 // 处理合并文件上传
-const { decodeMultipartFilename } = require("../conversion/uploadHelpers");
+const { decodeFilename } = require("../conversion/uploadHelpers");
 
 // 创建 400 报错
 function buildBadRequestError(message) {
@@ -14,7 +14,7 @@ function parseMergeUpload(file) {
     throw buildBadRequestError("没有文件被上传");
   }
 
-  const filename = decodeMultipartFilename(file.originalname || "");
+  const filename = decodeFilename(file.originalname || "");
   if (!filename) {
     throw buildBadRequestError("没有选择文件");
   }

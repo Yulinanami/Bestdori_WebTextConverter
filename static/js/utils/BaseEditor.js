@@ -15,7 +15,7 @@ export class BaseEditor {
 
     // 保存外面传进来的方法
     this.renderCallback = config.renderCallback || (() => {});
-    this.commandRenderHintResolver = config.commandRenderHintResolver || null;
+    this.renderHintResolver = config.renderHintResolver || null;
 
     // 每组默认大小
     this.groupSize = config.groupSize || 50;
@@ -50,7 +50,7 @@ export class BaseEditor {
         } else {
           this.projectFileState = applyPatches(this.projectFileState, patches);
         }
-        this.commandRenderHintResolver?.({
+        this.renderHintResolver?.({
           phase,
           stateBefore,
           stateAfter: this.projectFileState,
@@ -67,7 +67,7 @@ export class BaseEditor {
           this.projectFileState,
           inversePatches
         );
-        this.commandRenderHintResolver?.({
+        this.renderHintResolver?.({
           phase: "undo",
           stateBefore,
           stateAfter: this.projectFileState,

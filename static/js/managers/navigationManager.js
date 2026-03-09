@@ -1,8 +1,8 @@
 // 切换步骤并初始化对应页面
 
 class NavigationManager {
+  // 构造时初始化步骤导航
   constructor() {
-    // 创建后立即绑定导航事件
     this.init();
   }
 
@@ -79,10 +79,10 @@ class NavigationManager {
 
     // 第 8 步准备动作和表情配置
     8: async () => {
-      const [{ motionExpressionManager }] = await Promise.all([
-        import("@managers/motionExpressionManager.js"),
+      const [{ motionExprManager }] = await Promise.all([
+        import("@managers/motionExprManager.js"),
       ]);
-      motionExpressionManager.prepareStep();
+      motionExprManager.prepareStep();
     },
   };
 
