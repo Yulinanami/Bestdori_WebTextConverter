@@ -44,8 +44,13 @@
 }
 
 /* 顶部主题选择器样式 */
+.theme-selector-wrap {
+  position: relative;
+}
+
 .theme-selector-header {
   padding: 8px 16px;
+  padding-right: 40px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   background: var(--bg-primary);
@@ -56,6 +61,25 @@
   outline: none;
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-sm);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.theme-selector-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.theme-selector-icon::before {
+  content: "expand_more";
+}
+
+.theme-selector-wrap:has(.theme-selector-header:open) .theme-selector-icon::before {
+  content: "expand_less";
 }
 
 .theme-selector-header:hover {
@@ -264,6 +288,7 @@
   padding: 4px 8px;
   margin-left: auto;
   font-size: 1.1rem;
+  color: var(--text-muted);
   opacity: 0.3;
   transform: rotate(0deg);
 }

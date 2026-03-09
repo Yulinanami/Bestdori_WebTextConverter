@@ -217,3 +217,14 @@
   flex-direction: column;
   gap: 10px;
 }
+
+.timeline-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-group-header .material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+}

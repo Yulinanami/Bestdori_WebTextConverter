@@ -60,6 +60,21 @@
   padding: var(--spacing-xl);
 }
 
+.docs-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.docs-home-nav {
+  margin-top: auto;
+}
+
+.docs-nav-split {
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border-primary);
+}
+
 .nav-section {
   margin-bottom: var(--spacing-2xl);
 }

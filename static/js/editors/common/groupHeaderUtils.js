@@ -7,9 +7,7 @@ export function resolveGroupRange(groupIndex, groupSize, totalActions) {
 
 // 生成分组标题文字
 export function buildGroupHeaderText(isActive, startNum, endNum) {
-  return `${isActive ? "▼" : "▶"} 对话 ${startNum} - ${endNum} (${
-    endNum - startNum + 1
-  }条)`;
+  return `对话 ${startNum} - ${endNum} (${endNum - startNum + 1}条)`;
 }
 
 // 更新分组标题的样式和文字
@@ -33,7 +31,12 @@ export function updateGroupHeader(header, options) {
   } else {
     header.style.borderColor = "var(--border-primary)";
   }
-  header.textContent = buildGroupHeaderText(isActive, startNum, endNum);
+  header.innerHTML = `
+    <span class="material-symbols-outlined">${
+      isActive ? "expand_more" : "chevron_right"
+    }</span>
+    <span>${buildGroupHeaderText(isActive, startNum, endNum)}</span>
+  `;
   if (onToggle) {
     // 点击标题时切换分组
     header.onclick = () => onToggle(groupIndex);

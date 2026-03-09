@@ -79,37 +79,6 @@
   padding: var(--spacing-xl);
 }
 
-/* 帮助模态框 */
-.help-section {
-  margin-bottom: 25px;
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.help-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.help-section h4 {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.help-section p,
-.help-section ul {
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.help-section ul {
-  list-style-position: inside;
-  padding-left: var(--spacing-xs);
-}
-
 .modal-fullscreen .modal-content {
   max-height: 95vh;
   height: 95vh;

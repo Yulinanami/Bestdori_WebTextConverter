@@ -8,8 +8,10 @@ class NavigationManager {
 
   // 绑定步骤按钮并默认打开第 1 步
   init() {
+    this.mainPage = document.getElementById("mainAppPage");
+
     // 给每个步骤按钮绑定点击事件
-    const navSteps = document.querySelectorAll(".nav-step");
+    const navSteps = this.mainPage.querySelectorAll(".nav-step[data-step]");
     navSteps.forEach((step) => {
       // 点击后切到对应步骤
       step.onclick = () => {
@@ -25,7 +27,7 @@ class NavigationManager {
   // 切到指定步骤
   navigateToStep(stepNum) {
     // 更新左侧高亮
-    const navSteps = document.querySelectorAll(".nav-step");
+    const navSteps = this.mainPage.querySelectorAll(".nav-step[data-step]");
     navSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");
@@ -35,7 +37,9 @@ class NavigationManager {
     });
 
     // 更新右侧内容
-    const workspaceSteps = document.querySelectorAll(".workspace-step");
+    const workspaceSteps = this.mainPage.querySelectorAll(
+      ".workspace-step[data-step]",
+    );
     workspaceSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
         step.classList.add("active");
