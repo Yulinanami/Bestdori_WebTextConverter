@@ -62,7 +62,11 @@ export const costumeManager = {
   // 处理下拉框变化
   handleListChange(changeEvent) {
     const select = changeEvent.target.closest(".costume-select");
-    if (select) this.tempCostumeChanges[select.dataset.characterName] = select.value;
+    if (!select) {
+      return;
+    }
+
+    this.tempCostumeChanges[select.dataset.characterName] = select.value;
   },
 
   // 绑定 Esc 关闭详情
@@ -420,7 +424,7 @@ export const costumeManager = {
     const toggle = document.getElementById(`toggle-${safeDomId}`);
     details.classList.toggle("hidden", !visible);
     details.style.display = visible ? "block" : "none";
-    toggle.textContent = visible ? "▲" : "▼";
+    toggle.textContent = visible ? "expand_less" : "expand_more";
   },
 
   // 展开或收起一名角色的服装详情

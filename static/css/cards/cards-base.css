@@ -98,7 +98,7 @@
 }
 
 .config-list-item:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--color-primary-light);
 }
 
 .config-list-item.is-custom .item-name::after {

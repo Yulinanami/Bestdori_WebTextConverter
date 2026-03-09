@@ -45,21 +45,27 @@
         <h1>Bestdori 文本转换器</h1>
       </div>
       <div class="app-header-actions">
-        <select
-          id="themeSelector"
-          class="theme-selector-header"
-          aria-label="切换主题"
-        >
-          <option value="light">浅色</option>
-          <option value="dark">深色</option>
-        </select>
+        <div class="theme-selector-wrap">
+          <select
+            id="themeSelector"
+            class="theme-selector-header"
+            aria-label="切换主题"
+          >
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+          </select>
+          <span
+            class="material-symbols-outlined theme-selector-icon"
+            aria-hidden="true"
+          ></span>
+        </div>
         <button
           id="helpBtn"
           class="btn btn-icon"
-          aria-label="打开使用说明"
-          title="使用说明"
+          aria-label="打开使用文档"
+          title="使用文档"
         >
-          ?
+          <span class="material-symbols-outlined">help</span>
         </button>
         <button
           id="shutdownBtn"
@@ -81,7 +87,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- 主应用容器 -->
-    <div class="app-container">
+    <div class="app-container" id="mainAppPage">
       <!-- 左侧导航栏 -->
       <aside class="app-sidebar">
         <nav class="sidebar-nav">
@@ -196,7 +202,8 @@
                 document.querySelector('[data-step=&quot;2&quot;]').click()
               "
             >
-              下一步：编辑器 →
+              <span>下一步：编辑器</span>
+              <span class="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
         </div>
@@ -281,7 +288,8 @@
                 document.querySelector('[data-step=&quot;1&quot;]').click()
               "
             >
-              ← 上一步
+              <span class="material-symbols-outlined">arrow_back</span>
+              <span>上一步</span>
             </button>
             <button
               class="btn btn-primary btn-lg"
@@ -289,7 +297,8 @@
                 document.querySelector('[data-step=&quot;3&quot;]').click()
               "
             >
-              下一步：处理选项 →
+              <span>下一步：处理选项</span>
+              <span class="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
         </div>
@@ -407,7 +416,8 @@
                 document.querySelector('[data-step=&quot;2&quot;]').click()
               "
             >
-              ← 上一步
+              <span class="material-symbols-outlined">arrow_back</span>
+              <span>上一步</span>
             </button>
             <button
               class="btn btn-primary btn-lg"
@@ -415,7 +425,8 @@
                 document.querySelector('[data-step=&quot;4&quot;]').click()
               "
             >
-              下一步：转换导出 →
+              <span>下一步：转换导出</span>
+              <span class="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
         </div>
@@ -570,7 +581,8 @@
                 document.querySelector('[data-step=&quot;3&quot;]').click()
               "
             >
-              ← 上一步
+              <span class="material-symbols-outlined">arrow_back</span>
+              <span>上一步</span>
             </button>
           </div>
         </div>
@@ -791,157 +803,680 @@
       </main>
     </div>
 
-    <!-- 帮助模态框 -->
-    <div
-      class="modal"
-      id="helpModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="helpModalTitle"
-    >
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title" id="helpModalTitle">使用说明</div>
-          <button
-            class="modal-close"
-            data-modal-id="helpModal"
-            aria-label="关闭对话框"
-          >
-            ×
-          </button>
-        </div>
-        <div class="modal-body" id="helpContent">
-          <div class="help-section">
-            <h4>核心功能</h4>
-            <p>
-              这个工具可以将剧本（纯文本、Word文档等）转换为 Bestdori 平台兼容的
-              JSON 格式，通过一系列编辑器，让剧情制作流程变得更加方便。
-            </p>
-            <ul>
-              <li>
-                <strong>多格式支持</strong>：支持直接上传 <code>.txt</code>,
-                <code>.docx</code>, <code>.md</code> 格式的剧本文件。
+    <!-- 使用文档页 -->
+    <div class="app-container hidden" id="docsPage">
+      <aside class="app-sidebar">
+        <nav class="sidebar-nav docs-sidebar-nav">
+          <div class="nav-section">
+            <h3 class="nav-section-title">使用文档</h3>
+            <ul class="nav-steps">
+              <li class="nav-step docs-nav-step active" data-doc="overview">
+                <span class="step-number">0</span>
+                <span class="step-label">使用概览</span>
               </li>
-              <li>
-                <strong>编辑器</strong
-                >：提供三个编辑模式——<strong>对话编辑器</strong>、<strong
-                  >Live2D 布局编辑器</strong
-                >和<strong>动作/表情编辑器</strong>，通过拖拽方式配置剧情。
+              <li class="nav-step docs-nav-step" data-doc="input">
+                <span class="step-number">1</span>
+                <span class="step-label">输入文本</span>
               </li>
-              <li>
-                <strong>自定义</strong
-                >：角色、服装、默认位置、引号可以根据自己的习惯自定义。
+              <li class="nav-step docs-nav-step" data-doc="editors">
+                <span class="step-number">2</span>
+                <span class="step-label">编辑器概述</span>
               </li>
-              <li>
-                <strong>数据</strong
-                >：所有自定义配置（角色、服装、位置等）自动保存在浏览器本地，支持导出/导入配置文件。
+              <li class="nav-step docs-nav-step" data-doc="speaker">
+                <span class="step-number">3</span>
+                <span class="step-label">对话编辑器</span>
+              </li>
+              <li class="nav-step docs-nav-step" data-doc="live2d">
+                <span class="step-number">4</span>
+                <span class="step-label">Live2D布局编辑器</span>
+              </li>
+              <li class="nav-step docs-nav-step" data-doc="expression">
+                <span class="step-number">5</span>
+                <span class="step-label">动作/表情编辑器</span>
+              </li>
+              <li class="nav-step docs-nav-step" data-doc="options">
+                <span class="step-number">6</span>
+                <span class="step-label">处理选项</span>
               </li>
             </ul>
           </div>
 
-          <div class="help-section">
-            <h4>基础工作流程</h4>
-            <ol>
-              <li>
-                <strong>输入文本</strong
-                >：通过拖拽文件、点击上传或直接粘贴的方式，将剧本内容放入“文本输入”区域。
+          <div class="nav-section docs-nav-split">
+            <ul class="nav-steps">
+              <li class="nav-step docs-nav-step" data-doc="config-overview">
+                <span class="step-number">7</span>
+                <span class="step-label">配置管理概述</span>
               </li>
-              <li>
-                <strong>格式化文本</strong>：点击
-                <strong>格式化文本</strong>
-                按钮，可以自动使段落间距保持一致，导入文本后建议先点击按钮格式化一下避免对话的换行问题。
+              <li class="nav-step docs-nav-step" data-doc="config">
+                <span class="step-number">8</span>
+                <span class="step-label">角色ID映射配置</span>
               </li>
-              <li>
-                <strong>开始转换</strong>：点击
-                <strong>开始转换</strong>
-                按钮，即可在下方看到生成的 JSON 代码。
+              <li class="nav-step docs-nav-step" data-doc="costume">
+                <span class="step-number">9</span>
+                <span class="step-label">服装配置</span>
               </li>
-              <li>
-                <strong>获取结果</strong>：可以
-                <strong>下载JSON</strong> 文件，或者点击
-                <strong>跳转到 Bestdori</strong>
-                按钮（将自动复制JSON内容）直接开始在 Bestdori 平台进行编辑。
+              <li class="nav-step docs-nav-step" data-doc="position">
+                <span class="step-number">10</span>
+                <span class="step-label">位置配置</span>
               </li>
-            </ol>
-          </div>
-
-          <div class="help-section">
-            <h4>编辑器模式</h4>
-            <p>
-              用来配置剧情的细节部分（说话的角色、Live2D模型入场出场、Live2D的动作/表情）
-            </p>
-            <ul>
-              <li>
-                <strong>对话编辑器</strong
-                >：当文本的角色名和对话没有按照“角色名：内容”的格式时，使用此编辑器，从右侧角色列表将角色拖拽到对应的文本卡片上，即可快速指派说话人，支持Ctrl多选和Shift批量指派。
+              <li class="nav-step docs-nav-step" data-doc="motion">
+                <span class="step-number">11</span>
+                <span class="step-label">动作/表情设置</span>
               </li>
-              <li>
-                <strong>Live2D 布局编辑器</strong
-                >：管理角色Live2D模型出场入场时机，从右侧将角色拖拽到时间线即可创建
-                <strong>登场(appear)</strong>、<strong>移动(move)</strong> 或
-                <strong>退场(hide)</strong>
-                的布局卡片，可以直接在卡片上配置服装、舞台位置和偏移值。
+              <li class="nav-step docs-nav-step" data-doc="convert">
+                <span class="step-number">12</span>
+                <span class="step-label">转换导出</span>
               </li>
-              <li>
-                <strong>动作/表情编辑器</strong
-                >：进行Live2D模型的动作/表情配置。可以为<strong>每一句对话</strong>下的<strong>每一位在场角色</strong>单独设置动作(Motion)和表情(Expression)，从右侧资源库拖拽对应的ID到角色状态栏即可。
+              <li class="nav-step docs-nav-step" data-doc="merge">
+                <span class="step-number">13</span>
+                <span class="step-label">结果合并</span>
               </li>
             </ul>
           </div>
 
-          <div class="help-section">
-            <h4>配置管理</h4>
-            <p>
-              点击主界面的 <strong>配置管理</strong>
-              按钮，可以对工具的各项数据进行自定义。
-            </p>
-            <ul>
-              <li>
-                <strong>角色映射</strong
-                >：添加自定义角色，或为现有角色设置别名。
-              </li>
-              <li>
-                <strong>服装配置</strong
-                >：为每个角色管理一个独立的服装ID列表，并设置默认出场服装。
-              </li>
-              <li>
-                <strong>位置配置</strong
-                >：设置角色登场时的默认位置，支持“自动循环（左/中/右）”或“手动指定”两种模式。
-              </li>
-              <li>
-                <strong>动作/表情配置</strong
-                >：管理全局的动作和表情ID列表，在这里添加的自定义ID会出现在“动作/表情编辑器”的列表中。
-              </li>
-              <li>
-                <strong>导入/导出配置</strong
-                >：将上述所有配置（角色、服装、位置、引号）导出成一个JSON文件进行备份。
-              </li>
-              <li>
-                <strong>清除缓存</strong
-                >：当遇到无法解释的奇怪问题时，此操作会清空所有本地数据，将应用恢复到初始状态。
+          <div class="nav-section docs-home-nav docs-nav-split">
+            <ul class="nav-steps">
+              <li class="nav-step" id="docsBackHomeBtn">
+                <span class="step-number">
+                  <span class="material-symbols-outlined">arrow_back</span>
+                </span>
+                <span class="step-label">返回首页</span>
               </li>
             </ul>
           </div>
+        </nav>
+      </aside>
 
-          <div class="help-section">
-            <h4>其它提示</h4>
-            <ul>
-              <li>
-                <strong>撤销/恢复</strong>：在编辑器中都可以使用
-                <code>Ctrl+Z</code> (撤销) 和 <code>Ctrl+Y</code> (恢复) 快捷键
-              </li>
-              <li>
-                <strong>置顶角色</strong
-                >：在编辑器的右侧角色列表中，点击角色名字旁边的图钉图标，可以将常用角色置顶，方便快速查找。
-              </li>
-              <li>
-                <strong>关闭程序按钮</strong
-                >：点击后可以安全退出程序，用来解决Linux版本不能完全退出程序的问题。
-              </li>
-            </ul>
+      <main class="app-workspace">
+        <div class="workspace-step docs-step active" data-doc="overview">
+          <div class="step-header">
+            <h2 class="step-title">Bestdori 文本转换器 - 功能使用文档</h2>
+            <p class="step-description">将纯文本剧本快速转换为 Bestdori 剧情编辑器可识别的 JSON 格式，简化创建对话卡片、配置说话角色、Live2D 动作及表情的流程</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">核心功能</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>支持直接上传 <code>.txt</code>、<code>.docx</code>、<code>.md</code> 格式的剧本文件</li>
+                  <li>提供对话编辑器、Live2D 布局编辑器和动作/表情编辑器，通过拖拽方式配置剧情</li>
+                  <li>角色、服装、默认位置、引号都可以根据自己的习惯自定义</li>
+                  <li>所有自定义配置会保存在浏览器本地，也支持导出和导入配置文件</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">核心工作流</h3>
+              </div>
+              <div class="card-body">
+                <ol>
+                  <li>输入文本，把纯文本底稿整理成基础对话卡片</li>
+                  <li>进入对话编辑器，把每张对话卡片和具体说话角色绑定起来</li>
+                  <li>进入 Live2D 布局编辑器，控制角色的站位、登场、移动和退场</li>
+                  <li>进入动作/表情编辑器，配置角色说话时的动作和表情</li>
+                  <li>开始转换导出，复制或下载 JSON，再导入 Bestdori</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">其他注意事项</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>右上角的问号按钮可以随时打开这份使用文档</li>
+                  <li>在页面右上角可以切换浅色和深色主题</li>
+                  <li>如果页面太挤，可以用 <code>Ctrl + 滚轮</code> 缩放页面</li>
+                  <li>如果你使用的是 Linux 系统的本地版本，退出程序时请点击右上角的电源按钮关闭服务</li>
+                </ul>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
+
+        <div class="workspace-step docs-step" data-doc="input">
+          <div class="step-header">
+            <h2 class="step-title">输入文本</h2>
+            <p class="step-description">这是项目的起点，用于将纯文本底稿转换为基础的对话卡片</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">文本要求</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>将剧本粘贴到输入框时，每段对话之间必须至少保留一个空行</li>
+                  <li>如果没有空行，程序会把所有文本挤到同一个对话卡片里</li>
+                  <li>你可以直接粘贴文本，也可以上传 <code>.txt</code>、<code>.docx</code>、<code>.md</code> 文件</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">格式化文本</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击【格式化文本】后，程序会自动清理多余空白符</li>
+                  <li>程序也会自动调整对话之间的空行间距</li>
+                  <li>建议每次编辑之前先点一次格式化文本</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="editors">
+          <div class="step-header">
+            <h2 class="step-title">编辑器概述</h2>
+            <p class="step-description">这里整理三个编辑器共用的操作入口和通用说明</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">通用操作</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>三个编辑器里都可以直接拖拽卡片调整顺序</li>
+                  <li>在编辑器中都可以使用 <code>Ctrl+Z</code> 撤销和 <code>Ctrl+Y</code> 恢复</li>
+                  <li>修改完成后记得点击底部的【保存】，保存当前编辑内容</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">编辑器卡片分组</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>当对话卡片、布局卡片或动作表情卡片太多，导致编辑器浏览卡顿时，可以打开【启用编辑器卡片分组】</li>
+                  <li>开启后，编辑器会按分组显示卡片，浏览大量内容时会更顺畅一些</li>
+                  <li>如果你想直接查看完整的连续卡片列表，也可以再把这个选项关掉</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">项目进度文件导入导出</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>三个编辑器底部都有【导入进度】和【导出进度】按钮，用来保存和继续编辑当前项目进度</li>
+                  <li>导出的项目进度文件会保存当前的对话、布局、动作和表情配置，方便分几次继续做</li>
+                  <li>从对话编辑器、Live2D 布局编辑器或动作表情编辑器导入都一样，读取的都是同一种项目进度文件</li>
+                  <li>你可以在哪个编辑器里顺手导入都可以，导入后再继续修改当前工程就行</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="speaker">
+          <div class="step-header">
+            <h2 class="step-title">对话编辑器</h2>
+            <p class="step-description">在这里将文本卡片和具体的说话角色进行绑定</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">界面和分配方式</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>左侧是对话卡片列表，右侧是角色列表</li>
+                  <li>同一张对话卡片可以添加多个说话角色</li>
+                  <li>直接把右侧角色头像拖到左侧卡片上，就能完成说话人分配</li>
+                  <li>从卡片上反向拖出角色，可以移除这个角色</li>
+                  <li>也可以先点击选中对话卡片，再拖拽右侧角色，实现固定卡片的角色分配</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">常用功能</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击角色头像右侧的图钉，可以把常用角色固定在列表顶部</li>
+                  <li>打开多选模式后，可以一次性勾选多张卡片，再统一点击角色批量分配</li>
+                  <li>如果需要修改台词，可以打开编辑模式，编辑目标卡片上的文本</li>
+                  <li>点击底部的【恢复默认】会清空当前对话卡片上的说话角色分配</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">自动识别对话卡片的说话角色</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>程序会识别“角色名 + 冒号 + 对话内容”的格式，对话内容有没有引号都可以</li>
+                  <li>如果配置管理里已经有这个角色的名称和 ID 映射，程序会自动为这个对话卡片添加对应的说话角色</li>
+                  <li>所以你也可以先在自己的文本里，给需要添加说话角色的内容开头加上角色名字和冒号，这样就能省去后面手动添加说话人的操作</li>
+                  <li>例如：<code>户山香澄：kirakira-dokidoki</code>，这样 <code>kirakira-dokidoki</code> 这个对话卡片会自动以户山香澄作为说话角色</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="live2d">
+          <div class="step-header">
+            <h2 class="step-title">Live2D 布局编辑器</h2>
+            <p class="step-description">用于控制角色在屏幕上的站位、登场与退场</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">页面布局</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>左侧是对话卡片和布局卡片列表</li>
+                  <li>右侧是角色列表，可以从这里把角色拖进列表</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">布局卡片</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>你可以在对话之间插入布局卡片，控制角色在屏幕上的站位、登场与退场</li>
+                  <li>布局卡片会插在对话之间，用来控制角色什么时候登场、移动和退场</li>
+                  <li>布局卡片可以控制模型的位置、服装和出场类型</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">移动布局和自定义位置</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击底部的【快速布局】后，程序会自动在角色首次出现的对话卡片前面添加相应的布局卡片</li>
+                  <li>当同一个模型在登场后到退场前之间再次添加相同Live2D模型，程序会自动识别成移动布局</li>
+                  <li>点击连线可以切换退场布局或移动布局</li>
+                  <li>点击自定义位置配置，可以单独修改 Live2D 移动时的起点和终点坐标</li>
+                  <li>点击底部的【清空布局】会移除当前卡片列表里的所有布局卡片</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="expression">
+          <div class="step-header">
+            <h2 class="step-title">动作/表情编辑器</h2>
+            <p class="step-description">为角色的 Live2D 模型配置说话时的神态和动作</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">页面布局</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>左侧是卡片列表，点击设置动作表情可以展开角色动作表情分配区</li>
+                  <li>右侧是动作和表情资源栏，可以从这里拖拽到左侧角色状态栏</li>
+                  <li>资源栏里可选的动作和表情配置选项是根据当前在场角色来的</li>
+                  <li>比如当前在场的是户山香澄和花园多惠，那么资源栏里就会显示与她们相关的动作和表情选项</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">动作表情预览</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击【跳转 Live2D 浏览器】后，程序会根据你已登场的Live2D服装，在 Bestdori 中打开对应的 Live2D 动作表情预览页</li>
+                  <li>推荐在电脑上分屏操作，一边看预览，一边填动作和表情参数</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">快速填写</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>在动作或表情输入框里输入前缀，可以快速筛选动作/表情选项</li>
+                  <li>可以使用下拉菜单直接选择表情，减少键盘输入</li>
+                  <li>快速填充选项也支持自定义添加，你可以按自己的习惯补充常用项</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">临时添加和恢复默认</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>如果当前资源栏里没有你要的动作或表情，也可以先在下方手动添加临时动作 ID 或临时表情 ID</li>
+                  <li>临时添加的项目会立刻出现在当前资源栏里，方便直接拖拽到左侧角色状态栏</li>
+                  <li>这些临时项目只在当前编辑器窗口里生效，关闭模态框后就会消失</li>
+                  <li>如果你想长期保存这些动作或表情配置，需要到【动作/表情设置】页面里添加</li>
+                  <li>点击底部的【恢复默认】会清空当前时间线里的动作和表情配置</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="options">
+          <div class="step-header">
+            <h2 class="step-title">处理选项</h2>
+            <p class="step-description">管理旁白名称和文本首尾引号的处理方式</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">基础设置</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>如果一个对话卡片没有分配任何角色，它会被视为旁白</li>
+                  <li>默认旁白名称是一个空格，你可以在基础设置里修改</li>
+                  <li>自动添加结尾空格和自动添加换行前空格都在这里设置</li>
+                  <li>这两项用来控制对话停留时间和多行文本的分段延时</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">引号处理</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>可以自动去除对话卡片首尾匹配的引号</li>
+                  <li>默认自动勾选了多种双引号，你可以自行添加自定义引号</li>
+                  <li>如果你希望生成后的剧情保留文本首尾引号，可以取消双引号处理选项</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="config-overview">
+          <div class="step-header">
+            <h2 class="step-title">配置管理概述</h2>
+            <p class="step-description">这里整理配置相关页面共用的保存方式和默认配置说明</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">保存和恢复默认</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>角色 ID、服装、位置、动作和表情这些配置页修改后，都要记得点击对应页面底部的【保存】</li>
+                  <li>只有点过保存，这些修改才会真正写进本地配置里</li>
+                  <li>如果你先点了【恢复默认】，后面也要再点一次【保存】，恢复结果才会真正生效</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">修改 config.yaml 默认配置</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>如果想要更改默认映射的角色 ID，可以打开 <code>config.yaml</code> 文件，把角色名后面对应的 ID 数字改成你想要的就可以了</li>
+                  <li>在 <code>config.yaml</code> 里你也可以修改其它默认配置选项</li>
+                  <li>修改并保存后，需要重新启动程序才会生效</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">导入导出和清除缓存</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>所有自定义配置会自动保存在浏览器本地</li>
+                  <li>你可以把当前配置导出成一个 JSON 文件进行备份</li>
+                  <li>导出时会包含角色名称和 ID 映射、自定义引号、服装配置、位置配置、动作和表情设置、快速填充选项</li>
+                  <li>基础设置里的自动添加结尾空格和自动添加换行前空格也会一起导出</li>
+                  <li>也可以导入之前导出的配置文件继续使用</li>
+                  <li>如果遇到无法解释的奇怪问题，可以使用清除缓存把应用恢复到初始状态</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="config">
+          <div class="step-header">
+            <h2 class="step-title">角色ID映射配置</h2>
+            <p class="step-description">通过角色 ID 管理角色名称和头像显示</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">角色 ID 机制</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>这里用来管理角色名称、角色 ID 和头像映射</li>
+                  <li>程序通过角色 ID 控制显示的头像和名称</li>
+                  <li>你可以新增一个自定义角色名称，再填入一个现有角色的 ID</li>
+                  <li>这样即使是 Bestdori 还没有官方头像的新角色，也能先借用别人的头像来辨认</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">常见用法</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>适合用来补充别名、修正角色名识别和添加自定义角色</li>
+                  <li>可以导出配置做备份</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="costume">
+          <div class="step-header">
+            <h2 class="step-title">服装配置</h2>
+            <p class="step-description">给角色补充内置之外的服装并设置默认服装</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">服装来源</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>这里可以给角色补充可用服装和默认服装</li>
+                  <li>程序内置了最常用的几套服装</li>
+                  <li>如果需要其它服装，可以点击【浏览数据库】跳转到 Bestdori 服装库</li>
+                  <li>在数据库里找到想要的服装后，复制它的名称回到这里添加即可</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">使用建议</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>服装名称示例：<code>014_casual_2023</code></li>
+                  <li>在 Bestdori 数据库里可以用 <code>Ctrl + F</code> 快速搜索角色 ID 来找想要的角色的Live2D服装</li>
+                  <li>复制后回到服装配置管理页面添加即可</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="position">
+          <div class="step-header">
+            <h2 class="step-title">位置配置</h2>
+            <p class="step-description">修改角色出现在左侧、居中、右侧时的默认屏幕坐标</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">默认位置</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>这里用来修改角色在左侧、居中、右侧时的默认坐标</li>
+                  <li>开启自动分配位置模式后，添加布局卡片时会自动按左侧、居中、右侧的顺序循环给角色分配默认站位</li>
+                  <li>这里可以直接修改左侧、居中、右侧三种默认偏移坐标</li>
+                  <li>保存之后，新添加的布局卡片会优先使用这里的新坐标</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="motion">
+          <div class="step-header">
+            <h2 class="step-title">动作/表情设置</h2>
+            <p class="step-description">补录特殊服装专属的动作和表情代码</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">适合什么情况</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>这里可以自行添加缺少的动作和表情配置选项</li>
+                  <li>内置的动作表情配置选项不一定完整，你可以根据需要自行添加</li>
+                  <li>自行添加的动作表情配置，它们就会固定出现在动作/表情编辑器里，不受登场角色限制</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="convert">
+          <div class="step-header">
+            <h2 class="step-title">转换导出</h2>
+            <p class="step-description">完成所有编排后，将工程输出为 Bestdori 格式</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">开始转换</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击【开始转换】按钮后，下方会显示生成好的 JSON 代码</li>
+                  <li>建议在转换前先确认处理选项里面的设置，引号处理是否正确勾选</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">跳转</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>点击【跳转到 Bestdori】后，程序会自动复制生成的 JSON</li>
+                  <li>随后会直接打开 Bestdori 的剧情编辑器页面</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">导入 Bestdori</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>在 Bestdori 剧情编辑器页面点击导入</li>
+                  <li>把刚才复制的 JSON 粘贴进去，就能完成整段剧情的构建</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-step docs-step" data-doc="merge">
+          <div class="step-header">
+            <h2 class="step-title">结果合并</h2>
+            <p class="step-description">适合把分开做的章节结果重新拼回一份完整文件</p>
+          </div>
+
+          <div class="step-content">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">适合什么场景</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>可以合并两种文件：Bestdori 结果文件，或者项目进度文件</li>
+                  <li>适合把长文本剧情拆成几段分别配置，再在这里重新拼成一份完整文件</li>
+                  <li>这样可以先一段一段导入 Bestdori 调试，最后再统一合并完整结果</li>
+                  <li>把分章节做好的多个结果文件合成一个完整文件</li>
+                  <li>把多个项目进度文件合并成一条连续时间线</li>
+                  <li>调整文件顺序后再统一导出</li>
+                  <li>适合把分开制作的章节、片段或版本重新拼成一份完整结果</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">使用建议</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>同一次合并里必须使用同一种文件，不能把 Bestdori 结果文件和项目进度文件混在一起</li>
+                  <li>合并前先按章节顺序排好列表</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
     </div>
 
     <div
@@ -962,7 +1497,7 @@
             data-modal-id="speakerEditorModal"
             aria-label="关闭对话框"
           >
-            ×
+            <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body editor-layout">
@@ -1082,7 +1617,7 @@
             data-modal-id="live2dEditorModal"
             aria-label="关闭对话框"
           >
-            ×
+            <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body editor-layout">
@@ -1151,7 +1686,7 @@
             data-modal-id="expressionEditorModal"
             aria-label="关闭对话框"
           >
-            ×
+            <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         <div class="modal-body editor-layout">
@@ -1185,11 +1720,11 @@
                   </div>
                   <div class="quick-fill-wrapper">
                     <button
-                      class="btn btn-sm btn-secondary quick-fill-btn"
+                      class="btn btn-sm btn-secondary btn-icon-square quick-fill-btn"
                       data-type="motion"
                       title="快速填充"
                     >
-                      ▼
+                      <span class="material-symbols-outlined">arrow_drop_down</span>
                     </button>
                     <div
                       class="quick-fill-dropdown hidden"
@@ -1248,11 +1783,11 @@
                   </div>
                   <div class="quick-fill-wrapper">
                     <button
-                      class="btn btn-sm btn-secondary quick-fill-btn"
+                      class="btn btn-sm btn-secondary btn-icon-square quick-fill-btn"
                       data-type="expression"
                       title="快速填充"
                     >
-                      ▼
+                      <span class="material-symbols-outlined">arrow_drop_down</span>
                     </button>
                     <div
                       class="quick-fill-dropdown hidden"
@@ -1434,7 +1969,9 @@
       <div class="character-item character-item-wrapper">
         <div class="config-avatar"></div>
         <span class="character-name character-name-text"></span>
-        <button class="pin-btn" title="置顶/取消置顶">📌</button>
+        <button class="pin-btn" title="置顶/取消置顶">
+          <span class="material-symbols-outlined">push_pin</span>
+        </button>
       </div>
     </template>
 
@@ -1551,16 +2088,23 @@
               class="btn btn-sm btn-secondary toggle-costume-details-btn"
               data-safe-dom-id=""
             >
-              <span id="">▼</span> 服装管理
+              <span id="" class="material-symbols-outlined">expand_more</span>
+              服装管理
             </button>
           </div>
         </div>
         <div id="" class="costume-details hidden">
           <div class="costume-current">
             <label>当前服装：</label>
-            <select class="form-input costume-select" data-character-name="">
-              <!-- Options -->
-            </select>
+            <div class="select-with-icon">
+              <select class="form-input costume-select" data-character-name="">
+                <!-- Options -->
+              </select>
+              <span
+                class="material-symbols-outlined costume-select-icon"
+                aria-hidden="true"
+              ></span>
+            </div>
           </div>
           <div class="costume-available-list">
             <div class="costume-list-header">

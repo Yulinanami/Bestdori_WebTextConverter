@@ -50,6 +50,35 @@
   padding-top: var(--spacing-md);
 }
 
+.costume-current .select-with-icon {
+  position: relative;
+  flex: 1;
+}
+
+.costume-current .select-with-icon .costume-select {
+  width: 100%;
+  padding-right: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.costume-current .costume-select-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.costume-current .costume-select-icon::before {
+  content: "expand_more";
+}
+
+.costume-current .select-with-icon:has(.costume-select:open) .costume-select-icon::before {
+  content: "expand_less";
+}
+
 .costume-current label {
   font-weight: 500;
   color: var(--text-secondary);

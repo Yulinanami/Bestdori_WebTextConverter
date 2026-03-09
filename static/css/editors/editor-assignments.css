@@ -219,8 +219,18 @@
 }
 
 .quick-fill-btn {
-  padding: 6px 10px;
+  padding: 0;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  justify-content: center;
   transition: none;
+}
+
+.quick-fill-btn .material-symbols-outlined {
+  font-size: 24px;
+  line-height: 1;
 }
 
 .quick-fill-btn.active {
@@ -275,7 +285,7 @@
 }
 
 .quick-fill-item:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
 

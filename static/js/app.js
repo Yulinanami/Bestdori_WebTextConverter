@@ -14,6 +14,7 @@ import { expressionEditor } from "@editors/expression/expressionEditor.js";
 import { motionExprManager } from "@managers/motionExprManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { mergerManager } from "@managers/mergerManager.js";
+import { docsManager } from "@managers/docsManager.js";
 import { modalService } from "@services/ModalService.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
@@ -100,10 +101,6 @@ const bindGlobalEvents = () => {
     .getElementById("gotoBestdoriBtn")
     // 打开 Bestdori
     ?.addEventListener("click", () => ui.goToBestdori());
-  document
-    .getElementById("helpBtn")
-    // 打开帮助窗口
-    ?.addEventListener("click", () => modalService.open("helpModal"));
 
   // 点击后关闭程序并显示提示
   document.getElementById("shutdownBtn")?.addEventListener("click", () => {
@@ -133,22 +130,30 @@ const bindGlobalEvents = () => {
 
   // 切换移动端侧边栏
   const sidebarToggle = document.getElementById("sidebarToggle");
-  const sidebar = document.querySelector(".app-sidebar");
   const sidebarOverlay = document.getElementById("sidebarOverlay");
 
   // 打开或收起手机侧边栏
   const toggleSidebar = () => {
+    const activePage = document.querySelector(".app-container:not(.hidden)");
+    const sidebar = activePage?.querySelector(".app-sidebar");
     sidebar?.classList.toggle("active");
-    sidebarOverlay?.classList.toggle("active");
+    sidebarOverlay?.classList.toggle(
+      "active",
+      sidebar?.classList.contains("active"),
+    );
   };
 
   // 关掉手机侧边栏和遮罩
   const closeSidebar = () => {
-    sidebar?.classList.remove("active");
+    document.querySelectorAll(".app-sidebar.active").forEach((sidebar) => {
+      sidebar.classList.remove("active");
+    });
     sidebarOverlay?.classList.remove("active");
   };
 
-  if (sidebarToggle && sidebar) {
+  docsManager.init(closeSidebar);
+
+  if (sidebarToggle) {
     sidebarToggle.addEventListener("click", toggleSidebar);
     sidebarOverlay?.addEventListener("click", closeSidebar);
 
