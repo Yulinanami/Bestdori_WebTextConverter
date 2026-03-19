@@ -218,14 +218,14 @@
 
           <div class="step-content">
             <!-- 性能优化 -->
-            <div class="card">
-              <div class="card-header">
+            <div class="stacked-option-highlight">
+              <div class="stacked-option-copy">
                 <h3 class="card-title">编辑器性能优化</h3>
-              </div>
-              <div class="card-body">
-                <p class="text-hint">
+                <p class="card-subtitle">
                   当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
                 </p>
+              </div>
+              <div class="stacked-option-action stacked-option-action-toggle">
                 <label class="auto-preview-label">
                   <input type="checkbox" id="groupCardsCheckbox" checked />
                   <span class="font-medium">启用编辑器卡片分组</span>
@@ -233,51 +233,59 @@
               </div>
             </div>
 
-            <!-- 对话编辑 -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">对话编辑器</h3>
+            <div class="stacked-option-group">
+              <!-- 对话编辑 -->
+              <div class="stacked-option-row">
+                <div class="stacked-option-copy">
+                  <h3 class="card-title">对话编辑器</h3>
+                  <p class="card-subtitle">
+                    使用拖拽的方式为对话指派一个或多个说话人，或者编辑对话内容。
+                  </p>
+                </div>
+                <div class="stacked-option-action">
+                  <button
+                    class="btn btn-secondary stacked-option-btn"
+                    id="openSpeakerEditorBtn"
+                  >
+                    打开
+                  </button>
+                </div>
               </div>
-              <div class="card-body">
-                <p class="text-hint">
-                  使用拖拽的方式为对话指派一个或多个说话人，或者编辑对话内容。
-                </p>
-                <button class="btn btn-primary" id="openSpeakerEditorBtn">
-                  打开对话编辑器
-                </button>
-              </div>
-            </div>
 
-            <!-- Live2D 布局编辑器 -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Live2D 布局编辑器</h3>
+              <!-- Live2D 布局编辑器 -->
+              <div class="stacked-option-row">
+                <div class="stacked-option-copy">
+                  <h3 class="card-title">Live2D 布局编辑器</h3>
+                  <p class="card-subtitle">
+                    使用拖拽的方式为Live2D添加入场、退场和移动布局。
+                  </p>
+                </div>
+                <div class="stacked-option-action">
+                  <button
+                    class="btn btn-secondary stacked-option-btn"
+                    id="openLive2dEditorBtn"
+                  >
+                    打开
+                  </button>
+                </div>
               </div>
-              <div class="card-body">
-                <p class="text-hint">
-                  使用拖拽的方式为Live2D添加入场、退场和移动布局。
-                </p>
-                <button class="btn btn-primary btn-lg" id="openLive2dEditorBtn">
-                  打开 Live2D 布局编辑器
-                </button>
-              </div>
-            </div>
 
-            <!-- 动作与表情编辑器 -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">动作/表情编辑器</h3>
-              </div>
-              <div class="card-body">
-                <p class="text-hint">
-                  使用拖拽的方式为登场的Live2D设置对话时的动作和表情。
-                </p>
-                <button
-                  class="btn btn-primary btn-lg"
-                  id="openExpressionEditorBtn"
-                >
-                  打开动作/表情编辑器
-                </button>
+              <!-- 动作与表情编辑器 -->
+              <div class="stacked-option-row">
+                <div class="stacked-option-copy">
+                  <h3 class="card-title">动作/表情编辑器</h3>
+                  <p class="card-subtitle">
+                    使用拖拽的方式为登场的Live2D设置对话时的动作和表情。
+                  </p>
+                </div>
+                <div class="stacked-option-action">
+                  <button
+                    class="btn btn-secondary stacked-option-btn"
+                    id="openExpressionEditorBtn"
+                  >
+                    打开
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -701,7 +709,7 @@
               </button>
             </div>
 
-            <div class="p-15 bg-light rounded-lg mb-20">
+            <div class="p-15 bg-light mb-20">
               <label class="auto-preview-label">
                 <input type="checkbox" id="autoPositionCheckbox" checked />
                 <span class="font-medium">自动分配位置模式</span>
@@ -1896,7 +1904,7 @@
             <div class="dialogue-avatar small-avatar"></div>
             <span class="speaker-name"></span>
           </div>
-          <button class="remove-btn layout-remove-btn" title="删除此布局动作">
+          <button class="layout-remove-btn" title="删除此布局动作">
             &times;
           </button>
         </div>
@@ -2012,10 +2020,7 @@
             <div class="dialogue-avatar micro-avatar"></div>
             <span class="character-name"></span>
           </div>
-          <button
-            class="remove-btn assignment-remove-btn"
-            title="删除此动作/表情配置"
-          >
+          <button class="assignment-remove-btn" title="删除此动作/表情配置">
             ×
           </button>
         </div>
@@ -2101,10 +2106,7 @@
               <select class="form-input costume-select" data-character-name="">
                 <!-- Options -->
               </select>
-              <span
-                class="material-symbols-outlined costume-select-icon"
-                aria-hidden="true"
-              ></span>
+              <span class="material-symbols-outlined" aria-hidden="true"></span>
             </div>
           </div>
           <div class="costume-available-list">

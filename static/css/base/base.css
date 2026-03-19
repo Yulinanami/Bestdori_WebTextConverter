@@ -10,13 +10,11 @@
 /* 基础元素样式 */
 body {
   font-family: var(--font-primary);
-  /* Material Design flat surface background */
   background: var(--bg-secondary);
-  background-attachment: fixed;
   min-height: 100vh;
-  padding: var(--spacing-lg);
+  padding: 0;
   color: var(--text-primary);
-  /* macOS 字体抗锯齿增强 */
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -24,7 +22,6 @@ body {
 /* 用于在模态框打开时锁定body滚动 */
 body.modal-open {
   overflow: hidden;
-  /* 防止 iOS/macOS 滚动链 */
   overscroll-behavior: none;
 }
 
@@ -57,7 +54,6 @@ h4 {
 p {
   line-height: 1.6;
   margin-bottom: var(--spacing-sm);
-  /* 较小文本增加字间距 */
   letter-spacing: 0.01em;
 }
 
@@ -84,7 +80,7 @@ li {
 
 /* 代码样式 */
 code {
-  background: var(--color-secondary);
+  background: var(--surface-container-high);
   color: var(--text-primary);
   padding: 2px 6px;
   border-radius: var(--radius-sm);

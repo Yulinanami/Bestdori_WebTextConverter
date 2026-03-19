@@ -13,14 +13,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 500;
   font-size: 16px;
   color: var(--text-secondary);
-  background: var(--color-secondary);
+  background: var(--surface-container-high);
   overflow: hidden;
   position: relative;
-  border: 2px solid var(--avatar-border);
-  transition: border-color 0.3s ease, transform 0.3s ease;
+  border: 1px solid var(--avatar-border);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
 .config-avatar-img {
@@ -32,7 +34,7 @@
 }
 
 .config-avatar.fallback {
-  background: var(--color-secondary);
+  background: var(--surface-container-high);
   color: var(--text-secondary);
 }
 
@@ -47,7 +49,7 @@
   bottom: -2px;
   right: -2px;
   background: var(--color-primary);
-  color: white;
+  color: var(--text-on-primary);
   font-size: 11px;
   padding: 2px 5px;
   border-radius: 10px;
@@ -55,7 +57,7 @@
   display: none;
   min-width: 20px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--bg-primary);
   z-index: 1;
 }
 
@@ -67,8 +69,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-white);
-  font-weight: bold;
+  color: var(--text-secondary);
+  font-weight: 500;
   font-size: var(--text-lg);
   margin-right: var(--spacing-md);
   flex-shrink: 0;
@@ -113,9 +115,10 @@
 
 /* 回退样式（显示文字） */
 .dialogue-avatar.fallback {
-  background: var(--color-secondary);
+  background: var(--surface-container-high);
   color: var(--text-secondary);
-  transition: background-color var(--transition-normal),
+  transition:
+    background-color var(--transition-normal),
     color var(--transition-normal);
 }
 
@@ -133,5 +136,5 @@
 }
 
 .dialogue-item:hover .dialogue-avatar::after {
-  border-color: var(--border-focus);
+  border-color: var(--border-primary);
 }

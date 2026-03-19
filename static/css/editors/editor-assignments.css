@@ -4,10 +4,10 @@
 .card-action-buttons {
   position: absolute;
   top: 8px;
-  right: 45px; /* 定位在编号的左侧 */
-  display: none; /* 默认隐藏 */
+  right: 45px;
+  display: none;
   align-items: center;
-  gap: 4px; /* 按钮之间的间距 */
+  gap: 4px;
   z-index: 6;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .character-selector-header {
-  font-size: 0.9em;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -70,18 +70,20 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  background: var(--surface-container);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .character-selector-item:hover {
   background: var(--color-primary-light);
   border-color: var(--color-primary);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .character-selector-item .character-name {
@@ -98,15 +100,16 @@
 }
 
 .motion-assignment-item {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  padding: 8px;
+  background: var(--surface-container-low);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 180px;
-  max-width: 220px;
+  gap: 8px;
+  min-width: 190px;
+  max-width: 240px;
 }
 
 .assignment-header {
@@ -114,6 +117,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
+  padding-right: 28px;
 }
 
 .assignment-header .character-info {
@@ -125,9 +129,21 @@
 }
 
 .assignment-remove-btn {
-  padding: 2px 6px;
-  font-size: 1.1em;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
   cursor: pointer;
+  color: var(--color-error);
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 /* 拖放区域 */
@@ -147,9 +163,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-top: 6px;
-  margin-top: 4px;
-  border-top: 1px dashed var(--border-secondary);
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border-secondary);
 }
 
 .assignment-delay label {
@@ -182,8 +198,10 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  transition: all 0.2s ease;
-  /* 与 setup-expressions-btn 保持一致的样式 */
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
   align-self: flex-start;
   flex-shrink: 0;
   white-space: nowrap;
@@ -193,7 +211,7 @@
 .toggle-position-btn .toggle-position-icon {
   font-size: 1em;
   font-weight: bold;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .toggle-position-btn.expanded .toggle-position-icon {
@@ -225,11 +243,10 @@
   height: 36px;
   min-height: 36px;
   justify-content: center;
-  transition: none;
 }
 
 .quick-fill-btn .material-symbols-outlined {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
 }
 
@@ -244,13 +261,13 @@
   margin-top: 5px;
   min-width: 150px;
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   z-index: 10;
   max-height: 335px;
   overflow-y: auto;
-  padding: 5px;
+  padding: 6px;
 }
 
 .quick-fill-item {
@@ -262,16 +279,16 @@
   text-align: left;
   background: none;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.9em;
-  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
 }
 
 .quick-fill-delete-btn {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-fast);
   padding: 2px;
   margin-left: 8px;
   line-height: 1;
@@ -279,14 +296,13 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   width: 20px;
   height: 20px;
 }
 
 .quick-fill-item:hover {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
+  background-color: var(--color-hover-bg);
 }
 
 .quick-fill-divider {
@@ -311,5 +327,5 @@
 }
 
 .quick-fill-delete-btn .material-symbols-outlined {
-  font-size: 16px; /* 调整图标大小 */
+  font-size: 16px;
 }

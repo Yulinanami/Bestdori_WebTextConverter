@@ -1,5 +1,13 @@
 /* 服装与位置配置卡片样式 */
 
+#configList,
+#costumeList,
+#positionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
 /* 服装配置项详细样式 */
 .costume-character-info {
   display: flex;
@@ -23,22 +31,35 @@
 }
 
 .costume-config-item {
-  margin-bottom: var(--spacing-lg);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  margin-bottom: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 30px;
   overflow: hidden;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: none;
+}
+
+.costume-config-item:hover {
+  background: var(--surface-container);
+  border-color: var(--border-primary);
+  box-shadow: none;
 }
 
 .costume-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+  min-height: 92px;
+  padding: 20px 24px;
 }
 
 .costume-details {
-  padding: 0 var(--spacing-md) var(--spacing-md);
+  padding: 0 24px 24px;
   border-top: 1px solid var(--border-primary);
 }
 
@@ -47,22 +68,21 @@
   align-items: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
-  padding-top: var(--spacing-md);
+  padding-top: 20px;
 }
 
-.costume-current .select-with-icon {
+.select-with-icon {
   position: relative;
-  flex: 1;
 }
 
-.costume-current .select-with-icon .costume-select {
+.select-with-icon select {
   width: 100%;
   padding-right: 44px;
   appearance: none;
   -webkit-appearance: none;
 }
 
-.costume-current .costume-select-icon {
+.select-with-icon > .material-symbols-outlined {
   position: absolute;
   right: 14px;
   top: 50%;
@@ -71,12 +91,16 @@
   color: var(--text-muted);
 }
 
-.costume-current .costume-select-icon::before {
+.select-with-icon > .material-symbols-outlined::before {
   content: "expand_more";
 }
 
-.costume-current .select-with-icon:has(.costume-select:open) .costume-select-icon::before {
+.select-with-icon:has(select:open) > .material-symbols-outlined::before {
   content: "expand_less";
+}
+
+.costume-current .select-with-icon {
+  flex: 1;
 }
 
 .costume-current label {
@@ -116,6 +140,7 @@
   padding: var(--spacing-sm);
   max-height: 200px;
   overflow-y: auto;
+  border: 1px solid var(--border-secondary);
 }
 
 .costume-list-item {
@@ -124,11 +149,11 @@
   align-items: center;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  transition: background 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .costume-list-item:hover {
-  background: var(--bg-secondary);
+  background: var(--surface-container-high);
 }
 
 .costume-item-actions {
@@ -137,7 +162,7 @@
 }
 
 .costume-item-actions .btn {
-  padding: 2px 8px;
+  padding: 0 8px;
   font-size: var(--text-xs);
 }
 
@@ -152,12 +177,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  padding: 20px 24px;
+  min-height: 92px;
+  margin-bottom: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 30px;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
   gap: var(--spacing-md);
+  box-shadow: none;
+}
+
+.position-config-item:hover {
+  background: var(--surface-container);
+  border-color: var(--border-primary);
 }
 
 .position-character-info {
@@ -174,8 +209,14 @@
   flex-shrink: 0;
 }
 
-.position-select {
+.position-controls .select-with-icon {
+  position: relative;
   width: 120px;
+  flex-shrink: 0;
+}
+
+.position-select {
+  width: 100%;
   padding: 6px 10px;
   font-size: var(--text-sm);
 }
@@ -198,25 +239,25 @@
   padding: 6px 10px;
   font-size: var(--text-sm);
   text-align: center;
-  border: 2px solid var(--border-primary);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
   background: var(--bg-primary);
   color: var(--text-primary);
   font-weight: 500;
 }
 
 .position-offset-input:hover {
-  border-color: var(--border-secondary);
+  border-color: var(--text-light);
 }
 
 .position-offset-input:focus {
   border-color: var(--color-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+  box-shadow: var(--focus-ring);
 }
 
 .position-offset-input:disabled {
-  background: var(--bg-secondary);
+  background: var(--surface-container);
   cursor: not-allowed;
 }
 
@@ -225,4 +266,26 @@
   font-size: var(--text-xs);
   color: var(--text-muted);
   margin-left: -4px;
+}
+
+@media (max-width: 900px) {
+  .costume-item-header,
+  .position-config-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .costume-actions,
+  .position-controls {
+    width: 100%;
+  }
+
+  .position-controls {
+    flex-wrap: wrap;
+  }
+
+  .costume-current {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

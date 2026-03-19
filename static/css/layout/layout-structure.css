@@ -7,18 +7,19 @@
   left: 0;
   right: 0;
   height: 64px;
-  /* Material Top App Bar */
   background: var(--bg-primary);
-  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-secondary);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-xl);
+  padding: 0 24px;
   z-index: 1000;
 }
 
 .app-logo h1 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   margin: 0;
 }
@@ -26,7 +27,7 @@
 .app-header-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 8px;
 }
 
 /* 主应用容器 */
@@ -39,8 +40,7 @@
 /* 左侧导航栏 */
 .app-sidebar {
   width: 280px;
-  /* Material Navigation Drawer */
-  background: var(--bg-primary);
+  background: var(--surface-container);
   border-right: 1px solid var(--border-secondary);
   overflow-y: auto;
   position: fixed;
@@ -51,7 +51,7 @@
 }
 
 .sidebar-nav {
-  padding: var(--spacing-xl);
+  padding: 24px 16px;
 }
 
 .docs-sidebar-nav {
@@ -65,21 +65,21 @@
 }
 
 .docs-nav-split {
-  padding-top: var(--spacing-xl);
+  padding-top: 24px;
   border-top: 1px solid var(--border-primary);
 }
 
 .nav-section {
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: 32px;
 }
 
 .nav-section-title {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: var(--spacing-md);
-  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+  padding: 0 12px;
 }
 
 /* 步骤导航 */
@@ -92,27 +92,32 @@
 .nav-step {
   display: flex;
   align-items: center;
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  border-radius: var(--radius-lg);
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 2px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .nav-step:hover {
-  background: var(--bg-secondary);
+  background: var(--color-hover-bg);
 }
 
 .nav-step.active {
-  /* Material Navigation Drawer Active Item */
   background: var(--color-primary-light);
   color: var(--color-primary-dark);
 }
 
 .nav-step.active .step-number {
   background: var(--color-primary);
-  color: var(--text-white);
+  border-color: var(--color-primary);
+  color: var(--text-on-primary);
 }
 
 .nav-step.active .step-label {
@@ -120,30 +125,30 @@
 }
 
 .step-number {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-full);
-  background: var(--color-secondary);
+  background: var(--surface-container-high);
+  border: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--text-sm);
-  margin-right: var(--spacing-md);
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .step-label {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 /* 右侧工作区 */
 .app-workspace {
   margin-left: 280px;
   flex: 1;
-  padding: var(--spacing-2xl);
-  /* 移除原本的实色背景，透出底部的body背景 */
+  padding: 32px;
   background: transparent;
   min-height: calc(100vh - 64px);
 }
@@ -151,19 +156,19 @@
 /* 工作区步骤容器 */
 .workspace-step {
   display: none;
-  max-width: 1024px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
 .workspace-step.active {
   display: block;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -173,74 +178,81 @@
 
 /* 步骤头部 */
 .step-header {
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: 32px;
 }
 
 .step-title {
   font-size: var(--text-3xl);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
 }
 
 .step-description {
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
   color: var(--text-muted);
   margin: 0;
+  max-width: 720px;
 }
 
 /* 步骤内容 */
 .step-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 20px;
 }
 
 /* 步骤底部 */
 .step-footer {
-  margin-top: var(--spacing-2xl);
+  margin-top: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--spacing-xl);
-  border-top: 1px solid var(--border-primary);
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-secondary);
 }
 
 .status-message {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  left: 50%;
   top: auto;
-  padding: 14px 24px;
-  border-radius: var(--radius-sm);
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
   font-weight: 500;
   z-index: 9999;
   box-shadow: var(--shadow-lg);
-  min-width: 300px;
-  max-width: 500px;
-  animation: slideInBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 280px;
+  max-width: min(560px, calc(100vw - 32px));
+  animation: slideInBottom 0.2s cubic-bezier(0.2, 0, 0, 1);
   background: var(--bg-dark);
   color: var(--text-white);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @keyframes slideInBottom {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .status-success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid var(--color-success);
+  border-color: var(--color-success-border);
 }
 
 .status-error {
-  background: var(--color-error-light);
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
+  border-color: var(--color-error-border);
 }
 
 .status-info {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-  border: 1px solid var(--border-secondary);
+  border-color: var(--color-primary);
 }

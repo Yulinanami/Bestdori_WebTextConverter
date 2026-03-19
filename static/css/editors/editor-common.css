@@ -16,34 +16,35 @@
 /* Sortable 拖拽样式 */
 .sortable-drag .character-item {
   min-width: 150px;
-  background: var(--bg-primary);
-  box-shadow: var(--shadow-lg);
+  background: var(--surface-container-low);
+  box-shadow: var(--shadow-md);
 }
 
 /* 提高被拖动卡片的可见性 */
 .dialogue-item.sortable-drag {
   opacity: 1;
-  transform: rotate(2deg);
-  box-shadow: var(--shadow-lg);
-  background: var(--bg-primary);
+  transform: none;
+  box-shadow: var(--shadow-md);
+  background: var(--surface-container-low);
 }
 
 /* 角色项样式 */
 .character-item {
   display: flex;
   align-items: center;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-full);
   cursor: grab;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-  border: 2px solid transparent;
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .character-item:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-container-high);
 }
 
 .character-item.is-used {
@@ -62,31 +63,32 @@
 /* 对话项选中状态 */
 .dialogue-item.is-selected .dialogue-text {
   background-color: var(--color-selected-bg);
-  border: 2px solid var(--color-selected-border);
+  border-color: var(--color-selected-border);
   box-shadow: none;
 }
 
 /* 旁白选中状态 */
 .dialogue-item.narrator.is-selected .dialogue-text {
   background-color: var(--color-selected-bg);
-  border: 2px solid var(--color-selected-border);
+  border-color: var(--color-selected-border);
 }
 
 /* 时间轴项目 */
 .timeline-item {
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
   position: relative;
+  border: 1px solid var(--border-secondary);
+  background: var(--surface-container-low);
 }
 
 /* 只读对话卡片样式 */
 .talk-item {
   display: flex;
   align-items: center;
-  background-color: var(--bg-secondary);
-  border-color: var(--border-secondary);
-  opacity: 0.8;
+  background-color: var(--surface-container-low);
+  opacity: 1;
 }
 
 .talk-item .dialogue-avatar.small-avatar {
@@ -118,17 +120,20 @@
 
 /* 布局卡片样式 */
 .layout-item {
-  background-color: var(--bg-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--surface-container-low);
+  box-shadow: none;
 }
 
-.layout-item[data-layout-type="appear"],
-.layout-item[data-layout-type="move"] {
+.layout-item[data-layout-type="appear"] {
   border-color: var(--color-success-border);
 }
 
+.layout-item[data-layout-type="move"] {
+  border-color: var(--color-warning-border);
+}
+
 .layout-item[data-layout-type="hide"] {
-  border-color: var(--color-error);
+  border-color: var(--color-error-border);
 }
 
 .layout-card-header {
@@ -136,6 +141,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  padding-right: 28px;
 }
 
 .layout-character-info {
@@ -151,8 +157,21 @@
 }
 
 .layout-remove-btn {
-  padding: 2px 6px;
-  font-size: 1.2em;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--color-error);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .layout-card-body {
@@ -164,25 +183,22 @@
 /* 登场/移动/退场卡片颜色 */
 .layout-type-appear {
   background-color: var(--color-success-bg);
-  border-left-color: var(--color-success-border);
 }
 
 .layout-type-move {
   background-color: var(--color-warning-bg);
-  border-left-color: var(--color-warning-border);
 }
 
 .layout-type-hide {
   background-color: var(--color-error-bg);
-  border-left-color: var(--color-error-border);
 }
 
 /* 通用拖放区域 */
 .drop-zone {
-  background: var(--bg-primary);
-  border: 1px dashed var(--border-secondary);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
+  background: var(--surface-container);
+  border: 1px dashed var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
   text-align: center;
   min-width: 100px;
   position: relative;
@@ -191,14 +207,14 @@
 .drop-zone-label {
   display: block;
   font-size: 0.75em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .drop-zone-value {
   display: block;
   font-family: var(--font-mono);
   font-size: 0.85em;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-primary);
 }
 
@@ -211,18 +227,19 @@
 .timeline-item-footer {
   flex-basis: 100%;
   width: 100%;
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border-secondary);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-secondary);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .timeline-group-header {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: var(--text-secondary);
 }
 
 .timeline-group-header .material-symbols-outlined {

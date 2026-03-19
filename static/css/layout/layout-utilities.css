@@ -3,7 +3,8 @@
 /* 文本样式 */
 .text-hint {
   color: var(--text-muted);
-  margin-bottom: 15px;
+  margin-bottom: 12px;
+  line-height: 1.6;
 }
 
 .text-warning {
@@ -93,8 +94,8 @@
 
 /* 背景工具类 */
 .bg-light {
-  background: var(--color-neutral-light);
-  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  border-radius: 30px;
 }
 
 /* 字体粗细 */
@@ -115,11 +116,6 @@
   flex-shrink: 0;
 }
 
-/* 圆角 */
-.rounded-lg {
-  border-radius: var(--radius-lg);
-}
-
 /* 特定颜色文本 */
 .text-muted {
   color: var(--text-muted);
@@ -134,30 +130,29 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 20px;
+  gap: 24px;
 }
 
 .editor-canvas {
   flex: 3;
   overflow-y: auto;
-  padding-right: 15px;
+  padding-right: 24px;
 }
 
 .editor-sidebar {
   flex: 1;
   overflow-y: auto;
-  border-left: 1px solid var(--border-primary);
-  padding-left: 15px;
+  padding-left: 24px;
 }
 
 /* 模板内特定样式 */
 .character-item-wrapper {
   display: flex;
   align-items: center;
-  padding: 8px;
-  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  border-radius: var(--radius-full);
   cursor: grab;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .character-name-text {

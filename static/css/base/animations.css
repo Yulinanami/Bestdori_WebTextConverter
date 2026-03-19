@@ -7,15 +7,15 @@
   }
 }
 
-/* 模态框弹出 (模拟弹簧) */
+/* 模态框弹出 */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -45%) scale(0.95);
+    transform: translate(-50%, -48%);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -26,17 +26,5 @@
   }
   100% {
     transform: translateX(100%);
-  }
-}
-
-/* 状态提示滑入动画（从左侧滑入） */
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
   }
 }

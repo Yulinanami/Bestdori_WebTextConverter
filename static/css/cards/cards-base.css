@@ -1,36 +1,215 @@
 /* 通用卡片与配置列表样式 */
 
-/* 通用卡片样式 (Material Design) */
+/* 通用卡片样式 */
 .card {
-  background: var(--bg-primary);
+  background: var(--surface-container-low);
   border: 1px solid var(--border-secondary);
-  border-radius: var(--radius-lg); 
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
   overflow: hidden;
-  transition: box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
-  padding: var(--spacing-lg);
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .card-title {
-  font-size: var(--text-xl);
-  font-weight: 600;
+  font-size: var(--text-lg);
+  font-weight: 500;
   color: var(--text-primary);
   margin: 0;
 }
 
 .card-body {
-  padding: var(--spacing-lg);
+  padding: 24px;
+}
+
+.workspace-step .step-content:has(> .card) {
+  gap: 4px;
+}
+
+.workspace-step .step-content > .card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.workspace-step .step-content > .card:hover {
+  background: var(--bg-primary);
+  border-color: var(--border-primary);
+  box-shadow: none;
+}
+
+.workspace-step .step-content > .card:nth-child(1 of .card:not(.hidden)) {
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.workspace-step .step-content > .card:nth-last-child(1 of .card:not(.hidden)) {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+
+.workspace-step
+  .step-content
+  > .card:nth-child(1 of .card:not(.hidden)):nth-last-child(1 of .card:not(.hidden)) {
+  border-radius: 30px;
+}
+
+.workspace-step .step-content > .card.mt-20 {
+  margin-top: 0;
+}
+
+.stacked-option-highlight {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+  box-shadow: none;
+}
+
+.stacked-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.stacked-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 24px;
+  min-height: 96px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  box-shadow: none;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.stacked-option-row:first-child {
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.stacked-option-row:last-child {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+
+.stacked-option-row:hover {
+  background: var(--surface-container);
+  border-color: var(--border-primary);
+}
+
+.stacked-option-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.stacked-option-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.stacked-option-action-toggle .auto-preview-label {
+  min-height: 52px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 18px;
+  background: var(--bg-primary);
+}
+
+.stacked-option-btn {
+  min-width: 72px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  border-color: var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--color-primary-dark);
+  box-shadow: none;
+}
+
+.stacked-option-btn:hover:not(:disabled) {
+  background: var(--surface-container);
+  border-color: var(--border-primary);
+  box-shadow: none;
+}
+
+.stacked-option-btn::before {
+  background-color: currentColor;
+}
+
+@media (max-width: 900px) {
+  .stacked-option-highlight,
+  .stacked-option-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stacked-option-highlight,
+  .stacked-option-row {
+    padding: 22px;
+  }
+
+  .stacked-option-action {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .stacked-option-action-toggle .auto-preview-label,
+  .stacked-option-btn {
+    width: 100%;
+  }
 }
 
 /* 配置项布局 */
@@ -38,17 +217,23 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--bg-secondary);
+  margin-bottom: 0;
+  padding: 20px 24px;
+  min-height: 92px;
+  background: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-normal);
+  border-radius: 30px;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: none;
 }
 
 .config-item:hover {
-  background: var(--bg-tertiary);
-  transform: scale(1.01);
+  background: var(--surface-container);
+  border-color: var(--border-primary);
+  box-shadow: none;
 }
 
 /* 输入框调整 */
@@ -65,14 +250,17 @@
 /* 配置列 */
 .config-column {
   padding: 20px;
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-container);
+  border: 1px solid var(--border-secondary);
   border-radius: var(--radius-lg);
 }
 
 .config-column-title {
-  margin-bottom: 20px;
-  border-bottom: 2px solid var(--border-primary);
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-primary);
+  padding-bottom: 12px;
+  font-size: var(--text-base);
+  font-weight: 500;
 }
 
 /* 列表容器 */
@@ -82,7 +270,7 @@
   background-color: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 10px;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--border-secondary);
 }
 
 .config-list-item {
@@ -91,11 +279,11 @@
   align-items: center;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .config-list-item:hover {
-  background-color: var(--color-primary-light);
+  background-color: var(--surface-container-high);
 }
 
 .config-list-item.is-custom .item-name::after {
@@ -116,8 +304,8 @@
   position: absolute;
   top: 10px;
   right: 15px;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: var(--text-light);
   z-index: 5;
 }
@@ -125,7 +313,7 @@
 /* 为布局卡片的序号调整位置，避免与删除按钮重叠 */
 .layout-item .card-sequence-number {
   top: 12px;
-  right: 45px;
+  right: 34px;
 }
 
 /* 转换结果容器样式 */
@@ -133,7 +321,8 @@
   max-height: 500px;
   overflow: auto;
   background: var(--bg-secondary);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   width: 100%;
 }
