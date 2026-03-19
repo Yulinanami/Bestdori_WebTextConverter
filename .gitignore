@@ -53,9 +53,6 @@ dist/
 *.egg-info/
 *.egg
 *.spec
-*.png
-*.jpg
-*.jpeg
 
 config.local.yaml
 secrets.yaml
