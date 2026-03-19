@@ -1,127 +1,96 @@
-/* 主题变量：基础色板与尺寸 */
+/* 主题变量：基础色板与尺寸 (Google Material Design) */
 
 :root {
-  /* 主题色：使用苹果系统蓝 */
-  --color-primary: #007aff;
-  --color-primary-dark: #0056b3;
-  --color-secondary: rgba(0, 0, 0, 0.05); /* 用于辅助按钮背景，通透 */
-  --color-success: #34c759;
-  --color-success-dark: #28a745;
-  --color-error: #ff3b30;
-  --color-error-light: rgba(255, 59, 48, 0.1);
-  --color-error-lighter: rgba(255, 59, 48, 0.05);
-  --color-info: #007aff;
-  --color-neutral: rgba(0, 0, 0, 0.5); /* 中性色调用于文字图标 */
-  --color-neutral-light: rgba(0, 0, 0, 0.03);
-  --color-primary-light: rgba(0, 122, 255, 0.1);
-
-  /* 基础颜色 */
-  --color-primary: #333333;
-  --color-primary-dark: #000000;
-  --color-secondary: #e2e8f0;
-  --color-success: #48bb78;
-  --color-success-dark: #38a169;
-  --color-error: #e53e3e;
-  --color-error-light: #fed7d7;
-  --color-error-lighter: #fee;
-  --color-info: #5a6268;
-  --color-neutral: #555555;
-  --color-neutral-light: #f5f5f5;
-  --color-primary-light: #edf2f7;
+  /* 主题色：Google Blue 等 Material 颜色 */
+  --color-primary: #1a73e8;
+  --color-primary-dark: #1557b0;
+  --color-secondary: #f1f3f4;
+  --color-success: #1e8e3e;
+  --color-success-dark: #137333;
+  --color-error: #d93025;
+  --color-error-light: rgba(217, 48, 37, 0.1);
+  --color-info: #1a73e8;
+  --color-neutral: #5f6368;
+  --color-neutral-light: #f8f9fa;
+  --color-primary-light: rgba(26, 115, 232, 0.1);
 
   /* 文本颜色 */
-  --text-primary: rgba(0, 0, 0, 0.85);
-  --text-secondary: rgba(0, 0, 0, 0.65);
-  --text-muted: rgba(0, 0, 0, 0.45);
-  --text-light: rgba(0, 0, 0, 0.3);
-  --text-white: #ffffff;
-  --text-light: #a0aec0;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --text-muted: #80868b;
+  --text-light: #bdc1c6;
   --text-white: #ffffff;
 
-  /* 背景颜色 (Glassmorphism 核心) */
-  --bg-primary: rgba(255, 255, 255, 0.82); /* 浅色窗体 (Window) */
-  --bg-secondary: rgba(255, 255, 255, 0.6); /* 内容辅助区块 */
-  --bg-tertiary: rgba(0, 0, 0, 0.03); /* 行/条目悬停等 */
-  --bg-dark: #1e1e1e;
-  --bg-overlay: rgba(0, 0, 0, 0.2);
-  --bg-sidebar: rgba(245, 245, 247, 0.65); /* macOS侧边栏毛玻璃 */
+  /* 背景颜色 (Material 纯色系) */
+  --bg-primary: #ffffff; /* 表面和卡片背景 */
+  --bg-secondary: #f8f9fa; /* App 整体背景 */
+  --bg-tertiary: #f1f3f4; /* 悬停/输入框底色 */
+  --bg-dark: #3c4043;
+  --bg-overlay: rgba(32, 33, 36, 0.6);
 
   /* 边框及 Retina 边界 */
-  --border-primary: rgba(0, 0, 0, 0.08); /* 极淡边框 */
-  --border-secondary: rgba(0, 0, 0, 0.04);
-  --border-focus: rgba(0, 122, 255, 0.5); /* 聚焦高亮圈 */
+  --border-primary: #dadce0; 
+  --border-secondary: #e8eaed;
+  --border-focus: #1a73e8;
 
-  /* 阴影与景深 (系统级深度感) */
-  --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5); /* 按钮微阴影及顶部边缘打光 */
-  --shadow-md:
-    0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8); /* 卡片基础深度 */
-  --shadow-lg:
-    0 12px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8); /* 模态窗深度 */
-  --shadow-xl:
-    0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8); /* 极高层级阴影 */
+  /* 阴影 (Material Design Elevation 1-5) */
+  --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Elevation 1 */
+  --shadow-md: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15); /* Elevation 2 */
+  --shadow-lg: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15); /* Elevation 3 */
+  --shadow-xl: 0 2px 3px 0 rgba(60,64,67,0.3), 0 6px 10px 4px rgba(60,64,67,0.15); /* Elevation 4 */
 
   /* 间距 */
-  --spacing-xs: 5px;
-  --spacing-sm: 10px;
-  --spacing-md: 15px;
-  --spacing-lg: 20px;
-  --spacing-xl: 30px;
-  --spacing-2xl: 40px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
 
-  /* 圆角 (苹果连续曲率规范) */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  /* 圆角 (Material 角规范) */
+  --radius-sm: 4px;  /* 小组件/输入框/简单按钮 */
+  --radius-md: 8px;  /* 内部卡片/对话框 */
+  --radius-lg: 12px; /* 主卡片 */
+  --radius-2xl: 24px; /* Pill 型按钮、底栏 */
   --radius-full: 9999px;
-  --radius-full: 50%;
 
-  /* 过渡 (将在 animations.css 中改为 Spring，这里保留变量名) */
-  --transition-fast: 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  --transition-slow: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* 过渡 (Material 标准曲线) */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 
-  /* 苹果官方字体栈 */
-  --font-primary:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue",
-    Arial, sans-serif;
-  --font-mono: "SF Mono", "Menlo", "Courier New", monospace;
+  /* Roboto 为唯一字体 */
+  --font-primary: "Roboto";
+  --font-mono: "Roboto";
 
   /* 字体大小调整 */
   --text-xs: 0.75rem; /* 12px */
   --text-sm: 0.875rem; /* 14px */
-  --text-base: 0.9375rem; /* 15px - Apple Default */
-  --text-lg: 1.0625rem; /* 17px */
+  --text-base: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
   --text-xl: 1.25rem; /* 20px */
   --text-2xl: 1.5rem; /* 24px */
   --text-3xl: 1.875rem; /* 30px */
   --text-4xl: 2.25rem; /* 36px */
 
   /* 分组标题颜色 */
-  --group-header-active-bg: rgba(0, 122, 255, 0.1);
-  --group-header-active-border: rgba(0, 122, 255, 0.3);
+  --group-header-active-bg: #e8f0fe;
+  --group-header-active-border: #1a73e8;
 
   /* 状态背景色 - 半透明 */
-  --color-success-bg: rgba(52, 199, 89, 0.1);
-  --color-warning-bg: rgba(255, 204, 0, 0.1);
-  --color-error-bg: rgba(255, 59, 48, 0.1);
-  --color-info-bg: rgba(0, 122, 255, 0.05);
-  --color-selected-bg: rgba(0, 122, 255, 0.1);
+  --color-success-bg: #e6f4ea;
+  --color-warning-bg: #fef7e0;
+  --color-error-bg: #fce8e6;
+  --color-info-bg: #e8f0fe;
+  --color-selected-bg: #e8f0fe;
 
   /* 状态边框色 */
-  --color-success-border: rgba(52, 199, 89, 0.6);
-  --color-warning-border: rgba(255, 204, 0, 0.6);
-  --color-error-border: rgba(255, 59, 48, 0.6);
-  --color-info-border: rgba(0, 122, 255, 0.6);
-  --color-selected-border: rgba(0, 122, 255, 0.6);
+  --color-success-border: #1e8e3e;
+  --color-warning-border: #f9ab00;
+  --color-error-border: #d93025;
+  --color-selected-border: #1a73e8;
 
   /* 交互颜色 */
-  --color-hover-bg: rgba(0, 0, 0, 0.04);
-  --avatar-loading-bg: rgba(0, 0, 0, 0.05);
-  --avatar-border: rgba(0, 0, 0, 0.1);
+  --color-hover-bg: rgba(60, 64, 67, 0.04);
+  --avatar-loading-bg: #f1f3f4;
+  --avatar-border: #dadce0;
 }

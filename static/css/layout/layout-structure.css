@@ -7,12 +7,9 @@
   left: 0;
   right: 0;
   height: 64px;
-  /* 苹果高级毛玻璃（Vibrancy 3.0） */
+  /* Material Top App Bar */
   background: var(--bg-primary);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  /* Retina 极细分割线 */
-  box-shadow: 0 1px 0 0 var(--border-primary);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,12 +39,9 @@
 /* 左侧导航栏 */
 .app-sidebar {
   width: 280px;
-  /* 较薄材质的毛玻璃用于侧边栏 */
-  background: var(--bg-sidebar);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  /* 右侧 Retina 边界 */
-  box-shadow: 1px 0 0 0 var(--border-primary);
+  /* Material Navigation Drawer */
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-secondary);
   overflow-y: auto;
   position: fixed;
   left: 0;
@@ -111,20 +105,18 @@
 }
 
 .nav-step.active {
-  /* 苹果列表项选中时的“Bubble气泡”样式 */
-  background: var(--color-primary);
-  color: var(--text-white);
-  box-shadow: var(--shadow-sm);
-  transform: scale(0.98);
+  /* Material Navigation Drawer Active Item */
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .nav-step.active .step-number {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-primary);
   color: var(--text-white);
 }
 
 .nav-step.active .step-label {
-  color: var(--text-white);
+  color: var(--color-primary-dark);
 }
 
 .step-number {
@@ -213,21 +205,26 @@
   border-top: 1px solid var(--border-primary);
 }
 
-/* 状态消息 */
 .status-message {
   position: fixed;
-  top: 20px;
-  left: 20px;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
+  bottom: 24px;
+  left: 24px;
+  top: auto;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   z-index: 9999;
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   min-width: 300px;
   max-width: 500px;
-  animation: slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  animation: slideInBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-dark);
+  color: var(--text-white);
+}
+
+@keyframes slideInBottom {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .status-success {

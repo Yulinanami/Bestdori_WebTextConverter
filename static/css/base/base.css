@@ -10,9 +10,8 @@
 /* 基础元素样式 */
 body {
   font-family: var(--font-primary);
-  /* 苹果 macOS 背景，带有些微的颜色过渡 */
-  background: var(--bg-dark)
-    linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  /* Material Design flat surface background */
+  background: var(--bg-secondary);
   background-attachment: fixed;
   min-height: 100vh;
   padding: var(--spacing-lg);
@@ -116,7 +115,8 @@ input[type="email"],
 input[type="password"],
 input[type="number"],
 textarea,
-select {
+select,
+button {
   font-family: inherit;
   font-size: inherit;
 }
