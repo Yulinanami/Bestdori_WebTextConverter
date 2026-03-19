@@ -11,6 +11,7 @@ module.exports = {
   entry: [
     "./static/css/main.css",
     "./static/css/material-symbols.css",
+    "./static/css/lib/roboto.css",
     "./static/js/app.js",
   ],
 
@@ -70,6 +71,14 @@ module.exports = {
         // 处理 CSS 文件（由 style-loader 动态注入到页面中）
         test: /\.css$/,
         use: ["style-loader", "css-loader"],
+      },
+      {
+        // 处理字体文件
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'fonts/[name][ext]'
+        }
       },
     ],
   },

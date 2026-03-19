@@ -58,9 +58,9 @@
   --transition-fast: 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
   --transition-normal: 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 
-  /* Roboto 为主字体 */
-  --font-primary: "Roboto", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  --font-mono: "Roboto Mono", "Courier New", monospace;
+  /* Roboto 为唯一字体 */
+  --font-primary: "Roboto";
+  --font-mono: "Roboto";
 
   /* 字体大小调整 */
   --text-xs: 0.75rem; /* 12px */
