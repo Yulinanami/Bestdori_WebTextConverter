@@ -232,6 +232,9 @@ export const positionManager = {
     const controlsDiv = DOMUtils.createElement("div", {
       class: "position-controls",
     });
+    const positionSelectWrap = DOMUtils.createElement("div", {
+      class: "select-with-icon",
+    });
     const positionSelect = DOMUtils.createElement("select", {
       class: "form-input position-select",
       "data-character": characterName,
@@ -244,7 +247,15 @@ export const positionManager = {
       }
       positionSelect.appendChild(option);
     });
-    controlsDiv.appendChild(positionSelect);
+    const positionSelectIcon = DOMUtils.createElement("span", {
+      class: "material-symbols-outlined",
+      "aria-hidden": "true",
+    });
+    DOMUtils.appendChildren(positionSelectWrap, [
+      positionSelect,
+      positionSelectIcon,
+    ]);
+    controlsDiv.appendChild(positionSelectWrap);
 
     const offsetGroup = DOMUtils.createElement("div", {
       class: "position-offset-group",

@@ -1,63 +1,67 @@
 /* 深色主题变量覆盖 (Google Material Dark Theme) */
 
 [data-theme="dark"] {
-  /* 主题色：深色下的 Material Colors */
-  --color-primary: #8ab4f8; /* Google Play Dark Blue */
-  --color-primary-dark: #669df6;
-  --color-secondary: rgba(255, 255, 255, 0.1);
+  /* 品牌与语义色 */
+  --color-primary: #a8c7fa;
+  --color-primary-dark: #8ab4f8;
+  --color-primary-light: rgba(168, 199, 250, 0.16);
+  --color-primary-container: rgba(168, 199, 250, 0.24);
   --color-success: #81c995;
-  --color-success-dark: #5bb974;
   --color-error: #f28b82;
-  --color-error-light: rgba(242, 139, 130, 0.2);
-  --color-info: #8ab4f8;
-  --color-neutral: #9aa0a6;
-  --color-neutral-light: rgba(255, 255, 255, 0.05);
-  --color-primary-light: rgba(138, 180, 248, 0.15);
+  --color-error-light: rgba(242, 139, 130, 0.16);
+  --color-error-container: rgba(242, 139, 130, 0.2);
+  --color-info: #a8c7fa;
 
   /* 文本颜色 */
   --text-primary: #e8eaed;
-  --text-secondary: #9aa0a6;
-  --text-muted: #80868b;
+  --text-secondary: #bdc1c6;
+  --text-muted: #9aa0a6;
   --text-light: #5f6368;
   --text-white: #ffffff;
+  --text-on-primary: #202124;
+  --text-on-success: #202124;
 
-  /* 背景颜色 (Material 纯色系深色) */
-  --bg-primary: #303134; /* 深色主窗体 / 卡片 */
-  --bg-secondary: #202124; /* App 整体背景 */
-  --bg-tertiary: #3c4043; /* 辅助区块，悬停 */
-  --bg-dark: #000000;
-  --bg-overlay: rgba(0, 0, 0, 0.6);
+  /* 背景与表面 */
+  --bg-primary: #2d2e30;
+  --bg-secondary: #202124;
+  --bg-tertiary: #35363a;
+  --bg-dark: #111318;
+  --bg-overlay: rgba(0, 0, 0, 0.56);
+  --surface-container-low: #2d2e30;
+  --surface-container: #333438;
+  --surface-container-high: #3b3d42;
 
-  /* 边框及 Retina 边界 */
+  /* 边框与焦点 */
   --border-primary: #5f6368;
   --border-secondary: #3c4043;
-  --border-focus: #8ab4f8;
+  --border-focus: #a8c7fa;
 
-  /* 阴影 与 打光 (Dark Theme Elevations) */
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
-  --shadow-md: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
-  --shadow-lg: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
-  --shadow-xl: 0 2px 3px 0 rgba(0,0,0,0.3), 0 6px 10px 4px rgba(0,0,0,0.15);
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 3px 1px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.32),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.34),
+    0 4px 8px rgba(0, 0, 0, 0.22);
+  --shadow-xl: 0 16px 24px rgba(0, 0, 0, 0.38),
+    0 8px 12px rgba(0, 0, 0, 0.24);
 
-  /* 分组标题颜色 - 黑夜模式 */
-  --group-header-active-bg: rgba(138, 180, 248, 0.15);
-  --group-header-active-border: #8ab4f8;
-
-  /* 状态背景色 - 深色模式 */
-  --color-success-bg: rgba(129, 201, 149, 0.15);
-  --color-warning-bg: rgba(253, 214, 99, 0.15);
-  --color-error-bg: rgba(242, 139, 130, 0.15);
-  --color-info-bg: rgba(138, 180, 248, 0.15);
-  --color-selected-bg: rgba(138, 180, 248, 0.15);
-
-  /* 状态边框色 - 深色模式 */
+  /* 语义状态 */
+  --group-header-active-bg: var(--color-primary-light);
+  --group-header-active-border: var(--color-primary);
+  --color-success-bg: rgba(129, 201, 149, 0.16);
+  --color-warning-bg: rgba(249, 171, 0, 0.18);
+  --color-error-bg: rgba(242, 139, 130, 0.16);
+  --color-selected-bg: var(--color-primary-light);
   --color-success-border: #81c995;
-  --color-warning-border: #fdd663;
+  --color-warning-border: #f9ab00;
   --color-error-border: #f28b82;
-  --color-selected-border: #8ab4f8;
+  --color-selected-border: #a8c7fa;
 
-  /* 交互颜色 - 深色模式 */
+  /* 交互状态 */
   --color-hover-bg: rgba(255, 255, 255, 0.08);
-  --avatar-loading-bg: rgba(255, 255, 255, 0.05);
+  --color-pressed-bg: rgba(255, 255, 255, 0.12);
+  --avatar-loading-bg: rgba(255, 255, 255, 0.08);
   --avatar-border: #5f6368;
+  --focus-ring: 0 0 0 3px rgba(168, 199, 250, 0.2);
 }

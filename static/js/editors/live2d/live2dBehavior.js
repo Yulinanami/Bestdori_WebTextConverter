@@ -114,7 +114,7 @@ export function attachLive2DBehavior(editor) {
         });
         currentState.actions = newActions;
       });
-      ui.showStatus("已应用智能布局！", "success");
+      ui.showStatus("已应用快速布局", "success");
     },
 
     // 插入一条布局动作

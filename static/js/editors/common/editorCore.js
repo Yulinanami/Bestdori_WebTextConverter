@@ -211,17 +211,8 @@ const editorCoreMethods = {
         }
 
         try {
-          await this.prepareProjectState({
-            // 读到已有进度时给个提示
-            onProjectLoad: () =>
-              ui.showStatus("已加载现有项目进度。", "info"),
-            // 新建项目时只在有文字时提示
-            onProjectCreate: ({ rawText }) => {
-              if (rawText?.trim()) {
-                ui.showStatus("已根据当前文本创建新项目。", "info");
-              }
-            },
-          });
+          // 打开编辑器时静默准备项目状态，不再弹出提示条打断操作。
+          await this.prepareProjectState();
         } catch (error) {
           ui.showStatus(
             `加载编辑器失败: ${error.response?.data?.error || error.message}`,
