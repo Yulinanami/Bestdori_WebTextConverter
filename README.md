@@ -66,11 +66,23 @@
   - 可从预设列表中选择，也可添加任意自定义服装 ID。
   - 可为每个角色设置默认服装，在自动布局时自动应用。
 
+<p align="center">
+  <img src="assets/costume-management-preview.png" width="800" alt="服装管理界面">
+  <br>
+  <em>服装管理界面</em>
+</p>
+
 ### 6. 配置管理
 
 - **位置配置**: 可以为每个角色设置默认的登场位置和偏移。
 - **全局动作表情列表**: 可以添加全局的自定义动作/表情 ID(主要用于 Live2D 动作表情的查缺补漏)。
 - **配置导入/导出**: 导出包含角色映射、服装、位置、引号等所有用户配置的 JSON 文件。
+
+<p align="center">
+  <img src="assets/config-management-preview.png" width="800" alt="配置管理界面">
+  <br>
+  <em>配置管理界面</em>
+</p>
 
 ### 7. 导入导出工作进度
 
