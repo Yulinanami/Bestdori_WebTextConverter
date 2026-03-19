@@ -1,73 +1,63 @@
-/* 深色主题变量覆盖 */
+/* 深色主题变量覆盖 (Google Material Dark Theme) */
 
 [data-theme="dark"] {
-  /* 主题色：深色下的苹果蓝略微亮一点 */
-  --color-primary: #0a84ff;
-  --color-primary-dark: #3795fe;
+  /* 主题色：深色下的 Material Colors */
+  --color-primary: #8ab4f8; /* Google Play Dark Blue */
+  --color-primary-dark: #669df6;
   --color-secondary: rgba(255, 255, 255, 0.1);
-  --color-success: #30d158;
-  --color-success-dark: #24a147;
-  --color-error: #ff453a;
-  --color-error-light: rgba(255, 69, 58, 0.2);
-  --color-error-lighter: rgba(255, 69, 58, 0.1);
-  --color-info: #0a84ff;
-  --color-neutral: rgba(255, 255, 255, 0.5);
+  --color-success: #81c995;
+  --color-success-dark: #5bb974;
+  --color-error: #f28b82;
+  --color-error-light: rgba(242, 139, 130, 0.2);
+  --color-info: #8ab4f8;
+  --color-neutral: #9aa0a6;
   --color-neutral-light: rgba(255, 255, 255, 0.05);
-  --color-primary-light: rgba(10, 132, 255, 0.15);
+  --color-primary-light: rgba(138, 180, 248, 0.15);
 
   /* 文本颜色 */
-  --text-primary: rgba(255, 255, 255, 0.9);
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.4);
-  --text-light: rgba(255, 255, 255, 0.3);
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0a6;
+  --text-muted: #80868b;
+  --text-light: #5f6368;
   --text-white: #ffffff;
 
-  /* 背景颜色 (Glassmorphism 核心) */
-  --bg-primary: rgba(30, 30, 30, 0.7); /* 深色主窗体 */
-  --bg-secondary: rgba(255, 255, 255, 0.05); /* 辅助区块，不全黑，透底色 */
-  --bg-tertiary: rgba(255, 255, 255, 0.08); /* 行悬停 */
+  /* 背景颜色 (Material 纯色系深色) */
+  --bg-primary: #303134; /* 深色主窗体 / 卡片 */
+  --bg-secondary: #202124; /* App 整体背景 */
+  --bg-tertiary: #3c4043; /* 辅助区块，悬停 */
   --bg-dark: #000000;
-  --bg-overlay: rgba(0, 0, 0, 0.4);
-  --bg-sidebar: rgba(28, 28, 30, 0.65); /* macOS深色侧边栏 */
+  --bg-overlay: rgba(0, 0, 0, 0.6);
 
   /* 边框及 Retina 边界 */
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --border-secondary: rgba(255, 255, 255, 0.05);
-  --border-focus: rgba(10, 132, 255, 0.5);
+  --border-primary: #5f6368;
+  --border-secondary: #3c4043;
+  --border-focus: #8ab4f8;
 
-  /* 阴影 与 打光 */
-  --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --shadow-md:
-    0 8px 16px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --shadow-lg:
-    0 16px 32px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --shadow-xl:
-    0 24px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* 阴影 与 打光 (Dark Theme Elevations) */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
+  --shadow-md: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+  --shadow-lg: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
+  --shadow-xl: 0 2px 3px 0 rgba(0,0,0,0.3), 0 6px 10px 4px rgba(0,0,0,0.15);
 
   /* 分组标题颜色 - 黑夜模式 */
-  --group-header-active-bg: rgba(10, 132, 255, 0.15);
-  --group-header-active-border: rgba(10, 132, 255, 0.4);
+  --group-header-active-bg: rgba(138, 180, 248, 0.15);
+  --group-header-active-border: #8ab4f8;
 
   /* 状态背景色 - 深色模式 */
-  --color-success-bg: rgba(48, 209, 88, 0.15);
-  --color-warning-bg: rgba(255, 214, 10, 0.15);
-  --color-error-bg: rgba(255, 69, 58, 0.15);
-  --color-info-bg: rgba(10, 132, 255, 0.1);
-  --color-selected-bg: rgba(10, 132, 255, 0.15);
+  --color-success-bg: rgba(129, 201, 149, 0.15);
+  --color-warning-bg: rgba(253, 214, 99, 0.15);
+  --color-error-bg: rgba(242, 139, 130, 0.15);
+  --color-info-bg: rgba(138, 180, 248, 0.15);
+  --color-selected-bg: rgba(138, 180, 248, 0.15);
 
   /* 状态边框色 - 深色模式 */
-  --color-success-border: rgba(48, 209, 88, 0.6);
-  --color-warning-border: rgba(255, 214, 10, 0.6);
-  --color-error-border: rgba(255, 69, 58, 0.6);
-  --color-info-border: rgba(10, 132, 255, 0.6);
-  --color-selected-border: rgba(10, 132, 255, 0.6);
+  --color-success-border: #81c995;
+  --color-warning-border: #fdd663;
+  --color-error-border: #f28b82;
+  --color-selected-border: #8ab4f8;
 
   /* 交互颜色 - 深色模式 */
   --color-hover-bg: rgba(255, 255, 255, 0.08);
   --avatar-loading-bg: rgba(255, 255, 255, 0.05);
-  --avatar-border: rgba(255, 255, 255, 0.1);
+  --avatar-border: #5f6368;
 }

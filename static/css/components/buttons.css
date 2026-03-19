@@ -37,11 +37,7 @@
   font-size: var(--text-lg);
 }
 
-/* 全宽按钮 */
-.btn-block {
-  width: 100%;
-  justify-content: center;
-}
+
 
 /* 顶部主题选择器样式 */
 .theme-selector-wrap {
@@ -96,103 +92,106 @@
 }
 
 /* ===================================
-   旧按钮系统（保留兼容）
+   按钮系统（Material Design 3）
    =================================== */
 
 /* 按钮基础样式 */
 .btn {
-  padding: 12px 24px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
-  font-size: var(--text-base);
-  font-weight: 600;
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius-2xl); /* Pill shape for Material 3 */
+  font-size: var(--text-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
   display: inline-flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
+  letter-spacing: 0.25px;
+}
+
+/* 伪元素用于波纹/悬停效果层 */
+.btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.btn:hover::before {
+  opacity: 0.08; /* Material Hover state */
+}
+
+.btn:active::before {
+  opacity: 0.12; /* Material Pressed state */
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.96);
+  /* Material doesn't typically scale down, it changes elevation */
+  transform: none; 
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.38;
   cursor: not-allowed;
+  box-shadow: none !important;
 }
 
-/* 按钮变体 */
+/* 按钮变体: Primary (Contained / Filled) */
 .btn-primary {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary-dark) 0%,
-    var(--color-primary) 100%
-  );
+  background-color: var(--color-primary);
   color: var(--text-white);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: var(--shadow-sm); /* Elevation 1 */
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary) 0%,
-    var(--color-primary-dark) 100%
-  );
+  background-color: var(--color-primary);
+  box-shadow: var(--shadow-md); /* Elevation 2 on hover */
 }
 
+/* 按钮变体: Secondary (Outlined or Tonal) */
 .btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background-color: transparent;
+  color: var(--color-primary);
   border: 1px solid var(--border-primary);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.5) !important;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-hover-bg);
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
 }
 
+/* 按钮变体: Success (Filled) */
 .btn-success {
-  background: linear-gradient(
-    180deg,
-    var(--color-success) 0%,
-    var(--color-success-dark) 100%
-  );
+  background-color: var(--color-success);
   color: var(--text-white);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    var(--color-success-dark) 0%,
-    var(--color-success) 100%
-  );
+  box-shadow: var(--shadow-md);
 }
 
+/* 按钮变体: Danger (Filled) */
 .btn-danger {
-  background: linear-gradient(180deg, var(--color-error) 0%, #d32f2f 100%);
+  background-color: var(--color-error);
   color: var(--text-white);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d32f2f 0%, var(--color-error) 100%);
+  box-shadow: var(--shadow-md);
 }
 
 /* 按钮尺寸 */

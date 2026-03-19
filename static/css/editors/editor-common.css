@@ -16,15 +16,16 @@
 /* Sortable 拖拽样式 */
 .sortable-drag .character-item {
   min-width: 150px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-lg);
 }
 
 /* 提高被拖动卡片的可见性 */
 .dialogue-item.sortable-drag {
-  opacity: 0.8;
+  opacity: 1;
   transform: rotate(2deg);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
 }
 
 /* 角色项样式 */
@@ -62,7 +63,7 @@
 .dialogue-item.is-selected .dialogue-text {
   background-color: var(--color-selected-bg);
   border: 2px solid var(--color-selected-border);
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+  box-shadow: none;
 }
 
 /* 旁白选中状态 */
