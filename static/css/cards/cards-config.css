@@ -43,6 +43,10 @@
   box-shadow: none;
 }
 
+.costume-config-item:has(.costume-details.hidden) {
+  border-radius: var(--radius-full);
+}
+
 .costume-config-item:hover {
   background: var(--surface-container);
   border-color: var(--border-primary);
@@ -182,7 +186,7 @@
   margin-bottom: 0;
   background: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: 30px;
+  border-radius: var(--radius-full);
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast);
