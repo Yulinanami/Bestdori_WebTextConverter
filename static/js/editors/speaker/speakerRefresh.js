@@ -95,7 +95,38 @@ export function attachSpeakerRefresh(editor) {
           return true;
         }
 
-        if (!this.applyGroupMutation(actions)) {
+        const visibleTargetIds = pendingPatch.actionIds.filter((actionId) =>
+          visibleActionIds.has(actionId)
+        );
+        let shouldFallbackToGroupRefresh = false;
+        for (const actionId of visibleTargetIds) {
+          const actionIndex = actions.findIndex(
+            (actionItem) => actionItem.id === actionId,
+          );
+          if (actionIndex < 0) {
+            this.lastSpeakerError = `未找到 action: ${actionId}`;
+            return false;
+          }
+
+          const action = actions[actionIndex];
+          const targetCard = canvas.querySelector(
+            `.dialogue-item[data-id="${actionId}"], .layout-item[data-id="${actionId}"]`,
+          );
+          if (!targetCard) {
+            shouldFallbackToGroupRefresh = true;
+            break;
+          }
+
+          const newCard = renderSpeakerCard(this, action, actionIndex);
+          if (!newCard) {
+            this.lastSpeakerError = `重建卡片失败: ${actionId}, type=${action.type}`;
+            return false;
+          }
+
+          targetCard.replaceWith(newCard);
+        }
+
+        if (shouldFallbackToGroupRefresh && !this.applyGroupMutation(actions)) {
           this.lastSpeakerError = "分组局部重绘失败";
           return false;
         }
