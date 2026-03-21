@@ -70,11 +70,7 @@ class ModalService {
   // 弹出“确认/取消”的对话框（返回 Promise<boolean>）
   async confirm(message, _options = {}) {
     // 等用户点确定或取消
-    return new Promise((resolve) => {
-      // 先直接用浏览器自带确认框
-      const result = window.confirm(message);
-      resolve(result);
-    });
+    return new Promise((resolve) => resolve(window.confirm(message)));
   }
 
   // 弹出“只有一个确定按钮”的提示框（返回 Promise<void>）
@@ -90,11 +86,9 @@ class ModalService {
   // 弹出“输入框”对话框（返回用户输入的字符串或 null）
   async prompt(message, defaultValue = "") {
     // 等用户输完内容
-    return new Promise((resolve) => {
-      // 先直接用浏览器自带输入框
-      const result = window.prompt(message, defaultValue);
-      resolve(result);
-    });
+    return new Promise((resolve) =>
+      resolve(window.prompt(message, defaultValue)),
+    );
   }
 
   // 给关闭按钮绑上弹窗关闭事件
@@ -122,8 +116,7 @@ class ModalService {
         return;
       }
 
-      const openedModalIds = Array.from(this.openModals);
-      const topModalId = openedModalIds[openedModalIds.length - 1];
+      const topModalId = Array.from(this.openModals).at(-1);
       if (!topModalId) {
         return;
       }

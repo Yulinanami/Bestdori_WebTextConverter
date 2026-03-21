@@ -6,6 +6,7 @@ import { renderAvatar } from "@utils/avatarUtils.js";
 import { buildNameMap } from "@utils/TimelineCardFactory.js";
 import { resolveGroupRange, updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
+// 记录增删前视口附近的锚点，刷新后尽量把滚动位置还原到原来的卡片附近
 function captureMutationAnchor(editor, container, cardSelector, pendingPatch, actions) {
   const cards = Array.from(container.querySelectorAll(cardSelector));
   if (cards.length === 0) {
@@ -55,6 +56,7 @@ function captureMutationAnchor(editor, container, cardSelector, pendingPatch, ac
     : null;
 }
 
+// 根据之前记录的锚点恢复滚动位置，避免局部刷新后列表突然上跳或下跳
 function restoreMutationAnchor(container, cardSelector, anchor, fallbackScrollTop) {
   if (!anchor) {
     container.scrollTop = fallbackScrollTop;
@@ -73,6 +75,7 @@ function restoreMutationAnchor(container, cardSelector, anchor, fallbackScrollTo
   });
 }
 
+// 找出当前展开组对应的组头、下一个组头和组内卡片，方便只重画这一段
 function getActiveGroupContext(container, activeGroupIndex, cardSelector) {
   const header = container.querySelector(
     `.timeline-group-header[data-group-idx="${activeGroupIndex}"]`,
@@ -94,6 +97,7 @@ function getActiveGroupContext(container, activeGroupIndex, cardSelector) {
   return { header, nextHeader: nextNode, cards };
 }
 
+// 在局部刷新后把所有组头的序号和展开态重新同步一次
 function refreshGroupHeaders(
   editor,
   container,

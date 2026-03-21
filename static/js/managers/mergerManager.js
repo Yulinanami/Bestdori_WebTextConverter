@@ -8,7 +8,7 @@ export const mergerManager = {
   files: [], // Array of { id, name, data }
   sortable: null,
   fileIdCounter: 0,
-  mergedResult: null,
+  mergedResultText: "",
 
   // 初始化
   init() {
@@ -18,14 +18,15 @@ export const mergerManager = {
 
   // 绑定页面事件
   bindEvents() {
-    const fileInput = document.getElementById("mergerFileInput");
     const fileUpload = document.getElementById("mergerFileUpload");
 
-    if (fileInput && fileUpload) {
+    if (fileUpload) {
       // 上传区同时支持文件选择和拖拽
-      fileInput.addEventListener("change", (changeEvent) =>
-        this.handleFilesUpload(changeEvent.target.files),
-      );
+      document
+        .getElementById("mergerFileInput")
+        ?.addEventListener("change", (changeEvent) =>
+          this.handleFilesUpload(changeEvent.target.files),
+        );
 
       fileUpload.addEventListener("dragover", (dragOverEvent) => {
         dragOverEvent.preventDefault();
@@ -43,30 +44,21 @@ export const mergerManager = {
       });
     }
 
-    const mergeButton = document.getElementById("mergeBtn");
-    if (mergeButton) {
-      mergeButton.addEventListener("click", () => this.mergeFiles());
-    }
-
-    const downloadMergeButton = document.getElementById("downloadMergeBtn");
-    if (downloadMergeButton) {
-      downloadMergeButton.addEventListener("click", () =>
-        this.downloadMergedResult(),
-      );
-    }
-
-    const copyMergeButton = document.getElementById("copyMergeBtn");
-    if (copyMergeButton) {
-      copyMergeButton.addEventListener("click", () => this.copyMergedResult());
-    }
-
-    const gotoMergeButton = document.getElementById("gotoBestdoriMergeBtn");
-    if (gotoMergeButton) {
-      gotoMergeButton.addEventListener("click", async () => {
-        if (!this.mergedResult) return;
-        const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
+    document.getElementById("mergeBtn")?.addEventListener("click", () =>
+      this.mergeFiles(),
+    );
+    document
+      .getElementById("downloadMergeBtn")
+      ?.addEventListener("click", () => this.downloadMergedResult());
+    document
+      .getElementById("copyMergeBtn")
+      ?.addEventListener("click", () => this.copyMergedResult());
+    document
+      .getElementById("gotoBestdoriMergeBtn")
+      ?.addEventListener("click", async () => {
+        if (!this.mergedResultText) return;
         try {
-          await navigator.clipboard.writeText(mergedJsonText);
+          await navigator.clipboard.writeText(this.mergedResultText);
           ui.showStatus("合并结果已复制，正在跳转到 Bestdori...", "success");
         } catch {
           ui.showStatus("复制失败，请手动选择复制后跳转。", "warning");
@@ -75,7 +67,6 @@ export const mergerManager = {
           window.open("https://bestdori.com/community/stories/new", "_blank");
         }, 500);
       });
-    }
   },
 
   // 初始化拖拽排序
@@ -103,13 +94,12 @@ export const mergerManager = {
     // 逐个传到后端解析
     for (const file of Array.from(fileList)) {
       try {
-        const response = await apiService.importMergeFile(file);
-        const parsedFile = response.file;
+        const importedFile = (await apiService.importMergeFile(file)).file;
 
         this.files.push({
           id: `merger-file-${this.fileIdCounter++}`,
-          name: parsedFile.name,
-          data: parsedFile.data,
+          name: importedFile.name,
+          data: importedFile.data,
         });
       } catch (error) {
         ui.showStatus(error.message, "error");
@@ -172,9 +162,10 @@ export const mergerManager = {
   // 清空文件和结果
   clearFiles() {
     this.files = [];
+    this.mergedResultText = "";
     this.updateUI();
-    const resultSec = document.getElementById("mergeResultSection");
-    if (resultSec) resultSec.classList.add("hidden");
+    document.getElementById("mergeResultSection")?.classList.add("hidden");
+    ui.renderResultCode("mergeResultContent", "");
   },
 
   // 删除一个文件
@@ -213,9 +204,9 @@ export const mergerManager = {
       }));
 
       const response = await apiService.mergeFiles(filesPayload);
-      this.mergedResult = response.result;
+      this.mergedResultText = JSON.stringify(response.result, null, 2);
       this.mode = response.mode || "bestdori";
-      this._displayMergeResult(this.mergedResult);
+      this._displayMergeResult(this.mergedResultText);
     } catch (error) {
       if (error.message.includes("每个文件必须是同类文件")) {
         this.clearFiles();
@@ -235,9 +226,7 @@ export const mergerManager = {
 
   // 下载合并结果
   async downloadMergedResult() {
-    if (!this.mergedResult) return;
-
-    const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
+    if (!this.mergedResultText) return;
     const filename =
       this.mode === "bestdori"
         ? `merged_bestdori_${Date.now()}.json`
@@ -245,7 +234,7 @@ export const mergerManager = {
 
     try {
       const downloadBlob = await apiService.downloadResult(
-        mergedJsonText,
+        this.mergedResultText,
         filename,
       );
       FileUtils.downloadAsFile(downloadBlob, filename);
@@ -257,10 +246,9 @@ export const mergerManager = {
 
   // 复制合并结果
   async copyMergedResult() {
-    if (!this.mergedResult) return;
-    const mergedJsonText = JSON.stringify(this.mergedResult, null, 2);
+    if (!this.mergedResultText) return;
     try {
-      await navigator.clipboard.writeText(mergedJsonText);
+      await navigator.clipboard.writeText(this.mergedResultText);
       ui.showStatus("合并结果已复制到剪贴板！", "success");
     } catch {
       ui.showStatus("复制失败，请手动选择复制。", "error");
@@ -268,10 +256,8 @@ export const mergerManager = {
   },
 
   // 显示合并结果
-  _displayMergeResult(mergedData) {
+  _displayMergeResult(jsonText) {
     const resultSec = document.getElementById("mergeResultSection");
-    const resultContent = document.getElementById("mergeResultContent");
-    const jsonStr = JSON.stringify(mergedData, null, 2);
 
     // 按模式切按钮
     const copyButton = document.getElementById("copyMergeBtn");
@@ -284,13 +270,9 @@ export const mergerManager = {
       if (gotoButton) gotoButton.classList.remove("hidden");
     }
 
-    if (resultSec && resultContent) {
-      resultContent.textContent = jsonStr;
-      if (window.Prism) {
-        window.Prism.highlightElement(resultContent);
-      }
+    if (resultSec) {
       resultSec.classList.remove("hidden");
-      resultSec.scrollIntoView({ behavior: "smooth", block: "start" });
+      ui.renderResultCode("mergeResultContent", jsonText);
       ui.showStatus("文件合成成功！", "success");
     }
   },

@@ -5,10 +5,9 @@ import { ui } from "@utils/uiUtils.js";
 export const viewManager = {
   // 初始化页面按钮
   init() {
-    const formatButton = document.getElementById("formatTextBtn");
-    if (formatButton) {
-      formatButton.addEventListener("click", this.formatText.bind(this));
-    }
+    document
+      .getElementById("formatTextBtn")
+      ?.addEventListener("click", this.formatText.bind(this));
   },
 
   // 整理输入框里的文本

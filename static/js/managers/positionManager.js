@@ -28,24 +28,22 @@ export const positionManager = {
   // 初始化位置页
   init() {
     this.loadPositionConfig();
-    const autoCheckbox = document.getElementById("autoPositionCheckbox");
-    if (autoCheckbox) {
-      // 切换自动模式时刷新页面
-      autoCheckbox.addEventListener("change", (changeEvent) => {
+    // 切换自动模式时刷新页面
+    document.getElementById("autoPositionCheckbox")?.addEventListener(
+      "change",
+      (changeEvent) => {
         this.tempAutoPositionMode = changeEvent.target.checked;
         this.toggleManualConfig();
-      });
-    }
-    const saveButton = document.getElementById("savePositionsBtn");
-    if (saveButton) {
-      // 点保存时保存位置
-      saveButton.addEventListener("click", () => this.savePositions());
-    }
-    const resetButton = document.getElementById("resetPositionsBtn");
-    if (resetButton) {
-      // 点重置时恢复默认
-      resetButton.addEventListener("click", () => this.resetPositions());
-    }
+      },
+    );
+    // 点保存时保存位置
+    document
+      .getElementById("savePositionsBtn")
+      ?.addEventListener("click", () => this.savePositions());
+    // 点重置时恢复默认
+    document
+      .getElementById("resetPositionsBtn")
+      ?.addEventListener("click", () => this.resetPositions());
     const positionList = document.getElementById("positionList");
     if (positionList) {
       positionList.addEventListener("change", (changeEvent) => {
@@ -81,10 +79,9 @@ export const positionManager = {
 
   // 切换手动配置区域显示
   toggleManualConfig() {
-    const manualConfig = document.getElementById("manualPositionConfig");
-    if (manualConfig) {
-      manualConfig.classList.toggle("hidden", this.tempAutoPositionMode);
-    }
+    document
+      .getElementById("manualPositionConfig")
+      ?.classList.toggle("hidden", this.tempAutoPositionMode);
   },
 
   // 进入页面前准备临时数据

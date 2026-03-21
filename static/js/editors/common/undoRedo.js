@@ -88,7 +88,7 @@ function summarizeAction(action) {
   return `type=${action.type || "unknown"}, id=${action.id || "unknown"}`;
 }
 
-// 比较 action 列表
+// 比较 action 列表，先分清这次撤销/重做是增删、重排，还是只改字段
 function analyzeActionDiff(beforeActions, afterActions) {
   const beforeIdSet = new Set(beforeActions.map((action) => action.id));
   const afterIdSet = new Set(afterActions.map((action) => action.id));
@@ -110,7 +110,7 @@ function analyzeActionDiff(beforeActions, afterActions) {
   return { addedIds, removedIds, orderChanged };
 }
 
-// 收集受影响的 action id
+// 从 patch 路径里收集本轮真正受影响的 action id
 function collectTouchedIds(actionPaths, beforeActions, afterActions) {
   const touchedActionIds = new Set();
   actionPaths.forEach((patch) => {
@@ -123,7 +123,7 @@ function collectTouchedIds(actionPaths, beforeActions, afterActions) {
   return touchedActionIds;
 }
 
-// 收集 action 字段变化
+// 把 patch 路径转换成字段变化摘要，方便后面决定走哪种局部刷新
 function collectActionChanges(actionPaths, beforeAction, afterAction) {
   const details = [];
   const seenPath = new Set();
@@ -148,7 +148,7 @@ function collectActionChanges(actionPaths, beforeAction, afterAction) {
   return details;
 }
 
-// 整理字段变化文本
+// 把字段变化整理成短日志，避免 perf 输出太长看不清重点
 function formatChangeDetails(changeDetails, filterKeys, limit = 4) {
   const filtered = changeDetails.filter((detail) =>
     filterKeys.includes(detail.rootKey)
@@ -169,7 +169,7 @@ function formatChangeDetails(changeDetails, filterKeys, limit = 4) {
   return `${head}; ...+${filtered.length - limit}`;
 }
 
-// 整理排序变化
+// 把 action 排序前后的下标变化压成短文本，专门给重排日志用
 function summarizeOrderChange(beforeIndexById, afterIndexById) {
   const movedItems = [];
   beforeIndexById.forEach((beforeIndex, actionId) => {
@@ -193,7 +193,7 @@ function summarizeOrderChange(beforeIndexById, afterIndexById) {
   return `${preview}; ...+${movedItems.length - 4}`;
 }
 
-// 挂撤销重做局部刷新
+// 接管撤销/重做后的 render hint，把结构变化尽量压成局部刷新
 export function attachUndoRedo(editor, handlers = {}) {
   const {
     debugTag = "undoRedo",

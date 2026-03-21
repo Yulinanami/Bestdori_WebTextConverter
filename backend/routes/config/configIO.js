@@ -32,10 +32,13 @@ function buildConfigExport(data) {
     export_date: new Date().toISOString(),
     version: "1.4",
   };
-  const content = JSON.stringify(config, null, 2);
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, "");
-  const filename = `bestdori_config_${stamp}.json`;
-  return { content, filename };
+  return {
+    content: JSON.stringify(config, null, 2),
+    filename: `bestdori_config_${new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "")}.json`,
+  };
 }
 
 module.exports = {

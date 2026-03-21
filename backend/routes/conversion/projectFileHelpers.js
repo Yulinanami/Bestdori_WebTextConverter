@@ -33,9 +33,10 @@ function buildProjectExport(projectFile) {
   copy.actions.forEach((action) => {
     delete action.characterStates;
   });
-  const content = JSON.stringify(copy, null, 2);
-  const filename = copy.projectName || `bestdori_project_${Date.now()}.json`;
-  return { content, filename };
+  return {
+    content: JSON.stringify(copy, null, 2),
+    filename: copy.projectName || `bestdori_project_${Date.now()}.json`,
+  };
 }
 
 module.exports = {

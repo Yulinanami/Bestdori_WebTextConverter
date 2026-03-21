@@ -65,13 +65,11 @@ const initNumInput = ({ inputElementId, storageKey }) => {
   const numericInput = document.getElementById(inputElementId);
   if (!numericInput) return;
 
-  const savedValue = storageService.load(storageKey, 0);
-  numericInput.value = savedValue;
+  numericInput.value = storageService.load(storageKey, 0);
 
   // 输入变化时立即保存
   numericInput.addEventListener("input", (inputEvent) => {
-    const numericValue = parseInt(inputEvent.target.value) || 0;
-    storageService.save(storageKey, numericValue);
+    storageService.save(storageKey, parseInt(inputEvent.target.value) || 0);
   });
 };
 
@@ -113,8 +111,9 @@ const bindGlobalEvents = () => {
 
   // 打开或收起手机侧边栏
   const toggleSidebar = () => {
-    const activePage = document.querySelector(".app-container:not(.hidden)");
-    const sidebar = activePage?.querySelector(".app-sidebar");
+    const sidebar = document
+      .querySelector(".app-container:not(.hidden)")
+      ?.querySelector(".app-sidebar");
     sidebar?.classList.toggle("active");
     sidebarOverlay?.classList.toggle(
       "active",
