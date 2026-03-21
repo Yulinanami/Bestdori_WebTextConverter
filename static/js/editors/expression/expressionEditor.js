@@ -2,6 +2,7 @@
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { ui } from "@utils/uiUtils.js";
 import { attachEditorCore } from "@editors/common/editorCore.js";
+import { rerenderOnGroupToggle } from "@editors/common/editorCore.js";
 import { attachGroupReorder } from "@editors/common/groupedReorder.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
 import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
@@ -12,8 +13,7 @@ import { summarizeChanges } from "@editors/common/changeSummaryUtils.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { attachExprRefresh } from "@editors/expression/exprRefresh.js";
 import { attachExprActions } from "@editors/expression/expressionBehavior.js";
-import { clearExprCache, renderExprCard, renderTimeline } from "@editors/expression/exprTimeline.js";
-import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
+import { attachExprTimeline, clearExprCache, renderExprCard, renderTimeline } from "@editors/expression/exprTimeline.js";
 
 // 创建动作表情编辑器基础对象
 const baseEditor = new BaseEditor({
@@ -222,6 +222,7 @@ export const expressionEditor = {
 };
 
 attachExprRefresh(expressionEditor);
+attachExprTimeline(expressionEditor);
 
 attachLayoutRefresh(expressionEditor, {
   containerKey: "timeline",
@@ -231,11 +232,9 @@ attachLayoutRefresh(expressionEditor, {
   renderActionCard: renderExprCard,
   // 切换分组后重新渲染并滚到组头
   onGroupToggle: (groupIndex, isOpening) => {
-    renderTimeline(expressionEditor);
-    if (!isOpening) {
-      return;
-    }
-    setTimeout(() => scrollToGroupHeader(expressionEditor.domCache.timeline, groupIndex), 0);
+    rerenderOnGroupToggle(expressionEditor, groupIndex, isOpening, {
+      renderView: () => renderTimeline(expressionEditor),
+    });
   },
 });
 

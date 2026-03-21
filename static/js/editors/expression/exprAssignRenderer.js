@@ -12,10 +12,7 @@ export const assignUI = {
     if (!actionId) return false;
 
     const resolvedAction =
-      action ||
-      editor.projectFileState.actions.find(
-        (actionItem) => actionItem.id === actionId
-      );
+      action || editor.findActionById(actionId);
     if (!resolvedAction) return false;
 
     const footer = cardElement.querySelector(".timeline-item-footer");
@@ -40,10 +37,7 @@ export const assignUI = {
   showSetupUI(editor, cardElement, action = null) {
     const actionId = cardElement.dataset.id;
     const resolvedAction =
-      action ||
-      editor.projectFileState.actions.find(
-        (actionItem) => actionItem.id === actionId
-      );
+      action || editor.findActionById(actionId);
     if (!resolvedAction) return;
 
     const footer = cardElement.querySelector(".timeline-item-footer");

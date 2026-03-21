@@ -87,7 +87,7 @@ export function attachExprRefresh(editor) {
 
       // 逐张卡片确认 action 和 DOM 都还在 再重画 footer
       for (const [actionId, options] of pendingRenders.entries()) {
-        const action = actions.find((actionItem) => actionItem.id === actionId);
+        const action = this.findActionById(actionId, actions);
         if (!action) {
           perfLog(
             `${debugPrefix}[局部短路] 失败: 原因=未找到 action, action=${actionId}`

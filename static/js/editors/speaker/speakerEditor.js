@@ -1,7 +1,7 @@
 // 对话编辑器的入口
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { attachCharacterList } from "@editors/common/characterList.js";
-import { attachEditorCore } from "@editors/common/editorCore.js";
+import { attachEditorCore, rerenderOnGroupToggle } from "@editors/common/editorCore.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
 import { attachGroupReorder } from "@editors/common/groupedReorder.js";
 import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
@@ -126,8 +126,12 @@ attachLayoutRefresh(speakerEditor, {
   // 新增布局卡片时直接渲染一张
   renderActionCard: renderSpeakerCard,
   // 切换分组后重新渲染当前内容
-  onGroupToggle: () =>
-    speakerEditor.renderViewAndList(() => speakerEditor.renderCanvas()),
+  onGroupToggle: (groupIndex, isOpening) =>
+    rerenderOnGroupToggle(speakerEditor, groupIndex, isOpening, {
+      renderView: () => speakerEditor.renderViewAndList(() => speakerEditor.renderCanvas()),
+      containerKey: "canvas",
+      shouldScrollOnOpen: false,
+    }),
 });
 
 attachGroupReorder(speakerEditor, {

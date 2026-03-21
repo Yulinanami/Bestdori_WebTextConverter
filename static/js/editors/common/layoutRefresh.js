@@ -3,6 +3,7 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { state } from "@managers/stateManager.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
 import { renderAvatar } from "@utils/avatarUtils.js";
+import { buildNameMap } from "@utils/TimelineCardFactory.js";
 import { resolveGroupRange, updateGroupHeader } from "@editors/common/groupHeaderUtils.js";
 
 // 给编辑器添加布局卡片局部刷新
@@ -13,6 +14,7 @@ export function attachLayoutRefresh(editor, options = {}) {
     cardSelector = ".talk-item, .layout-item",
     renderActionCard,
     onGroupToggle,
+    onMutationApplied,
   } = options;
   // 把详情转成文字
   const normalizeDetail = (detail) => {
@@ -60,9 +62,7 @@ export function attachLayoutRefresh(editor, options = {}) {
         return false;
       }
 
-      const action = this.projectFileState.actions.find(
-        (actionItem) => actionItem.id === pendingPatch.actionId
-      );
+      const action = this.findActionById(pendingPatch.actionId);
       if (!action || action.type !== "layout") {
         return false;
       }
@@ -79,11 +79,7 @@ export function attachLayoutRefresh(editor, options = {}) {
       DOMUtils.applyLayoutTypeClass(layoutCard, action.layoutType);
 
       const configEntries = state.currentConfig || {};
-      const characterNameMap = new Map(
-        Object.entries(configEntries).flatMap(([name, ids]) =>
-          ids.map((id) => [id, name])
-        )
-      );
+      const characterNameMap = buildNameMap(configEntries);
       const characterName =
         action.characterName || characterNameMap.get(action.characterId);
       const nameElement = layoutCard.querySelector(".speaker-name");
@@ -128,6 +124,12 @@ export function attachLayoutRefresh(editor, options = {}) {
         container.querySelector(".timeline-group-header")
       );
       const preservedScrollTop = container.scrollTop;
+      const finishMutation = () => {
+        if (typeof onMutationApplied === "function") {
+          onMutationApplied.call(this, pendingPatch);
+        }
+        return true;
+      };
 
       if (shouldGroup) {
         // 分组模式下只重建当前展开组
@@ -141,8 +143,9 @@ export function attachLayoutRefresh(editor, options = {}) {
         let activeGroupIndex = this.activeGroupIndex;
         if (pendingPatch.type === "add") {
           // 新增卡片时优先切到命中的那一组
-          const insertIndex = actions.findIndex(
-            (actionItem) => actionItem.id === pendingPatch.actionId
+          const insertIndex = this.findActionIndexById(
+            pendingPatch.actionId,
+            actions,
           );
           if (insertIndex >= 0) {
             activeGroupIndex = Math.floor(insertIndex / groupSize);
@@ -183,7 +186,9 @@ export function attachLayoutRefresh(editor, options = {}) {
             onToggle: (index) => {
               const isOpening = this.activeGroupIndex !== index;
               this.activeGroupIndex = isOpening ? index : null;
-              onGroupToggle.call(this, index, isOpening);
+              if (typeof onGroupToggle === "function") {
+                onGroupToggle.call(this, index, isOpening);
+              }
             },
           });
           fragment.appendChild(header);
@@ -209,7 +214,7 @@ export function attachLayoutRefresh(editor, options = {}) {
 
         container.replaceChildren(fragment);
         container.scrollTop = preservedScrollTop;
-        return true;
+        return finishMutation();
       }
 
       // 组数掉回普通模式时直接整列表重画
@@ -225,13 +230,14 @@ export function attachLayoutRefresh(editor, options = {}) {
         }
         container.replaceChildren(fragment);
         container.scrollTop = preservedScrollTop;
-        return true;
+        return finishMutation();
       }
 
       // 普通模式下再按增删类型只改命中的卡片
       if (pendingPatch.type === "add") {
-        const insertIndex = actions.findIndex(
-          (actionItem) => actionItem.id === pendingPatch.actionId
+        const insertIndex = this.findActionIndexById(
+          pendingPatch.actionId,
+          actions,
         );
         if (insertIndex < 0) {
           return false;
@@ -251,7 +257,7 @@ export function attachLayoutRefresh(editor, options = {}) {
           startIndex: insertIndex,
           baseIndex: 0,
         });
-        return true;
+        return finishMutation();
       }
 
       // 普通模式下直接删卡片
@@ -272,7 +278,7 @@ export function attachLayoutRefresh(editor, options = {}) {
           : targetIndex,
         baseIndex: 0,
       });
-      return true;
+      return finishMutation();
     },
   });
 }

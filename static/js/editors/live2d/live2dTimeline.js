@@ -1,18 +1,49 @@
 // Live2D 时间线显示和事件
-import { createCache, renderFast, clearCache } from "@utils/timelineRender.js";
-import { DataUtils } from "@utils/DataUtils.js";
 import { state } from "@managers/stateManager.js";
-import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
-import { buildCards } from "@editors/live2d/live2dCards.js";
-import { buildNameMap } from "@utils/TimelineCardFactory.js";
+import { attachGroupedActionRenderer, rerenderOnGroupToggle } from "@editors/common/editorCore.js";
+import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
+import { buildTimelineCards } from "@utils/TimelineCardFactory.js";
+
+function buildRendererSet(editor) {
+  const templates =
+    editor.domCache.templates ||
+    (editor.domCache.templates = {
+      talk: document.getElementById("timeline-talk-card-template"),
+      layout: document.getElementById("timeline-layout-card-template"),
+    });
+  const configEntries = state.currentConfig || {};
+  const renderLayoutControls = (cardEl, layoutAction, characterName) =>
+    editor.renderLayoutControls(cardEl, layoutAction, characterName, {
+      showToggleButton: true,
+    });
+
+  const { renderSingleCard, updateCard, contextSignature } = buildTimelineCards(
+    editor,
+    {
+      templates,
+      configEntries,
+      renderLayoutControls,
+    },
+  );
+
+  return {
+    renderSingleCard,
+    updateCard,
+    contextSignature,
+  };
+}
+
+export function renderLive2DCard(editor, action, globalIndex = -1) {
+  return buildRendererSet(editor).renderSingleCard(action, globalIndex);
+}
 
 // 给编辑器添加时间线方法
 export function attachLive2DTimeline(editor) {
-  const timelineCache = createCache();
-
   Object.assign(editor, {
-    // 清空时间线缓存
-    resetTimelineCache: () => clearCache(timelineCache),
+    // 渲染一张时间线卡片
+    renderTimelineCard(action, globalIndex) {
+      return renderLive2DCard(this, action, globalIndex);
+    },
 
     // 绑定时间线事件
     bindTimelineEvents() {
@@ -26,9 +57,7 @@ export function attachLive2DTimeline(editor) {
         // 点按钮时删除布局卡片
         if (clickEvent.target.matches(".layout-remove-btn")) {
           const actionId = layoutCard.dataset.id;
-          const action = editor.projectFileState.actions.find(
-            (actionItem) => actionItem.id === actionId
-          );
+          const action = editor.findActionById(actionId);
           editor.markLayoutMutation(actionId, "delete", {
             source: "ui",
             detail: `type=layout, character=${
@@ -53,10 +82,7 @@ export function attachLive2DTimeline(editor) {
 
           if (isExpanded) {
             // 收起时把终点改回跟起点一样
-            editor.executeCommand((currentState) => {
-              const currentAction = currentState.actions.find(
-                (actionItem) => actionItem.id === actionId,
-              );
+            editor.executeActionChange(actionId, (currentAction) => {
               if (!currentAction) {
                 return;
               }
@@ -72,10 +98,7 @@ export function attachLive2DTimeline(editor) {
             });
           } else {
             // 展开后单独保存终点设置
-            editor.executeCommand((currentState) => {
-              const currentAction = currentState.actions.find(
-                (actionItem) => actionItem.id === actionId,
-              );
+            editor.executeActionChange(actionId, (currentAction) => {
               if (currentAction) {
                 currentAction.customToPosition = true;
               }
@@ -93,52 +116,29 @@ export function attachLive2DTimeline(editor) {
         );
       };
     },
+  });
 
-// 渲染时间线
-    renderTimeline() {
-      const timeline = editor.domCache.timeline;
-      if (!timeline) return;
+  attachGroupedActionRenderer(editor, {
+    containerKey: "timeline",
+    renderMethodName: "renderTimeline",
+    resetMethodName: "resetTimelineCache",
+    buildRenderers() {
+      return buildRendererSet(this);
+    },
+  });
 
-      const isGroupingEnabled = editor.domCache.groupCheckbox?.checked || false;
-      const actions = editor.projectFileState.actions || [];
-      const templates =
-        editor.domCache.templates ||
-        (editor.domCache.templates = {
-          talk: document.getElementById("timeline-talk-card-template"),
-          layout: document.getElementById("timeline-layout-card-template"),
-        });
-      const configEntries = state.currentConfig || {};
-      const characterNameMap = buildNameMap(configEntries);
-      const { renderSingleCard, updateCard, contextSignature } =
-        buildCards(editor, { templates, characterNameMap });
-      const configSignature = contextSignature(configEntries);
-
-      // 切换分组时重新渲染时间线
-      renderFast({
-        container: timeline,
-        actions,
-        cache: timelineCache,
-        renderCard: renderSingleCard,
-        updateCard,
-        signatureResolver: DataUtils.actionSignature,
-        groupingEnabled: isGroupingEnabled,
-        groupSize: 50,
-        activeGroupIndex: editor.activeGroupIndex,
-        contextSignature: configSignature,
-        // 切换分组后重画时间线并滚到当前组
-        onGroupToggle: (index) => {
-          const isOpening = editor.activeGroupIndex !== index;
-          editor.activeGroupIndex = isOpening ? index : null;
-          editor.renderTimeline();
-
-          if (isOpening) {
-            setTimeout(
-              () => scrollToGroupHeader(editor.domCache.timeline, index),
-              0,
-            );
-          }
-        },
+  attachLayoutRefresh(editor, {
+    containerKey: "timeline",
+    showToggleButton: true,
+    renderActionCard: (currentEditor, action, globalIndex) =>
+      currentEditor.renderTimelineCard(action, globalIndex),
+    onGroupToggle(groupIndex, isOpening) {
+      rerenderOnGroupToggle(this, groupIndex, isOpening, {
+        renderView: this.renderTimeline,
       });
+    },
+    onMutationApplied() {
+      this.renderUsedList();
     },
   });
 }

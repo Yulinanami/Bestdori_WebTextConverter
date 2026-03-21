@@ -4,6 +4,7 @@ import { DOMUtils } from "@utils/DOMUtils.js";
 import { selectionManager } from "@managers/selectionManager.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
+import { bindOutsideClickDismiss } from "@editors/common/editorCore.js";
 
 // 把长文本压短一点
 const CARD_SELECTOR = ".dialogue-item, .layout-item";
@@ -32,25 +33,6 @@ function emitSelectionChange(editor) {
 function clearSelection(editor) {
   selectionManager.selectedIds.clear();
   emitSelectionChange(editor);
-}
-
-// 按 id 找动作
-function findAction(actions, actionId) {
-  return actions.find((actionItem) => actionItem.id === actionId);
-}
-
-// 找动作所在位置
-function findActionIndex(actions, actionId) {
-  return actions.findIndex((actionItem) => actionItem.id === actionId);
-}
-
-// 修改一条动作
-function runActionChange(editor, actionId, mutate) {
-  editor.executeCommand((currentState) => {
-    // 找到目标动作后再修改
-    const action = findAction(currentState.actions, actionId);
-    if (action) mutate(action, currentState);
-  });
 }
 
 // 记录卡片增删的局部刷新信息
@@ -119,8 +101,8 @@ function handleDialogueClick(editor, clickEvent) {
 
 // 处理布局卡片删除
 function handleLayoutDelete(editor, actionId) {
-  const layoutAction = findAction(editor.projectFileState.actions, actionId);
-  const deleteIndex = findActionIndex(editor.projectFileState.actions, actionId);
+  const layoutAction = editor.findActionById(actionId);
+  const deleteIndex = editor.findActionIndexById(actionId);
   if (deleteIndex > -1) {
     markCardMutation(editor, {
       type: "delete",
@@ -258,7 +240,7 @@ export function attachSpeakerActions(editor) {
 
     // 从一条对话里删掉一个说话人
     removeSpeaker(actionId, characterIdToRemove) {
-      runActionChange(this, actionId, (action) => {
+      this.executeActionChange(actionId, (action) => {
         const nextSpeakers = action.speakers.filter(
           (speaker) => speaker.characterId !== characterIdToRemove
         );
@@ -275,7 +257,7 @@ export function attachSpeakerActions(editor) {
 
     // 清空一条对话里的所有说话人
     clearActionSpeakers(actionId) {
-      runActionChange(this, actionId, (action) => {
+      this.executeActionChange(actionId, (action) => {
         if (action && action.speakers.length > 0) {
           action.speakers = [];
           this.markSpeakerChange([actionId], "ui", "clear speakers");
@@ -399,7 +381,7 @@ export function attachSpeakerActions(editor) {
 
     // 保存行内文字修改
     commitInlineTextEdit(actionId, editedText) {
-      const targetAction = findAction(this.projectFileState.actions, actionId);
+      const targetAction = this.findActionById(actionId);
       if (!targetAction) {
         return;
       }
@@ -420,7 +402,7 @@ export function attachSpeakerActions(editor) {
         detail: `text: "${shortText(oldText)}" -> "${shortText(trimmedText)}"`,
         source: "ui",
       };
-      runActionChange(this, actionId, (action) => {
+      this.executeActionChange(actionId, (action) => {
         action.text = trimmedText;
       });
     },
@@ -446,7 +428,7 @@ export function attachSpeakerActions(editor) {
         detail: `type=talk, text="${shortText(trimmedText)}", speakers=0`,
       });
       this.executeCommand((currentState) => {
-        const currentIndex = findActionIndex(currentState.actions, actionId);
+        const currentIndex = this.findActionIndexById(actionId, currentState.actions);
         if (currentIndex > -1) {
           currentState.actions.splice(currentIndex + 1, 0, newAction);
         }
@@ -532,7 +514,7 @@ export function attachSpeakerActions(editor) {
 
     // 打开当前卡片的文字编辑
     handleTextEdit(actionId) {
-      const targetAction = findAction(this.projectFileState.actions, actionId);
+      const targetAction = this.findActionById(actionId);
       if (!targetAction) {
         return;
       }
@@ -571,7 +553,7 @@ export function attachSpeakerActions(editor) {
     // 删除一条对话卡片
     async handleCardDelete(actionId) {
       this.closeInlineEditor();
-      const targetAction = findAction(this.projectFileState.actions, actionId);
+      const targetAction = this.findActionById(actionId);
       if (!targetAction) {
         return;
       }
@@ -583,7 +565,7 @@ export function attachSpeakerActions(editor) {
         return;
       }
 
-      const deleteIndex = findActionIndex(this.projectFileState.actions, actionId);
+      const deleteIndex = this.findActionIndexById(actionId);
       if (deleteIndex < 0) {
         return;
       }
@@ -597,7 +579,7 @@ export function attachSpeakerActions(editor) {
         }`,
       });
       this.executeCommand((currentState) => {
-        const index = findActionIndex(currentState.actions, actionId);
+        const index = this.findActionIndexById(actionId, currentState.actions);
         if (index > -1) {
           currentState.actions.splice(index, 1);
         }
@@ -674,7 +656,7 @@ export function attachSpeakerActions(editor) {
         popoverElement.remove()
       );
 
-      const action = findAction(editor.projectFileState.actions, actionId);
+      const action = editor.findActionById(actionId);
       if (!action) {
         return;
       }
@@ -746,20 +728,10 @@ export function attachSpeakerActions(editor) {
       popover.style.top = `${rect.bottom + 5}px`;
       popover.style.left = `${rect.left}px`;
 
-      // 点外面时关闭弹出框
-      setTimeout(() => {
-        document.addEventListener(
-          "click",
-          // 点到弹出框外面时直接关闭
-          function onClickOutside(clickEvent) {
-            if (!popover.contains(clickEvent.target)) {
-              popover.remove();
-              document.removeEventListener("click", onClickOutside);
-            }
-          },
-          { once: true }
-        );
-      }, 0);
+      // 点到弹出框外面时直接关闭
+      bindOutsideClickDismiss(popover, () => {
+        popover.remove();
+      });
     },
   });
 }

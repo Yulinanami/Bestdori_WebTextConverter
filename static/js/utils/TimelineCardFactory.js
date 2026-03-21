@@ -2,6 +2,7 @@
 import { configManager } from "@managers/configManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { renderAvatar } from "@utils/avatarUtils.js";
+import { DataUtils } from "@utils/DataUtils.js";
 
 // 建一份角色 id 到名字的映射
 export function buildNameMap(configEntries = {}) {
@@ -197,4 +198,84 @@ export function createLayoutCard(
   }
 
   return cardFragment;
+}
+
+// 为时间线编辑器构建一套通用卡片渲染器
+export function buildTimelineCards(
+  editor,
+  {
+    templates,
+    configEntries = {},
+    talkTemplateId = "timeline-talk-card-template",
+    layoutTemplateId = "timeline-layout-card-template",
+    renderLayoutControls,
+    afterRenderCard,
+    afterUpdateCard,
+  } = {},
+) {
+  const characterNameMap = buildNameMap(configEntries);
+
+  const renderSingleCard = (action, globalIndex = -1) => {
+    let cardElement;
+
+    if (action.type === "talk") {
+      cardElement = createTalkCard(action, {
+        template: templates?.talk,
+        templateId: templates?.talk?.id || talkTemplateId,
+      });
+    } else if (action.type === "layout") {
+      const resolvedName =
+        action.characterName || characterNameMap.get(action.characterId);
+      cardElement = createLayoutCard(
+        { ...action, characterName: resolvedName },
+        {
+          template: templates?.layout,
+          templateId: templates?.layout?.id || layoutTemplateId,
+          renderLayoutControls,
+        },
+      );
+    } else {
+      return null;
+    }
+
+    const renderedCard =
+      cardElement?.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+        ? cardElement.firstElementChild
+        : cardElement;
+    if (!renderedCard) {
+      return null;
+    }
+
+    updateCardIndex(renderedCard, globalIndex);
+    afterRenderCard?.(renderedCard, action, globalIndex);
+    return renderedCard;
+  };
+
+  const updateCard = (action, cardElement, globalIndex = -1) => {
+    if (!cardElement) {
+      return false;
+    }
+
+    const updated =
+      (action.type === "talk" && updateTalkCard(cardElement, action)) ||
+      (action.type === "layout" &&
+        updateLayoutCard(cardElement, action, {
+          characterName: characterNameMap.get(action.characterId),
+          renderLayoutControls,
+        }));
+    if (!updated) {
+      return false;
+    }
+
+    updateCardIndex(cardElement, globalIndex);
+    afterUpdateCard?.(cardElement, action, globalIndex);
+    return true;
+  };
+
+  return {
+    renderSingleCard,
+    updateCard,
+    characterNameMap,
+    contextSignature: DataUtils.shallowSignature(configEntries),
+  };
 }

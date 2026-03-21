@@ -151,9 +151,7 @@ const layoutMethods = {
         ? parseInt(targetElement.value) || 0
         : targetElement.value;
     const targetClassName = targetElement.className;
-    const currentAction = this.projectFileState?.actions?.find(
-      (actionItem) => actionItem.id === actionId
-    );
+    const currentAction = this.findActionById(actionId);
     const snapshot = readLayoutSnapshot(currentAction, targetClassName);
     // 先记录修改前后的值
     this.markLayoutChange?.(actionId, {
@@ -164,10 +162,7 @@ const layoutMethods = {
     });
 
     // 再写入动作数据
-    this.executeCommand((currentState) => {
-      const action = currentState.actions.find(
-        (actionItem) => actionItem.id === actionId
-      );
+    this.executeActionChange(actionId, (action) => {
       if (!action) return;
 
       // 按控件类名找到对应字段的写回方法

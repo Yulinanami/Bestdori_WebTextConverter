@@ -6,6 +6,7 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { modalService } from "@services/ModalService.js";
 import { state } from "@managers/stateManager.js";
 import { motionManager, expressionManager } from "@managers/motionExprManager.js";
+import { bindOutsideClickDismiss } from "@editors/common/editorCore.js";
 import { assignUI } from "@editors/expression/exprAssignRenderer.js";
 import { shortValue } from "@editors/common/changeSummaryUtils.js";
 import { DragHelper } from "@editors/common/DragHelper.js";
@@ -43,21 +44,6 @@ function summarizeAssignItem(item) {
   )}, expression=${shortValue(item.expression)}, delay=${shortValue(item.delay)}`;
 }
 
-// 按 id 找动作
-function findAction(actions, actionId) {
-  return actions.find((actionItem) => actionItem.id === actionId);
-}
-
-// 修改一条动作
-function runActionChange(editor, actionId, mutate) {
-  editor.executeCommand((currentState) => {
-    const action = findAction(currentState.actions, actionId);
-    if (action) {
-      mutate(action, currentState);
-    }
-  });
-}
-
 // 把更新内容整理成短文字
 function summarizeUpdates(beforeValue, updates) {
   return Object.keys(updates)
@@ -71,7 +57,18 @@ function summarizeUpdates(beforeValue, updates) {
 // 记录局部刷新再执行修改
 function markExprChange(editor, actionId, operation, detail, mutate) {
   editor.markCardRender(actionId, { operation, detail });
-  runActionChange(editor, actionId, mutate);
+  editor.executeActionChange(actionId, mutate);
+}
+
+function markExprMutation(editor, actionId, operation, detail, mutate) {
+  const resolvedDetail =
+    typeof detail === "function" ? detail(editor.findActionById(actionId)) : detail;
+  markExprChange(editor, actionId, operation, resolvedDetail, mutate);
+}
+
+function routeAssignmentAction(editor, actionId, onLayout, onTalk) {
+  const isLayout = editor.findActionById(actionId)?.type === "layout";
+  return isLayout ? onLayout() : onTalk();
 }
 
 // 读取一条分配项的上下文
@@ -157,12 +154,11 @@ export function attachExprActions(editor) {
 
     // 更新布局的初始动作表情
     updateInitialState(actionId, updates) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "layout:update-initial-state",
-        summarizeUpdates(action?.initialState, updates),
+        (action) => summarizeUpdates(action?.initialState, updates),
         (actionToUpdate) => {
         if (actionToUpdate.type !== "layout") {
           return;
@@ -176,12 +172,11 @@ export function attachExprActions(editor) {
 
     // 更新一条动作分配
     updateMotionAssignment(actionId, assignmentIndex, updates) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "talk:update-motion-assignment",
-        summarizeUpdates(action?.motions?.[assignmentIndex], updates),
+        (action) => summarizeUpdates(action?.motions?.[assignmentIndex], updates),
         (actionToUpdate) => {
         if (!actionToUpdate.motions?.[assignmentIndex]) {
           return;
@@ -192,13 +187,12 @@ export function attachExprActions(editor) {
 
     // 删除一条动作分配
     removeMotionAssignment(actionId, assignmentIndex) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      const removedItem = action?.motions?.[assignmentIndex];
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "talk:remove-motion-assignment",
-        `removed=${summarizeAssignItem(removedItem)}`,
+        (action) =>
+          `removed=${summarizeAssignItem(action?.motions?.[assignmentIndex])}`,
         (actionToUpdate) => {
         if (!actionToUpdate.motions) {
           return;
@@ -209,12 +203,12 @@ export function attachExprActions(editor) {
 
     // 给布局补一份默认分配
     ensureLayoutData(actionId) {
-      const action = findAction(this.projectFileState.actions, actionId);
+      const action = this.findActionById(actionId);
       if (!action || action.type !== "layout" || this.hasExpressionData(action)) {
         return false;
       }
 
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "layout:ensure-assignment",
@@ -234,14 +228,14 @@ export function attachExprActions(editor) {
 
     // 删除布局分配
     removeLayoutAssignment(actionId) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "layout:remove-assignment",
-        `initialState=${shortValue(action?.initialState)}, delay=${shortValue(
-          action?.delay
-        )} -> removed`,
+        (action) =>
+          `initialState=${shortValue(action?.initialState)}, delay=${shortValue(
+            action?.delay
+          )} -> removed`,
         (actionToUpdate) => {
         if (actionToUpdate.type !== "layout") {
           return;
@@ -253,12 +247,12 @@ export function attachExprActions(editor) {
 
     // 更新布局延迟
     updateLayoutDelay(actionId, delay) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      markExprChange(
+      markExprMutation(
         this,
         actionId,
         "layout:update-delay",
-        `delay: ${shortValue(action?.delay)} -> ${shortValue(delay)}`,
+        (action) =>
+          `delay: ${shortValue(action?.delay)} -> ${shortValue(delay)}`,
         (actionToUpdate) => {
         if (actionToUpdate.type !== "layout") {
           return;
@@ -269,34 +263,35 @@ export function attachExprActions(editor) {
 
     // 更新一条分配
     updateAssignment(actionId, assignmentIndex, updates) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      if (action?.type === "layout") {
-        this.updateInitialState(actionId, updates);
-        return;
-      }
-      this.updateMotionAssignment(actionId, assignmentIndex, updates);
+      routeAssignmentAction(
+        this,
+        actionId,
+        () => this.updateInitialState(actionId, updates),
+        () => this.updateMotionAssignment(actionId, assignmentIndex, updates),
+      );
     },
 
     // 删除一条分配
     removeAssignment(actionId, assignmentIndex) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      if (action?.type === "layout") {
-        this.removeLayoutAssignment(actionId);
-        return;
-      }
-      this.removeMotionAssignment(actionId, assignmentIndex);
+      routeAssignmentAction(
+        this,
+        actionId,
+        () => this.removeLayoutAssignment(actionId),
+        () => this.removeMotionAssignment(actionId, assignmentIndex),
+      );
     },
 
     // 更新分配里的延迟
     setAssignmentDelay(actionId, assignmentIndex, delayValue) {
-      const action = findAction(this.projectFileState.actions, actionId);
-      if (action?.type === "layout") {
-        this.updateLayoutDelay(actionId, delayValue);
-        return;
-      }
-      this.updateAssignment(actionId, assignmentIndex, {
-        delay: delayValue,
-      });
+      routeAssignmentAction(
+        this,
+        actionId,
+        () => this.updateLayoutDelay(actionId, delayValue),
+        () =>
+          this.updateAssignment(actionId, assignmentIndex, {
+            delay: delayValue,
+          }),
+      );
     },
 
     // 给分配区绑定拖放
@@ -353,7 +348,7 @@ export function attachExprActions(editor) {
         // 点击事件统一从这一层分发 先处理按钮 再处理卡片里的区域
         // 点设置按钮时打开设置区
         if (target.matches(".setup-expressions-btn")) {
-          const action = findAction(this.projectFileState.actions, actionId);
+          const action = this.findActionById(actionId);
           const footer = timelineCard.querySelector(".timeline-item-footer");
 
           // 布局卡片没有分配时先补一个
@@ -436,9 +431,7 @@ export function attachExprActions(editor) {
 
         // 点布局删除按钮时删掉布局卡片
         if (target.matches(".layout-remove-btn")) {
-          const deleteIndex = this.projectFileState.actions.findIndex(
-            (actionItem) => actionItem.id === actionId
-          );
+          const deleteIndex = this.findActionIndexById(actionId);
           if (deleteIndex > -1) {
             this.markLayoutMutation(actionId, "delete", {
               startIndex: deleteIndex,
@@ -735,20 +728,10 @@ export function attachExprActions(editor) {
       if (!dropdown.classList.contains("hidden")) {
         // 展开后只监听一次外部点击 用来收起当前下拉框
         // 点外面时关掉下拉框
-        setTimeout(() => {
-          document.addEventListener(
-            "click",
-            // 点到下拉框外面时收起当前菜单
-            function onClickOutside(clickEvent) {
-              if (!dropdown.parentElement.contains(clickEvent.target)) {
-                dropdown.classList.add("hidden");
-                toggleButton?.classList.remove("active");
-                document.removeEventListener("click", onClickOutside);
-              }
-            },
-            { once: true }
-          );
-        }, 0);
+        bindOutsideClickDismiss(dropdown.parentElement, () => {
+          dropdown.classList.add("hidden");
+          toggleButton?.classList.remove("active");
+        });
       }
     },
 
