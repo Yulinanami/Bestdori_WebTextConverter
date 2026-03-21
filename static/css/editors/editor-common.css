@@ -81,6 +81,8 @@
   position: relative;
   border: 1px solid var(--border-secondary);
   background: var(--surface-container-low);
+  content-visibility: auto;
+  contain-intrinsic-size: 96px;
 }
 
 /* 只读对话卡片样式 */
