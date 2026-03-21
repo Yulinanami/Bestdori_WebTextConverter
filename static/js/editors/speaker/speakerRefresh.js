@@ -100,9 +100,7 @@ export function attachSpeakerRefresh(editor) {
         );
         let shouldFallbackToGroupRefresh = false;
         for (const actionId of visibleTargetIds) {
-          const actionIndex = actions.findIndex(
-            (actionItem) => actionItem.id === actionId,
-          );
+          const actionIndex = this.findActionIndexById(actionId, actions);
           if (actionIndex < 0) {
             this.lastSpeakerError = `未找到 action: ${actionId}`;
             return false;
@@ -138,9 +136,7 @@ export function attachSpeakerRefresh(editor) {
       // 非分组模式只重建命中的卡片 再补序号
       let startIndex = actions.length;
       for (const actionId of pendingPatch.actionIds) {
-        const actionIndex = actions.findIndex(
-          (actionItem) => actionItem.id === actionId,
-        );
+        const actionIndex = this.findActionIndexById(actionId, actions);
         if (actionIndex < 0) {
           this.lastSpeakerError = `未找到 action: ${actionId}`;
           return false;
@@ -292,8 +288,9 @@ export function attachSpeakerRefresh(editor) {
         // 跨分组阈值时切到目标组
         if (!hasGroupHeader) {
           if (pendingPatch.type === "add") {
-            const insertIndex = actions.findIndex(
-              (actionItem) => actionItem.id === pendingPatch.actionId,
+            const insertIndex = this.findActionIndexById(
+              pendingPatch.actionId,
+              actions,
             );
             this.activeGroupIndex =
               insertIndex >= 0 ? Math.floor(insertIndex / groupSize) : 0;
@@ -318,8 +315,9 @@ export function attachSpeakerRefresh(editor) {
       }
 
       if (pendingPatch.type === "add") {
-        const insertIndex = actions.findIndex(
-          (actionItem) => actionItem.id === pendingPatch.actionId,
+        const insertIndex = this.findActionIndexById(
+          pendingPatch.actionId,
+          actions,
         );
         const insertedAction = insertIndex >= 0 ? actions[insertIndex] : null;
         if (!insertedAction) {

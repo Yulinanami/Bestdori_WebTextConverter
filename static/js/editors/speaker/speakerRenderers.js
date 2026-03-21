@@ -1,6 +1,6 @@
 // 对话卡片显示
-import { DOMUtils } from "@utils/DOMUtils.js";
 import { renderAvatar } from "@utils/avatarUtils.js";
+import { createLayoutCard, updateCardIndex, updateLayoutCard } from "@utils/TimelineCardFactory.js";
 
 // 把说话人整理成一个 key
 function buildSpeakerKey(speakers = []) {
@@ -12,14 +12,6 @@ function buildSpeakerKey(speakers = []) {
 // 把说话人 key 存到卡片上
 function applySpeakerKey(card, speakers = []) {
   card.dataset.speakerKey = buildSpeakerKey(speakers);
-}
-
-// 刷新卡片序号
-function updateCardIndex(cardElement, globalIndex) {
-  const numberDiv = cardElement.querySelector(".card-sequence-number");
-  if (numberDiv && globalIndex !== -1) {
-    numberDiv.textContent = `#${globalIndex + 1}`;
-  }
 }
 
 // 取角色名字
@@ -69,25 +61,19 @@ function renderTalkCard(dialogueItem, action, editor) {
 }
 
 // 渲染一张布局卡片
-function renderLayoutCard(cardElement, action, characterNameMap, editor) {
-  const layoutItem = cardElement.firstElementChild || cardElement;
-  layoutItem.dataset.id = action.id;
-  layoutItem.dataset.layoutType = action.layoutType;
-  layoutItem.classList.remove("dialogue-item");
-  layoutItem.classList.add("layout-item");
-  DOMUtils.applyLayoutTypeClass(layoutItem, action.layoutType);
-
+function renderLayoutCard(action, characterNameMap, editor, template) {
   const characterName = resolveCharacterName(action, characterNameMap);
-  layoutItem.querySelector(".speaker-name").textContent =
-    characterName || `未知角色 (ID: ${action.characterId})`;
-  renderAvatar(
-    layoutItem.querySelector(".dialogue-avatar"),
-    action.characterId,
-    characterName,
+  return createLayoutCard(
+    { ...action, characterName },
+    {
+      template,
+      templateId: template?.id || "timeline-layout-card-template",
+      renderLayoutControls: (cardElement, layoutAction, resolvedName) =>
+        editor.renderLayoutControls(cardElement, layoutAction, resolvedName, {
+          showToggleButton: false,
+        }),
+    },
   );
-  editor.renderLayoutControls(cardElement, action, characterName, {
-    showToggleButton: false,
-  });
 }
 
 // 建对话卡片方法
@@ -105,8 +91,12 @@ export function buildSpeakerCards(
       dialogueItem.dataset.id = action.id;
       renderTalkCard(dialogueItem, action, editor);
     } else if (action.type === "layout") {
-      cardElement = templates.layout.content.cloneNode(true);
-      renderLayoutCard(cardElement, action, characterNameMap, editor);
+      cardElement = renderLayoutCard(
+        action,
+        characterNameMap,
+        editor,
+        templates.layout,
+      );
     } else {
       return null;
     }
@@ -145,23 +135,16 @@ export function buildSpeakerCards(
       action.type === "layout" &&
       cardElement.classList.contains("layout-item")
     ) {
-      const characterName = resolveCharacterName(action, characterNameMap);
-      cardElement.dataset.id = action.id;
-      cardElement.dataset.layoutType = action.layoutType;
-      DOMUtils.applyLayoutTypeClass(cardElement, action.layoutType);
-      const nameEl = cardElement.querySelector(".speaker-name");
-      if (nameEl) {
-        nameEl.textContent =
-          characterName || `未知角色 (ID: ${action.characterId})`;
-      }
-      const avatarDiv = cardElement.querySelector(".dialogue-avatar");
-      if (avatarDiv && avatarDiv.dataset.characterId !== String(action.characterId || "")) {
-        renderAvatar(avatarDiv, action.characterId, characterName);
-        avatarDiv.dataset.characterId = String(action.characterId || "");
-      }
-      editor.renderLayoutControls(cardElement, action, characterName, {
-        showToggleButton: false,
+      const updated = updateLayoutCard(cardElement, action, {
+        characterName: resolveCharacterName(action, characterNameMap),
+        renderLayoutControls: (nextCardElement, layoutAction, resolvedName) =>
+          editor.renderLayoutControls(nextCardElement, layoutAction, resolvedName, {
+            showToggleButton: false,
+          }),
       });
+      if (!updated) {
+        return false;
+      }
     } else {
       return false;
     }

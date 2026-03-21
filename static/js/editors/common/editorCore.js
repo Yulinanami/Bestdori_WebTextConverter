@@ -1,9 +1,11 @@
 // 三个编辑器共用的方法
 import { DataUtils } from "@utils/DataUtils.js";
+import { createCache, renderFast, clearCache } from "@utils/timelineRender.js";
 import { EditorHelper } from "@utils/EditorHelper.js";
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { buildProjectData } from "@utils/ConverterCore.js";
 import { ui } from "@utils/uiUtils.js";
+import { scrollToGroupHeader } from "@editors/common/groupHeaderUtils.js";
 import { state } from "@managers/stateManager.js";
 import { historyManager } from "@managers/historyManager.js";
 import { projectManager } from "@managers/projectManager.js";
@@ -12,6 +14,29 @@ const editorCoreMethods = {
   sortableInstances: [],
   scrollAnimationFrame: null,
   scrollSpeed: 0,
+
+  // 按 id 读取一条动作
+  findActionById(actionId, actions = this.projectFileState?.actions || []) {
+    return actions.find((actionItem) => actionItem.id === actionId);
+  },
+
+  // 按 id 找到动作下标
+  findActionIndexById(
+    actionId,
+    actions = this.projectFileState?.actions || [],
+  ) {
+    return actions.findIndex((actionItem) => actionItem.id === actionId);
+  },
+
+  // 只修改命中的一条动作
+  executeActionChange(actionId, mutate) {
+    this.executeCommand((currentState) => {
+      const action = this.findActionById(actionId, currentState.actions);
+      if (action) {
+        mutate(action, currentState);
+      }
+    });
+  },
 
   // 刷新当前项目用到的角色列表
   renderUsedList() {
@@ -347,4 +372,121 @@ export function attachEditorCore(editor, baseEditor) {
   editor.resolveGlobalIndex = BaseEditor.prototype.resolveGlobalIndex;
   editor.resolveHeaderOffset = BaseEditor.prototype.resolveHeaderOffset;
   Object.assign(editor, editorCoreMethods);
+}
+
+// 给编辑器添加共用的分组列表渲染骨架
+export function attachGroupedActionRenderer(editor, options = {}) {
+  const {
+    containerKey,
+    renderMethodName,
+    resetMethodName,
+    buildRenderers,
+    getReturnValue,
+    signatureResolver = DataUtils.actionSignature,
+    scrollOffset = 110,
+    shouldScrollOnOpen = true,
+  } = options;
+  const renderCache = createCache();
+
+  const renderView = function () {
+    const container = this.domCache?.[containerKey];
+    if (!container) {
+      return typeof getReturnValue === "function"
+        ? getReturnValue.call(this)
+        : undefined;
+    }
+
+    const actions = this.projectFileState?.actions || [];
+    const groupingEnabled = this.domCache.groupCheckbox?.checked || false;
+    const rendererSet = buildRenderers.call(this) || {};
+    const rawContextSignature =
+      rendererSet.contextSignature ??
+      rendererSet.configSignature ??
+      "";
+    const contextSignature =
+      typeof rawContextSignature === "function"
+        ? rawContextSignature.call(this)
+        : rawContextSignature;
+
+    renderFast({
+      container,
+      actions,
+      cache: renderCache,
+      renderCard: rendererSet.renderSingleCard,
+      updateCard: rendererSet.updateCard,
+      signatureResolver,
+      groupingEnabled,
+      groupSize: this.groupSize,
+      activeGroupIndex: this.activeGroupIndex,
+      contextSignature,
+      onGroupToggle: (groupIndex) => {
+        const isOpening = this.activeGroupIndex !== groupIndex;
+        this.activeGroupIndex = isOpening ? groupIndex : null;
+        renderView.call(this);
+
+        if (isOpening && shouldScrollOnOpen) {
+          setTimeout(() => {
+            scrollToGroupHeader(
+              this.domCache?.[containerKey],
+              groupIndex,
+              scrollOffset,
+            );
+          }, 0);
+        }
+      },
+    });
+
+    return typeof getReturnValue === "function"
+      ? getReturnValue.call(this)
+      : undefined;
+  };
+
+  Object.assign(editor, {
+    [resetMethodName]: () => clearCache(renderCache),
+    [renderMethodName]: renderView,
+  });
+}
+
+// 分组切换后按统一逻辑重绘并按需滚到组头
+export function rerenderOnGroupToggle(
+  editor,
+  groupIndex,
+  isOpening,
+  options = {},
+) {
+  const {
+    renderView,
+    containerKey = "timeline",
+    scrollOffset = 110,
+    shouldScrollOnOpen = true,
+  } = options;
+  renderView.call(editor);
+
+  if (!isOpening || !shouldScrollOnOpen) {
+    return;
+  }
+
+  setTimeout(() => {
+    scrollToGroupHeader(editor.domCache?.[containerKey], groupIndex, scrollOffset);
+  }, 0);
+}
+
+// 展开浮层后统一监听一次外部点击关闭
+export function bindOutsideClickDismiss(container, onDismiss) {
+  if (!container || typeof onDismiss !== "function") {
+    return;
+  }
+
+  setTimeout(() => {
+    document.addEventListener(
+      "click",
+      function onClickOutside(clickEvent) {
+        if (!container.contains(clickEvent.target)) {
+          onDismiss(clickEvent);
+          document.removeEventListener("click", onClickOutside);
+        }
+      },
+      { once: true },
+    );
+  }, 0);
 }

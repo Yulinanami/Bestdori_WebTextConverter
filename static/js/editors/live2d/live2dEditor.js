@@ -5,14 +5,12 @@ import { attachCharacterList } from "@editors/common/characterList.js";
 import { attachEditorCore } from "@editors/common/editorCore.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
 import { attachGroupReorder } from "@editors/common/groupedReorder.js";
-import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
 import { attachUndoRedo } from "@editors/common/undoRedo.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 import { layoutLog, mutationLog, buildLayoutUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
 import { attachLive2DBehavior } from "@editors/live2d/live2dBehavior.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
-import { attachLive2DRefresh } from "@editors/live2d/live2dRefresh.js";
 
 // 创建 Live2D 编辑器基础对象
 const baseEditor = new BaseEditor({
@@ -101,12 +99,6 @@ export const live2dEditor = {
     this.resetTimelineCache?.();
   },
 };
-
-attachLayoutRefresh(live2dEditor, {
-  containerKey: "timeline",
-  showToggleButton: true,
-});
-attachLive2DRefresh(live2dEditor);
 
 attachGroupReorder(live2dEditor, {
   debugTag: "live2dReorder",
