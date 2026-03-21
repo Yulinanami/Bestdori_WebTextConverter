@@ -6,6 +6,8 @@
   display: flex;
   align-items: flex-start;
   position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: 80px;
 }
 
 /* 对话内容样式优化 */

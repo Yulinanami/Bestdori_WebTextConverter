@@ -98,6 +98,7 @@ export function attachSpeakerRefresh(editor) {
         const visibleTargetIds = pendingPatch.actionIds.filter((actionId) =>
           visibleActionIds.has(actionId)
         );
+        let anchor = null;
         let shouldFallbackToGroupRefresh = false;
         for (const actionId of visibleTargetIds) {
           const actionIndex = this.findActionIndexById(actionId, actions);
@@ -114,6 +115,12 @@ export function attachSpeakerRefresh(editor) {
             shouldFallbackToGroupRefresh = true;
             break;
           }
+          if (!anchor) {
+            anchor = {
+              id: actionId,
+              top: targetCard.getBoundingClientRect().top,
+            };
+          }
 
           const newCard = renderSpeakerCard(this, action, actionIndex);
           if (!newCard) {
@@ -127,6 +134,17 @@ export function attachSpeakerRefresh(editor) {
         if (shouldFallbackToGroupRefresh && !this.applyGroupMutation(actions)) {
           this.lastSpeakerError = "分组局部重绘失败";
           return false;
+        }
+        if (anchor) {
+          requestAnimationFrame(() => {
+            const restoredAnchor = canvas.querySelector(
+              `.dialogue-item[data-id="${anchor.id}"], .layout-item[data-id="${anchor.id}"]`,
+            );
+            if (restoredAnchor) {
+              canvas.scrollTop +=
+                restoredAnchor.getBoundingClientRect().top - anchor.top;
+            }
+          });
         }
         this.renderUsedList();
         this.lastSpeakerError = "";
