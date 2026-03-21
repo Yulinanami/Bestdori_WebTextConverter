@@ -9,15 +9,14 @@ export const quoteManager = {
 
   // 初始化：绑定“添加自定义引号”按钮
   init() {
-    const addButton = document.getElementById("addCustomQuoteBtn");
-    if (addButton) {
-      addButton.addEventListener("click", () =>
+    document.getElementById("addCustomQuoteBtn")?.addEventListener(
+      "click",
+      () =>
         this._addCustomQuote({
           openInputId: "customQuoteOpen",
           closeInputId: "customQuoteClose",
         }),
-      );
-    }
+    );
   },
 
   // 保存自定义引号列表

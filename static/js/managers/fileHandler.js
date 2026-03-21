@@ -7,15 +7,12 @@ import { FileUtils } from "@utils/FileUtils.js";
 export const fileHandler = {
   // 初始化：绑定上传/下载按钮，并启用拖拽上传
   init() {
-    const fileInput = document.getElementById("fileInput");
-    if (fileInput) {
-      fileInput.addEventListener("change", this.handleFileUpload.bind(this));
-    }
-
-    const downloadButton = document.getElementById("downloadBtn");
-    if (downloadButton) {
-      downloadButton.addEventListener("click", this.downloadResult.bind(this));
-    }
+    document
+      .getElementById("fileInput")
+      ?.addEventListener("change", this.handleFileUpload.bind(this));
+    document
+      .getElementById("downloadBtn")
+      ?.addEventListener("click", this.downloadResult.bind(this));
 
     this.setupFileDragDrop();
   },
@@ -61,11 +58,9 @@ export const fileHandler = {
   handleDrop(dropEvent) {
     dropEvent.preventDefault();
     dropEvent.stopPropagation();
-    const dataTransfer = dropEvent.dataTransfer;
-    const files = dataTransfer.files;
-    if (files.length > 0) {
-      document.getElementById("fileInput").files = files;
-      this.handleFileUpload({ target: { files: files } });
+    if (dropEvent.dataTransfer.files.length > 0) {
+      document.getElementById("fileInput").files = dropEvent.dataTransfer.files;
+      this.handleFileUpload({ target: { files: dropEvent.dataTransfer.files } });
     }
   },
 
@@ -86,10 +81,8 @@ export const fileHandler = {
 
     try {
       ui.showStatus("正在上传文件...", "info");
-
-      const uploadResponse = await apiService.uploadFile(file);
-
-      document.getElementById("inputText").value = uploadResponse.content;
+      document.getElementById("inputText").value =
+        (await apiService.uploadFile(file)).content;
 
       if (state.projectFile) {
         state.projectFile = null;

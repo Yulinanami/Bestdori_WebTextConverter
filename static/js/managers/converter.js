@@ -8,27 +8,22 @@ import { buildProjectData } from "@utils/ConverterCore.js";
 export const converter = {
   // 初始化：绑定“转换”按钮
   init() {
-    const convertButton = document.getElementById("convertBtn");
-    if (convertButton) {
-      convertButton.addEventListener("click", this.convertText.bind(this));
-    }
-
-    const copyButton = document.getElementById("copyBtn");
-    if (copyButton) {
-      copyButton.addEventListener("click", this.copyResult.bind(this));
-    }
+    document
+      .getElementById("convertBtn")
+      ?.addEventListener("click", this.convertText.bind(this));
+    document
+      .getElementById("copyBtn")
+      ?.addEventListener("click", this.copyResult.bind(this));
   },
 
   // 复制当前转换结果 JSON
   async copyResult() {
-    const currentResult = state.currentResult;
-    if (!currentResult) {
+    if (!state.currentResult) {
       ui.showStatus("没有可复制的结果！", "error");
       return;
     }
 
-    const copied = await ui.copyToClipboard(currentResult);
-    if (copied) {
+    if (await ui.copyToClipboard(state.currentResult)) {
       ui.showStatus("转换结果已复制到剪贴板！", "success");
       return;
     }
@@ -55,8 +50,8 @@ export const converter = {
 
     const selectedQuotes = quoteManager.listSelectedQuotes();
     // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
-    const narratorInput = document.getElementById("narratorName").value;
-    const narratorName = narratorInput.trim() ? narratorInput : "";
+    const narratorName =
+      document.getElementById("narratorName").value.trim() || "";
     const appendSpaces = parseInt(document.getElementById("appendSpaces").value) || 0;
     const padBeforeNewline =
       parseInt(document.getElementById("appendSpacesBeforeNewline").value) || 0;
@@ -90,15 +85,10 @@ export const converter = {
         appendSpaces,
         padBeforeNewline,
       );
-      const result = convertResponse.result;
-
-      state.currentResult = result;
-      document.getElementById("resultContent").textContent = result;
-      Prism.highlightElement(document.getElementById("resultContent"));
-      const resultSection = document.getElementById("resultSection");
-      resultSection.classList.remove("hidden");
+      state.currentResult = convertResponse.result;
+      document.getElementById("resultSection")?.classList.remove("hidden");
+      ui.renderResultCode("resultContent", state.currentResult);
       ui.showStatus("转换完成！", "success");
-      resultSection.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       ui.showStatus(error.message, "error");
     } finally {

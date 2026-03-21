@@ -48,7 +48,7 @@ export function attachExprRefresh(editor) {
       perfLog(`${debugPrefix}[局部候选] 标记卡片刷新: ${logParts.join(", ")}`);
     },
 
-    // 整理本轮刷新摘要
+    // 把待刷新的卡片列表压成短摘要，方便排查这一轮到底打算刷新谁
     peekCardSummary(limit = 2) {
       const entries = Array.from(this.pendingCardRenders.entries());
       if (!entries.length) {
@@ -70,7 +70,7 @@ export function attachExprRefresh(editor) {
       return `${summary}; ...+${entries.length - limit}`;
     },
 
-    // 逐张卡片尝试局部刷新
+    // 逐张重画卡片 footer；只要有一张对不上，就退回整段重绘
     applyCardRender() {
       const pendingRenders = this.pendingCardRenders;
       if (pendingRenders.size === 0) {
