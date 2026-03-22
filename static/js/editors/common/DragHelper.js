@@ -1,6 +1,13 @@
 // 拖拽相关的通用方法
 
 export const DragHelper = {
+  // 生成一个编辑器专用的拖拽自动滚动处理器
+  createAutoScrollHandler(editor, scrollContainers = []) {
+    return (dragEvent) => {
+      DragHelper.handleAutoScroll(editor, dragEvent, scrollContainers);
+    };
+  },
+
   // 拖拽时自动滚动容器
   handleAutoScroll(editor, dragEvent, scrollContainers = []) {
     if (!scrollContainers.length) {
@@ -68,6 +75,17 @@ export const DragHelper = {
       editor.scrollAnimationFrame = null;
     }
     editor.scrollSpeed = 0;
+  },
+
+  // 开始监听文档级 dragover，用当前编辑器的自动滚动处理器接管滚动
+  startDocumentAutoScroll(editor) {
+    document.addEventListener("dragover", editor.handleDragScrolling);
+  },
+
+  // 结束拖拽时统一移除 dragover 监听并停掉自动滚动
+  stopDocumentAutoScroll(editor) {
+    document.removeEventListener("dragover", editor.handleDragScrolling);
+    DragHelper.stopAutoScroll(editor);
   },
 
   // 按当前顺序刷新卡片序号
@@ -151,6 +169,29 @@ export const DragHelper = {
         );
       });
     };
+  },
+
+  // 为编辑器生成默认的时间线/画布重排处理
+  createEditorReorderHandler(editor) {
+    return DragHelper.createReorderHandler({
+      runCommand: (changeFn) => editor.executeCommand(changeFn),
+      beforeReorder: (globalOldIndex, globalNewIndex) => {
+        editor.markGroupReorder(
+          "state",
+          "drag",
+          `index: ${globalOldIndex} -> ${globalNewIndex}`
+        );
+      },
+    });
+  },
+
+  // 为编辑器生成默认的拖拽结束处理，内部直接复用通用重排逻辑
+  createEditorOnEndHandler(editor, groupSize = 50) {
+    return DragHelper.createOnEndHandler({
+      editor,
+      groupSize,
+      executeFn: DragHelper.createEditorReorderHandler(editor),
+    });
   },
 
   // 分组拖拽后刷新当前组序号

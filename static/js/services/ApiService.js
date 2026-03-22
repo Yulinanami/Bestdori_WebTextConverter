@@ -45,27 +45,32 @@ class ApiService {
     }
   }
 
-  // 导入配置文件
-  async importConfigFile(file) {
+  // 把单文件上传统一收在这一层，避免每个接口都重复拼 FormData
+  postFile(url, file, fieldName = "file") {
     const formData = new FormData();
-    formData.append("file", file);
-    return await this.post("/api/config-import", formData);
+    formData.append(fieldName, file);
+    return this.post(url, formData);
+  }
+
+  // 导入配置文件
+  importConfigFile(file) {
+    return this.postFile("/api/config-import", file);
   }
 
   // 导出配置文件
-  async exportConfigFile(payload) {
-    return await this.post("/api/config-export", payload);
+  exportConfigFile(payload) {
+    return this.post("/api/config-export", payload);
   }
 
   // 发送内容开始转换
-  async convertText(
+  convertText(
     projectFile,
     quoteConfig = [],
     narratorName = " ",
     appendSpaces = 0,
     padBeforeNewline = 0,
   ) {
-    return await this.post("/api/convert", {
+    return this.post("/api/convert", {
       projectFile,
       quoteConfig,
       narratorName,
@@ -75,35 +80,28 @@ class ApiService {
   }
 
   // 上传文本文件
-  async uploadFile(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    // 不手动设置 Content-Type
-    return await this.post("/api/upload", formData);
+  uploadFile(file) {
+    return this.postFile("/api/upload", file);
   }
 
   // 导入一个待合并文件
-  async importMergeFile(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return await this.post("/api/merge-file-import", formData);
+  importMergeFile(file) {
+    return this.postFile("/api/merge-file-import", file);
   }
 
   // 发送文件开始合并
-  async mergeFiles(files) {
-    return await this.post("/api/merge", { files });
+  mergeFiles(files) {
+    return this.post("/api/merge", { files });
   }
 
   // 导入项目进度文件
-  async importProjectFile(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return await this.post("/api/project-file-import", formData);
+  importProjectFile(file) {
+    return this.postFile("/api/project-file-import", file);
   }
 
   // 导出项目进度文件
-  async exportProjectFile(projectFile) {
-    return await this.post("/api/project-export", { projectFile });
+  exportProjectFile(projectFile) {
+    return this.post("/api/project-export", { projectFile });
   }
 
   // 下载结果文件
@@ -122,6 +120,15 @@ class ApiService {
       const errorMessage = this._handleError(error);
       console.error("[ApiService] 下载失败:", errorMessage);
       throw new Error(errorMessage);
+    }
+  }
+
+  // 让后端关闭服务
+  async shutdownServer() {
+    try {
+      await this.post("/api/shutdown", {}, { timeout: 1000 });
+    } catch {
+      console.warn("Shutdown request sent. Server is closing.");
     }
   }
 

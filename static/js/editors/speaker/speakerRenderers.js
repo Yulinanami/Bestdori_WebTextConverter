@@ -63,15 +63,14 @@ function renderTalkCard(dialogueItem, action, editor) {
 // 渲染一张布局卡片
 function renderLayoutCard(action, characterNameMap, editor, template) {
   const characterName = resolveCharacterName(action, characterNameMap);
+  const renderLayoutControls = editor.createLayoutControlsRenderer(true);
   return createLayoutCard(
     { ...action, characterName },
     {
       template,
       templateId: template?.id || "timeline-layout-card-template",
-      renderLayoutControls: (cardElement, layoutAction, resolvedName) =>
-        editor.renderLayoutControls(cardElement, layoutAction, resolvedName, {
-          showToggleButton: false,
-        }),
+      // 对话编辑器里的布局卡也允许直接改自定义终点位置
+      renderLayoutControls,
     },
   );
 }
@@ -135,12 +134,11 @@ export function buildSpeakerCards(
       action.type === "layout" &&
       cardElement.classList.contains("layout-item")
     ) {
+      const renderLayoutControls = editor.createLayoutControlsRenderer(true);
       const updated = updateLayoutCard(cardElement, action, {
         characterName: resolveCharacterName(action, characterNameMap),
-        renderLayoutControls: (nextCardElement, layoutAction, resolvedName) =>
-          editor.renderLayoutControls(nextCardElement, layoutAction, resolvedName, {
-            showToggleButton: false,
-          }),
+        // 局部刷新布局卡时也要把同一套悬浮编辑按钮一起带上
+        renderLayoutControls,
       });
       if (!updated) {
         return false;

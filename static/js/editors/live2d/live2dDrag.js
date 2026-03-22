@@ -5,13 +5,10 @@ import { DragHelper } from "@editors/common/DragHelper.js";
 export function attachLive2DDrag(editor) {
   Object.assign(editor, {
     // 拖动时自动滚动
-    handleDragScrolling: (dragEvent) => {
-      DragHelper.handleAutoScroll(
-        editor,
-        dragEvent,
-        [editor.domCache.timeline, editor.domCache.characterList]
-      );
-    },
+    handleDragScrolling: DragHelper.createAutoScrollHandler(editor, [
+      editor.domCache.timeline,
+      editor.domCache.characterList,
+    ]),
 
     // 初始化拖拽
     initDragAndDrop() {
@@ -37,40 +34,15 @@ export function attachLive2DDrag(editor) {
             },
             sort: false,
             // 开始拖拽时开启自动滚动监听
-            onStart: () =>
-              document.addEventListener("dragover", editor.handleDragScrolling),
+            onStart: () => DragHelper.startDocumentAutoScroll(editor),
             // 结束拖拽时关闭自动滚动监听
-            onEnd: () => {
-              document.removeEventListener(
-                "dragover",
-                editor.handleDragScrolling
-              );
-              DragHelper.stopAutoScroll(editor);
-            },
+            onEnd: () => DragHelper.stopDocumentAutoScroll(editor),
           })
         );
       }
 
-      // 创建重排处理
-      const runReorder = DragHelper.createReorderHandler({
-        // 拖拽重排时直接改时间线数据
-        runCommand: (changeFn) => editor.executeCommand(changeFn),
-        // 重排前先记下这次排序信息
-        beforeReorder: (globalOldIndex, globalNewIndex) => {
-          editor.markGroupReorder(
-            "state",
-            "drag",
-            `index: ${globalOldIndex} -> ${globalNewIndex}`
-          );
-        },
-      });
-
-      // 创建拖拽结束处理
-      const onEndHandler = DragHelper.createOnEndHandler({
-        editor,
-        groupSize: 50,
-        executeFn: runReorder,
-      });
+      // 时间线重排统一走 DragHelper 里的默认结束处理
+      const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
 
       // 创建新增卡片处理
       const onAddHandler = DragHelper.createOnAddHandler({
@@ -104,11 +76,7 @@ export function attachLive2DDrag(editor) {
               group: "live2d-shared",
               // 结束拖拽时先判断是否真的落进时间线
               onEnd: (sortableEvent) => {
-                document.removeEventListener(
-                  "dragover",
-                  editor.handleDragScrolling
-                );
-                DragHelper.stopAutoScroll(editor);
+                DragHelper.stopDocumentAutoScroll(editor);
                 if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
                   editor.applyGroupReorder("state");
                   return;
@@ -120,11 +88,7 @@ export function attachLive2DDrag(editor) {
                 sort: true,
                 filter: ".timeline-group-header",
                 // 开始拖拽时开启自动滚动监听
-                onStart: () =>
-                  document.addEventListener(
-                    "dragover",
-                    editor.handleDragScrolling
-                  ),
+                onStart: () => DragHelper.startDocumentAutoScroll(editor),
               },
             })
           )

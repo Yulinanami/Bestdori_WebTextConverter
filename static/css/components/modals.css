@@ -63,16 +63,6 @@
     box-shadow var(--transition-fast);
 }
 
-.modal-close:hover {
-  background: var(--color-hover-bg);
-  color: var(--text-primary);
-}
-
-.modal-close:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
 /* 模态框内容 */
 .modal-body {
   padding: 24px;

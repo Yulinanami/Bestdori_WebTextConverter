@@ -63,6 +63,16 @@ const editorCoreMethods = {
     });
   },
 
+  // 重置布局相关的局部刷新标记，其它编辑器状态按需追加
+  resetLayoutTransientState(extraState = {}) {
+    this.resetTransientState({
+      pendingGroupReorder: null,
+      pendingLayoutChange: null,
+      pendingLayoutPatch: null,
+      ...extraState,
+    });
+  },
+
   // 保存编辑器内容
   async save() {
     await EditorHelper.saveEditor({

@@ -1,10 +1,5 @@
 /* 表情/Live2D 编辑器布局与特定样式 */
 
-/* 表情编辑器库样式 */
-#expressionEditorLibrary .item-list-container {
-  height: calc(80vh - 220px);
-}
-
 #expressionEditorTimeline .timeline-item {
   display: flex;
   flex-wrap: wrap;
@@ -20,18 +15,10 @@
   padding-bottom: 10px;
 }
 
-/* 时间轴 footer */
-#speakerEditorModal .timeline-item-footer {
-  display: none;
-}
-
-/* Live2D 编辑器中的 footer 需要显示（用于切换按钮） */
-#live2dEditorModal .layout-item .timeline-item-footer {
-  display: flex !important;
-}
-
-/* Live2D 编辑器中的 talk-item footer 保持隐藏 */
-#live2dEditorModal .talk-item .timeline-item-footer {
+/* speaker/live2d 不使用时间轴 footer，expression 的空 footer 也直接隐藏 */
+#speakerEditorModal .timeline-item-footer,
+#live2dEditorModal .timeline-item-footer,
+#expressionEditorTimeline .timeline-item-footer.expr-footer-empty {
   display: none;
 }
 
@@ -48,15 +35,16 @@
   min-width: 200px;
 }
 
-#expressionEditorLibrary .form-group {
-  margin-bottom: 15px;
+#expressionEditorTimeline .timeline-item-footer.expr-footer-summary-only {
+  gap: 8px;
 }
 
-/* 表情编辑器时间轴 */
-#expressionEditorTimeline {
-  flex: 3;
-  overflow-y: auto;
-  padding-right: 24px;
+#expressionEditorTimeline .timeline-item-footer.expr-footer-expanded {
+  gap: 12px;
+}
+
+#expressionEditorLibrary .form-group {
+  margin-bottom: 15px;
 }
 
 /* 表情编辑器模态框布局 */
@@ -89,9 +77,7 @@
   overflow: hidden;
 }
 
-#expressionEditorLibrary .quick-fill-btn,
-#expressionEditorLibrary #addTempMotionBtn,
-#expressionEditorLibrary #addTempExpressionBtn {
+#expressionEditorLibrary .btn-icon-square {
   width: 36px;
   min-width: 36px;
   height: 36px;
@@ -104,19 +90,10 @@
   box-shadow: none;
 }
 
-#expressionEditorLibrary .quick-fill-btn:hover:not(:disabled),
-#expressionEditorLibrary #addTempMotionBtn:hover:not(:disabled),
-#expressionEditorLibrary #addTempExpressionBtn:hover:not(:disabled) {
+#expressionEditorLibrary .btn-icon-square:hover:not(:disabled) {
   background: var(--surface-container);
   border-color: var(--border-primary);
   box-shadow: none;
-}
-
-#expressionEditorLibrary .quick-fill-btn .material-symbols-outlined,
-#expressionEditorLibrary #addTempMotionBtn .material-symbols-outlined,
-#expressionEditorLibrary #addTempExpressionBtn .material-symbols-outlined {
-  font-size: 20px;
-  line-height: 1;
 }
 
 #expressionEditorLibrary .quick-fill-dropdown {
@@ -127,6 +104,7 @@
 }
 
 #expressionEditorLibrary .item-list-container {
+  height: calc(80vh - 220px);
   flex: 1;
   min-height: 0;
   max-height: none;

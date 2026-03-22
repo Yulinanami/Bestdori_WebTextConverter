@@ -106,10 +106,7 @@ export const speakerEditor = {
     }
     this.closeInlineEditor?.();
     // 清空这次编辑留下的临时标记
-    this.resetTransientState({
-      pendingGroupReorder: null,
-      pendingLayoutChange: null,
-      pendingLayoutPatch: null,
+    this.resetLayoutTransientState({
       pendingSpeakerChange: null,
       pendingTextChange: null,
       pendingCardMutation: null,
@@ -122,7 +119,8 @@ export const speakerEditor = {
 attachSpeakerRefresh(speakerEditor);
 attachLayoutRefresh(speakerEditor, {
   containerKey: "canvas",
-  showToggleButton: false,
+  // 对话编辑器的布局卡也要支持右上角自定义位置按钮
+  showToggleButton: true,
   // 新增布局卡片时直接渲染一张
   renderActionCard: renderSpeakerCard,
   // 切换分组后重新渲染当前内容

@@ -541,6 +541,16 @@ export function attachSpeakerActions(editor) {
         return;
       }
 
+      const togglePositionButton = clickEvent.target.closest(".toggle-position-btn");
+      if (togglePositionButton) {
+        const actionId = findClosestActionId(togglePositionButton, ".layout-item");
+        if (actionId) {
+          // 对话编辑器里的布局卡复用公共的终点展开逻辑
+          this.toggleCustomToPosition(actionId);
+        }
+        return;
+      }
+
       const itemId = findClosestActionId(clickEvent.target, CARD_SELECTOR);
       if (!itemId) {
         return;

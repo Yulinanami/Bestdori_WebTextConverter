@@ -55,14 +55,16 @@
   box-shadow: none;
 }
 
-.workspace-step .step-content > .card:nth-child(1 of .card:not(.hidden)) {
+.workspace-step .step-content > .card:nth-child(1 of .card:not(.hidden)),
+.stacked-option-row:first-child {
   border-top-left-radius: 30px;
   border-top-right-radius: 30px;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 }
 
-.workspace-step .step-content > .card:nth-last-child(1 of .card:not(.hidden)) {
+.workspace-step .step-content > .card:nth-last-child(1 of .card:not(.hidden)),
+.stacked-option-row:last-child {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   border-bottom-left-radius: 30px;
@@ -118,20 +120,6 @@
     border-color var(--transition-fast);
 }
 
-.stacked-option-row:first-child {
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.stacked-option-row:last-child {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border-bottom-left-radius: 30px;
-  border-bottom-right-radius: 30px;
-}
-
 .stacked-option-row:hover {
   background: var(--surface-container);
   border-color: var(--border-primary);
@@ -179,7 +167,8 @@
   box-shadow: none;
 }
 
-.stacked-option-btn:hover:not(:disabled) {
+.stacked-option-btn:hover:not(:disabled),
+.config-item:hover {
   background: var(--surface-container);
   border-color: var(--border-primary);
   box-shadow: none;
@@ -194,10 +183,6 @@
   .stacked-option-row {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .stacked-option-highlight,
-  .stacked-option-row {
     padding: 22px;
   }
 
@@ -227,12 +212,6 @@
     background-color var(--transition-fast),
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
-  box-shadow: none;
-}
-
-.config-item:hover {
-  background: var(--surface-container);
-  border-color: var(--border-primary);
   box-shadow: none;
 }
 

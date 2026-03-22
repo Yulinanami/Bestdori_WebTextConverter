@@ -1889,9 +1889,6 @@
             <div class="dialogue-avatar small-avatar"></div>
             <span class="speaker-name"></span>
           </div>
-          <button class="layout-remove-btn" title="删除此布局动作">
-            &times;
-          </button>
         </div>
         <div class="layout-card-body">
           <div class="form-group-inline">
@@ -1923,10 +1920,7 @@
           </div>
 
           <!-- 第三行：终点位置 (To)，展开时显示 -->
-          <div
-            class="to-position-container to-position-grid"
-            style="display: none"
-          >
+          <div class="to-position-container to-position-grid">
             <div class="form-group-inline">
               <label>终点:</label>
               <select
@@ -1947,13 +1941,23 @@
 
         <div class="timeline-item-footer">
           <!-- 状态栏或"设置"按钮将由JS动态添加到这里 -->
-          <!-- 切换起终点位置的按钮（用于登场/退场） -->
+        </div>
+        <div class="card-action-buttons layout-card-action-buttons">
           <button
-            class="btn btn-sm btn-secondary toggle-position-btn hidden"
-            title="显示/隐藏终点位置配置"
+            class="btn btn-icon-action toggle-position-btn hidden"
+            title="编辑自定义位置配置"
+            aria-label="编辑自定义位置配置"
+            type="button"
           >
-            <span class="toggle-position-icon">+</span>
-            <span class="toggle-position-text">自定义位置配置</span>
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button
+            class="btn btn-icon-action btn-icon-danger layout-remove-btn"
+            title="删除此布局动作"
+            aria-label="删除此布局动作"
+            type="button"
+          >
+            <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
       </div>
@@ -2039,7 +2043,7 @@
       <div class="config-item">
         <div class="config-avatar-wrapper">
           <div class="config-avatar" data-id="">
-            <!-- Avatar content -->
+            <!-- 角色头像 -->
           </div>
         </div>
         <input
@@ -2068,10 +2072,10 @@
         <div class="costume-item-header">
           <div class="costume-character-info">
             <div class="config-avatar" data-id="">
-              <!-- Avatar content -->
+              <!-- 角色头像 -->
             </div>
             <span class="costume-character-name">
-              <!-- Name and ID -->
+              <!-- 名称和ID -->
             </span>
           </div>
           <div class="costume-actions">
@@ -2079,17 +2083,17 @@
               class="btn btn-sm btn-secondary toggle-costume-details-btn"
               data-safe-dom-id=""
             >
-              <span id="" class="material-symbols-outlined">expand_more</span>
+              <span class="material-symbols-outlined">expand_more</span>
               服装管理
             </button>
           </div>
         </div>
-        <div id="" class="costume-details hidden">
+        <div class="costume-details hidden">
           <div class="costume-current">
             <label>当前服装：</label>
             <div class="select-with-icon">
               <select class="form-input costume-select" data-character-name="">
-                <!-- Options -->
+                <!-- 选项 -->
               </select>
               <span class="material-symbols-outlined" aria-hidden="true"></span>
             </div>
@@ -2113,8 +2117,8 @@
                 </button>
               </div>
             </div>
-            <div id="" class="costume-list-items">
-              <!-- Costume list items -->
+            <div class="costume-list-items">
+              <!-- 服装列表项 -->
             </div>
           </div>
         </div>
