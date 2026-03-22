@@ -1,5 +1,6 @@
 // 对话编辑器的入口
 import { BaseEditor } from "@utils/BaseEditor.js";
+import { storageService } from "@services/StorageService.js";
 import { attachCharacterList } from "@editors/common/characterList.js";
 import { attachEditorCore, rerenderOnGroupToggle } from "@editors/common/editorCore.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
@@ -52,6 +53,7 @@ export const speakerEditor = {
     // 先缓存常用节点
     this.domCache = {
       groupCheckbox: document.getElementById("groupCardsCheckbox"),
+      optimizeDragCheckbox: document.getElementById("optimizeDragCheckbox"),
       canvas: document.getElementById("speakerEditorCanvas"),
       characterList: document.getElementById("speakerEditorCharacterList"),
       modal: document.getElementById("speakerEditorModal"),
@@ -72,11 +74,21 @@ export const speakerEditor = {
     });
     // 切换多选模式
     this.domCache.multiSelectBtn?.addEventListener("click", () => this.toggleMultiSelect());
-    // 切换文本编辑模式
-    this.domCache.textEditBtn?.addEventListener("click", () => this.toggleTextEditMode());
+    // 切换卡片排序模式
+    this.domCache.textEditBtn?.addEventListener("click", () => this.toggleSortMode());
 
     // 绑定通用事件
     this.initCommonEvents();
+
+    if (this.domCache.optimizeDragCheckbox) {
+      this.domCache.optimizeDragCheckbox.checked = this.isDragOptimized;
+      this.domCache.optimizeDragCheckbox.addEventListener("change", (e) => {
+        this.isDragOptimized = e.target.checked;
+        storageService.save("speaker_drag_optimization", this.isDragOptimized);
+        this.applyModeUIState();
+        this.initDragAndDrop();
+      });
+    }
 
     // 绑定置顶角色按钮
     this.initPinButtonHandler();

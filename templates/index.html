@@ -218,17 +218,32 @@
 
           <div class="step-content">
             <!-- 性能优化 -->
-            <div class="stacked-option-highlight">
+            <div class="stacked-option-highlight" style="margin-bottom: 12px;">
               <div class="stacked-option-copy">
-                <h3 class="card-title">编辑器性能优化</h3>
+                <h3 class="card-title">启用对话编辑器拖拽优化</h3>
                 <p class="card-subtitle">
-                  当对话卡片数量过多导致编辑器浏览卡顿时，启用此选项可降低卡顿。
+                  减少交互时卡片列表滚动造成的重排，降低对话编辑器性能开销。关闭后恢复旧版拖放操作。
+                </p>
+              </div>
+              <div class="stacked-option-action stacked-option-action-toggle">
+                <label class="auto-preview-label">
+                  <input type="checkbox" id="optimizeDragCheckbox" checked />
+                  <span class="font-medium">启用对话拖拽优化</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="stacked-option-highlight" style="margin-bottom: 24px;">
+              <div class="stacked-option-copy">
+                <h3 class="card-title">启用编辑器卡片渲染分组</h3>
+                <p class="card-subtitle">
+                  当单个场景内的卡片过多导致网页严重卡顿时，开启该功能可分切渲染来极大提升流畅度。
                 </p>
               </div>
               <div class="stacked-option-action stacked-option-action-toggle">
                 <label class="auto-preview-label">
                   <input type="checkbox" id="groupCardsCheckbox" checked />
-                  <span class="font-medium">启用编辑器卡片分组</span>
+                  <span class="font-medium">启用卡片渲染分组</span>
                 </label>
               </div>
             </div>
@@ -1020,6 +1035,19 @@
 
             <div class="card">
               <div class="card-header">
+                <h3 class="card-title">对话编辑器拖拽优化</h3>
+              </div>
+              <div class="card-body">
+                <ul>
+                  <li>默认开启，可减少交互时卡片列表滚动造成的重排，降低对话编辑器性能开销</li>
+                  <li>如果你更喜欢原来那种可以自由拖动整张卡片的操作方式，可以关闭此选项</li>
+                  <li>关闭后，排序模式开关会被自动禁用，因为旧版拖拽本身就自带排序功能</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
                 <h3 class="card-title">项目进度文件导入导出</h3>
               </div>
               <div class="card-body">
@@ -1043,29 +1071,31 @@
           <div class="step-content">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">界面和分配方式</h3>
+                <h3 class="card-title">分配和删除角色</h3>
               </div>
               <div class="card-body">
                 <ul>
-                  <li>左侧是对话卡片列表，右侧是角色列表</li>
-                  <li>同一张对话卡片可以添加多个说话角色</li>
-                  <li>直接把右侧角色头像拖到左侧卡片上，就能完成说话人分配</li>
-                  <li>从卡片上反向拖出角色，可以移除这个角色</li>
-                  <li>也可以先点击选中对话卡片，再拖拽右侧角色，实现固定卡片的角色分配</li>
+                  <li>左侧是对话卡片列表，右侧是备选角色列表</li>
+                  <li>同一张对话卡片可以包含多个说话角色并排显示</li>
+                  <li>把右侧角色头像直接拖进左侧卡片上，就能完成角色的分配</li>
+                  <li>按住卡片里的【角色头像】或【角色名称】向右拖出，即可快速剥离并删除该角色</li>
+                  <li>点击选中一张或多张对话卡片后，再单击右侧角色，可实现指定卡片的批量分配</li>
                 </ul>
               </div>
             </div>
 
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">常用功能</h3>
+                <h3 class="card-title">卡片排序和文本编辑</h3>
               </div>
               <div class="card-body">
                 <ul>
-                  <li>点击角色头像右侧的图钉，可以把常用角色固定在列表顶部</li>
-                  <li>打开多选模式后，可以一次性勾选多张卡片，再统一点击角色批量分配</li>
-                  <li>如果需要修改台词，可以打开编辑模式，编辑目标卡片上的文本</li>
-                  <li>点击底部的【恢复默认】会清空当前对话卡片上的说话角色分配</li>
+                  <li>在卡片上点击铅笔图标即可直接进行台词文本的修改</li>
+                  <li>如果想调整对话顺序，请在底部先切换到【排序卡片: 开】状态</li>
+                  <li>排序模式开启后，剥离角色的拖拽功能将被屏蔽。此时长按任何对话卡片即可上下拖动重新排序</li>
+                  <li>排序完成后请记得将开关切换回【排序卡片: 关】，以免妨碍日常的角色分配和删除</li>
+                  <li>如果关闭了【启用对话编辑器拖拽优化】，排序模式开关会自动禁用，因为旧版操作本身就自带排序功能，无需额外切换</li>
+                  <li>点击底部的【恢复默认】会清空当前时间线上的所有说话角色分配</li>
                 </ul>
               </div>
             </div>
