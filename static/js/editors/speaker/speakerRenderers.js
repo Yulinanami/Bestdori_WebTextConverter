@@ -33,6 +33,7 @@ function renderTalkCard(dialogueItem, action, editor) {
     avatarContainer.style.display = "flex";
     speakerNameDiv.classList.remove("hidden");
     dialogueItem.classList.remove("narrator");
+    
     renderAvatar(avatarDiv, firstSpeaker.characterId, firstSpeaker.name);
     speakerNameDiv.textContent = speakers.map((speaker) => speaker.name).join(" & ");
 
@@ -48,7 +49,7 @@ function renderTalkCard(dialogueItem, action, editor) {
       });
     } else {
       multiSpeakerBadge.classList.add("hidden");
-      avatarContainer.style.cursor = "default";
+      avatarContainer.style.cursor = "grab";
     }
   } else {
     avatarContainer.classList.add("hidden");
@@ -56,6 +57,10 @@ function renderTalkCard(dialogueItem, action, editor) {
     multiSpeakerBadge.classList.add("hidden");
     dialogueItem.classList.add("narrator");
   }
+
+  // 根据当前编辑器是否开启了卡片排序模式来决定整个卡片是否原生可拖拽
+  dialogueItem.draggable = !editor.isSortMode;
+  dialogueItem.style.cursor = editor.isSortMode ? "grab" : "pointer";
 
   dialogueItem.querySelector(".dialogue-text").textContent = action.text;
 }

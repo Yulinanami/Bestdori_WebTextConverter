@@ -300,26 +300,47 @@ export function attachSpeakerActions(editor) {
       return usedNames;
     },
 
-    // 读取本地保存的模式
+    // 载入持久化的编辑模式
     loadModePreferences() {
+      // 读档
       const savedMultiSelect = storageService.load(
-        STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE
+        STORAGE_KEYS.SPEAKER_MULTI_SELECT
       );
-      const savedTextEdit = storageService.load(
-        STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE
+      this.isMultiSelectMode = savedMultiSelect || false;
+      const savedSortMode = storageService.load(
+        STORAGE_KEYS.SPEAKER_SORT_MODE
       );
-      this.isMultiSelectMode = savedMultiSelect === true;
-      this.isTextEditMode = savedTextEdit === true;
+      this.isSortMode = savedSortMode || false;
+      
+      const savedOptimization = storageService.load("speaker_drag_optimization");
+      this.isDragOptimized = savedOptimization !== null ? savedOptimization : true;
     },
 
     // 按当前模式刷新按钮和样式
     applyModeUIState() {
+      const modeBtn = this.domCache.multiSelectBtn;
+      if (modeBtn) {
+        modeBtn.classList.toggle("active", this.isMultiSelectMode);
+      }
+      const textEditBtn = this.domCache.textEditBtn;
+      if (textEditBtn) {
+        if (!this.isDragOptimized) {
+          textEditBtn.disabled = true;
+          textEditBtn.classList.remove("active");
+          this.isSortMode = true; // 强制处于排序模式才能让 SortableJS 老逻辑工作
+        } else {
+          textEditBtn.disabled = false;
+          textEditBtn.classList.toggle("active", this.isSortMode);
+        }
+      }
+      this.applySortModeToCards?.();
       this.syncMultiSelectBtn();
-      this.syncTextEditBtn();
-      this.domCache.canvas?.classList.toggle(
-        "text-edit-mode-active",
-        this.isTextEditMode
-      );
+      this.syncSortModeBtn();
+      // 编辑模式变成常驻开启
+      this.domCache.canvas?.classList.add("text-edit-mode-active");
+      
+      // 更新拖拽状态
+      this.applySortModeToCards?.();
     },
 
     // 刷新多选按钮文字
@@ -332,11 +353,12 @@ export function attachSpeakerActions(editor) {
       }
     },
 
-    // 刷新文本编辑按钮文字
-    syncTextEditBtn() {
-      const toggleButton = this.domCache.textEditBtn;
+    // 刷新排序编辑按钮文字
+    syncSortModeBtn() {
+      const toggleButton = this.domCache.textEditBtn; // 复用原本的 textEditBtn DOM元素
       if (toggleButton) {
-        toggleButton.textContent = this.isTextEditMode ? "编辑: 开" : "编辑: 关";
+        toggleButton.textContent = this.isSortMode ? "排序卡片: 开" : "排序卡片: 关";
+        toggleButton.title = "开启后不再拖拽出角色头像，而是带着整个卡片调整顺序";
       }
     },
 
@@ -351,17 +373,14 @@ export function attachSpeakerActions(editor) {
       clearSelection(this);
     },
 
-    // 切换文本编辑模式
-    toggleTextEditMode() {
-      this.isTextEditMode = !this.isTextEditMode;
+    // 切换卡片排序模式
+    toggleSortMode() {
+      this.isSortMode = !this.isSortMode;
       storageService.save(
-        STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
-        this.isTextEditMode
+        "speaker_sort_mode",
+        this.isSortMode
       );
       this.applyModeUIState();
-      if (!this.isTextEditMode) {
-        this.closeInlineEditor();
-      }
     },
 
     // 关掉行内编辑框
