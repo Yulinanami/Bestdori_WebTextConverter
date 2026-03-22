@@ -89,6 +89,20 @@ function updateDropZoneValue(dropZone, value, showClearButton) {
   DOMUtils.toggleDisplay(dropZone.querySelector(".clear-state-btn"), showClearButton);
 }
 
+function rerenderCardFooter(editor, actionId) {
+  if (!actionId) {
+    return;
+  }
+
+  const action = editor.findActionById(actionId);
+  const timelineCard = editor.domCache.timeline?.querySelector(
+    `.timeline-item[data-id="${actionId}"]`
+  );
+  if (action && timelineCard) {
+    assignUI.renderCardFooter(editor, timelineCard, { action });
+  }
+}
+
 // 给编辑器加上动作表情交互
 export function attachExprActions(editor) {
   Object.assign(editor, {
@@ -199,31 +213,6 @@ export function attachExprActions(editor) {
         }
         actionToUpdate.motions.splice(assignmentIndex, 1);
       });
-    },
-
-    // 给布局补一份默认分配
-    ensureLayoutData(actionId) {
-      const action = this.findActionById(actionId);
-      if (!action || action.type !== "layout" || this.hasExpressionData(action)) {
-        return false;
-      }
-
-      markExprMutation(
-        this,
-        actionId,
-        "layout:ensure-assignment",
-        "create initialState.motion/expression with empty default",
-        (actionToUpdate) => {
-        if (actionToUpdate.type !== "layout") {
-          return;
-        }
-        const baseState = actionToUpdate.initialState || {};
-        actionToUpdate.initialState = {
-          motion: baseState.motion || "",
-          expression: baseState.expression || "",
-        };
-      });
-      return true;
     },
 
     // 删除布局分配
@@ -346,34 +335,25 @@ export function attachExprActions(editor) {
         const actionId = timelineCard.dataset.id;
 
         // 点击事件统一从这一层分发 先处理按钮 再处理卡片里的区域
+        if (target.matches(".expr-card-trigger") || target.closest(".expr-card-trigger")) {
+          const previousActionId = this.activeExpressionCardId;
+          this.activeExpressionCardId =
+            previousActionId === actionId ? null : actionId;
+
+          if (previousActionId && previousActionId !== actionId) {
+            rerenderCardFooter(this, previousActionId);
+          }
+          rerenderCardFooter(this, actionId);
+          return;
+        }
+
         // 点设置按钮时打开设置区
         if (target.matches(".setup-expressions-btn")) {
-          const action = this.findActionById(actionId);
           const footer = timelineCard.querySelector(".timeline-item-footer");
-
-          // 布局卡片没有分配时先补一个
-          if (action?.type === "layout") {
-            const created = this.ensureLayoutData(actionId);
-            const freshCard =
-              (created &&
-                this.domCache.timeline?.querySelector(
-                  `.layout-item[data-id="${actionId}"]`
-                )) ||
-              timelineCard;
-            assignUI.showSetupUI(this, freshCard);
-            return;
-          }
-
-          // 切换对话卡片的角色选择区
-          const previousSelector = footer?.querySelector(
-            ".motion-character-selector"
-          );
-          const shouldOpen =
-            !previousSelector || previousSelector.style.display === "none";
-          assignUI.showSetupUI(this, timelineCard);
-          const newSelector = footer?.querySelector(".motion-character-selector");
-          if (newSelector) {
-            newSelector.style.display = shouldOpen ? "block" : "none";
+          const characterSelector = footer?.querySelector(".motion-character-selector");
+          if (characterSelector) {
+            characterSelector.style.display =
+              characterSelector.style.display === "none" ? "block" : "none";
           }
           return;
         }
@@ -430,12 +410,15 @@ export function attachExprActions(editor) {
         }
 
         // 点布局删除按钮时删掉布局卡片
-        if (target.matches(".layout-remove-btn")) {
+        if (target.closest(".layout-remove-btn")) {
           const deleteIndex = this.findActionIndexById(actionId);
           if (deleteIndex > -1) {
             this.markLayoutMutation(actionId, "delete", {
               startIndex: deleteIndex,
             });
+          }
+          if (this.activeExpressionCardId === actionId) {
+            this.activeExpressionCardId = null;
           }
           this.deleteLayoutAction(actionId);
         }

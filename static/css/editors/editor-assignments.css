@@ -17,11 +17,6 @@
   display: flex;
 }
 
-/* 调整图标大小 (复用现有样式) */
-.card-action-buttons .btn-icon-action .material-symbols-outlined {
-  font-size: 20px;
-}
-
 /* 对话卡片内联编辑栏 */
 .dialogue-item.is-inline-editing .dialogue-text {
   display: none;
@@ -184,42 +179,50 @@
   max-width: 80px;
 }
 
+/* 动作表情摘要 */
+.expr-footer-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.expr-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.expr-summary-name {
+  font-size: 0.82em;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.expr-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-container);
+  border: 1px solid var(--border-secondary);
+  font-size: 0.78em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.expr-summary-chip.is-empty {
+  color: var(--text-muted);
+}
+
 /* 保持"设置动作/表情"按钮在分配列表下方，固定尺寸 */
 .timeline-item-footer .setup-expressions-btn {
   align-self: flex-start;
   flex-shrink: 0;
   white-space: nowrap;
   min-width: fit-content;
-}
-
-/* 切换起终点位置按钮样式 */
-.toggle-position-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-  align-self: flex-start;
-  flex-shrink: 0;
-  white-space: nowrap;
-  min-width: fit-content;
-}
-
-.toggle-position-btn .toggle-position-icon {
-  font-size: 1em;
-  font-weight: bold;
-  transition: transform var(--transition-fast);
-}
-
-.toggle-position-btn.expanded .toggle-position-icon {
-  transform: rotate(45deg);
-}
-
-.toggle-position-btn .toggle-position-text {
-  font-size: 0.85em;
 }
 
 .search-group {
@@ -243,11 +246,6 @@
   height: 36px;
   min-height: 36px;
   justify-content: center;
-}
-
-.quick-fill-btn .material-symbols-outlined {
-  font-size: 20px;
-  line-height: 1;
 }
 
 .quick-fill-btn.active {

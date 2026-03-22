@@ -176,6 +176,52 @@ const layoutMethods = {
     });
   },
 
+  // 切换终点位置是否单独设置
+  toggleCustomToPosition(actionId) {
+    const action = this.findActionById(actionId);
+    if (!action || action.type !== "layout") {
+      return;
+    }
+
+    const isExpanded = !!action.customToPosition;
+    this.markLayoutChange?.(actionId, {
+      source: "ui",
+      field: "customToPosition",
+      beforeValue: isExpanded,
+      afterValue: !isExpanded,
+    });
+
+    this.executeActionChange(actionId, (currentAction) => {
+      if (!currentAction || currentAction.type !== "layout") {
+        return;
+      }
+
+      if (isExpanded) {
+        // 收起时把终点收回主位置 避免留下分叉配置
+        delete currentAction.customToPosition;
+        if (!currentAction.position) currentAction.position = {};
+        if (!currentAction.position.from) currentAction.position.from = {};
+        if (!currentAction.position.to) currentAction.position.to = {};
+        currentAction.position.to.side =
+          currentAction.position.from.side || "center";
+        currentAction.position.to.offsetX =
+          currentAction.position.from.offsetX || 0;
+        return;
+      }
+
+      // 展开后才开始允许终点单独编辑
+      currentAction.customToPosition = true;
+    });
+  },
+
+  // 为时间线/画布生成一套统一的布局控件渲染回调
+  createLayoutControlsRenderer(showToggleButton = false) {
+    return (cardElement, layoutAction, characterName) =>
+      this.renderLayoutControls(cardElement, layoutAction, characterName, {
+        showToggleButton,
+      });
+  },
+
   // 刷新布局卡片上的控件内容
   renderLayoutControls(card, action, characterName, options = {}) {
     const { showToggleButton = false } = options;
@@ -252,8 +298,24 @@ const layoutMethods = {
     const toPositionContainer = card.querySelector(".to-position-container");
     const toPositionSelect = card.querySelector(".layout-position-select-to");
     const toggleButton = card.querySelector(".toggle-position-btn");
+    const actionButtons = card.querySelector(".layout-card-action-buttons");
     const mainPositionLabel = card.querySelector(".main-position-label");
     const mainOffsetLabel = card.querySelector(".main-offset-label");
+
+    if (toggleButton) {
+      // 布局卡的右上角按钮排里 只有编辑按钮会在展开态常显
+      actionButtons?.classList.toggle("card-action-buttons-open", !!action.customToPosition);
+      toggleButton.title = action.customToPosition
+        ? "收起自定义位置配置"
+        : "编辑自定义位置配置";
+      toggleButton.setAttribute("aria-label", toggleButton.title);
+      const icon = toggleButton.querySelector(".material-symbols-outlined");
+      if (icon) {
+        icon.textContent = action.customToPosition ? "expand_less" : "edit";
+      }
+      // speaker 和 expression 可以继续共用模板 只用这里决定要不要露出按钮
+      toggleButton.style.display = showToggleButton ? "" : "none";
+    }
 
     if (toPositionSelect && !toPositionSelect.dataset.optionsReady) {
       DOMUtils.clearElement(toPositionSelect);

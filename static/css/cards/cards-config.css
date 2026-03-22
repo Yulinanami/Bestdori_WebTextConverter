@@ -9,7 +9,10 @@
 }
 
 /* 服装配置项详细样式 */
-.costume-character-info {
+.costume-character-info,
+.costume-current,
+.position-character-info,
+.position-controls {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
@@ -47,7 +50,8 @@
   border-radius: var(--radius-full);
 }
 
-.costume-config-item:hover {
+.costume-config-item:hover,
+.position-config-item:hover {
   background: var(--surface-container);
   border-color: var(--border-primary);
   box-shadow: none;
@@ -68,9 +72,6 @@
 }
 
 .costume-current {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
   padding-top: 20px;
 }
@@ -194,22 +195,11 @@
   box-shadow: none;
 }
 
-.position-config-item:hover {
-  background: var(--surface-container);
-  border-color: var(--border-primary);
-}
-
 .position-character-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
   flex: 1;
 }
 
 .position-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
   flex-shrink: 0;
 }
 

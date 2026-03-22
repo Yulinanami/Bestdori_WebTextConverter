@@ -13,13 +13,10 @@ export function attachSpeakerDrag(editor) {
     },
 
     // 拖动时自动滚动
-    handleDragScrolling: (dragEvent) => {
-      DragHelper.handleAutoScroll(
-        editor,
-        dragEvent,
-        [editor.domCache.canvas, editor.domCache.characterList]
-      );
-    },
+    handleDragScrolling: DragHelper.createAutoScrollHandler(editor, [
+      editor.domCache.canvas,
+      editor.domCache.characterList,
+    ]),
 
     // 初始化拖拽
     initDragAndDrop() {
@@ -54,17 +51,9 @@ export function attachSpeakerDrag(editor) {
               );
             },
             // 开始拖拽时开启自动滚动监听
-            onStart: () => {
-              document.addEventListener("dragover", editor.handleDragScrolling);
-            },
+            onStart: () => DragHelper.startDocumentAutoScroll(editor),
             // 结束拖拽时关闭自动滚动监听
-            onEnd: () => {
-              document.removeEventListener(
-                "dragover",
-                editor.handleDragScrolling
-              );
-              DragHelper.stopAutoScroll(editor);
-            },
+            onEnd: () => DragHelper.stopDocumentAutoScroll(editor),
             // 把拖回角色列表的对话卡片改成清空说话人
             onAdd: (sortableAddEvent) => {
               const cardItem = sortableAddEvent.item;
@@ -82,26 +71,8 @@ export function attachSpeakerDrag(editor) {
           })
         );
       }
-      // 创建重排处理
-      const runReorder = DragHelper.createReorderHandler({
-        // 拖拽重排时直接改画布数据
-        runCommand: (changeFn) => editor.executeCommand(changeFn),
-        // 重排前先记下这次排序信息
-        beforeReorder: (globalOldIndex, globalNewIndex) => {
-          editor.markGroupReorder(
-            "state",
-            "drag",
-            `index: ${globalOldIndex} -> ${globalNewIndex}`
-          );
-        },
-      });
-
-      // 创建拖拽结束处理
-      const onEndHandler = DragHelper.createOnEndHandler({
-        editor,
-        groupSize: 50,
-        executeFn: runReorder,
-      });
+      // 画布重排统一走 DragHelper 里的默认结束处理
+      const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
 
       // 角色拖到卡片上时改说话人
       // 把拖进画布的角色卡片转成说话人变更
@@ -156,11 +127,7 @@ export function attachSpeakerDrag(editor) {
               group: "shared-speakers",
               // 结束拖拽时先判断是否真的落进画布
               onEnd: (sortableEvent) => {
-                document.removeEventListener(
-                  "dragover",
-                  editor.handleDragScrolling
-                );
-                DragHelper.stopAutoScroll(editor);
+                DragHelper.stopDocumentAutoScroll(editor);
                 // 没落在画布里就回滚
                 if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
                   editor.applyGroupReorder("state");
@@ -173,12 +140,7 @@ export function attachSpeakerDrag(editor) {
               extraConfig: {
                 sort: true,
                 // 开始拖拽时开启自动滚动监听
-                onStart: () => {
-                  document.addEventListener(
-                    "dragover",
-                    editor.handleDragScrolling
-                  );
-                },
+                onStart: () => DragHelper.startDocumentAutoScroll(editor),
               },
             })
           )

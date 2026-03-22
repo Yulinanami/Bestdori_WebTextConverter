@@ -40,6 +40,7 @@ export const expressionEditor = {
   },
   // 标记下次要整页刷新
   forceFullRenderOnce: false,
+  activeExpressionCardId: null,
 
   // 初始化编辑器
   init() {
@@ -134,12 +135,10 @@ export const expressionEditor = {
       "resetExpressionsBtn",
       async () => {
         // 先清空局部刷新标记
-        this.resetTransientState({
-          pendingGroupReorder: null,
-          pendingLayoutChange: null,
-          pendingLayoutPatch: null,
+        this.resetLayoutTransientState({
           pendingCardRenders: () => new Map(),
           forceFullRenderOnce: true,
+          activeExpressionCardId: null,
         });
         this.executeCommand((currentState) => {
           currentState.actions.forEach((action) => {
@@ -169,6 +168,7 @@ export const expressionEditor = {
       // 打开前先清空临时库
       beforePrepareProject: () => {
         expressionEditor.tempItems = { motion: [], expression: [] };
+        expressionEditor.activeExpressionCardId = null;
       },
       // 打开后刷新时间线和右侧列表
       afterOpen: async () => {
@@ -194,12 +194,10 @@ export const expressionEditor = {
 
   // 导入项目后立刻重画当前编辑器
   afterImport() {
-    this.resetTransientState({
-      pendingGroupReorder: null,
-      pendingLayoutChange: null,
-      pendingLayoutPatch: null,
+    this.resetLayoutTransientState({
       pendingCardRenders: () => new Map(),
       forceFullRenderOnce: false,
+      activeExpressionCardId: null,
     });
     clearExprCache();
     renderTimeline(this);
@@ -210,11 +208,9 @@ export const expressionEditor = {
 
   // 关闭前清理状态
   onBeforeClose() {
-    this.resetTransientState({
-      pendingGroupReorder: null,
-      pendingLayoutChange: null,
-      pendingLayoutPatch: null,
+    this.resetLayoutTransientState({
       pendingCardRenders: () => new Map(),
+      activeExpressionCardId: null,
     });
     clearExprCache();
   },

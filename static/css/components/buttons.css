@@ -1,6 +1,7 @@
 /* buttons.css - 按钮组件样式 */
 
-.btn-icon .material-symbols-outlined {
+.btn-icon .material-symbols-outlined,
+.btn-icon-square .material-symbols-outlined {
   font-size: 20px;
   line-height: 1;
 }
@@ -26,12 +27,14 @@
     box-shadow var(--transition-fast);
 }
 
-.btn-icon:hover {
+.btn-icon:hover,
+.modal-close:hover {
   background: var(--color-hover-bg);
   color: var(--text-primary);
 }
 
-.btn-icon:focus-visible {
+.btn-icon:focus-visible,
+.modal-close:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }

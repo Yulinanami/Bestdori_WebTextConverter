@@ -85,6 +85,30 @@
   contain-intrinsic-size: 96px;
 }
 
+/* 编辑器卡片共用的悬浮编辑按钮 */
+.timeline-hover-trigger {
+  position: absolute;
+  top: 10px;
+  right: 44px;
+  z-index: 6;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast),
+    visibility var(--transition-fast);
+}
+
+.timeline-item:hover .timeline-hover-trigger,
+.timeline-hover-trigger.timeline-hover-trigger-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 /* 只读对话卡片样式 */
 .talk-item {
   display: flex;
@@ -158,22 +182,45 @@
   height: 30px;
 }
 
-.layout-remove-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: none;
-  border: none;
-  color: var(--color-error);
-  font-size: 1.35rem;
-  line-height: 1;
-  cursor: pointer;
+.layout-item .card-action-buttons {
+  display: flex;
+  top: 8px;
+  right: 60px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast);
+}
+
+/* 布局卡 hover 时整排按钮出现 展开时只保留编辑按钮常显 */
+.layout-item:hover .card-action-buttons,
+.layout-item .card-action-buttons.card-action-buttons-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* 删除按钮继续跟 hover 走 避免展开后一直常驻在卡片上 */
+.layout-item .card-action-buttons .layout-remove-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast);
+}
+
+.layout-item:hover .card-action-buttons .layout-remove-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.layout-item .card-action-buttons.card-action-buttons-open .toggle-position-btn,
+.layout-item .card-action-buttons.card-action-buttons-open .expr-card-trigger {
+  pointer-events: auto;
 }
 
 .layout-card-body {

@@ -12,10 +12,8 @@ function buildRendererSet(editor) {
       layout: document.getElementById("timeline-layout-card-template"),
     });
   const configEntries = state.currentConfig || {};
-  const renderLayoutControls = (cardEl, layoutAction, characterName) =>
-    editor.renderLayoutControls(cardEl, layoutAction, characterName, {
-      showToggleButton: true,
-    });
+  // Live2D 直接在布局卡里打开自定义终点位置 所以这里始终露出编辑按钮
+  const renderLayoutControls = editor.createLayoutControlsRenderer(true);
 
   const { renderSingleCard, updateCard, contextSignature } = buildTimelineCards(
     editor,
@@ -55,7 +53,7 @@ export function attachLive2DTimeline(editor) {
         if (!layoutCard) return;
 
         // 点按钮时删除布局卡片
-        if (clickEvent.target.matches(".layout-remove-btn")) {
+        if (clickEvent.target.closest(".layout-remove-btn")) {
           const actionId = layoutCard.dataset.id;
           const action = editor.findActionById(actionId);
           editor.markLayoutMutation(actionId, "delete", {
@@ -70,40 +68,10 @@ export function attachLive2DTimeline(editor) {
 
         // 切换终点位置是否单独设置
         if (clickEvent.target.closest(".toggle-position-btn")) {
-          const toggleButton = layoutCard.querySelector(".toggle-position-btn");
-          const isExpanded = toggleButton.classList.contains("expanded");
           const actionId = layoutCard.dataset.id;
-          editor.markLayoutChange(actionId, {
-            source: "ui",
-            field: "customToPosition",
-            beforeValue: isExpanded,
-            afterValue: !isExpanded,
-          });
-
-          if (isExpanded) {
-            // 收起时把终点改回跟起点一样
-            editor.executeActionChange(actionId, (currentAction) => {
-              if (!currentAction) {
-                return;
-              }
-              delete currentAction.customToPosition;
-              if (!currentAction.position) currentAction.position = {};
-              if (!currentAction.position.from)
-                currentAction.position.from = {};
-              if (!currentAction.position.to) currentAction.position.to = {};
-              currentAction.position.to.side =
-                currentAction.position.from.side || "center";
-              currentAction.position.to.offsetX =
-                currentAction.position.from.offsetX || 0;
-            });
-          } else {
-            // 展开后单独保存终点设置
-            editor.executeActionChange(actionId, (currentAction) => {
-              if (currentAction) {
-                currentAction.customToPosition = true;
-              }
-            });
-          }
+          // Live2D 和 speaker 共用同一套展开收起逻辑
+          editor.toggleCustomToPosition(actionId);
+          return;
         }
       };
 

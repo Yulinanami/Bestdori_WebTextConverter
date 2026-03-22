@@ -19,6 +19,7 @@ export const mergerManager = {
   // 绑定页面事件
   bindEvents() {
     const fileUpload = document.getElementById("mergerFileUpload");
+    const fileListElement = document.getElementById("mergerFileList");
 
     if (fileUpload) {
       // 上传区同时支持文件选择和拖拽
@@ -40,6 +41,16 @@ export const mergerManager = {
         fileUpload.classList.remove("drag-over");
         if (dropEvent.dataTransfer.files.length > 0) {
           this.handleFilesUpload(dropEvent.dataTransfer.files);
+        }
+      });
+    }
+
+    if (fileListElement) {
+      // 文件列表里的删除统一走事件委托，不再在 innerHTML 里塞内联 onclick
+      fileListElement.addEventListener("click", (clickEvent) => {
+        const removeButton = clickEvent.target.closest(".remove-merger-file-btn");
+        if (removeButton) {
+          this.removeFile(removeButton.dataset.fileId);
         }
       });
     }
@@ -138,21 +149,13 @@ export const mergerManager = {
                 <div class="merger-file-name" title="${fileEntry.name}">${fileEntry.name}</div>
                 <div class="merger-file-actions">
                     <span class="merger-file-count">${fileEntry.data.actions.length} 个动作</span>
-                    <button class="btn btn-icon btn-sm" aria-label="删除" onclick="document.dispatchEvent(new CustomEvent('remove-merger-file', {detail: '${fileEntry.id}'}))">
+                    <button class="btn btn-icon btn-sm remove-merger-file-btn" aria-label="删除" data-file-id="${fileEntry.id}">
                         <span class="material-symbols-outlined" style="color: var(--color-error)">delete</span>
                     </button>
                 </div>
             `;
         fileListElement.appendChild(fileListItem);
       });
-
-      // 删除事件只绑一次
-      if (!this._isDeleteEventBound) {
-        document.addEventListener("remove-merger-file", (removeFileEvent) => {
-          this.removeFile(removeFileEvent.detail);
-        });
-        this._isDeleteEventBound = true;
-      }
     } else {
       fileListContainer.classList.add("hidden");
       mergeButton.disabled = true;

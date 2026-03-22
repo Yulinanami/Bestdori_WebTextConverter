@@ -20,10 +20,7 @@ function buildRenderers(editor) {
     });
   const configEntries = state.currentConfig || {};
   // 渲染布局卡片里的设置区
-  const renderLayoutControls = (cardEl, layoutAction, characterName) =>
-    editor.renderLayoutControls(cardEl, layoutAction, characterName, {
-      showToggleButton: false,
-    });
+  const renderLayoutControls = editor.createLayoutControlsRenderer(false);
 
   return buildTimelineCards(editor, {
     templates,

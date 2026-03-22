@@ -91,11 +91,7 @@ export const live2dEditor = {
 
   // 关闭前清理状态
   onBeforeClose() {
-    this.resetTransientState({
-      pendingGroupReorder: null,
-      pendingLayoutChange: null,
-      pendingLayoutPatch: null,
-    });
+    this.resetLayoutTransientState();
     this.resetTimelineCache?.();
   },
 };
