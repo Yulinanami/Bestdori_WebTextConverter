@@ -312,8 +312,10 @@ export function attachSpeakerActions(editor) {
       );
       this.isSortMode = savedSortMode || false;
       
-      const savedOptimization = storageService.load("speaker_drag_optimization");
-      this.isDragOptimized = savedOptimization !== null ? savedOptimization : true;
+      const savedOptimization = storageService.load(
+        STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION
+      );
+      this.isDragOptimized = savedOptimization !== null ? savedOptimization : false;
     },
 
     // 按当前模式刷新按钮和样式

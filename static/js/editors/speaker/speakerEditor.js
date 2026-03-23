@@ -1,6 +1,6 @@
 // 对话编辑器的入口
 import { BaseEditor } from "@utils/BaseEditor.js";
-import { storageService } from "@services/StorageService.js";
+import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { attachCharacterList } from "@editors/common/characterList.js";
 import { attachEditorCore, rerenderOnGroupToggle } from "@editors/common/editorCore.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
@@ -84,7 +84,10 @@ export const speakerEditor = {
       this.domCache.optimizeDragCheckbox.checked = this.isDragOptimized;
       this.domCache.optimizeDragCheckbox.addEventListener("change", (e) => {
         this.isDragOptimized = e.target.checked;
-        storageService.save("speaker_drag_optimization", this.isDragOptimized);
+        storageService.save(
+          STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION,
+          this.isDragOptimized
+        );
         this.applyModeUIState();
         this.initDragAndDrop();
       });
