@@ -59,6 +59,60 @@
   display: none;
 }
 
+/* 对话编辑器里统一旁白卡和角色卡骨架，减少加删角色时的高度跳动 */
+#speakerEditorCanvas .speaker-avatar-container {
+  width: 50px;
+  min-width: 50px;
+  margin-right: var(--spacing-md);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+#speakerEditorCanvas .speaker-avatar-container.hidden {
+  display: flex;
+  visibility: hidden;
+}
+
+#speakerEditorCanvas .speaker-avatar-container .dialogue-avatar {
+  margin-right: 0;
+}
+
+#speakerEditorCanvas .multi-speaker-badge {
+  position: absolute;
+  right: -12px;
+  bottom: -2px;
+}
+
+#speakerEditorCanvas .dialogue-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+#speakerEditorCanvas .speaker-name {
+  display: block;
+  min-height: 20px;
+  line-height: 20px;
+  margin-bottom: 4px;
+}
+
+#speakerEditorCanvas .speaker-name.hidden {
+  display: block;
+  visibility: hidden;
+}
+
+#speakerEditorCanvas .dialogue-item.narrator {
+  justify-content: flex-start;
+}
+
+#speakerEditorCanvas .dialogue-item.narrator .dialogue-text {
+  max-width: none;
+  text-align: left;
+}
+
 /* 多说话人弹出菜单 */
 .speaker-popover-menu {
   background: var(--bg-primary);
