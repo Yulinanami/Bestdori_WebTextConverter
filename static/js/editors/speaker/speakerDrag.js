@@ -6,7 +6,7 @@ export function attachSpeakerDrag(editor) {
   Object.assign(editor, {
     // 根据当前是否是排序模式刷新卡片的拖拉状态
     applySortModeToCards() {
-      const isSortMode = this.isSortMode;
+      const isSortMode = this.actions.isSortMode;
       const canvasSortable = this.sortableInstances.find(
         (instance) => instance?.el === this.domCache.canvas
       );
@@ -72,7 +72,7 @@ export function attachSpeakerDrag(editor) {
       }
       editor.sortableInstances = [];
 
-      if (!editor.isDragOptimized) {
+      if (!editor.actions.isDragOptimized) {
         // 角色列表支持拖出
         editor.sortableInstances.push(
           new Sortable(characterList, {
@@ -99,7 +99,7 @@ export function attachSpeakerDrag(editor) {
               const actionId = cardItem.dataset.id;
               // 拖回右侧就清空说话人
               if (actionId && cardItem.classList.contains("dialogue-item")) {
-                editor.clearActionSpeakers(actionId);
+                editor.actions.clearActionSpeakers(actionId);
               }
               cardItem.remove();
               // 有些操作不会触发 patch 所以补一次渲染
@@ -138,7 +138,7 @@ export function attachSpeakerDrag(editor) {
           const actionId = targetCard.dataset.id;
           const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
           if (actionId && Number.isInteger(characterId)) {
-            editor.assignSpeaker(actionId, { characterId, name: characterName }, actionIndex);
+            editor.actions.assignSpeaker(actionId, { characterId, name: characterName }, actionIndex);
           }
           characterItem.remove();
         };
@@ -154,7 +154,7 @@ export function attachSpeakerDrag(editor) {
                 // 没落在画布里就回滚
                 if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
                   editor.applyGroupReorder("state");
-                  editor.reattachSelection();
+                  editor.actions.reattachSelection();
                   return;
                 }
                 onEndHandler(sortableEvent);
@@ -169,7 +169,7 @@ export function attachSpeakerDrag(editor) {
           )
         );
 
-        editor.toggleSpeakerDrag(true);
+        this.toggleSpeakerDrag(true);
         // 如果是非优化模式，原生绑定需要拦截并提前返回
       } 
       else {
@@ -220,7 +220,7 @@ export function attachSpeakerDrag(editor) {
                   const actionId = targetCard.dataset.id;
                   const actionIndex = Number.parseInt(targetCard.dataset.actionIndex, 10);
                   if (actionId && Number.isInteger(characterId)) {
-                    editor.assignSpeaker(
+                    editor.actions.assignSpeaker(
                       actionId,
                       { characterId, name: characterName },
                       actionIndex
@@ -237,19 +237,19 @@ export function attachSpeakerDrag(editor) {
       if (!characterList.hasAttribute("data-drop-bound")) {
         characterList.setAttribute("data-drop-bound", "true");
         characterList.addEventListener("dragover", (e) => {
-          if (!editor.isDragOptimized) return;
+          if (!editor.actions.isDragOptimized) return;
           if (e.dataTransfer.types.includes("application/bestdori-action-id")) {
             e.preventDefault();
             e.dataTransfer.dropEffect = "move";
           }
         });
         characterList.addEventListener("drop", (e) => {
-          if (!editor.isDragOptimized) return;
+          if (!editor.actions.isDragOptimized) return;
           const actionId = e.dataTransfer.getData("application/bestdori-action-id");
           if (actionId) {
             e.preventDefault();
             // 直接将原生拖进来的头像对应源清空
-            editor.clearActionSpeakers(actionId);
+            editor.actions.clearActionSpeakers(actionId);
           }
         });
       }
@@ -259,9 +259,9 @@ export function attachSpeakerDrag(editor) {
         canvas.setAttribute("data-drag-bound", "true");
         // 使用事件代理处理所有卡片的拖起
         canvas.addEventListener("dragstart", (e) => {
-          if (!editor.isDragOptimized) return;
+          if (!editor.actions.isDragOptimized) return;
           // 如果当前开启了卡片排序模式，不执行原生拖起逻辑，直接退手交给 Sortable
-          if (editor.isSortMode) return;
+          if (editor.actions.isSortMode) return;
 
           const targetCard = e.target.closest(".dialogue-item");
           if (!targetCard) {
@@ -287,8 +287,8 @@ export function attachSpeakerDrag(editor) {
 
         // 监听原生拖拽结束，移除高亮背景并恢复选中状态
         canvas.addEventListener("dragend", (e) => {
-          if (!editor.isDragOptimized) return;
-          if (editor.isSortMode) return;
+          if (!editor.actions.isDragOptimized) return;
+          if (editor.actions.isSortMode) return;
           const targetCard = e.target.closest(".dialogue-item");
           if (targetCard) {
             targetCard.classList.remove("is-selected");
@@ -303,7 +303,7 @@ export function attachSpeakerDrag(editor) {
       // 画布重排统一走 DragHelper 里的默认结束处理
       const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
 
-      if (!editor.isDragOptimized) {
+      if (!editor.actions.isDragOptimized) {
         // 非优化模式没有 canvas Sortable 额外实例需要在这里推入，因为都在分支顶端处理了
       } else {
         editor.sortableInstances.push(
@@ -322,7 +322,7 @@ export function attachSpeakerDrag(editor) {
                 // 没落在任何有效区域内就回滚
                 if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
                   editor.applyGroupReorder("state");
-                  editor.reattachSelection();
+                  editor.actions.reattachSelection();
                   return;
                 }
                 onEndHandler(sortableEvent);

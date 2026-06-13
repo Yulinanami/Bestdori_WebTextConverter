@@ -42,9 +42,9 @@ const editorCoreMethods = {
   renderUsedList() {
     if (
       typeof this.renderCharacterList === "function" &&
-      typeof this.listUsedIds === "function"
+      typeof this.actions?.listUsedIds === "function"
     ) {
-      this.renderCharacterList(this.listUsedIds());
+      this.renderCharacterList(this.actions.listUsedIds());
     }
   },
 
@@ -52,7 +52,7 @@ const editorCoreMethods = {
   renderViewAndList(renderView) {
     const usedCharacterIds = renderView.call(this);
     if (typeof this.renderCharacterList === "function") {
-      this.renderCharacterList(usedCharacterIds ?? this.listUsedIds?.());
+      this.renderCharacterList(usedCharacterIds ?? this.actions?.listUsedIds?.());
     }
   },
 

@@ -1,4 +1,4 @@
-// 动作表情编辑器里的交互
+// 动作表情编辑器里的交互（组合工厂模式重构）
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { ui } from "@utils/uiUtils.js";
 import { configManager } from "@managers/configManager.js";
@@ -54,23 +54,6 @@ function summarizeUpdates(beforeValue, updates) {
     .join(", ");
 }
 
-// 记录局部刷新再执行修改
-function markExprChange(editor, actionId, operation, detail, mutate) {
-  editor.markCardRender(actionId, { operation, detail });
-  editor.executeActionChange(actionId, mutate);
-}
-
-function markExprMutation(editor, actionId, operation, detail, mutate) {
-  const resolvedDetail =
-    typeof detail === "function" ? detail(editor.findActionById(actionId)) : detail;
-  markExprChange(editor, actionId, operation, resolvedDetail, mutate);
-}
-
-function routeAssignmentAction(editor, actionId, onLayout, onTalk) {
-  const isLayout = editor.findActionById(actionId)?.type === "layout";
-  return isLayout ? onLayout() : onTalk();
-}
-
 // 读取一条分配项的上下文
 function readAssignCtx(target) {
   const assignmentItem = target.closest(".motion-assignment-item");
@@ -89,23 +72,74 @@ function updateDropZoneValue(dropZone, value, showClearButton) {
   DOMUtils.toggleDisplay(dropZone.querySelector(".clear-state-btn"), showClearButton);
 }
 
-function rerenderCardFooter(editor, actionId) {
+function rerenderCardFooter(actions, actionId) {
   if (!actionId) {
     return;
   }
 
-  const action = editor.findActionById(actionId);
-  const timelineCard = editor.domCache.timeline?.querySelector(
+  const action = actions.findActionById(actionId);
+  const timelineCard = actions.getDomCache().timeline?.querySelector(
     `.timeline-item[data-id="${actionId}"]`
   );
   if (action && timelineCard) {
-    assignUI.renderCardFooter(editor, timelineCard, { action });
+    assignUI.renderCardFooter(actions.getEditorInstance(), timelineCard, { action });
   }
 }
 
-// 给编辑器加上动作表情交互
-export function attachExprActions(editor) {
-  Object.assign(editor, {
+// 创建动作表情交互行为闭包组合工厂
+export function createExpressionBehavior(deps) {
+  const {
+    getProjectFileState,
+    getDomCache,
+    getActiveExpressionCardId,
+    setActiveExpressionCardId,
+    getTempItems,
+    getQuickFill,
+    getSortableInstances,
+    setSortableInstances,
+    findActionById,
+    findActionIndexById,
+    markCardRender,
+    executeActionChange,
+    markLayoutMutation,
+    deleteLayoutAction,
+    updateLayoutField,
+    getEditorInstance,
+    getDragScrollHandler,
+  } = deps;
+
+  // 内部辅助函数，直接利用闭包
+  function markExprChange(actionId, operation, detail, mutate) {
+    markCardRender(actionId, { operation, detail });
+    executeActionChange(actionId, mutate);
+  }
+
+  function markExprMutation(actionId, operation, detail, mutate) {
+    const resolvedDetail =
+      typeof detail === "function" ? detail(findActionById(actionId)) : detail;
+    markExprChange(actionId, operation, resolvedDetail, mutate);
+  }
+
+  function routeAssignmentAction(actionId, onLayout, onTalk) {
+    const isLayout = findActionById(actionId)?.type === "layout";
+    return isLayout ? onLayout() : onTalk();
+  }
+
+  const actions = {
+    // 动作表情相关的 findActionById 暴露供外部和时间线使用
+    findActionById(actionId) {
+      return findActionById(actionId);
+    },
+    getEditorInstance() {
+      return getEditorInstance();
+    },
+    getDomCache() {
+      return getDomCache();
+    },
+    get handleDragScrolling() {
+      return getDragScrollHandler();
+    },
+
     // 看这条动作有没有动作表情数据
     hasExpressionData(action) {
       if (action.type === "talk") {
@@ -124,10 +158,11 @@ export function attachExprActions(editor) {
     listStagedChars() {
       const seenChars = new Set();
       const characters = [];
+      const projectFileState = getProjectFileState();
 
-      if (this.projectFileState?.actions) {
+      if (projectFileState?.actions) {
         // 只收集已经通过 appear 登场过的角色
-        this.projectFileState.actions.forEach((action) => {
+        projectFileState.actions.forEach((action) => {
           if (action.type !== "layout" || action.layoutType !== "appear") {
             return;
           }
@@ -149,76 +184,75 @@ export function attachExprActions(editor) {
     // 给对话加一条动作分配
     addMotionAssignment(actionId, character) {
       markExprChange(
-        this,
         actionId,
         "talk:add-character",
         `character=${character.name}(ID:${character.id})`,
         (action) => {
-        if (!action.motions) {
-          action.motions = [];
+          if (!action.motions) {
+            action.motions = [];
+          }
+          action.motions.push({
+            character: character.id,
+            motion: "",
+            expression: "",
+            delay: 0,
+          });
         }
-        action.motions.push({
-          character: character.id,
-          motion: "",
-          expression: "",
-          delay: 0,
-        });
-      });
+      );
     },
 
     // 更新布局的初始动作表情
     updateInitialState(actionId, updates) {
       markExprMutation(
-        this,
         actionId,
         "layout:update-initial-state",
         (action) => summarizeUpdates(action?.initialState, updates),
         (actionToUpdate) => {
-        if (actionToUpdate.type !== "layout") {
-          return;
+          if (actionToUpdate.type !== "layout") {
+            return;
+          }
+          if (!actionToUpdate.initialState) {
+            actionToUpdate.initialState = {};
+          }
+          Object.assign(actionToUpdate.initialState, updates);
         }
-        if (!actionToUpdate.initialState) {
-          actionToUpdate.initialState = {};
-        }
-        Object.assign(actionToUpdate.initialState, updates);
-      });
+      );
     },
 
     // 更新一条动作分配
     updateMotionAssignment(actionId, assignmentIndex, updates) {
       markExprMutation(
-        this,
         actionId,
         "talk:update-motion-assignment",
         (action) => summarizeUpdates(action?.motions?.[assignmentIndex], updates),
         (actionToUpdate) => {
-        if (!actionToUpdate.motions?.[assignmentIndex]) {
-          return;
+          if (!actionToUpdate.motions?.[assignmentIndex]) {
+            return;
+          }
+          Object.assign(actionToUpdate.motions[assignmentIndex], updates);
         }
-        Object.assign(actionToUpdate.motions[assignmentIndex], updates);
-      });
+      );
     },
 
     // 删除一条动作分配
     removeMotionAssignment(actionId, assignmentIndex) {
       markExprMutation(
-        this,
         actionId,
         "talk:remove-motion-assignment",
         (action) =>
           `removed=${summarizeAssignItem(action?.motions?.[assignmentIndex])}`,
         (actionToUpdate) => {
-        if (!actionToUpdate.motions) {
-          return;
+          if (!actionToUpdate.motions) {
+            return;
+          }
+          actionToUpdate.motions.splice(assignmentIndex, 1);
         }
-        actionToUpdate.motions.splice(assignmentIndex, 1);
-      });
+      );
     },
 
     // 删除布局分配
     removeLayoutAssignment(actionId) {
       markExprMutation(
-        this,
         actionId,
         "layout:remove-assignment",
         (action) =>
@@ -226,60 +260,58 @@ export function attachExprActions(editor) {
             action?.delay
           )} -> removed`,
         (actionToUpdate) => {
-        if (actionToUpdate.type !== "layout") {
-          return;
+          if (actionToUpdate.type !== "layout") {
+            return;
+          }
+          delete actionToUpdate.initialState;
+          delete actionToUpdate.delay;
         }
-        delete actionToUpdate.initialState;
-        delete actionToUpdate.delay;
-      });
+      );
     },
 
     // 更新布局延迟
     updateLayoutDelay(actionId, delay) {
       markExprMutation(
-        this,
         actionId,
         "layout:update-delay",
         (action) =>
           `delay: ${shortValue(action?.delay)} -> ${shortValue(delay)}`,
         (actionToUpdate) => {
-        if (actionToUpdate.type !== "layout") {
-          return;
+          if (actionToUpdate.type !== "layout") {
+            return;
+          }
+          actionToUpdate.delay = delay;
         }
-        actionToUpdate.delay = delay;
-      });
+      );
     },
 
     // 更新一条分配
     updateAssignment(actionId, assignmentIndex, updates) {
       routeAssignmentAction(
-        this,
         actionId,
-        () => this.updateInitialState(actionId, updates),
-        () => this.updateMotionAssignment(actionId, assignmentIndex, updates),
+        () => actions.updateInitialState(actionId, updates),
+        () => actions.updateMotionAssignment(actionId, assignmentIndex, updates)
       );
     },
 
     // 删除一条分配
     removeAssignment(actionId, assignmentIndex) {
       routeAssignmentAction(
-        this,
         actionId,
-        () => this.removeLayoutAssignment(actionId),
-        () => this.removeMotionAssignment(actionId, assignmentIndex),
+        () => actions.removeLayoutAssignment(actionId),
+        () => actions.removeMotionAssignment(actionId, assignmentIndex)
       );
     },
 
     // 更新分配里的延迟
     setAssignmentDelay(actionId, assignmentIndex, delayValue) {
       routeAssignmentAction(
-        this,
         actionId,
-        () => this.updateLayoutDelay(actionId, delayValue),
+        () => actions.updateLayoutDelay(actionId, delayValue),
         () =>
-          this.updateAssignment(actionId, assignmentIndex, {
+          actions.updateAssignment(actionId, assignmentIndex, {
             delay: delayValue,
-          }),
+          })
       );
     },
 
@@ -306,14 +338,14 @@ export function attachExprActions(editor) {
               return;
             }
 
-            const { actionId, assignmentIndex } = readAssignCtx(
-              assignmentItem
-            );
+            const ctx = readAssignCtx(assignmentItem);
+            if (!ctx) return;
+            const { actionId, assignmentIndex } = ctx;
             const type = dropZone.dataset.type;
             updateDropZoneValue(dropZone, droppedValue, true);
             // 拖进去后更新对应字段
             const updates = { [type]: droppedValue };
-            this.updateAssignment(actionId, assignmentIndex, updates);
+            actions.updateAssignment(actionId, assignmentIndex, updates);
           },
         });
       });
@@ -321,7 +353,7 @@ export function attachExprActions(editor) {
 
     // 绑定时间线里的点击和输入事件
     bindTimelineEvents() {
-      const timeline = this.domCache.timeline;
+      const timeline = getDomCache().timeline;
       if (!timeline) {
         return;
       }
@@ -336,14 +368,14 @@ export function attachExprActions(editor) {
 
         // 点击事件统一从这一层分发 先处理按钮 再处理卡片里的区域
         if (target.matches(".expr-card-trigger") || target.closest(".expr-card-trigger")) {
-          const previousActionId = this.activeExpressionCardId;
-          this.activeExpressionCardId =
-            previousActionId === actionId ? null : actionId;
+          const previousActionId = getActiveExpressionCardId();
+          const nextActionId = previousActionId === actionId ? null : actionId;
+          setActiveExpressionCardId(nextActionId);
 
           if (previousActionId && previousActionId !== actionId) {
-            rerenderCardFooter(this, previousActionId);
+            rerenderCardFooter(actions, previousActionId);
           }
-          rerenderCardFooter(this, actionId);
+          rerenderCardFooter(actions, actionId);
           return;
         }
 
@@ -364,7 +396,7 @@ export function attachExprActions(editor) {
           if (!characterItem) {
             return;
           }
-          this.addMotionAssignment(actionId, {
+          actions.addMotionAssignment(actionId, {
             id: Number.parseInt(characterItem.dataset.characterId, 10),
             name: characterItem.dataset.characterName,
           });
@@ -384,7 +416,7 @@ export function attachExprActions(editor) {
           if (!assignmentContext) {
             return;
           }
-          this.removeAssignment(
+          actions.removeAssignment(
             assignmentContext.actionId,
             assignmentContext.assignmentIndex
           );
@@ -401,7 +433,7 @@ export function attachExprActions(editor) {
           const type = dropZone.dataset.type;
           updateDropZoneValue(dropZone, "--", false);
           const updates = { [type]: "" };
-          this.updateAssignment(
+          actions.updateAssignment(
             assignmentContext.actionId,
             assignmentContext.assignmentIndex,
             updates
@@ -411,16 +443,16 @@ export function attachExprActions(editor) {
 
         // 点布局删除按钮时删掉布局卡片
         if (target.closest(".layout-remove-btn")) {
-          const deleteIndex = this.findActionIndexById(actionId);
+          const deleteIndex = findActionIndexById(actionId);
           if (deleteIndex > -1) {
-            this.markLayoutMutation(actionId, "delete", {
+            markLayoutMutation(actionId, "delete", {
               startIndex: deleteIndex,
             });
           }
-          if (this.activeExpressionCardId === actionId) {
-            this.activeExpressionCardId = null;
+          if (getActiveExpressionCardId() === actionId) {
+            setActiveExpressionCardId(null);
           }
-          this.deleteLayoutAction(actionId);
+          deleteLayoutAction(actionId);
         }
       };
 
@@ -429,7 +461,7 @@ export function attachExprActions(editor) {
         // 改分配延迟时写回数据
         if (assignmentContext && changeEvent.target.matches(".assignment-delay-input")) {
           const delayValue = Number.parseFloat(changeEvent.target.value) || 0;
-          this.setAssignmentDelay(
+          actions.setAssignmentDelay(
             assignmentContext.actionId,
             assignmentContext.assignmentIndex,
             delayValue
@@ -441,24 +473,24 @@ export function attachExprActions(editor) {
         if (changeEvent.target.matches(".layout-delay-input")) {
           const actionId = changeEvent.target.dataset.actionId;
           const delayValue = Number.parseFloat(changeEvent.target.value) || 0;
-          this.updateLayoutDelay(actionId, delayValue);
+          actions.updateLayoutDelay(actionId, delayValue);
           return;
         }
 
         // 改布局输入时写回布局数据
         const layoutCard = changeEvent.target.closest(".layout-item");
         if (layoutCard && changeEvent.target.matches("select, input")) {
-          this.updateLayoutField(layoutCard.dataset.id, changeEvent.target);
+          updateLayoutField(layoutCard.dataset.id, changeEvent.target);
         }
       };
     },
 
     // 重新绑定右侧库的拖拽
     initLibraryDnD() {
-      const sortables = (this.sortableInstances || []).filter(
+      const sortables = (getSortableInstances() || []).filter(
         (sortableInstance) => sortableInstance?.el
       );
-      const timelineElement = this.domCache.timeline;
+      const timelineElement = getDomCache().timeline;
       const timelineSortable = sortables.find(
         (sortableInstance) =>
           sortableInstance.el === timelineElement ||
@@ -470,29 +502,34 @@ export function attachExprActions(editor) {
       sortables
         .filter((sortableInstance) => sortableInstance !== timelineSortable)
         .forEach((instance) => instance.el && instance.destroy());
-      this.sortableInstances = timelineSortable ? [timelineSortable] : [];
+      
+      const newSortableInstances = timelineSortable ? [timelineSortable] : [];
+      setSortableInstances(newSortableInstances);
 
       // 重新绑定两种库的拖拽
       LIB_TYPES.forEach((type) => {
-        const libraryList = this.domCache[LIB_CFG[type].domKey];
+        const libraryList = getDomCache()[LIB_CFG[type].domKey];
         if (!libraryList) {
           return;
         }
-        this.sortableInstances.push(
-          new Sortable(libraryList, {
-            group: { name: type, pull: "clone", put: false },
-            sort: false,
-            // 开始拖动时打开自动滚动
-            onStart: () => {
-              document.addEventListener("dragover", this.handleDragScrolling);
-            },
-            // 结束拖动时关掉自动滚动
-            onEnd: () => {
-              document.removeEventListener("dragover", this.handleDragScrolling);
-              DragHelper.stopAutoScroll(this);
-            },
-          })
-        );
+        
+        const inst = new Sortable(libraryList, {
+          group: { name: type, pull: "clone", put: false },
+          sort: false,
+          // 开始拖动时打开自动滚动
+          onStart: () => {
+            document.addEventListener("dragover", actions.handleDragScrolling);
+          },
+          // 结束拖动时关掉自动滚动
+          onEnd: () => {
+            document.removeEventListener("dragover", actions.handleDragScrolling);
+            DragHelper.stopAutoScroll(actions.getEditorInstance());
+          },
+        });
+        
+        const currentInstances = getSortableInstances();
+        currentInstances.push(inst);
+        setSortableInstances(currentInstances);
       });
     },
 
@@ -515,14 +552,14 @@ export function attachExprActions(editor) {
       DOMUtils.appendChildren(libraryListContainer, itemElements);
     },
 
-// 渲染左右两边的库
+    // 渲染左右两边的库
     renderLibraries() {
       const stagedCharacterIds = new Set(
-        this.listStagedChars().map((character) => character.id)
+        actions.listStagedChars().map((character) => character.id)
       );
       LIB_TYPES.forEach((type) => {
         const manager = LIB_CFG[type].manager;
-        const items = new Set(this.tempItems[type]);
+        const items = new Set(getTempItems()[type]);
         // 先合并临时项和已登场角色可用项 空项目时再退回全部已知项
         stagedCharacterIds.forEach((characterId) => {
           manager
@@ -533,9 +570,9 @@ export function attachExprActions(editor) {
           manager.listKnownItems().forEach((itemId) => items.add(itemId));
         }
         // 最后再统一排序 让左右库顺序稳定
-        this.renderLibrary(type, Array.from(items).sort());
+        actions.renderLibrary(type, Array.from(items).sort());
       });
-      this.initLibraryDnD();
+      actions.initLibraryDnD();
     },
 
     // 按搜索词过滤库列表
@@ -557,8 +594,8 @@ export function attachExprActions(editor) {
     addTempItem(type) {
       const { inputId, manager: targetConfigManager } = LIB_CFG[type];
       const idInput = document.getElementById(inputId);
-      const tempList = this.tempItems[type];
-      const trimmedId = idInput.value.trim();
+      const tempList = getTempItems()[type];
+      const trimmedId = idInput?.value?.trim();
 
       if (!trimmedId) {
         ui.showStatus(`${targetConfigManager.name}ID不能为空！`, "error");
@@ -575,14 +612,15 @@ export function attachExprActions(editor) {
       }
 
       tempList.push(trimmedId);
-      idInput.value = "";
-      this.renderLibraries();
+      if (idInput) idInput.value = "";
+      actions.renderLibraries();
       ui.showStatus(`已添加临时${targetConfigManager.name}：${trimmedId}`, "success");
     },
 
     // 打开 Live2D 查看器
     openLive2DViewers() {
-      if (!this.projectFileState?.actions) {
+      const projectFileState = getProjectFileState();
+      if (!projectFileState?.actions) {
         ui.showStatus("没有可分析的剧情内容。", "error");
         window.open(VIEWER_URL, "_blank");
         return;
@@ -590,7 +628,7 @@ export function attachExprActions(editor) {
 
       const costumeIds = new Set();
       // 先从当前时间线里收集实际出现过的服装
-      this.projectFileState.actions.forEach((action) => {
+      projectFileState.actions.forEach((action) => {
         if (action.type === "layout" && action.costume) {
           costumeIds.add(action.costume);
         }
@@ -631,12 +669,13 @@ export function attachExprActions(editor) {
     // 读取快速填充选项
     loadQuickFillOptions() {
       const configData = state.configData;
-      this.quickFill.default = configData?.quick_fill_options || [];
-      this.quickFill.custom =
+      const quickFill = getQuickFill();
+      quickFill.default = configData?.quick_fill_options || [];
+      quickFill.custom =
         storageService.load(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
     },
 
-// 渲染一个快速填充下拉框
+    // 渲染一个快速填充下拉框
     renderQuickFill(type) {
       const dropdown = document.getElementById(LIB_CFG[type].dropdownId);
       if (!dropdown) {
@@ -645,12 +684,13 @@ export function attachExprActions(editor) {
 
       DOMUtils.clearElement(dropdown);
 
-      const defaultOptions = new Set(this.quickFill.default);
+      const quickFill = getQuickFill();
+      const defaultOptions = new Set(quickFill.default);
       // 默认项和自定义项合并后统一排序
       const allOptions = [
         ...new Set([
-          ...this.quickFill.default,
-          ...this.quickFill.custom,
+          ...quickFill.default,
+          ...quickFill.custom,
         ]),
       ].sort();
 
@@ -660,7 +700,7 @@ export function attachExprActions(editor) {
         optionButton.dataset.value = option;
 
         if (
-          this.quickFill.custom.includes(option) &&
+          quickFill.custom.includes(option) &&
           !defaultOptions.has(option)
         ) {
           // 自定义项可以删掉
@@ -728,7 +768,7 @@ export function attachExprActions(editor) {
         searchInput.dispatchEvent(new Event("input", { bubbles: true }));
         searchInput.focus();
       }
-      this.toggleQuickFill(type);
+      actions.toggleQuickFill(type);
     },
 
     // 新增一个自定义快速填充值
@@ -741,17 +781,18 @@ export function attachExprActions(editor) {
       }
 
       const trimmedValue = newValue.trim().toLowerCase();
-      if (this.quickFill.custom.includes(trimmedValue)) {
+      const quickFill = getQuickFill();
+      if (quickFill.custom.includes(trimmedValue)) {
         ui.showStatus("该填充项已存在！", "error");
         return;
       }
 
-      this.quickFill.custom.push(trimmedValue);
+      quickFill.custom.push(trimmedValue);
       storageService.save(
         STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-        this.quickFill.custom
+        quickFill.custom
       );
-      LIB_TYPES.forEach((type) => this.renderQuickFill(type));
+      LIB_TYPES.forEach((type) => actions.renderQuickFill(type));
       ui.showStatus(`已添加自定义填充项: ${trimmedValue}`, "success");
     },
 
@@ -764,15 +805,18 @@ export function attachExprActions(editor) {
         return;
       }
 
-      this.quickFill.custom = this.quickFill.custom.filter(
+      const quickFill = getQuickFill();
+      quickFill.custom = quickFill.custom.filter(
         (option) => option !== valueToDelete
       );
       storageService.save(
         STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
-        this.quickFill.custom
+        quickFill.custom
       );
-      LIB_TYPES.forEach((type) => this.renderQuickFill(type));
+      LIB_TYPES.forEach((type) => actions.renderQuickFill(type));
       ui.showStatus(`已删除填充项: ${valueToDelete}`, "success");
     },
-  });
+  };
+
+  return actions;
 }

@@ -8,9 +8,10 @@ import { attachGroupReorder } from "@editors/common/groupedReorder.js";
 import { attachUndoRedo } from "@editors/common/undoRedo.js";
 import { perfLog } from "@editors/common/perfLogger.js";
 import { layoutLog, mutationLog, buildLayoutUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
-import { attachLive2DBehavior } from "@editors/live2d/live2dBehavior.js";
+import { createLive2DBehavior } from "@editors/live2d/live2dBehavior.js";
 import { attachLive2DTimeline } from "@editors/live2d/live2dTimeline.js";
 import { attachLive2DDrag } from "@editors/live2d/live2dDrag.js";
+import { live2dEditorView } from "@views/live2dEditorView.js";
 
 // 创建 Live2D 编辑器基础对象
 const baseEditor = new BaseEditor({
@@ -36,45 +37,27 @@ export const live2dEditor = {
 
   // 初始化编辑器
   init() {
-    // 先缓存常用节点
-    this.domCache = {
-      groupCheckbox: document.getElementById("groupCardsCheckbox"),
-      timeline: document.getElementById("live2dEditorTimeline"),
-      characterList: document.getElementById("live2dEditorCharacterList"),
-      modal: document.getElementById("live2dEditorModal"),
-      undoBtn: document.getElementById("live2dUndoBtn"),
-      redoBtn: document.getElementById("live2dRedoBtn"),
-      modeBtn: document.getElementById(
-        "toggleSubsequentLayoutModeBtn"
-      ),
-      modeText: document.getElementById("subsequentLayoutModeText"),
-    };
+    // 委托给视图层初始化 DOM 缓存与事件绑定
+    live2dEditorView.init(this);
 
     const savedMode = storageService.load(STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE);
     if (savedMode === "hide" || savedMode === "move") {
       this.nextMode = savedMode;
     }
 
-    [
-      ["openLive2dEditorBtn", () => this.open()],
-      ["autoLayoutBtn", () => this.applyAutoLayout()],
-      ["resetLayoutsBtn", () => this.clearAllLayouts()],
-      // 给按钮绑定方法
-    ].forEach(([buttonId, handler]) => {
-      document.getElementById(buttonId)?.addEventListener("click", handler);
+    this.actions = createLive2DBehavior({
+      getDomCache: () => this.domCache,
+      executeCommand: (fn) => this.executeCommand(fn),
+      getProjectFileState: () => this.projectFileState,
+      markLayoutMutation: (actionId, type, detail) => this.markLayoutMutation(actionId, type, detail),
+      getNextMode: () => this.nextMode,
+      setNextMode: (mode) => { this.nextMode = mode; },
     });
-    // 切换后续布局模式
-    this.domCache.modeBtn?.addEventListener("click", () => this.toggleSubsequentMode());
-
-    // 绑定通用事件
-    this.initCommonEvents();
-
-    // 绑定置顶角色按钮
-    this.initPinButtonHandler();
   },
 
   // 打开 Live2D 编辑器
   async open() {
+    live2dEditorView.ensureModalInstantiated();
     await this.openProjectEditor({
       // 打开后刷新时间线和拖拽
       afterOpen: async () => {
@@ -82,9 +65,9 @@ export const live2dEditor = {
         live2dEditor.resetTimelineCache?.();
         live2dEditor.renderViewAndList(() => live2dEditor.renderTimeline());
         live2dEditor.initDragAndDrop();
-        live2dEditor.updateSubsequentMode();
+        live2dEditor.actions.updateSubsequentMode();
         live2dEditor.bindTimelineEvents();
-        live2dEditor.domCache.modal?.focus();
+        live2dEditorView.focusModal();
       },
     });
   },
@@ -164,6 +147,5 @@ attachLayoutUI(live2dEditor);
 attachCharacterList(live2dEditor);
 
 // 把拆开的功能加回编辑器对象
-attachLive2DBehavior(live2dEditor);
 attachLive2DTimeline(live2dEditor);
 attachLive2DDrag(live2dEditor);

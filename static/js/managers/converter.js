@@ -1,19 +1,15 @@
-// 点击转换：把文本/项目数据交给后端转换，并把结果显示出来
+// 点击转换：把文本/项目数据交给后端转换，并把结果显示出来（仅保留纯数据及业务，拆离了渲染层）
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { quoteManager } from "@managers/quoteManager.js";
 import { apiService } from "@services/ApiService.js";
 import { buildProjectData } from "@utils/ConverterCore.js";
+import { converterView } from "@views/converterView.js";
 
 export const converter = {
-  // 初始化：绑定“转换”按钮
+  // 初始化：委托给视图层绑定
   init() {
-    document
-      .getElementById("convertBtn")
-      ?.addEventListener("click", this.convertText.bind(this));
-    document
-      .getElementById("copyBtn")
-      ?.addEventListener("click", this.copyResult.bind(this));
+    converterView.init(this);
   },
 
   // 复制当前转换结果 JSON
@@ -30,14 +26,15 @@ export const converter = {
     ui.showStatus("复制失败，请手动选择复制。", "error");
   },
 
-  // 收集输入内容与选项，并开始转换（文本模式或“已保存的项目模式”）
+  // 收集输入内容与选项，并开始转换
   async convertText() {
     let projectFileToConvert;
 
     if (state.projectFile) {
       projectFileToConvert = state.projectFile;
     } else {
-      const inputText = document.getElementById("inputText").value.trim();
+      // 委托给视图获取页面表单字段
+      const { inputText } = converterView.getFormValues();
       if (!inputText) {
         ui.showStatus("请输入要转换的文本！", "error");
         return;
@@ -49,12 +46,7 @@ export const converter = {
     }
 
     const selectedQuotes = quoteManager.listSelectedQuotes();
-    // 如果用户没有输入旁白名称，发送空字符串让后端使用配置默认值
-    const narratorName =
-      document.getElementById("narratorName").value.trim() || "";
-    const appendSpaces = parseInt(document.getElementById("appendSpaces").value) || 0;
-    const padBeforeNewline =
-      parseInt(document.getElementById("appendSpacesBeforeNewline").value) || 0;
+    const { narratorName, appendSpaces, padBeforeNewline } = converterView.getFormValues();
 
     this.convertProject(
       projectFileToConvert,
@@ -65,7 +57,7 @@ export const converter = {
     );
   },
 
-// 把项目文件发到后端再把结果放到页面上
+  // 把项目文件发到后端再把结果放到页面上
   async convertProject(
     projectFile,
     selectedQuotes = [],
@@ -74,7 +66,7 @@ export const converter = {
     padBeforeNewline = 0,
   ) {
     try {
-      ui.toggleButtonLoading("convertBtn", true, "转换中...");
+      converterView.setConvertLoading(true);
       ui.showStatus("正在发送项目数据...", "info");
 
       // 把当前内容发给后端转换
@@ -86,13 +78,15 @@ export const converter = {
         padBeforeNewline,
       );
       state.currentResult = convertResponse.result;
-      document.getElementById("resultSection")?.classList.remove("hidden");
-      ui.renderResultCode("resultContent", state.currentResult);
+
+      // 委托给视图进行渲染
+      converterView.displayResult(state.currentResult);
       ui.showStatus("转换完成！", "success");
     } catch (error) {
       ui.showStatus(error.message, "error");
     } finally {
-      ui.toggleButtonLoading("convertBtn", false);
+      converterView.setConvertLoading(false);
     }
   },
 };
+

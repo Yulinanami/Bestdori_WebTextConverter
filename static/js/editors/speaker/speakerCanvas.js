@@ -35,7 +35,7 @@ export function attachSpeakerCanvas(editor) {
       return this.buildRendererSet();
     },
     getReturnValue() {
-      return this.listUsedIds();
+      return this.actions?.listUsedIds?.();
     },
   });
 }

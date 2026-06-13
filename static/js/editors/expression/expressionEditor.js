@@ -12,8 +12,9 @@ import { layoutLog, mutationLog, buildLayoutUndoHooks, runShortcutSteps } from "
 import { summarizeChanges } from "@editors/common/changeSummaryUtils.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { attachExprRefresh } from "@editors/expression/exprRefresh.js";
-import { attachExprActions } from "@editors/expression/expressionBehavior.js";
+import { createExpressionBehavior } from "@editors/expression/expressionBehavior.js";
 import { attachExprTimeline, clearExprCache, renderExprCard, renderTimeline } from "@editors/expression/exprTimeline.js";
+import { expressionEditorView } from "@views/expressionEditorView.js";
 
 // 创建动作表情编辑器基础对象
 const baseEditor = new BaseEditor({
@@ -44,85 +45,29 @@ export const expressionEditor = {
 
   // 初始化编辑器
   init() {
-    // 先缓存常用节点
-    this.domCache = {
-      groupCheckbox: document.getElementById("groupCardsCheckbox"),
-      timeline: document.getElementById("expressionEditorTimeline"),
-      modal: document.getElementById("expressionEditorModal"),
-      undoBtn: document.getElementById("expressionUndoBtn"),
-      redoBtn: document.getElementById("expressionRedoBtn"),
-      motionList: document.getElementById("motionLibraryList"),
-      expressionList: document.getElementById("expressionLibraryList"),
-    };
+    // 委托给视图层初始化 DOM 缓存与事件绑定
+    expressionEditorView.init(this);
 
-    [
-      ["openExpressionEditorBtn", () => this.open()],
-      ["resetExpressionsBtn", () => this.reset()],
-      ["addTempMotionBtn", () => this.addTempItem("motion")],
-      ["addTempExpressionBtn", () => this.addTempItem("expression")],
-      ["live2dViewerBtn", () => this.openLive2DViewers()],
-      // 给按钮绑定方法
-    ].forEach(([buttonId, handler]) => {
-      document.getElementById(buttonId)?.addEventListener("click", handler);
+    this.actions = createExpressionBehavior({
+      getProjectFileState: () => this.projectFileState,
+      getDomCache: () => this.domCache,
+      getActiveExpressionCardId: () => this.activeExpressionCardId,
+      setActiveExpressionCardId: (id) => { this.activeExpressionCardId = id; },
+      getTempItems: () => this.tempItems,
+      getQuickFill: () => this.quickFill,
+      getSortableInstances: () => this.sortableInstances,
+      setSortableInstances: (instances) => { this.sortableInstances = instances; },
+      findActionById: (actionId) => this.findActionById(actionId),
+      findActionIndexById: (actionId) => this.findActionIndexById(actionId),
+      markCardRender: (actionId, patch) => this.markCardRender(actionId, patch),
+      executeActionChange: (actionId, mutate) => this.executeActionChange(actionId, mutate),
+      markLayoutMutation: (actionId, operation, detail) => this.markLayoutMutation(actionId, operation, detail),
+      deleteLayoutAction: (actionId) => this.deleteLayoutAction(actionId),
+      updateLayoutField: (actionId, target) => this.updateLayoutField(actionId, target),
+      getEditorInstance: () => this,
+      getDragScrollHandler: () => this.handleDragScrolling,
     });
 
-    // 给搜索框绑定输入和清空
-    const setupSearchInput = (type, inputId, clearBtnId) => {
-      const searchInput = document.getElementById(inputId);
-      const clearButton = document.getElementById(clearBtnId);
-      if (!searchInput || !clearButton) return;
-      // 输入时过滤列表
-      searchInput.addEventListener("input", () => {
-        clearButton.style.display = searchInput.value ? "block" : "none";
-        this.filterLibraryList(type, { target: searchInput });
-      });
-
-      // 点击时清空搜索框
-      clearButton.addEventListener("click", () => {
-        searchInput.value = "";
-        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-        searchInput.focus();
-      });
-    };
-
-    [
-      ["motion", "motionSearchInput", "clearMotionSearchBtn"],
-      ["expression", "expressionSearchInput", "clearExpressionSearchBtn"],
-    ].forEach((args) => setupSearchInput(...args));
-
-    const libraryContainer = document.getElementById("expressionEditorLibrary");
-    if (libraryContainer) {
-      libraryContainer.addEventListener("click", (clickEvent) => {
-        const quickFillButton = clickEvent.target.closest(".quick-fill-btn");
-        const quickFillItem = clickEvent.target.closest(".quick-fill-item");
-        const deleteButton = clickEvent.target.closest(".quick-fill-delete-btn");
-
-        if (deleteButton) {
-          // 先处理删除
-          clickEvent.stopPropagation();
-          this.removeQuickFill(deleteButton.dataset.value);
-          return;
-        }
-
-        if (quickFillButton) {
-          this.toggleQuickFill(quickFillButton.dataset.type);
-        }
-
-        if (quickFillItem) {
-          clickEvent.preventDefault();
-          const type = quickFillItem.dataset.type;
-          const selectedValue = quickFillItem.dataset.value;
-          if (type === "add-custom") {
-            this.addQuickFillOption();
-          } else {
-            this.applyQuickFill(type, selectedValue);
-          }
-        }
-      });
-    }
-
-    // 初始化通用事件
-    this.initCommonEvents();
   },
 
   // 恢复默认设置
@@ -164,6 +109,7 @@ export const expressionEditor = {
 
   // 打开动作表情编辑器
   async open() {
+    expressionEditorView.ensureModalInstantiated();
     await this.openProjectEditor({
       // 打开前先清空临时库
       beforePrepareProject: () => {
@@ -172,22 +118,17 @@ export const expressionEditor = {
       },
       // 打开后刷新时间线和右侧列表
       afterOpen: async () => {
-        expressionEditor.loadQuickFillOptions();
+        expressionEditor.actions.loadQuickFillOptions();
         ["motion", "expression"].forEach((type) =>
-          expressionEditor.renderQuickFill(type),
+          expressionEditor.actions.renderQuickFill(type),
         );
-        const motionSearch = document.getElementById("motionSearchInput");
-        const expressionSearch = document.getElementById(
-          "expressionSearchInput"
-        );
-        if (motionSearch) motionSearch.value = "";
-        if (expressionSearch) expressionSearch.value = "";
+        expressionEditorView.clearSearchInputs();
 
         renderTimeline(expressionEditor);
-        expressionEditor.bindTimelineEvents();
+        expressionEditor.actions.bindTimelineEvents();
         expressionEditor.initTimelineDrag();
-        expressionEditor.renderLibraries();
-        expressionEditor.domCache.modal?.focus();
+        expressionEditor.actions.renderLibraries();
+        expressionEditorView.focusModal();
       },
     });
   },
@@ -202,8 +143,8 @@ export const expressionEditor = {
     clearExprCache();
     renderTimeline(this);
     this.initTimelineDrag();
-    this.renderLibraries();
-    this.domCache.modal?.focus();
+    this.actions.renderLibraries();
+    expressionEditorView.focusModal();
   },
 
   // 关闭前清理状态
@@ -323,7 +264,6 @@ attachUndoRedo(expressionEditor, {
 });
 
 attachLayoutUI(expressionEditor);
-attachExprActions(expressionEditor);
 
 // 添加拖拽功能
 attachExpressionDrag(expressionEditor);

@@ -1,7 +1,5 @@
 // 切换步骤并初始化对应页面
-
-class NavigationManager {
-  // 构造时初始化步骤导航
+class NavigationView {
   constructor() {
     this.init();
   }
@@ -9,11 +7,11 @@ class NavigationManager {
   // 绑定步骤按钮并默认打开第 1 步
   init() {
     this.mainPage = document.getElementById("mainAppPage");
+    if (!this.mainPage) return;
 
     // 给每个步骤按钮绑定点击事件
     const navSteps = this.mainPage.querySelectorAll(".nav-step[data-step]");
     navSteps.forEach((step) => {
-      // 点击后切到对应步骤
       step.onclick = () => {
         const stepNum = parseInt(step.dataset.step);
         this.navigateToStep(stepNum);
@@ -26,7 +24,6 @@ class NavigationManager {
 
   // 切到指定步骤
   navigateToStep(stepNum) {
-    // 更新左侧高亮
     const navSteps = this.mainPage.querySelectorAll(".nav-step[data-step]");
     navSteps.forEach((step) => {
       if (parseInt(step.dataset.step) === stepNum) {
@@ -36,7 +33,6 @@ class NavigationManager {
       }
     });
 
-    // 更新右侧内容
     const workspaceSteps = this.mainPage.querySelectorAll(
       ".workspace-step[data-step]",
     );
@@ -57,15 +53,13 @@ class NavigationManager {
 
   // 每一步打开时要做的初始化
   _stepInitializerMap = {
-    // 第 5 步加载角色配置
     5: async () => {
-      const [{ configManager }] = await Promise.all([
-        import("@managers/configManager.js"),
+      const [{ configView }] = await Promise.all([
+        import("@views/configView.js"),
       ]);
-      configManager.renderConfigList();
+      configView.renderConfigList();
     },
 
-    // 第 6 步准备服装配置
     6: async () => {
       const [{ costumeManager }] = await Promise.all([
         import("@managers/costumeManager.js"),
@@ -73,7 +67,6 @@ class NavigationManager {
       costumeManager.prepareStep();
     },
 
-    // 第 7 步准备位置配置
     7: async () => {
       const [{ positionManager }] = await Promise.all([
         import("@managers/positionManager.js"),
@@ -81,7 +74,6 @@ class NavigationManager {
       positionManager.prepareStep();
     },
 
-    // 第 8 步准备动作和表情配置
     8: async () => {
       const [{ motionExprManager }] = await Promise.all([
         import("@managers/motionExprManager.js"),
@@ -90,7 +82,6 @@ class NavigationManager {
     },
   };
 
-  // 进入步骤时执行对应的初始化
   async initializeStepContent(stepNum) {
     const initializer = this._stepInitializerMap[stepNum];
     if (initializer) {
@@ -99,5 +90,4 @@ class NavigationManager {
   }
 }
 
-// 导出单例
-export const navigationManager = new NavigationManager();
+export const navigationView = new NavigationView();

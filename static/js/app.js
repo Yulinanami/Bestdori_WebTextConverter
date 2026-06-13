@@ -1,7 +1,6 @@
 // 启动页面并绑定全局事件
 import { state } from "@managers/stateManager.js";
 import { ui, initPerfSettings } from "@utils/uiUtils.js";
-import { viewManager } from "@managers/viewManager.js";
 import { fileHandler } from "@managers/fileHandler.js";
 import { configManager } from "@managers/configManager.js";
 import { converter } from "@managers/converter.js";
@@ -14,24 +13,12 @@ import { expressionEditor } from "@editors/expression/expressionEditor.js";
 import { motionExprManager } from "@managers/motionExprManager.js";
 import { pinnedCharacterManager } from "@managers/pinnedCharacterManager.js";
 import { mergerManager } from "@managers/mergerManager.js";
-import { docsManager } from "@managers/docsManager.js";
+import { docsView } from "@views/docsView.js";
 import { modalService } from "@services/ModalService.js";
 import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 import { apiService } from "@services/ApiService.js";
-import "@managers/navigationManager.js"; // 初始化导航
+import "@views/navigationView.js"; // 初始化导航
 import "@managers/themeManager.js"; // 初始化主题
-
-const savedInputs = [
-  {
-    inputElementId: "appendSpaces",
-    storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES,
-  },
-  {
-    inputElementId: "appendSpacesBeforeNewline",
-    storageKey: STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
-  },
-];
-
 const initJobs = [
   // 初始化动作表情设置
   () => motionExprManager.init(),
@@ -51,8 +38,6 @@ const initJobs = [
   () => fileHandler.init(),
   // 初始化转换功能
   () => converter.init(),
-  // 初始化页面功能
-  () => viewManager.init(),
   // 初始化引号设置
   () => quoteManager.init(),
   // 初始化合并功能
@@ -60,19 +45,6 @@ const initJobs = [
   // 初始化角色设置
   () => configManager.init(),
 ];
-
-// 初始化会自动保存的数字输入框
-const initNumInput = ({ inputElementId, storageKey }) => {
-  const numericInput = document.getElementById(inputElementId);
-  if (!numericInput) return;
-
-  numericInput.value = storageService.load(storageKey, 0);
-
-  // 输入变化时立即保存
-  numericInput.addEventListener("input", (inputEvent) => {
-    storageService.save(storageKey, parseInt(inputEvent.target.value) || 0);
-  });
-};
 
 // 按顺序启动页面功能
 const initApp = async () => {
@@ -88,7 +60,6 @@ const initApp = async () => {
 
   bindGlobalEvents();
   initPerfSettings();
-  savedInputs.forEach(initNumInput);
   initJobs.forEach((run) => run());
   await configManager.loadConfig();
   await costumeManager.loadConfig();
@@ -150,7 +121,7 @@ const bindGlobalEvents = () => {
     sidebarOverlay?.classList.remove("active");
   };
 
-  docsManager.init(closeSidebar);
+  docsView.init(closeSidebar);
 
   if (sidebarToggle) {
     sidebarToggle.addEventListener("click", toggleSidebar);

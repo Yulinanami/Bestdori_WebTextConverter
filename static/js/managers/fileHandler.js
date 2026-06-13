@@ -1,88 +1,29 @@
-// 上传文件→读取文本和下载结果 JSON的整套流程
+// 上传文件→读取文本和下载结果 JSON的整套流程（仅保留数据及业务中转，拆离了渲染层）
 import { state } from "@managers/stateManager.js";
 import { ui } from "@utils/uiUtils.js";
 import { apiService } from "@services/ApiService.js";
 import { FileUtils } from "@utils/FileUtils.js";
+import { fileView } from "@views/fileView.js";
+import { converterView } from "@views/converterView.js";
 
 export const fileHandler = {
-  // 初始化：绑定上传/下载按钮，并启用拖拽上传
+  // 初始化：委托给视图层绑定
   init() {
-    document
-      .getElementById("fileInput")
-      ?.addEventListener("change", this.handleFileUpload.bind(this));
-    document
-      .getElementById("downloadBtn")
-      ?.addEventListener("click", this.downloadResult.bind(this));
-
-    this.setupFileDragDrop();
+    fileView.init(this);
   },
 
-  // 让上传区域支持“拖拽文件进来”
-  setupFileDragDrop() {
-    const fileUpload = document.getElementById("fileUpload");
-    if (!fileUpload) {
-      return;
-    }
-    // 给拖拽事件都加上默认拦截
-    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-      fileUpload.addEventListener(eventName, this.preventDefaults, false);
-    });
-
-    // 拖进来时高亮上传框
-    ["dragenter", "dragover"].forEach((eventName) => {
-      fileUpload.addEventListener(
-        eventName,
-        () => fileUpload.classList.add("dragover"),
-        false,
-      );
-    });
-
-    // 拖走或放下后取消高亮
-    ["dragleave", "drop"].forEach((eventName) => {
-      fileUpload.addEventListener(
-        eventName,
-        () => fileUpload.classList.remove("dragover"),
-        false,
-      );
-    });
-    fileUpload.addEventListener("drop", this.handleDrop.bind(this), false);
-  },
-
-  // 拦截浏览器默认拖拽行为（避免打开文件/跳转页面）
-  preventDefaults(dragEvent) {
-    dragEvent.preventDefault();
-    dragEvent.stopPropagation();
-  },
-
-// 拖拽松手后交给同一个上传入口
-  handleDrop(dropEvent) {
-    dropEvent.preventDefault();
-    dropEvent.stopPropagation();
-    if (dropEvent.dataTransfer.files.length > 0) {
-      document.getElementById("fileInput").files = dropEvent.dataTransfer.files;
-      this.handleFileUpload({ target: { files: dropEvent.dataTransfer.files } });
-    }
-  },
-
-  // 上传文件到后端，并把解析出的文本填回输入框
-  async handleFileUpload(changeEvent) {
-    const file = changeEvent.target.files[0];
+  // 上传文件到后端，并将文本填充至转换输入框
+  async handleFileUpload(file) {
     if (!file) return;
 
-    const fileUploadLabel = document.querySelector(".file-upload-label");
-    const originalContent = fileUploadLabel.innerHTML;
-    fileUploadLabel.innerHTML = `
-            <div>
-                <div class="loading" style="margin: 0 auto 10px; font-size: 2rem;"></div>
-                <div style="font-weight: 600;">正在上传文件...</div>
-                <div style="font-size: 0.9rem; color: #718096;">请稍候</div>
-            </div>
-        `;
+    fileView.setUploadLoading(true);
 
     try {
       ui.showStatus("正在上传文件...", "info");
-      document.getElementById("inputText").value =
-        (await apiService.uploadFile(file)).content;
+      const uploadResponse = await apiService.uploadFile(file);
+      
+      // 回写数据到主输入视图
+      converterView.setInputText(uploadResponse.content);
 
       if (state.projectFile) {
         state.projectFile = null;
@@ -92,8 +33,8 @@ export const fileHandler = {
     } catch (error) {
       ui.showStatus(error.message, "error");
     } finally {
-      fileUploadLabel.innerHTML = originalContent;
-      document.getElementById("fileInput").value = "";
+      fileView.setUploadLoading(false);
+      fileView.clearFileInput();
     }
   },
 
@@ -104,9 +45,10 @@ export const fileHandler = {
       return;
     }
 
-    await ui.withButtonLoading(
+    // 委托给视图控制下载按钮的 loading 动效
+    await fileView.runWithButtonLoading(
       "downloadBtn",
-      // 请求下载内容并保存
+      "下载中...",
       async () => {
         const filename = `result_${new Date()
           .toISOString()
@@ -120,13 +62,12 @@ export const fileHandler = {
           );
 
           FileUtils.downloadAsFile(blob, filename);
-
           ui.showStatus("文件下载成功！", "success");
         } catch (error) {
           ui.showStatus(error.message, "error");
         }
-      },
-      "下载中...",
+      }
     );
   },
 };
+

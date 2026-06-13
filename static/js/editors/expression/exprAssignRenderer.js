@@ -70,7 +70,7 @@ export const assignUI = {
     actionButtons?.classList.toggle("card-action-buttons-open", isExpanded);
 
     const icon = triggerButton.querySelector(".material-symbols-outlined");
-    const hasData = editor.hasExpressionData(action);
+    const hasData = editor.actions.hasExpressionData(action);
     const buttonTitle = isExpanded
       ? "收起动作/表情编辑"
       : hasData
@@ -253,7 +253,7 @@ export const assignUI = {
 
     let availableCharacters = [];
     if (action.type === "talk") {
-      availableCharacters = editor.listStagedChars();
+      availableCharacters = editor.actions.listStagedChars();
     } else if (action.type === "layout") {
       const characterInfo = {
         id: action.characterId,
@@ -336,7 +336,7 @@ export const assignUI = {
     const delayInput = itemElement.querySelector(".assignment-delay-input");
     delayInput.value = motionData.delay || 0;
 
-    editor.initAssignSortables(itemElement, isLayoutCard);
+    editor.actions.initAssignSortables(itemElement, isLayoutCard);
 
     return itemElement;
   },

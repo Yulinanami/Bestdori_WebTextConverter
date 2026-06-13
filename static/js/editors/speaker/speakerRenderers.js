@@ -45,7 +45,7 @@ function renderTalkCard(dialogueItem, action, editor) {
       // 多说话人时点头像打开弹窗
       avatarContainer.addEventListener("click", (clickEvent) => {
         clickEvent.stopPropagation();
-        editor.openSpeakerPopover(action.id, avatarContainer);
+        editor.actions.openSpeakerPopover(action.id, avatarContainer);
       });
     } else {
       multiSpeakerBadge.classList.add("hidden");
@@ -59,8 +59,8 @@ function renderTalkCard(dialogueItem, action, editor) {
   }
 
   // 根据当前编辑器是否开启了卡片排序模式来决定整个卡片是否原生可拖拽
-  dialogueItem.draggable = !editor.isSortMode;
-  dialogueItem.style.cursor = editor.isSortMode ? "grab" : "pointer";
+  dialogueItem.draggable = !editor.actions.isSortMode;
+  dialogueItem.style.cursor = editor.actions.isSortMode ? "grab" : "pointer";
 
   dialogueItem.querySelector(".dialogue-text").textContent = action.text;
 }

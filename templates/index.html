@@ -828,7 +828,8 @@
     </div>
 
     <!-- 使用文档页 -->
-    <div class="app-container hidden" id="docsPage">
+    <!-- 使用文档页模板（不渲染，等用户点帮助按钮时再实例化） -->
+    <template id="docs-page-template">
       <aside class="app-sidebar">
         <nav class="sidebar-nav docs-sidebar-nav">
           <div class="nav-section">
@@ -1516,16 +1517,13 @@
         </div>
 
       </main>
-    </div>
+    </template>
 
-    <div
-      class="modal modal-fullscreen"
-      id="speakerEditorModal"
-      tabindex="-1"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="speakerEditorModalTitle"
-    >
+    <!-- 文档页挂载点（初始为空） -->
+    <div class="app-container hidden" id="docsPage"></div>
+
+    <!-- speakerEditorModal 模板（首次打开时再实例化） -->
+    <template id="speaker-editor-template">
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title" id="speakerEditorModalTitle">
@@ -1601,6 +1599,17 @@
           </div>
         </div>
       </div>
+    </template>
+  
+    <div
+      class="modal modal-fullscreen"
+      id="speakerEditorModal"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="speakerEditorModalTitle"
+    >
+      <!-- 内容由 JS 从 speaker-editor-template 实例化 -->
     </div>
 
     <!-- 对话编辑器：文本片段卡片模板 -->
@@ -1638,14 +1647,8 @@
       </div>
     </template>
 
-    <div
-      class="modal modal-fullscreen"
-      id="live2dEditorModal"
-      tabindex="-1"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="live2dEditorModalTitle"
-    >
+    <!-- live2dEditorModal 模板（首次打开时再实例化） -->
+    <template id="live2d-editor-template">
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title" id="live2dEditorModalTitle">
@@ -1704,17 +1707,22 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 动作/表情编辑模式模态框 -->
+    </template>
+  
     <div
       class="modal modal-fullscreen"
-      id="expressionEditorModal"
+      id="live2dEditorModal"
       tabindex="-1"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="expressionEditorModalTitle"
+      aria-labelledby="live2dEditorModalTitle"
     >
+      <!-- 内容由 JS 从 live2d-editor-template 实例化 -->
+    </div>
+
+    <!-- 动作/表情编辑模式模态框 -->
+    <!-- expressionEditorModal 模板（首次打开时再实例化） -->
+    <template id="expression-editor-template">
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title" id="expressionEditorModalTitle">
@@ -1906,6 +1914,17 @@
           </div>
         </div>
       </div>
+    </template>
+  
+    <div
+      class="modal modal-fullscreen"
+      id="expressionEditorModal"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="expressionEditorModalTitle"
+    >
+      <!-- 内容由 JS 从 expression-editor-template 实例化 -->
     </div>
 
     <!-- 模板：用于时间线中的只读对话卡片 -->
@@ -2179,6 +2198,7 @@
           "@services/": "/static/js/services/",
           "@editors/": "/static/js/editors/",
           "@managers/": "/static/js/managers/",
+          "@views/": "/static/js/views/",
           "@mixins/": "/static/js/mixins/"
         }
       }

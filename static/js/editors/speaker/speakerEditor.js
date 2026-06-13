@@ -11,8 +11,9 @@ import { perfLog } from "@editors/common/perfLogger.js";
 import { layoutLog, mutationLog, speakerLog, textLog, speakerUndoHooks, runShortcutSteps } from "@editors/common/localShortcutUtils.js";
 import { attachSpeakerDrag } from "@editors/speaker/speakerDrag.js";
 import { attachSpeakerCanvas } from "@editors/speaker/speakerCanvas.js";
-import { attachSpeakerActions } from "@editors/speaker/speakerBehavior.js";
+import { createSpeakerActions } from "@editors/speaker/speakerBehavior.js";
 import { attachSpeakerRefresh, renderSpeakerCard } from "@editors/speaker/speakerRefresh.js";
+import { speakerEditorView } from "@views/speakerEditorView.js";
 
 // 创建对话编辑器用的基础对象
 const baseEditor = new BaseEditor({
@@ -50,65 +51,21 @@ export const speakerEditor = {
 
   // 初始化编辑器
   init() {
-    // 先缓存常用节点
-    this.domCache = {
-      groupCheckbox: document.getElementById("groupCardsCheckbox"),
-      optimizeDragCheckbox: document.getElementById("optimizeDragCheckbox"),
-      canvas: document.getElementById("speakerEditorCanvas"),
-      characterList: document.getElementById("speakerEditorCharacterList"),
-      modal: document.getElementById("speakerEditorModal"),
-      undoBtn: document.getElementById("undoBtn"),
-      redoBtn: document.getElementById("redoBtn"),
-      multiSelectBtn: document.getElementById("toggleMultiSelectBtn"),
-      textEditBtn: document.getElementById("toggleTextEditBtn"),
-    };
-
-    this.loadModePreferences();
-
-    [
-      ["openSpeakerEditorBtn", () => this.open()],
-      ["resetSpeakersBtn", () => this.reset()],
-      // 给按钮绑定对应方法
-    ].forEach(([buttonId, handler]) => {
-      document.getElementById(buttonId)?.addEventListener("click", handler);
-    });
-    // 切换多选模式
-    this.domCache.multiSelectBtn?.addEventListener("click", () => this.toggleMultiSelect());
-    // 切换卡片排序模式
-    this.domCache.textEditBtn?.addEventListener("click", () => this.toggleSortMode());
-
-    // 绑定通用事件
-    this.initCommonEvents();
-
-    if (this.domCache.optimizeDragCheckbox) {
-      this.domCache.optimizeDragCheckbox.checked = this.isDragOptimized;
-      this.domCache.optimizeDragCheckbox.addEventListener("change", (e) => {
-        this.isDragOptimized = e.target.checked;
-        storageService.save(
-          STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION,
-          this.isDragOptimized
-        );
-        this.applyModeUIState();
-        this.initDragAndDrop();
-      });
-    }
-
-    // 绑定置顶角色按钮
-    this.initPinButtonHandler();
-    this.applyModeUIState();
-    this.domCache.modal?.focus();
+    // 委托给视图层初始化 DOM 缓存与事件绑定
+    speakerEditorView.init(this);
   },
 
   // 打开对话编辑器
   async open() {
+    speakerEditorView.ensureModalInstantiated();
     await this.openProjectEditor({
       // 打开后刷新画布和拖拽
       afterOpen: async () => {
-        speakerEditor.applyModeUIState();
+        speakerEditor.actions.applyModeUIState();
         speakerEditor.renderViewAndList(() => speakerEditor.renderCanvas());
         speakerEditor.initDragAndDrop();
-        speakerEditor.bindCanvasEvents();
-        speakerEditor.domCache.modal?.focus();
+        speakerEditor.actions.bindCanvasEvents();
+        speakerEditorView.focusModal();
       },
     });
   },
@@ -119,7 +76,7 @@ export const speakerEditor = {
       cancelAnimationFrame(this.renderFrameId);
       this.renderFrameId = null;
     }
-    this.closeInlineEditor?.();
+    this.actions?.closeInlineEditor();
     // 清空这次编辑留下的临时标记
     this.resetLayoutTransientState({
       pendingSpeakerChange: null,
@@ -234,12 +191,12 @@ attachGroupReorder(speakerEditor, {
     );
   },
   // 局部刷新成功后补一次选中状态
-  onLocalRenderSuccess: () => speakerEditor.reattachSelection(),
+  onLocalRenderSuccess: () => speakerEditor.actions.reattachSelection(),
   // 都没命中时重画整个编辑器
   onFullRender: () => {
     const usedIds = speakerEditor.renderCanvas();
     speakerEditor.renderCharacterList(usedIds);
-    speakerEditor.reattachSelection();
+    speakerEditor.actions.reattachSelection();
   },
 });
 
@@ -253,7 +210,28 @@ attachUndoRedo(speakerEditor, {
 attachLayoutUI(speakerEditor);
 attachCharacterList(speakerEditor);
 
-// 把拆开的功能加回编辑器对象
-attachSpeakerActions(speakerEditor);
+// 使用组合模式挂载对话编辑器交互行为
+speakerEditor.actions = createSpeakerActions({
+  getCanvas: () => speakerEditor.domCache.canvas,
+  getDomCache: () => speakerEditor.domCache,
+  executeCommand: (fn) => speakerEditor.executeCommand(fn),
+  executeActionChange: (actionId, fn) => speakerEditor.executeActionChange(actionId, fn),
+  findActionById: (actionId, actions) => speakerEditor.findActionById(actionId, actions),
+  findActionIndexById: (actionId, actions) => speakerEditor.findActionIndexById(actionId, actions),
+  markSpeakerChange: (actionIds, source, detail) => speakerEditor.markSpeakerChange(actionIds, source, detail),
+  buildProjectState: (rawText) => speakerEditor.buildProjectState(rawText),
+  deleteLayoutAction: (actionId) => speakerEditor.deleteLayoutAction(actionId),
+  toggleCustomToPosition: (actionId) => speakerEditor.toggleCustomToPosition(actionId),
+  toggleSpeakerDrag: (enabled) => speakerEditor.toggleSpeakerDrag(enabled),
+  initDragAndDrop: () => speakerEditor.initDragAndDrop(),
+  applySortModeToCards: () => speakerEditor.applySortModeToCards(),
+  getPendingCardMutation: () => speakerEditor.pendingCardMutation,
+  setPendingCardMutation: (val) => speakerEditor.pendingCardMutation = val,
+  getPendingTextChange: () => speakerEditor.pendingTextChange,
+  setPendingTextChange: (val) => speakerEditor.pendingTextChange = val,
+  getProjectFileState: () => speakerEditor.projectFileState,
+  updateLayoutField: (actionId, target) => speakerEditor.updateLayoutField(actionId, target),
+});
+
 attachSpeakerCanvas(speakerEditor);
 attachSpeakerDrag(speakerEditor);

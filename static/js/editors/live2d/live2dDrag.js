@@ -58,7 +58,7 @@ export function attachLive2DDrag(editor) {
         // 把角色信息转成一条布局动作
         executeFn: (data, globalInsertIndex) => {
           if (data.characterName) {
-            editor.insertLayoutAction(
+            editor.actions.insertLayoutAction(
               data.characterId,
               data.characterName,
               globalInsertIndex

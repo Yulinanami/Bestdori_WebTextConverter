@@ -26,26 +26,37 @@ function removeLayoutActions(actions) {
   return actions.filter((actionItem) => actionItem.type !== "layout");
 }
 
-// 给编辑器添加布局方法
-export function attachLive2DBehavior(editor) {
-  Object.assign(editor, {
+// 给编辑器添加布局方法（组合工厂模式）
+export function createLive2DBehavior(deps) {
+  const {
+    getDomCache,
+    executeCommand,
+    getProjectFileState,
+    markLayoutMutation,
+    getNextMode,
+    setNextMode,
+  } = deps;
+
+  const actions = {
     // 切换后续布局模式
     toggleSubsequentMode() {
-      editor.nextMode =
-        editor.nextMode === "move" ? "hide" : "move";
+      const currentNextMode = getNextMode();
+      const nextMode = currentNextMode === "move" ? "hide" : "move";
+      setNextMode(nextMode);
       storageService.save(
         STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
-        editor.nextMode
+        nextMode
       );
-      editor.updateSubsequentMode();
+      actions.updateSubsequentMode();
     },
 
     // 刷新后续模式按钮文字
     updateSubsequentMode() {
-      if (editor.domCache.modeText) {
+      const domCache = getDomCache();
+      if (domCache.modeText) {
         const modeText =
-          editor.nextMode === "move" ? "移动" : "退场";
-        editor.domCache.modeText.textContent = `后续: ${modeText}`;
+          getNextMode() === "move" ? "移动" : "退场";
+        domCache.modeText.textContent = `后续: ${modeText}`;
       }
     },
 
@@ -55,7 +66,7 @@ export function attachLive2DBehavior(editor) {
       await ui.withButtonLoading(
         "resetLayoutsBtn",
         async () => {
-          editor.executeCommand((currentState) => {
+          executeCommand((currentState) => {
             currentState.actions = removeLayoutActions(currentState.actions);
           });
           ui.showStatus("已清空所有布局。", "success");
@@ -73,7 +84,7 @@ export function attachLive2DBehavior(editor) {
       ) {
         return;
       }
-      editor.executeCommand((currentState) => {
+      executeCommand((currentState) => {
         // 先清空旧布局
         currentState.actions = removeLayoutActions(currentState.actions);
         const seenChars = new Set();
@@ -120,29 +131,29 @@ export function attachLive2DBehavior(editor) {
     // 插入一条布局动作
     insertLayoutAction(characterId, characterName, index) {
       const layoutActionId = `layout-action-${Date.now()}-${Math.random()}`;
-      const previousState = editor.findPrevCharacterState(
-        editor.projectFileState?.actions || [],
+      const previousState = actions.findPrevCharacterState(
+        getProjectFileState()?.actions || [],
         characterName,
         index
       );
       const layoutType = previousState.onStage
-        ? editor.nextMode
+        ? getNextMode()
         : "appear";
       const costumeToUse =
         previousState.lastCostume ||
         state.currentCostumes[characterName] ||
         "";
-      const defaultPosition = editor.findDefaultPos(characterName);
+      const defaultPosition = actions.findDefaultPos(characterName);
       const fromPosition = previousState.lastPosition
         ? { ...previousState.lastPosition }
         : { side: defaultPosition.position, offsetX: defaultPosition.offset };
-      editor.markLayoutMutation(layoutActionId, "add", {
+      markLayoutMutation(layoutActionId, "add", {
         source: "ui",
         detail: `type=layout, character=${characterName}, layoutType=${layoutType}, costume=${costumeToUse}, from=${JSON.stringify(
           fromPosition
         )}`,
       });
-      editor.executeCommand((currentState) => {
+      executeCommand((currentState) => {
         currentState.actions.splice(
           index,
           0,
@@ -161,7 +172,7 @@ export function attachLive2DBehavior(editor) {
     // 读取当前项目里出现过的角色
     listUsedIds() {
       const usedNames = new Set();
-      editor.projectFileState?.actions?.forEach((action) => {
+      getProjectFileState()?.actions?.forEach((action) => {
         if (action.type === "layout" && action.characterName) {
           usedNames.add(action.characterName);
         }
@@ -182,7 +193,7 @@ export function attachLive2DBehavior(editor) {
     },
 
     // 往前推角色状态
-    findPrevCharacterState(actions, characterName, startIndex) {
+    findPrevCharacterState(actionsList, characterName, startIndex) {
       let onStage = false;
       let lastPosition = null;
       let lastCostume = null;
@@ -190,7 +201,7 @@ export function attachLive2DBehavior(editor) {
       // 从开头一路推到插入点 算出角色当前位置和服装
       // 从头开始看角色状态怎么变
       for (let actionIndex = 0; actionIndex < startIndex; actionIndex++) {
-        const action = actions[actionIndex];
+        const action = actionsList[actionIndex];
         if (
           action &&
           action.type === "layout" &&
@@ -215,5 +226,7 @@ export function attachLive2DBehavior(editor) {
       }
       return { onStage, lastPosition, lastCostume };
     },
-  });
+  };
+
+  return actions;
 }

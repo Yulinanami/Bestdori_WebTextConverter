@@ -1,75 +1,40 @@
-// 切换浅色和深色主题
+// 切换浅色和深色主题数据管理（仅保留纯数据及缓存读写，拆离了渲染层）
+import { themeView } from "@views/themeView.js";
+
 export class ThemeManager {
-  // 构造时初始化主题
   constructor() {
-    // 先记住主题存储 key
     this.STORAGE_KEY = "theme-preference";
-    this.themeSelector = null;
     this.init();
   }
 
-  // 初始化主题选择器
+  // 初始化：委托给视图层
   init() {
-    // 等待 DOM 加载完成
-    if (document.readyState === "loading") {
-      // 等页面加载完再找主题下拉框
-      document.addEventListener("DOMContentLoaded", () => this.setup());
-    } else {
-      this.setup();
-    }
+    themeView.init(this);
   }
 
-  // 绑定主题选择器，并加载之前保存的主题
-  setup() {
-    this.themeSelector = document.getElementById("themeSelector");
-    if (!this.themeSelector) {
-      console.warn("主题选择器未找到");
-      return;
-    }
-
-    // 读取已保存的主题
-    this.loadTheme();
-
-    // 监听主题切换事件
-    // 切换下拉框时立即换主题
-    this.themeSelector.addEventListener("change", (changeEvent) => {
-      this.changeTheme(changeEvent.target.value);
-    });
-  }
-
-  // 从 localStorage 读取主题，并应用到页面
+  // 从 localStorage 读取主题，并应用
   loadTheme() {
     try {
       const savedTheme = localStorage.getItem(this.STORAGE_KEY) || "light";
-      this.applyTheme(savedTheme);
-      if (this.themeSelector) {
-        this.themeSelector.value = savedTheme;
-      }
+      themeView.applyTheme(savedTheme);
+      themeView.setSelectorValue(savedTheme);
     } catch (error) {
       console.error("加载主题失败:", error);
-      this.applyTheme("light");
+      themeView.applyTheme("light");
     }
   }
 
-  // 切换主题，并把选择保存到 localStorage
+  // 切换主题，并保存到 localStorage
   changeTheme(theme) {
     try {
-      this.applyTheme(theme);
+      themeView.applyTheme(theme);
       localStorage.setItem(this.STORAGE_KEY, theme);
     } catch (error) {
       console.error("保存主题失败:", error);
-    }
-  }
-
-  // 把主题写到 DOM
-  applyTheme(theme) {
-    if (theme === "dark") {
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
     }
   }
 }
 
 // 导出单例
 export const themeManager = new ThemeManager();
+
