@@ -5,6 +5,7 @@ import { apiService } from "@services/ApiService.js";
 import { eventBus } from "@services/EventBus.js";
 import { configView } from "@views/configView.js";
 import { converterView } from "@views/converterView.js";
+import { ui } from "@utils/uiUtils.js";
 
 const CLEAR_KEYS = [
   STORAGE_KEYS.CHARACTER_MAPPING, STORAGE_KEYS.CUSTOM_QUOTES, STORAGE_KEYS.PRESET_QUOTES_STATE,
@@ -12,6 +13,7 @@ const CLEAR_KEYS = [
   STORAGE_KEYS.CARD_GROUPING, STORAGE_KEYS.PINNED_CHARACTERS, STORAGE_KEYS.CUSTOM_MOTIONS,
   STORAGE_KEYS.CUSTOM_EXPRESSIONS, STORAGE_KEYS.LIVE2D_SUBSEQUENT_MODE,
   STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE, STORAGE_KEYS.SPEAKER_TEXT_EDIT_MODE,
+  STORAGE_KEYS.SPEAKER_SORT_MODE,
   STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION,
   STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS, STORAGE_KEYS.AUTO_APPEND_SPACES,
   STORAGE_KEYS.AUTO_APPEND_SPACES_BEFORE_NEWLINE,
@@ -90,8 +92,8 @@ export const configManager = {
 
   // 写入一个数字设置
   applyNumericSetting(storageKey, inputId, value) {
-    if (typeof value !== "number") return;
-    const normalizedValue = Math.max(0, value);
+    if (typeof value !== "number" || !Number.isFinite(value)) return;
+    const normalizedValue = converterView.normalizeSpaceCount(value);
     storageService.save(storageKey, normalizedValue);
     converterView.updateNumericInput(inputId, normalizedValue);
   },
@@ -137,8 +139,10 @@ export const configManager = {
     try {
       const response = await apiService.importConfigFile(file);
       this.applyImportedConfig(response.config);
+      ui.showStatus("配置导入成功！", "success");
     } catch (error) {
       console.error("配置导入失败:", error);
+      ui.showStatus(`配置导入失败: ${error.message}`, "error");
     }
   },
 
@@ -180,10 +184,3 @@ export const configManager = {
     location.reload();
   },
 };
-
-// 配置导入事件订阅
-eventBus.on("config:imported", ({ config }) => {
-  if (config.character_mapping) {
-    configManager.applyImportedConfig(config);
-  }
-});

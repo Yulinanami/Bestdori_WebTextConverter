@@ -22,10 +22,16 @@ export const configView = {
     if (!configList) return;
 
     // 点删除按钮时删掉一项
-    configList.addEventListener("click", (clickEvent) => {
+    configList.addEventListener("click", async (clickEvent) => {
       const removeButton = clickEvent.target.closest(".remove-btn");
       if (removeButton) {
-        removeButton.closest(".config-item").remove();
+        const configItem = removeButton.closest(".config-item");
+        const characterName =
+          configItem?.querySelector(".config-name")?.value.trim() || "未命名角色";
+        const confirmed = await modalService.confirm(
+          `确定要删除角色“${characterName}”吗？`,
+        );
+        if (confirmed) configItem?.remove();
       }
     });
 

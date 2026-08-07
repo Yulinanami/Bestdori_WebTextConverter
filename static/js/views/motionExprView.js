@@ -132,6 +132,8 @@ export const motionExprView = {
     const removeButton = clickEvent.target.closest(".remove-btn");
     if (removeButton) {
       const idToDelete = removeButton.dataset.id;
+      const itemType = type === "motion" ? "动作" : "表情";
+      if (!confirm(`确定要删除${itemType}“${idToDelete}”吗？`)) return;
       if (type === "motion") {
         this.manager.tempMotions = this.manager.tempMotions.filter(
           (id) => id !== idToDelete,

@@ -671,8 +671,23 @@ export function createExpressionBehavior(deps) {
       const configData = state.configData;
       const quickFill = getQuickFill();
       quickFill.default = configData?.quick_fill_options || [];
-      quickFill.custom =
+      const savedCustom =
         storageService.load(STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS) || [];
+      const defaultOptions = new Set(quickFill.default);
+      quickFill.custom = Array.isArray(savedCustom)
+        ? [...new Set(savedCustom)].filter(
+            (option) => !defaultOptions.has(option)
+          )
+        : [];
+      if (
+        !Array.isArray(savedCustom) ||
+        quickFill.custom.length !== savedCustom.length
+      ) {
+        storageService.save(
+          STORAGE_KEYS.CUSTOM_QUICK_FILL_OPTIONS,
+          quickFill.custom
+        );
+      }
     },
 
     // 渲染一个快速填充下拉框
@@ -782,7 +797,10 @@ export function createExpressionBehavior(deps) {
 
       const trimmedValue = newValue.trim().toLowerCase();
       const quickFill = getQuickFill();
-      if (quickFill.custom.includes(trimmedValue)) {
+      if (
+        quickFill.default.includes(trimmedValue) ||
+        quickFill.custom.includes(trimmedValue)
+      ) {
         ui.showStatus("该填充项已存在！", "error");
         return;
       }

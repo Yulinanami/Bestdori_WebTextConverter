@@ -142,10 +142,8 @@ export const costumeView = {
 
       const listItems = costumeItem.querySelector(".costume-list-items");
       listItems.id = `costume-list-${safeDomId}`;
-      listItems.innerHTML = this.renderCostumeItems(
-        characterName,
-        characterCostumes,
-        safeDomId,
+      listItems.replaceChildren(
+        this.renderCostumeItems(characterName, characterCostumes, safeDomId),
       );
 
       fragment.appendChild(costumeItem);
@@ -157,27 +155,45 @@ export const costumeView = {
 
   // 渲染每行列表项
   renderCostumeItems(characterName, availableCostumeIds, safeDomId) {
+    const fragment = document.createDocumentFragment();
     if (availableCostumeIds.length === 0) {
-      return '<div class="empty-costume-list">暂无可用服装</div>';
+      const emptyMessage = document.createElement("div");
+      emptyMessage.className = "empty-costume-list";
+      emptyMessage.textContent = "暂无可用服装";
+      fragment.appendChild(emptyMessage);
+      return fragment;
     }
 
-    return availableCostumeIds
-      .map(
-        (costumeId, index) => `
-        <div class="costume-list-item">
-            <span>${costumeId}</span>
-            <div class="costume-item-actions">
-                <button class="btn btn-icon-action edit-costume-btn" title="编辑服装ID" data-character-name="${characterName}" data-index="${index}" data-costume="${costumeId}" data-safe-dom-id="${safeDomId}">
-                    <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button class="btn btn-icon-action btn-icon-danger delete-costume-btn" title="删除此服装" data-character-name="${characterName}" data-index="${index}" data-safe-dom-id="${safeDomId}">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            </div>
+    availableCostumeIds.forEach((costumeId, index) => {
+      const listItem = document.createElement("div");
+      listItem.className = "costume-list-item";
+      listItem.innerHTML = `
+        <span></span>
+        <div class="costume-item-actions">
+          <button type="button" class="btn btn-icon-action edit-costume-btn" title="编辑服装ID">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button type="button" class="btn btn-icon-action btn-icon-danger delete-costume-btn" title="删除此服装">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
         </div>
-    `,
-      )
-      .join("");
+      `;
+      listItem.firstElementChild.textContent = costumeId;
+
+      const editButton = listItem.querySelector(".edit-costume-btn");
+      editButton.dataset.characterName = characterName;
+      editButton.dataset.index = index;
+      editButton.dataset.costume = costumeId;
+      editButton.dataset.safeDomId = safeDomId;
+
+      const deleteButton = listItem.querySelector(".delete-costume-btn");
+      deleteButton.dataset.characterName = characterName;
+      deleteButton.dataset.index = index;
+      deleteButton.dataset.safeDomId = safeDomId;
+      fragment.appendChild(listItem);
+    });
+
+    return fragment;
   },
 
   // 局部重刷一行的 UI
@@ -192,10 +208,8 @@ export const costumeView = {
 
     const costumeSelect = detailsContainer.querySelector(".costume-select");
 
-    listContainer.innerHTML = this.renderCostumeItems(
-      characterName,
-      characterCostumes,
-      safeDomId,
+    listContainer.replaceChildren(
+      this.renderCostumeItems(characterName, characterCostumes, safeDomId),
     );
 
     this.renderCostumeSelect(

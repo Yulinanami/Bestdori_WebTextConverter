@@ -153,9 +153,12 @@ export function createSpeakerActions(deps) {
 
   // 内部状态
   let inlineTextEditor = null;
-  let isMultiSelectMode = false;
-  let isSortMode = false;
-  let isDragOptimized = false;
+  let isMultiSelectMode =
+    storageService.load(STORAGE_KEYS.SPEAKER_MULTI_SELECT_MODE, false) === true;
+  let isSortMode =
+    storageService.load(STORAGE_KEYS.SPEAKER_SORT_MODE, false) === true;
+  let isDragOptimized =
+    storageService.load(STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION, false) === true;
   let onCardClickFn = null;
   let onSelectionChangeFn = null;
   let onLayoutChangeFn = null;
@@ -409,7 +412,7 @@ export function createSpeakerActions(deps) {
     toggleSortMode() {
       isSortMode = !isSortMode;
       storageService.save(
-        "speaker_sort_mode",
+        STORAGE_KEYS.SPEAKER_SORT_MODE,
         isSortMode
       );
       actions.applyModeUIState();
@@ -543,6 +546,7 @@ export function createSpeakerActions(deps) {
       inputElement.addEventListener("keydown", (keyboardEvent) => {
         if (keyboardEvent.key === "Escape") {
           keyboardEvent.preventDefault();
+          keyboardEvent.stopPropagation();
           actions.closeInlineEditor();
           return;
         }

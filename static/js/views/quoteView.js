@@ -145,6 +145,7 @@ export const quoteView = {
   // 自定义删除的 UI 反馈
   removeCustomQuote(quoteName) {
     if (!this.manager) return;
+    if (!confirm(`确定要删除自定义引号“${quoteName}”吗？`)) return;
     this.manager.removeCustomQuoteData(quoteName);
     this.renderQuoteOptions();
     ui.showStatus("自定义引号已删除", "success");

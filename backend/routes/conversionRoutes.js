@@ -5,17 +5,28 @@ const { ProjectConverter } = require("../projectConverter");
 const { FileFormatConverter } = require("../fileFormatConverter");
 const { createLogger } = require("../logger");
 const { decodeFilename, isUploadFile, formatFileSize } = require("./conversion/uploadHelpers");
-const { sanitizeFilename, buildDownloadFilename } = require("./conversion/downloadHelpers");
+const {
+  sanitizeFilename,
+  buildDownloadFilename,
+  buildContentDisposition,
+} = require("./conversion/downloadHelpers");
 const { isProjectFile, buildProjectExport } = require("./conversion/projectFileHelpers");
 
 const logger = createLogger("src.routes.conversion");
+
+// 把用户输入的空格数量限制在安全范围内
+function normalizeSpaceCount(value) {
+  const parsedValue = Number(value);
+  if (!Number.isFinite(parsedValue) || parsedValue <= 0) return 0;
+  return Math.min(Math.trunc(parsedValue), 10000);
+}
 
 // 创建转换路由
 function createRouter({ configManager, maxContentLength }) {
   const router = express.Router();
   const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: maxContentLength },
+    limits: { fileSize: maxContentLength + 1 },
   });
 
   // 转换项目
@@ -28,9 +39,10 @@ function createRouter({ configManager, maxContentLength }) {
       const parsingConfig = configManager.config.parsing || {};
       const defaultNarrator = parsingConfig.default_narrator_name ?? " ";
       const narratorName = data.narratorName || defaultNarrator;
-      const appendSpaces = Number(data.appendSpaces) || 0;
-      const padBeforeNewline =
-        Number(data.appendSpacesBeforeNewline) || 0;
+      const appendSpaces = normalizeSpaceCount(data.appendSpaces);
+      const padBeforeNewline = normalizeSpaceCount(
+        data.appendSpacesBeforeNewline,
+      );
 
       // 只接受项目文件 旧版 text 字段会被拦下
       if (
@@ -120,7 +132,7 @@ function createRouter({ configManager, maxContentLength }) {
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${filename}"`,
+        buildContentDisposition(filename),
       );
       res.status(200).send(content);
       logger.info(`文件下载成功: ${filename}`);

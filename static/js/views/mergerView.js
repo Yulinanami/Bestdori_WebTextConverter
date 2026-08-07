@@ -95,28 +95,38 @@ export const mergerView = {
     if (!fileListContainer || !fileListElement || !mergeButton) return;
 
     const files = this.manager.files;
+    fileListElement.replaceChildren();
 
     if (files.length > 0) {
       fileListContainer.classList.remove("hidden");
       mergeButton.disabled = false;
 
-      fileListElement.innerHTML = "";
       files.forEach((fileEntry) => {
         const fileListItem = document.createElement("li");
         fileListItem.className = "merger-file-item";
         fileListItem.dataset.id = fileEntry.id;
         fileListItem.innerHTML = `
           <div class="merger-file-drag-handle">
-              <span class="material-symbols-outlined">drag_indicator</span>
+            <span class="material-symbols-outlined">drag_indicator</span>
           </div>
-          <div class="merger-file-name" title="${fileEntry.name}">${fileEntry.name}</div>
+          <div class="merger-file-name"></div>
           <div class="merger-file-actions">
-              <span class="merger-file-count">${fileEntry.data.actions.length} 个动作</span>
-              <button class="btn btn-icon btn-sm remove-merger-file-btn" aria-label="删除" data-file-id="${fileEntry.id}">
-                  <span class="material-symbols-outlined" style="color: var(--color-error)">delete</span>
-              </button>
+            <span class="merger-file-count"></span>
+            <button type="button" class="btn btn-icon btn-sm remove-merger-file-btn" aria-label="删除">
+              <span class="material-symbols-outlined" style="color: var(--color-error)">delete</span>
+            </button>
           </div>
         `;
+
+        const fileName = fileListItem.querySelector(".merger-file-name");
+        fileName.textContent = fileEntry.name;
+        fileName.title = fileEntry.name;
+        const actionCount = fileListItem.querySelector(".merger-file-count");
+        actionCount.textContent = `${fileEntry.data.actions.length} 个动作`;
+        const removeButton = fileListItem.querySelector(
+          ".remove-merger-file-btn",
+        );
+        removeButton.dataset.fileId = fileEntry.id;
         fileListElement.appendChild(fileListItem);
       });
     } else {

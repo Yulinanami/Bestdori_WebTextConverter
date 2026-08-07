@@ -85,8 +85,8 @@
 
 /* 背景工具类 */
 .bg-light {
-  background: var(--surface-container-high);
-  border-radius: 30px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
 }
 
 /* 字体粗细 */

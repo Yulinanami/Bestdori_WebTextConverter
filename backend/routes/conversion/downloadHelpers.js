@@ -17,7 +17,18 @@ function buildDownloadFilename() {
   return `result_${stamp}.json`;
 }
 
+// 同时提供 ASCII 回退名和 UTF-8 文件名
+function buildContentDisposition(filename) {
+  const fallback = filename.replace(/[^\x20-\x7E]/g, "_");
+  const encoded = encodeURIComponent(filename).replace(
+    /['()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+}
+
 module.exports = {
   sanitizeFilename,
   buildDownloadFilename,
+  buildContentDisposition,
 };

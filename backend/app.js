@@ -74,6 +74,10 @@ function createApp({
 
   // 处理未捕获的错误
   app.use((error, _req, res, next) => {
+    if (error?.type === "entity.too.large" || error?.status === 413) {
+      res.status(413).json({ error: "请求数据超过16MB限制" });
+      return;
+    }
     logger.error("未处理异常:", error);
     // 响应已经发出时只能继续往后传错误
     if (res.headersSent) {

@@ -25,11 +25,22 @@ function removeWrappedQuotes(text, activeQuotePairs) {
     return text;
   }
 
-  const firstChar = stripped[0];
-  const expectedClosing = activeQuotePairs[firstChar];
-  // 只有开头和结尾刚好配成一对时 才去掉外层引号
-  if (expectedClosing && stripped.endsWith(expectedClosing)) {
-    return stripped.slice(1, -1).trim();
+  const quotePairs = Object.entries(activeQuotePairs).sort(
+    ([openingA], [openingB]) => openingB.length - openingA.length,
+  );
+  // 只有开头和结尾刚好配成完整一对时 才去掉外层引号
+  for (const [opening, closing] of quotePairs) {
+    if (
+      opening &&
+      closing &&
+      stripped.length >= opening.length + closing.length &&
+      stripped.startsWith(opening) &&
+      stripped.endsWith(closing)
+    ) {
+      return stripped
+        .slice(opening.length, stripped.length - closing.length)
+        .trim();
+    }
   }
 
   return text;

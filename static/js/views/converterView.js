@@ -6,6 +6,13 @@ import { storageService, STORAGE_KEYS } from "@services/StorageService.js";
 export const converterView = {
   manager: null,
 
+  // 把空格数量限制为可安全处理的非负整数
+  normalizeSpaceCount(value) {
+    const parsedValue = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) return 0;
+    return Math.min(parsedValue, 10000);
+  },
+
   // 初始化绑定事件监听
   init(manager) {
     this.manager = manager;
@@ -42,10 +49,15 @@ export const converterView = {
       const numericInput = document.getElementById(inputElementId);
       if (!numericInput) return;
 
-      numericInput.value = storageService.load(storageKey, 0);
+      numericInput.value = this.normalizeSpaceCount(
+        storageService.load(storageKey, 0),
+      );
 
       numericInput.addEventListener("input", (inputEvent) => {
-        storageService.save(storageKey, parseInt(inputEvent.target.value) || 0);
+        storageService.save(
+          storageKey,
+          this.normalizeSpaceCount(inputEvent.target.value),
+        );
       });
     });
   },
@@ -62,9 +74,12 @@ export const converterView = {
   getFormValues() {
     const inputText = document.getElementById("inputText")?.value.trim() || "";
     const narratorName = document.getElementById("narratorName")?.value.trim() || "";
-    const appendSpaces = parseInt(document.getElementById("appendSpaces")?.value) || 0;
-    const padBeforeNewline =
-      parseInt(document.getElementById("appendSpacesBeforeNewline")?.value) || 0;
+    const appendSpaces = this.normalizeSpaceCount(
+      document.getElementById("appendSpaces")?.value,
+    );
+    const padBeforeNewline = this.normalizeSpaceCount(
+      document.getElementById("appendSpacesBeforeNewline")?.value,
+    );
 
     return {
       inputText,

@@ -349,19 +349,19 @@ const editorCoreMethods = {
         return;
       }
 
-      if (keyboardEvent.key === "z") {
-        keyboardEvent.preventDefault();
-        historyManager.undo();
-        return;
-      }
-
       if (
-        keyboardEvent.key === "y" ||
+        keyboardEvent.key.toLowerCase() === "y" ||
         (keyboardEvent.shiftKey &&
-          (keyboardEvent.key === "z" || keyboardEvent.key === "Z"))
+          keyboardEvent.key.toLowerCase() === "z")
       ) {
         keyboardEvent.preventDefault();
         historyManager.redo();
+        return;
+      }
+
+      if (keyboardEvent.key.toLowerCase() === "z") {
+        keyboardEvent.preventDefault();
+        historyManager.undo();
       }
     });
   },
