@@ -12,16 +12,6 @@ class EventBus {
     this.listeners.get(eventName).push(callback);
   }
 
-  // 取消监听
-  off(eventName, callback) {
-    const callbacks = this.listeners.get(eventName);
-    if (!callbacks) return;
-    this.listeners.set(
-      eventName,
-      callbacks.filter((cb) => cb !== callback),
-    );
-  }
-
   // 触发事件，通知所有监听者
   emit(eventName, data) {
     const callbacks = this.listeners.get(eventName);

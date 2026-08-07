@@ -100,11 +100,11 @@ function handleDialogueClick(editor, clickEvent) {
 }
 
 // 处理布局卡片删除
-function handleLayoutDelete(editor, actionId) {
-  const layoutAction = editor.findActionById(actionId);
-  const deleteIndex = editor.findActionIndexById(actionId);
+function handleLayoutDelete(actions, actionId, deps) {
+  const layoutAction = deps.findActionById(actionId);
+  const deleteIndex = deps.findActionIndexById(actionId);
   if (deleteIndex > -1) {
-    markCardMutation(editor, {
+    markCardMutation(actions, {
       type: "delete",
       actionId,
       startIndex: deleteIndex,
@@ -113,7 +113,7 @@ function handleLayoutDelete(editor, actionId) {
       }, layoutType=${layoutAction?.layoutType || "unknown"}`,
     });
   }
-  editor.deleteLayoutAction(actionId);
+  deps.deleteLayoutAction(actionId);
 }
 
 // 创建行内文本编辑框
@@ -132,7 +132,6 @@ function createInlineEditor(initialText = "") {
 // 给编辑器加上对话交互（组合工厂模式）
 export function createSpeakerActions(deps) {
   const {
-    getCanvas,
     getDomCache,
     executeCommand,
     executeActionChange,
@@ -143,7 +142,6 @@ export function createSpeakerActions(deps) {
     deleteLayoutAction,
     toggleCustomToPosition,
     toggleSpeakerDrag,
-    initDragAndDrop,
     applySortModeToCards,
     getPendingCardMutation,
     setPendingCardMutation,
@@ -351,24 +349,6 @@ export function createSpeakerActions(deps) {
       return usedNames;
     },
 
-    // 载入持久化的编辑模式
-    loadModePreferences() {
-      // 读档
-      const savedMultiSelect = storageService.load(
-        STORAGE_KEYS.SPEAKER_MULTI_SELECT
-      );
-      isMultiSelectMode = savedMultiSelect || false;
-      const savedSortMode = storageService.load(
-        STORAGE_KEYS.SPEAKER_SORT_MODE
-      );
-      isSortMode = savedSortMode || false;
-      
-      const savedOptimization = storageService.load(
-        STORAGE_KEYS.SPEAKER_DRAG_OPTIMIZATION
-      );
-      isDragOptimized = savedOptimization !== null ? savedOptimization : false;
-    },
-
     // 按当前模式刷新按钮和样式
     applyModeUIState() {
       const modeBtn = getDomCache().multiSelectBtn;
@@ -386,7 +366,6 @@ export function createSpeakerActions(deps) {
           textEditBtn.classList.toggle("active", isSortMode);
         }
       }
-      applySortModeToCards?.();
       actions.syncMultiSelectBtn();
       actions.syncSortModeBtn();
       // 编辑模式变成常驻开启
@@ -607,7 +586,7 @@ export function createSpeakerActions(deps) {
       if (layoutDeleteButton) {
         const actionId = findClosestActionId(layoutDeleteButton, ".layout-item");
         if (actionId) {
-          handleLayoutDelete(actions, actionId);
+          handleLayoutDelete(actions, actionId, deps);
         }
         return;
       }

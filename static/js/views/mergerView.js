@@ -165,13 +165,8 @@ export const mergerView = {
     const copyButton = document.getElementById("copyMergeBtn");
     const gotoButton = document.getElementById("gotoBestdoriMergeBtn");
 
-    if (mode === "project") {
-      if (copyButton) copyButton.classList.remove("hidden");
-      if (gotoButton) gotoButton.classList.add("hidden");
-    } else {
-      if (copyButton) copyButton.classList.add("hidden");
-      if (gotoButton) gotoButton.classList.remove("hidden");
-    }
+    copyButton?.classList.toggle("hidden", mode !== "project");
+    gotoButton?.classList.toggle("hidden", mode === "project");
 
     if (resultSec) {
       resultSec.classList.remove("hidden");

@@ -52,21 +52,12 @@ export const DOMUtils = {
       typeof elementOrId === "string"
         ? document.getElementById(elementOrId)
         : elementOrId;
-    if (targetElement) {
-      targetElement.innerHTML = "";
-    }
+    targetElement?.replaceChildren();
   },
 
-  // 把一组子元素批量 append 到父元素（用 fragment 减少重排）
+  // 把一组子元素批量 append 到父元素
   appendChildren(parent, children) {
-    const fragment = document.createDocumentFragment();
-    // 先把要加的节点放进 fragment
-    children.forEach((child) => {
-      if (child instanceof Element) {
-        fragment.appendChild(child);
-      }
-    });
-    parent.appendChild(fragment);
+    parent.append(...children.filter((child) => child instanceof Element));
   },
 
   // 显示/隐藏一个元素（display: block/none）
@@ -98,13 +89,8 @@ export const DOMUtils = {
       "layout-type-hide"
     );
 
-    // 根据类型添加对应的类名
-    if (layoutType === "appear") {
-      element.classList.add("layout-type-appear");
-    } else if (layoutType === "move") {
-      element.classList.add("layout-type-move");
-    } else if (layoutType === "hide") {
-      element.classList.add("layout-type-hide");
+    if (["appear", "move", "hide"].includes(layoutType)) {
+      element.classList.add(`layout-type-${layoutType}`);
     }
   },
 };

@@ -33,8 +33,6 @@ export const speakerEditor = {
   characterListId: "speakerEditorCharacterList",
   renderFrameId: null,
 
-  isMultiSelectMode: false,
-  isTextEditMode: false,
   domCache: {},
 
   // 下一帧再刷新
@@ -212,7 +210,6 @@ attachCharacterList(speakerEditor);
 
 // 使用组合模式挂载对话编辑器交互行为
 speakerEditor.actions = createSpeakerActions({
-  getCanvas: () => speakerEditor.domCache.canvas,
   getDomCache: () => speakerEditor.domCache,
   executeCommand: (fn) => speakerEditor.executeCommand(fn),
   executeActionChange: (actionId, fn) => speakerEditor.executeActionChange(actionId, fn),
@@ -223,7 +220,6 @@ speakerEditor.actions = createSpeakerActions({
   deleteLayoutAction: (actionId) => speakerEditor.deleteLayoutAction(actionId),
   toggleCustomToPosition: (actionId) => speakerEditor.toggleCustomToPosition(actionId),
   toggleSpeakerDrag: (enabled) => speakerEditor.toggleSpeakerDrag(enabled),
-  initDragAndDrop: () => speakerEditor.initDragAndDrop(),
   applySortModeToCards: () => speakerEditor.applySortModeToCards(),
   getPendingCardMutation: () => speakerEditor.pendingCardMutation,
   setPendingCardMutation: (val) => speakerEditor.pendingCardMutation = val,

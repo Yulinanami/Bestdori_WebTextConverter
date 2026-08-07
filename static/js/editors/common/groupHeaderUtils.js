@@ -18,8 +18,7 @@ export function updateGroupHeader(header, options) {
   // 先写入基础样式
   header.style.cursor = "pointer";
   header.style.padding = "12px 18px";
-  header.style.background = "var(--bg-secondary)";
-  header.style.border = "1px solid var(--border-primary)";
+  header.style.background = "var(--surface-container)";
   header.style.borderRadius = "var(--radius-lg)";
   header.style.marginBottom = "15px";
   header.style.fontWeight = "600";
@@ -27,9 +26,6 @@ export function updateGroupHeader(header, options) {
   header.classList.toggle("active", isActive);
   if (isActive) {
     header.style.background = "var(--group-header-active-bg, #ebf8ff)";
-    header.style.borderColor = "var(--group-header-active-border, #90cdf4)";
-  } else {
-    header.style.borderColor = "var(--border-primary)";
   }
   header.innerHTML = `
     <span class="material-symbols-outlined">${

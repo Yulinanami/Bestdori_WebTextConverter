@@ -1,20 +1,26 @@
 /* main.css - 主样式文件，导入所有模块 */
 
 /* 1. 主题变量和颜色 */
-@import url("theme/theme.css");
+@import url("theme/theme-base.css");
+@import url("theme/theme-dark-vars.css");
+@import url("theme/theme-dark-overrides.css");
 
 /* 2. 基础样式和重置 */
 @import url("base/base.css");
 
 /* 3. 布局样式 */
-@import url("layout/layout.css");
+@import url("layout/layout-structure.css");
+@import url("layout/layout-utilities.css");
 
 /* 4. 组件样式（已模块化） */
 @import url("components/buttons.css");
 @import url("components/avatars.css");
 @import url("components/forms.css");
-@import url("cards/cards.css");
-@import url("editors/editor-specific.css");
+@import url("cards/cards-base.css");
+@import url("cards/cards-config.css");
+@import url("editors/editor-common.css");
+@import url("editors/editor-expression.css");
+@import url("editors/editor-assignments.css");
 
 /* 5. 模态框样式 */
 @import url("components/modals.css");
@@ -27,4 +33,8 @@
 @import url("base/animations.css");
 
 /* 8. 响应式设计 */
-@import url("layout/responsive.css");
+@import url("layout/responsive/responsive-utilities.css");
+@import url("layout/responsive/responsive-tablet.css");
+@import url("layout/responsive/responsive-mobile.css");
+@import url("layout/responsive/responsive-small.css");
+@import url("layout/responsive/responsive-print.css");

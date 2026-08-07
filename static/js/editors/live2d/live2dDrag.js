@@ -41,9 +41,6 @@ export function attachLive2DDrag(editor) {
         );
       }
 
-      // 时间线重排统一走 DragHelper 里的默认结束处理
-      const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
-
       // 创建新增卡片处理
       const onAddHandler = DragHelper.createOnAddHandler({
         editor,
@@ -74,15 +71,7 @@ export function attachLive2DDrag(editor) {
             timeline,
             DragHelper.createSortableConfig({
               group: "live2d-shared",
-              // 结束拖拽时先判断是否真的落进时间线
-              onEnd: (sortableEvent) => {
-                DragHelper.stopDocumentAutoScroll(editor);
-                if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
-                  editor.applyGroupReorder("state");
-                  return;
-                }
-                onEndHandler(sortableEvent);
-              },
+              onEnd: DragHelper.createEditorOnEndHandler(editor, timeline),
               onAdd: onAddHandler,
               extraConfig: {
                 sort: true,

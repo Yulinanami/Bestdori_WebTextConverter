@@ -6,7 +6,6 @@ class ModalService {
     // 初始化：记录已打开的弹窗，并防止重复初始化
     this.openModals = new Set();
     this.initialized = false;
-    this.specialHandlers = {}; // 某些弹窗的自定义关闭方式
   }
 
   // 只绑定一次弹窗事件
@@ -68,27 +67,13 @@ class ModalService {
   }
 
   // 弹出“确认/取消”的对话框（返回 Promise<boolean>）
-  async confirm(message, _options = {}) {
-    // 等用户点确定或取消
-    return new Promise((resolve) => resolve(window.confirm(message)));
-  }
-
-  // 弹出“只有一个确定按钮”的提示框（返回 Promise<void>）
-  async alert(message, _options = {}) {
-    // 等用户关掉提示框
-    return new Promise((resolve) => {
-      // 先直接用浏览器自带提示框
-      window.alert(message);
-      resolve();
-    });
+  async confirm(message) {
+    return window.confirm(message);
   }
 
   // 弹出“输入框”对话框（返回用户输入的字符串或 null）
   async prompt(message, defaultValue = "") {
-    // 等用户输完内容
-    return new Promise((resolve) =>
-      resolve(window.prompt(message, defaultValue)),
-    );
+    return window.prompt(message, defaultValue);
   }
 
   // 给关闭按钮绑上弹窗关闭事件

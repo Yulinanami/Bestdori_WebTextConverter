@@ -36,11 +36,7 @@
   border-radius: var(--radius-full);
   cursor: grab;
   margin-bottom: 8px;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-  border: 1px solid transparent;
+  transition: background-color var(--transition-fast);
 }
 
 .character-item:hover {
@@ -48,7 +44,6 @@
 }
 
 .character-item.is-used {
-  border-color: var(--color-success-border);
   background-color: var(--color-success-bg);
 }
 
@@ -63,14 +58,12 @@
 /* 对话项选中状态 */
 .dialogue-item.is-selected .dialogue-text {
   background-color: var(--color-selected-bg);
-  border-color: var(--color-selected-border);
   box-shadow: none;
 }
 
 /* 旁白选中状态 */
 .dialogue-item.narrator.is-selected .dialogue-text {
   background-color: var(--color-selected-bg);
-  border-color: var(--color-selected-border);
 }
 
 /* 时间轴项目 */
@@ -79,8 +72,7 @@
   border-radius: var(--radius-lg);
   margin-bottom: 12px;
   position: relative;
-  border: 1px solid var(--border-secondary);
-  background: var(--surface-container-low);
+  background: var(--surface-container);
   content-visibility: auto;
   contain-intrinsic-size: 96px;
 }
@@ -113,7 +105,7 @@
 .talk-item {
   display: flex;
   align-items: center;
-  background-color: var(--surface-container-low);
+  background-color: var(--surface-container);
   opacity: 1;
 }
 
@@ -146,20 +138,20 @@
 
 /* 布局卡片样式 */
 .layout-item {
-  background-color: var(--surface-container-low);
+  background-color: var(--surface-container);
   box-shadow: none;
 }
 
 .layout-item[data-layout-type="appear"] {
-  border-color: var(--color-success-border);
+  background-color: var(--color-success-bg);
 }
 
 .layout-item[data-layout-type="move"] {
-  border-color: var(--color-warning-border);
+  background-color: var(--color-warning-bg);
 }
 
 .layout-item[data-layout-type="hide"] {
-  border-color: var(--color-error-border);
+  background-color: var(--color-error-bg);
 }
 
 .layout-card-header {
@@ -194,9 +186,10 @@
     visibility var(--transition-fast);
 }
 
-/* 布局卡 hover 时整排按钮出现 展开时只保留编辑按钮常显 */
+/* 布局卡 hover 时整排按钮出现，展开时只保留编辑按钮常显 */
 .layout-item:hover .card-action-buttons,
-.layout-item .card-action-buttons.card-action-buttons-open {
+.layout-item .card-action-buttons.card-action-buttons-open,
+.layout-item:hover .card-action-buttons .layout-remove-btn {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -210,12 +203,6 @@
   transition:
     opacity var(--transition-fast),
     visibility var(--transition-fast);
-}
-
-.layout-item:hover .card-action-buttons .layout-remove-btn {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
 }
 
 .layout-item .card-action-buttons.card-action-buttons-open .toggle-position-btn,
@@ -278,7 +265,6 @@
   width: 100%;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border-secondary);
   display: flex;
   flex-direction: column;
   gap: 12px;

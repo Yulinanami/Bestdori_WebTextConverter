@@ -100,6 +100,7 @@ export const quoteView = {
     label.style.cursor = "pointer";
     label.style.flex = "1";
 
+    wrapper.append(checkbox, label);
     if (checkboxId.includes("custom")) {
       const deleteButton = DOMUtils.createElement("button", {
         className: "btn-icon-action btn-icon-danger delete-quote-btn",
@@ -114,12 +115,7 @@ export const quoteView = {
         "delete"
       );
       deleteButton.appendChild(icon);
-      wrapper.appendChild(checkbox);
-      wrapper.appendChild(label);
       wrapper.appendChild(deleteButton);
-    } else {
-      wrapper.appendChild(checkbox);
-      wrapper.appendChild(label);
     }
 
     return wrapper;

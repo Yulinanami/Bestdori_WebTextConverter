@@ -1,5 +1,4 @@
 // 位置渲染界面管理（拆分自原位置配置管理器）
-import { DOMUtils } from "@utils/DOMUtils.js";
 import { modalService } from "@services/ModalService.js";
 import { ui } from "@utils/uiUtils.js";
 import { FileUtils } from "@utils/FileUtils.js";
@@ -122,8 +121,7 @@ export const positionView = {
       );
     });
 
-    DOMUtils.clearElement(positionList);
-    positionList.appendChild(fragment);
+    positionList.replaceChildren(fragment);
   },
 
   // 创建单行位置选项的 DOM 元素
@@ -133,88 +131,31 @@ export const positionView = {
     currentPosition,
     currentOffset,
   ) {
-    const positionItem = DOMUtils.createElement("div", {
-      class: "position-config-item",
-    });
+    const positionItem = document
+      .getElementById("position-item-template")
+      .content.firstElementChild.cloneNode(true);
+    const avatar = positionItem.querySelector(".config-avatar");
+    avatar.dataset.id = primaryId;
+    renderAvatar(avatar, primaryId, characterName);
+    positionItem.querySelector(".position-character-name").textContent =
+      `${characterName} (ID: ${primaryId})`;
 
-    const infoDiv = DOMUtils.createElement("div", {
-      class: "position-character-info",
-    });
-    const avatarWrapper = DOMUtils.createElement("div", {
-      class: "config-avatar-wrapper",
-    });
-    const avatarDiv = DOMUtils.createElement("div", {
-      class: "config-avatar",
-      "data-id": primaryId,
-    });
-    renderAvatar(avatarDiv, primaryId, characterName);
-    avatarWrapper.appendChild(avatarDiv);
-    infoDiv.appendChild(avatarWrapper);
-
-    const nameSpan = DOMUtils.createElement("span", {
-      class: "position-character-name",
-    });
-    nameSpan.textContent = `${characterName} (ID: ${primaryId})`;
-    infoDiv.appendChild(nameSpan);
-
-    const controlsDiv = DOMUtils.createElement("div", {
-      class: "position-controls",
-    });
-    const positionSelectWrap = DOMUtils.createElement("div", {
-      class: "select-with-icon",
-    });
-    const positionSelect = DOMUtils.createElement("select", {
-      class: "form-input position-select",
-      "data-character": characterName,
-    });
+    const positionSelect = positionItem.querySelector(".position-select");
+    positionSelect.dataset.character = characterName;
     Object.entries(this.positionNames).forEach(([value, name]) => {
-      const option = DOMUtils.createElement("option", { value });
+      const option = document.createElement("option");
+      option.value = value;
       option.textContent = name;
-      if (value === currentPosition) {
-        option.selected = true;
-      }
+      option.selected = value === currentPosition;
       positionSelect.appendChild(option);
     });
-    const positionSelectIcon = DOMUtils.createElement("span", {
-      class: "material-symbols-outlined",
-      "aria-hidden": "true",
-    });
-    DOMUtils.appendChildren(positionSelectWrap, [
-      positionSelect,
-      positionSelectIcon,
-    ]);
-    controlsDiv.appendChild(positionSelectWrap);
 
-    const offsetGroup = DOMUtils.createElement("div", {
-      class: "position-offset-group",
-    });
-    const offsetLabel = DOMUtils.createElement("label", {
-      class: "position-offset-label",
-      for: `offset-${characterName}`,
-    });
-    offsetLabel.textContent = "偏移:";
-    const offsetInput = DOMUtils.createElement("input", {
-      type: "number",
-      id: `offset-${characterName}`,
-      class: "form-input position-offset-input",
-      "data-character": characterName,
-      value: currentOffset,
-      step: "10",
-      placeholder: "0",
-      title: "设置水平偏移量，正值向右，负值向左",
-    });
-    const offsetHint = DOMUtils.createElement("span", {
-      class: "position-offset-hint",
-    });
-    offsetHint.textContent = "px";
-    DOMUtils.appendChildren(offsetGroup, [
-      offsetLabel,
-      offsetInput,
-      offsetHint,
-    ]);
-    controlsDiv.appendChild(offsetGroup);
-
-    DOMUtils.appendChildren(positionItem, [infoDiv, controlsDiv]);
+    const offsetInput = positionItem.querySelector(".position-offset-input");
+    offsetInput.id = `offset-${characterName}`;
+    offsetInput.dataset.character = characterName;
+    offsetInput.value = currentOffset;
+    positionItem.querySelector(".position-offset-label").htmlFor =
+      offsetInput.id;
     return positionItem;
   },
 

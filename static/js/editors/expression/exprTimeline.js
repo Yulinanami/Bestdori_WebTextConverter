@@ -1,31 +1,14 @@
 // 动作表情时间线显示
-import { state } from "@managers/stateManager.js";
 import { buildTimelineCards } from "@utils/TimelineCardFactory.js";
 import { attachGroupedActionRenderer } from "@editors/common/editorCore.js";
 import { assignUI } from "@editors/expression/exprAssignRenderer.js";
-let resetExprTimelineCache = () => {};
-
-// 清空时间线缓存
-export function clearExprCache() {
-  resetExprTimelineCache();
-}
 
 // 建动作表情卡片方法
 function buildRenderers(editor) {
-  const templates =
-    editor.domCache.templates ||
-    (editor.domCache.templates = {
-      talk: document.getElementById("timeline-talk-card-template"),
-      layout: document.getElementById("timeline-layout-card-template"),
-    });
-  const configEntries = state.currentConfig || {};
   // 渲染布局卡片里的设置区
   const renderLayoutControls = editor.createLayoutControlsRenderer(false);
 
   return buildTimelineCards(editor, {
-    templates,
-    configEntries,
-    talkTemplateId: "text-snippet-card-template",
     renderLayoutControls,
     afterRenderCard: (cardElement, action) => {
       assignUI.renderCardFooter(editor, cardElement, { action });
@@ -41,10 +24,6 @@ export function renderExprCard(editor, action, globalIndex = -1) {
   return buildRenderers(editor).renderSingleCard(action, globalIndex);
 }
 
-export function renderTimeline(editor) {
-  return editor?.renderTimeline?.();
-}
-
 export function attachExprTimeline(editor) {
   attachGroupedActionRenderer(editor, {
     containerKey: "timeline",
@@ -54,6 +33,4 @@ export function attachExprTimeline(editor) {
       return buildRenderers(this);
     },
   });
-
-  resetExprTimelineCache = () => editor.resetExprTimelineCache?.();
 }

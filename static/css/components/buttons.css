@@ -34,7 +34,8 @@
 }
 
 .btn-icon:focus-visible,
-.modal-close:focus-visible {
+.modal-close:focus-visible,
+.btn:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -157,11 +158,6 @@
 
 .btn:active:not(:disabled) {
   box-shadow: none;
-}
-
-.btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
 }
 
 .btn:disabled {

@@ -36,25 +36,14 @@
 .costume-config-item {
   margin-bottom: 0;
   background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 30px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-  box-shadow: none;
-}
-
-.costume-config-item:has(.costume-details.hidden) {
-  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
 }
 
 .costume-config-item:hover,
 .position-config-item:hover {
-  background: var(--surface-container);
-  border-color: var(--border-primary);
-  box-shadow: none;
+  background: var(--surface-container-high);
 }
 
 .costume-item-header {
@@ -67,13 +56,12 @@
 }
 
 .costume-details {
-  padding: 0 24px 24px;
-  border-top: 1px solid var(--border-primary);
+  padding: 20px 24px 24px;
+  background: var(--surface-container);
 }
 
 .costume-current {
   margin-bottom: var(--spacing-md);
-  padding-top: 20px;
 }
 
 .select-with-icon {
@@ -140,12 +128,11 @@
 }
 
 .costume-list-items {
-  background: var(--bg-primary);
+  background: var(--surface-container-high);
   border-radius: var(--radius-md);
   padding: var(--spacing-sm);
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid var(--border-secondary);
 }
 
 .costume-list-item {
@@ -186,13 +173,9 @@
   min-height: 92px;
   margin-bottom: 0;
   background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-full);
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-fast);
   gap: var(--spacing-md);
-  box-shadow: none;
 }
 
 .position-character-info {

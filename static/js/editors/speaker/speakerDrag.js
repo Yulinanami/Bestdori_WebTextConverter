@@ -72,6 +72,12 @@ export function attachSpeakerDrag(editor) {
       }
       editor.sortableInstances = [];
 
+      const onEndHandler = DragHelper.createEditorOnEndHandler(
+        editor,
+        canvas,
+        { onOutside: () => editor.actions.reattachSelection() },
+      );
+
       if (!editor.actions.isDragOptimized) {
         // 角色列表支持拖出
         editor.sortableInstances.push(
@@ -107,9 +113,6 @@ export function attachSpeakerDrag(editor) {
             },
           })
         );
-
-        // 画布重排统一走 DragHelper 里的默认结束处理
-        const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
 
         // 角色拖到卡片上时改说话人
         // 把拖进画布的角色卡片转成说话人变更
@@ -148,17 +151,7 @@ export function attachSpeakerDrag(editor) {
             canvas,
             DragHelper.createSortableConfig({
               group: "shared-speakers",
-              // 结束拖拽时先判断是否真的落进画布
-              onEnd: (sortableEvent) => {
-                DragHelper.stopDocumentAutoScroll(editor);
-                // 没落在画布里就回滚
-                if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
-                  editor.applyGroupReorder("state");
-                  editor.actions.reattachSelection();
-                  return;
-                }
-                onEndHandler(sortableEvent);
-              },
+              onEnd: onEndHandler,
               onAdd: onAddHandler,
               extraConfig: {
                 sort: true,
@@ -300,9 +293,6 @@ export function attachSpeakerDrag(editor) {
         });
       }
 
-      // 画布重排统一走 DragHelper 里的默认结束处理
-      const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
-
       if (!editor.actions.isDragOptimized) {
         // 非优化模式没有 canvas Sortable 额外实例需要在这里推入，因为都在分支顶端处理了
       } else {
@@ -315,18 +305,7 @@ export function attachSpeakerDrag(editor) {
                 pull: false, // 严禁卡片跨界移动，永不离开画布边界，彻底杜绝所有空缺塌陷和重排！
                 put: false,  // characterList onEnd 自行测距判断落地，这里不接手
               },
-              // 结束拖拽时先判断是否真的落进画布
-              onEnd: (sortableEvent) => {
-                DragHelper.stopDocumentAutoScroll(editor);
-
-                // 没落在任何有效区域内就回滚
-                if (!DragHelper.isDropInsideContainer(sortableEvent, canvas)) {
-                  editor.applyGroupReorder("state");
-                  editor.actions.reattachSelection();
-                  return;
-                }
-                onEndHandler(sortableEvent);
-              },
+              onEnd: onEndHandler,
               extraConfig: {
                 sort: true,
                 // 开始拖拽时开启自动滚动监听

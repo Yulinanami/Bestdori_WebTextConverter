@@ -1,6 +1,0 @@
-/* responsive.css - 聚合响应式设计子模块 */
-@import url("responsive/responsive-utilities.css");
-@import url("responsive/responsive-tablet.css");
-@import url("responsive/responsive-mobile.css");
-@import url("responsive/responsive-small.css");
-@import url("responsive/responsive-print.css");

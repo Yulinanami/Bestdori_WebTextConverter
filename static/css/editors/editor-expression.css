@@ -70,7 +70,6 @@
   flex-direction: column;
   height: 100%;
   background-color: var(--surface-container);
-  border: 1px solid var(--border-secondary);
   border-radius: var(--radius-lg);
   padding: 20px;
   min-height: 0;
@@ -112,7 +111,6 @@
   background-color: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 12px;
-  border: 1px solid var(--border-secondary);
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }

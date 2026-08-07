@@ -360,13 +360,7 @@ const layoutMethods = {
       }
     }
 
-    if (toggleButton) {
-      if (showToggleButton) {
-        toggleButton.classList.remove("hidden");
-      } else {
-        toggleButton.classList.add("hidden");
-      }
-    }
+    toggleButton?.classList.toggle("hidden", !showToggleButton);
   },
 };
 

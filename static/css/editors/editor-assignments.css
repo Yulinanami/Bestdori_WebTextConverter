@@ -95,8 +95,7 @@
 }
 
 .motion-assignment-item {
-  background: var(--surface-container-low);
-  border: 1px solid var(--border-secondary);
+  background: var(--surface-container-high);
   border-radius: var(--radius-lg);
   padding: 12px;
   position: relative;
@@ -158,9 +157,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-top: 8px;
+  padding: 8px;
   margin-top: 2px;
-  border-top: 1px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-container);
 }
 
 .assignment-delay label {
@@ -206,8 +206,7 @@
   min-height: 24px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: var(--surface-container);
-  border: 1px solid var(--border-secondary);
+  background: var(--surface-container-high);
   font-size: 0.78em;
   color: var(--text-primary);
   white-space: nowrap;
@@ -259,7 +258,6 @@
   margin-top: 5px;
   min-width: 150px;
   background-color: var(--bg-primary);
-  border: 1px solid var(--border-secondary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   z-index: 10;
@@ -304,9 +302,7 @@
 }
 
 .quick-fill-divider {
-  height: 1px;
-  background-color: var(--border-primary);
-  margin: 5px 0;
+  height: 8px;
 }
 
 .quick-fill-add-btn {

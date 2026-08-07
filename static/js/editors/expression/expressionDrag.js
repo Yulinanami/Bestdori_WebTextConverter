@@ -21,23 +21,12 @@ export function attachExpressionDrag(editor) {
       );
       if (existing) return;
 
-      // 时间线重排统一走 DragHelper 里的默认结束处理
-      const onEndHandler = DragHelper.createEditorOnEndHandler(editor, 50);
-
       editor.sortableInstances.push(
         new Sortable(
           timeline,
           DragHelper.createSortableConfig({
             group: "timeline-cards",
-            // 结束拖拽时先判断是否真的落进时间线
-            onEnd: (sortableEvent) => {
-              DragHelper.stopDocumentAutoScroll(editor);
-              if (!DragHelper.isDropInsideContainer(sortableEvent, timeline)) {
-                editor.applyGroupReorder("state");
-                return;
-              }
-              onEndHandler(sortableEvent);
-            },
+            onEnd: DragHelper.createEditorOnEndHandler(editor, timeline),
             extraConfig: {
               sort: true,
               // 开始拖拽时开启自动滚动监听

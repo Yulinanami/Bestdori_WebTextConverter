@@ -2,47 +2,37 @@
 class ApiService {
   // 创建接口工具
   constructor() {
-    // 先保存超时和默认请求头
-    this.timeout = 30000;
-    this.defaultHeaders = {
-      "Content-Type": "application/json",
-    };
+    this.client = axios.create({ timeout: 30000 });
+  }
+
+  // 统一发送请求并整理错误
+  async _request(method, url, data, config = {}) {
+    try {
+      const response = await this.client.request({
+        ...config,
+        method,
+        url,
+        data,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = this._handleError(error);
+      console.error(
+        `[ApiService] ${method.toUpperCase()} ${url} 失败:`,
+        errorMessage,
+      );
+      throw new Error(errorMessage);
+    }
   }
 
   // 请求 JSON 接口
-  async fetchJson(url, config = {}) {
-    try {
-      const response = await axios.get(url, {
-        timeout: this.timeout,
-        ...config,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMessage = this._handleError(error);
-      console.error(`[ApiService] GET ${url} 失败:`, errorMessage);
-      throw new Error(errorMessage);
-    }
+  fetchJson(url, config = {}) {
+    return this._request("get", url, undefined, config);
   }
 
   // 发 POST 请求
-  async post(url, data = {}, config = {}) {
-    const isFormData = data instanceof FormData;
-    // FormData 交给浏览器自己带 boundary
-    const requestHeaders = isFormData ? {} : this.defaultHeaders;
-
-    try {
-      const response = await axios.post(url, data, {
-        timeout: this.timeout,
-        // 合并请求头
-        headers: { ...requestHeaders, ...config.headers },
-        ...config,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMessage = this._handleError(error);
-      console.error(`[ApiService] POST ${url} 失败:`, errorMessage);
-      throw new Error(errorMessage);
-    }
+  post(url, data = {}, config = {}) {
+    return this._request("post", url, data, config);
   }
 
   // 把单文件上传统一收在这一层，避免每个接口都重复拼 FormData
@@ -105,22 +95,12 @@ class ApiService {
   }
 
   // 下载结果文件
-  async downloadResult(content, filename) {
-    try {
-      const response = await axios.post(
-        "/api/download",
-        { content, filename },
-        {
-          responseType: "blob",
-          timeout: this.timeout,
-        },
-      );
-      return response.data;
-    } catch (error) {
-      const errorMessage = this._handleError(error);
-      console.error("[ApiService] 下载失败:", errorMessage);
-      throw new Error(errorMessage);
-    }
+  downloadResult(content, filename) {
+    return this.post(
+      "/api/download",
+      { content, filename },
+      { responseType: "blob" },
+    );
   }
 
   // 让后端关闭服务

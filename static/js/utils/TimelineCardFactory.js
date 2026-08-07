@@ -1,5 +1,6 @@
 // 创建时间线卡片
 import { configManager } from "@managers/configManager.js";
+import { state } from "@managers/stateManager.js";
 import { DOMUtils } from "@utils/DOMUtils.js";
 import { renderAvatar } from "@utils/avatarUtils.js";
 import { DataUtils } from "@utils/DataUtils.js";
@@ -11,6 +12,24 @@ export function buildNameMap(configEntries = {}) {
       ids.map((id) => [id, name]),
     ),
   );
+}
+
+// 统一准备时间线渲染所需的模板、角色映射和缓存签名
+export function getTimelineContext(
+  editor,
+  talkTemplateId = "timeline-talk-card-template",
+) {
+  const configEntries = state.currentConfig || {};
+  return {
+    templates:
+      editor.domCache.templates ||
+      (editor.domCache.templates = {
+        talk: document.getElementById(talkTemplateId),
+        layout: document.getElementById("timeline-layout-card-template"),
+      }),
+    characterNameMap: buildNameMap(configEntries),
+    contextSignature: DataUtils.shallowSignature(configEntries),
+  };
 }
 
 // 刷新卡片序号
@@ -204,24 +223,20 @@ export function createLayoutCard(
 export function buildTimelineCards(
   editor,
   {
-    templates,
-    configEntries = {},
-    talkTemplateId = "timeline-talk-card-template",
-    layoutTemplateId = "timeline-layout-card-template",
     renderLayoutControls,
     afterRenderCard,
     afterUpdateCard,
   } = {},
 ) {
-  const characterNameMap = buildNameMap(configEntries);
+  const { templates, characterNameMap, contextSignature } =
+    getTimelineContext(editor);
 
   const renderSingleCard = (action, globalIndex = -1) => {
     let cardElement;
 
     if (action.type === "talk") {
       cardElement = createTalkCard(action, {
-        template: templates?.talk,
-        templateId: templates?.talk?.id || talkTemplateId,
+        template: templates.talk,
       });
     } else if (action.type === "layout") {
       const resolvedName =
@@ -229,8 +244,7 @@ export function buildTimelineCards(
       cardElement = createLayoutCard(
         { ...action, characterName: resolvedName },
         {
-          template: templates?.layout,
-          templateId: templates?.layout?.id || layoutTemplateId,
+          template: templates.layout,
           renderLayoutControls,
         },
       );
@@ -276,6 +290,6 @@ export function buildTimelineCards(
     renderSingleCard,
     updateCard,
     characterNameMap,
-    contextSignature: DataUtils.shallowSignature(configEntries),
+    contextSignature,
   };
 }

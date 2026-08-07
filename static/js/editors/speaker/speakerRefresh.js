@@ -302,19 +302,24 @@ export function attachSpeakerRefresh(editor) {
       );
 
       if (shouldGroup) {
+        const totalGroups = Math.ceil(actions.length / groupSize);
+
+        if (pendingPatch.type === "add") {
+          const insertIndex = this.findActionIndexById(
+            pendingPatch.actionId,
+            actions,
+          );
+          this.activeGroupIndex =
+            insertIndex >= 0 ? Math.floor(insertIndex / groupSize) : 0;
+        } else if (
+          this.activeGroupIndex === null ||
+          this.activeGroupIndex >= totalGroups
+        ) {
+          this.activeGroupIndex = totalGroups - 1;
+        }
+
         // 卡片数量跨过分组阈值时 直接切回整组渲染
-        // 跨分组阈值时切到目标组
         if (!hasGroupHeader) {
-          if (pendingPatch.type === "add") {
-            const insertIndex = this.findActionIndexById(
-              pendingPatch.actionId,
-              actions,
-            );
-            this.activeGroupIndex =
-              insertIndex >= 0 ? Math.floor(insertIndex / groupSize) : 0;
-          } else if (this.activeGroupIndex === null) {
-            this.activeGroupIndex = 0;
-          }
           this.renderViewAndList(() => this.renderCanvas());
           return true;
         }

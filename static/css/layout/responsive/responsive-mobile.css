@@ -10,7 +10,19 @@
   }
 
   .app-logo h1 {
-    font-size: var(--text-lg); /* 缩小标题以在一行显示 */
+    width: 70px;
+    font-size: var(--text-sm);
+    line-height: 1.25;
+  }
+
+  .app-logo h1 span {
+    display: block;
+  }
+
+  .app-logo .btn-icon {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
   }
 
   /* 侧边栏响应式处理 */
@@ -71,7 +83,6 @@
     height: 50vh; /* 画布占一半屏幕 */
     min-height: 300px;
     padding-right: 0;
-    border-bottom: 1px solid var(--border-primary);
   }
 
   .editor-sidebar {
@@ -79,10 +90,8 @@
     height: auto;
     max-height: 350px; /* 固定高度以支持内部滚动 */
     overflow-y: auto; /* 允许角色列表内部滚动 */
-    border-left: none;
     padding-left: 0;
     padding-top: 15px;
-    border-top: 1px solid var(--border-primary); /* 添加上边框区分 */
   }
 
   /* Live2D 编辑器特殊处理 (时间线需要更多空间) */

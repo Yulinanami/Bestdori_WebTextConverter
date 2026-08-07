@@ -12,17 +12,14 @@
 .merger-file-item {
   display: flex;
   align-items: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface-container);
   border-radius: var(--radius-md);
   padding: 10px 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .merger-file-item:hover {
-  border-color: var(--primary-light);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  background: var(--surface-container-high);
 }
 
 .merger-file-drag-handle {
@@ -56,7 +53,7 @@
 .merger-file-count {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  background: var(--bg-hover);
+  background: var(--surface-container-high);
   padding: 2px 8px;
   border-radius: 12px;
 }
@@ -64,6 +61,5 @@
 /* 拖拽排序占位符 */
 .sortable-ghost {
   opacity: 0.4;
-  background-color: var(--bg-hover);
-  border: 1px dashed var(--primary-color);
+  background-color: var(--color-primary-light);
 }

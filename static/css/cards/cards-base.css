@@ -2,25 +2,13 @@
 
 /* 通用卡片样式 */
 .card {
-  background: var(--surface-container-low);
-  border: 1px solid var(--border-secondary);
-  border-radius: var(--radius-lg);
-  box-shadow: none;
+  background: var(--bg-primary);
+  border-radius: 4px;
   overflow: hidden;
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
-}
-
-.card:hover {
-  border-color: var(--border-primary);
-  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-primary);
+  padding: 22px 24px 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -35,73 +23,39 @@
 }
 
 .card-body {
-  padding: 24px;
+  padding: 16px 24px 24px;
 }
 
 .workspace-step .step-content:has(> .card) {
   gap: 4px;
 }
 
-.workspace-step .step-content > .card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 10px;
-  box-shadow: none;
-}
-
-.workspace-step .step-content > .card:hover {
-  background: var(--bg-primary);
-  border-color: var(--border-primary);
-  box-shadow: none;
-}
-
 .workspace-step .step-content > .card:nth-child(1 of .card:not(.hidden)),
 .stacked-option-row:first-child {
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
 }
 
 .workspace-step .step-content > .card:nth-last-child(1 of .card:not(.hidden)),
 .stacked-option-row:last-child {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border-bottom-left-radius: 30px;
-  border-bottom-right-radius: 30px;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
 }
 
 .workspace-step
   .step-content
   > .card:nth-child(1 of .card:not(.hidden)):nth-last-child(1 of .card:not(.hidden)) {
-  border-radius: 30px;
+  border-radius: var(--radius-lg);
 }
 
 .workspace-step .step-content > .card.mt-20 {
   margin-top: 0;
 }
 
-.stacked-option-highlight {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 22px 24px;
-  box-shadow: none;
-}
-
 .stacked-option-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
-  box-shadow: none;
 }
 
 .stacked-option-row {
@@ -112,17 +66,12 @@
   padding: 20px 24px;
   min-height: 96px;
   background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 10px;
-  box-shadow: none;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast);
+  border-radius: 4px;
+  transition: background-color var(--transition-fast);
 }
 
 .stacked-option-row:hover {
   background: var(--surface-container);
-  border-color: var(--border-primary);
 }
 
 .stacked-option-copy {
@@ -148,14 +97,6 @@
   flex-shrink: 0;
 }
 
-.stacked-option-action-toggle .auto-preview-label {
-  min-height: 52px;
-  padding: 10px 14px 10px 10px;
-  border: 1px solid var(--border-secondary);
-  border-radius: 18px;
-  background: var(--bg-primary);
-}
-
 .stacked-option-btn {
   min-width: 72px;
   min-height: 36px;
@@ -170,8 +111,6 @@
 .stacked-option-btn:hover:not(:disabled),
 .config-item:hover {
   background: var(--surface-container);
-  border-color: var(--border-primary);
-  box-shadow: none;
 }
 
 .stacked-option-btn::before {
@@ -179,7 +118,6 @@
 }
 
 @media (max-width: 900px) {
-  .stacked-option-highlight,
   .stacked-option-row {
     flex-direction: column;
     align-items: flex-start;
@@ -206,13 +144,8 @@
   padding: 20px 24px;
   min-height: 92px;
   background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-full);
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-  box-shadow: none;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-fast);
 }
 
 /* 输入框调整 */
@@ -230,14 +163,11 @@
 .config-column {
   padding: 20px;
   background-color: var(--surface-container);
-  border: 1px solid var(--border-secondary);
   border-radius: var(--radius-lg);
 }
 
 .config-column-title {
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--border-primary);
-  padding-bottom: 12px;
   font-size: var(--text-base);
   font-weight: 500;
 }
@@ -249,7 +179,6 @@
   background-color: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 10px;
-  border: 1px solid var(--border-secondary);
 }
 
 .config-list-item {
@@ -299,15 +228,14 @@
 .result-content {
   max-height: 500px;
   overflow: auto;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-secondary);
+  background: var(--surface-container);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   width: 100%;
 }
 
-.result-content pre {
-  margin: 0;
+.result-content pre,
+.result-content pre code {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -316,14 +244,12 @@
   max-width: 100%;
 }
 
+.result-content pre {
+  margin: 0;
+}
+
 .result-content pre code {
   display: block;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-all;
-  width: 100%;
-  max-width: 100%;
 }
 
 /* 为转换结果卡片的 card-body 添加宽度限制 */

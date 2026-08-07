@@ -185,13 +185,24 @@ export const DragHelper = {
     });
   },
 
-  // 为编辑器生成默认的拖拽结束处理，内部直接复用通用重排逻辑
-  createEditorOnEndHandler(editor, groupSize = 50) {
-    return DragHelper.createOnEndHandler({
+  // 为编辑器生成默认的拖拽结束处理
+  createEditorOnEndHandler(editor, container, options = {}) {
+    const { groupSize = 50, onOutside } = options;
+    const reorder = DragHelper.createOnEndHandler({
       editor,
       groupSize,
       executeFn: DragHelper.createEditorReorderHandler(editor),
     });
+
+    return (sortableEvent) => {
+      DragHelper.stopDocumentAutoScroll(editor);
+      if (!DragHelper.isDropInsideContainer(sortableEvent, container)) {
+        editor.applyGroupReorder("state");
+        onOutside?.();
+        return;
+      }
+      reorder(sortableEvent);
+    };
   },
 
   // 分组拖拽后刷新当前组序号

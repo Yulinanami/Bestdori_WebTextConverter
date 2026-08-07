@@ -1,8 +1,7 @@
 // 动作表情编辑器入口
 import { BaseEditor } from "@utils/BaseEditor.js";
 import { ui } from "@utils/uiUtils.js";
-import { attachEditorCore } from "@editors/common/editorCore.js";
-import { rerenderOnGroupToggle } from "@editors/common/editorCore.js";
+import { attachEditorCore, rerenderOnGroupToggle } from "@editors/common/editorCore.js";
 import { attachGroupReorder } from "@editors/common/groupedReorder.js";
 import { attachLayoutUI } from "@editors/common/layoutProperties.js";
 import { attachLayoutRefresh } from "@editors/common/layoutRefresh.js";
@@ -13,7 +12,7 @@ import { summarizeChanges } from "@editors/common/changeSummaryUtils.js";
 import { attachExpressionDrag } from "@editors/expression/expressionDrag.js";
 import { attachExprRefresh } from "@editors/expression/exprRefresh.js";
 import { createExpressionBehavior } from "@editors/expression/expressionBehavior.js";
-import { attachExprTimeline, clearExprCache, renderExprCard, renderTimeline } from "@editors/expression/exprTimeline.js";
+import { attachExprTimeline, renderExprCard } from "@editors/expression/exprTimeline.js";
 import { expressionEditorView } from "@views/expressionEditorView.js";
 
 // 创建动作表情编辑器基础对象
@@ -100,8 +99,8 @@ export const expressionEditor = {
         // 这次刷新后取消强制整页刷新标记
         this.forceFullRenderOnce = false;
         ui.showStatus("已恢复默认表情动作。", "success");
-        clearExprCache();
-        renderTimeline(this);
+        this.resetExprTimelineCache?.();
+        this.renderTimeline?.();
       },
       "恢复中..."
     );
@@ -124,7 +123,7 @@ export const expressionEditor = {
         );
         expressionEditorView.clearSearchInputs();
 
-        renderTimeline(expressionEditor);
+        expressionEditor.renderTimeline?.();
         expressionEditor.actions.bindTimelineEvents();
         expressionEditor.initTimelineDrag();
         expressionEditor.actions.renderLibraries();
@@ -140,8 +139,8 @@ export const expressionEditor = {
       forceFullRenderOnce: false,
       activeExpressionCardId: null,
     });
-    clearExprCache();
-    renderTimeline(this);
+    this.resetExprTimelineCache?.();
+    this.renderTimeline?.();
     this.initTimelineDrag();
     this.actions.renderLibraries();
     expressionEditorView.focusModal();
@@ -153,7 +152,7 @@ export const expressionEditor = {
       pendingCardRenders: () => new Map(),
       activeExpressionCardId: null,
     });
-    clearExprCache();
+    this.resetExprTimelineCache?.();
   },
 
 };
@@ -170,7 +169,7 @@ attachLayoutRefresh(expressionEditor, {
   // 切换分组后重新渲染并滚到组头
   onGroupToggle: (groupIndex, isOpening) => {
     rerenderOnGroupToggle(expressionEditor, groupIndex, isOpening, {
-      renderView: () => renderTimeline(expressionEditor),
+      renderView: expressionEditor.renderTimeline,
     });
   },
 });
@@ -245,7 +244,7 @@ attachGroupReorder(expressionEditor, {
     );
   },
   // 都没命中时重画整个时间线
-  onFullRender: () => renderTimeline(expressionEditor),
+  onFullRender: () => expressionEditor.renderTimeline?.(),
 });
 
 attachEditorCore(expressionEditor, baseEditor);
